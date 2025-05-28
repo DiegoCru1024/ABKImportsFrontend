@@ -1,158 +1,85 @@
-import * as React from "react"
+import * as React from "react";
 import {
-  AudioWaveform,
-  BookOpen,
-  Bot,
-  Command,
-  Frame,
-  GalleryVerticalEnd,
-  Map,
-  PieChart,
-  Settings2,
-  SquareTerminal,
-} from "lucide-react"
+  BookMarked,
 
-import { NavMain } from "@/components/nav-main"
-import { NavProjects } from "@/components/nav-projects"
-import { NavUser } from "@/components/nav-user"
-import { TeamSwitcher } from "@/components/team-switcher"
+  Calculator,
+  Handshake,
+  MapPinned,
+  PackageSearch,
+
+  SquareTerminal,
+} from "lucide-react";
+import { IoMdPricetags } from "react-icons/io";
+import { BsTools } from "react-icons/bs";
+import { NavMain } from "@/components/nav-main";
+import { NavUser } from "@/components/nav-user";
+import { TeamSwitcher } from "@/components/team-switcher";
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
   SidebarRail,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 
 // This is sample data.
 const data = {
   user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
+    name: "Usuario",
+    rol: "Admin",
+    avatar: "/user.png",
   },
   teams: [
     {
-      name: "Acme Inc",
-      logo: GalleryVerticalEnd,
-      plan: "Enterprise",
-    },
-    {
-      name: "Acme Corp.",
-      logo: AudioWaveform,
-      plan: "Startup",
-    },
-    {
-      name: "Evil Corp.",
-      logo: Command,
+      name: "ABK Imports",
+      logo: "/abk-white.png",
       plan: "Free",
     },
   ],
   navMain: [
     {
-      title: "Playground",
+      title: "Dashboard",
       url: "#",
       icon: SquareTerminal,
       isActive: true,
-      items: [
-        {
-          title: "History",
-          url: "#",
-        },
-        {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Settings",
-          url: "#",
-        },
-      ],
     },
     {
-      title: "Models",
+      title: "Inspección de mercancias",
       url: "#",
-      icon: Bot,
-      items: [
-        {
-          title: "Genesis",
-          url: "#",
-        },
-        {
-          title: "Explorer",
-          url: "#",
-        },
-        {
-          title: "Quantum",
-          url: "#",
-        },
-      ],
+      icon: PackageSearch,
     },
     {
-      title: "Documentation",
+      title: "Tracking de mercancias",
       url: "#",
-      icon: BookOpen,
-      items: [
-        {
-          title: "Introduction",
-          url: "#",
-        },
-        {
-          title: "Get Started",
-          url: "#",
-        },
-        {
-          title: "Tutorials",
-          url: "#",
-        },
-        {
-          title: "Changelog",
-          url: "#",
-        },
-      ],
+      icon: MapPinned,
     },
     {
-      title: "Settings",
+      title: "Cotización de productos",
       url: "#",
-      icon: Settings2,
-      items: [
-        {
-          title: "General",
-          url: "#",
-        },
-        {
-          title: "Team",
-          url: "#",
-        },
-        {
-          title: "Billing",
-          url: "#",
-        },
-        {
-          title: "Limits",
-          url: "#",
-        },
-      ],
+      icon: IoMdPricetags ,
+    },
+    {
+      title: "Calculador de impuestos",
+      url: "#",
+      icon: Calculator ,
+    },
+    {
+      title: "Educación",
+      url: "#",
+      icon: BookMarked,
+    },
+    {
+      title: "Herramientas Logísticas",
+      url: "#",
+      icon: BsTools,
+    },
+    {
+      title: "Tarifas & Servicios",
+      url: "#",
+      icon: Handshake ,
     },
   ],
-  projects: [
-    {
-      name: "Design Engineering",
-      url: "#",
-      icon: Frame,
-    },
-    {
-      name: "Sales & Marketing",
-      url: "#",
-      icon: PieChart,
-    },
-    {
-      name: "Travel",
-      url: "#",
-      icon: Map,
-    },
-  ],
-}
+};
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
@@ -162,12 +89,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={data.user} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
-  )
+  );
 }

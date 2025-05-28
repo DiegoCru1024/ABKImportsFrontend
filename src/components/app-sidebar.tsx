@@ -1,12 +1,10 @@
 import * as React from "react";
 import {
   BookMarked,
-
   Calculator,
   Handshake,
   MapPinned,
   PackageSearch,
-
   SquareTerminal,
 } from "lucide-react";
 import { IoMdPricetags } from "react-icons/io";
@@ -21,28 +19,16 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar";
-
+import { DashboardSwitcher } from "./dashboard-switcher";
+import userAvatar from '../assets/userlogo.png'
 // This is sample data.
 const data = {
   user: {
     name: "Usuario",
     rol: "Admin",
-    avatar: "/user.png",
+    avatar: userAvatar,
   },
-  teams: [
-    {
-      name: "ABK Imports",
-      logo: "/abk-white.png",
-      plan: "Free",
-    },
-  ],
   navMain: [
-    {
-      title: "Dashboard",
-      url: "#",
-      icon: SquareTerminal,
-      isActive: true,
-    },
     {
       title: "Inspección de mercancias",
       url: "#",
@@ -56,12 +42,12 @@ const data = {
     {
       title: "Cotización de productos",
       url: "#",
-      icon: IoMdPricetags ,
+      icon: IoMdPricetags,
     },
     {
       title: "Calculador de impuestos",
       url: "#",
-      icon: Calculator ,
+      icon: Calculator,
     },
     {
       title: "Educación",
@@ -76,7 +62,16 @@ const data = {
     {
       title: "Tarifas & Servicios",
       url: "#",
-      icon: Handshake ,
+      icon: Handshake,
+    },
+  ],
+
+  dashboardSwitcher: [
+    {
+      title: "Dashboard",
+      url: "#",
+      icon: SquareTerminal,
+      isActive: true,
     },
   ],
 };
@@ -85,9 +80,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+        <TeamSwitcher  />
       </SidebarHeader>
       <SidebarContent>
+        <DashboardSwitcher items={data.dashboardSwitcher} />
         <NavMain items={data.navMain} />
       </SidebarContent>
       <SidebarFooter>

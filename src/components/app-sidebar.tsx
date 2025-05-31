@@ -31,37 +31,42 @@ const data = {
   navMain: [
     {
       title: "Inspección de mercancias",
-      url: "#",
+      url: "/inspeccion-de-mercancias",
       icon: PackageSearch,
     },
     {
       title: "Tracking de mercancias",
-      url: "#",
+      url: "/tracking-de-mercancias",
       icon: MapPinned,
     },
     {
       title: "Cotización de productos",
-      url: "#",
+      url: "/cotizacion-de-productos",
+      icon: IoMdPricetags,
+    },
+    {
+      title: "Mis cotizaciones",
+      url: "/mis-cotizaciones",
       icon: IoMdPricetags,
     },
     {
       title: "Calculador de impuestos",
-      url: "#",
+      url: "/calculador-de-impuestos",
       icon: Calculator,
     },
     {
       title: "Educación",
-      url: "#",
+      url: "/educacion",
       icon: BookMarked,
     },
     {
       title: "Herramientas Logísticas",
-      url: "#",
+      url: "/herramientas-logisticas",
       icon: BsTools,
     },
     {
       title: "Tarifas & Servicios",
-      url: "#",
+      url: "/tarifas-servicios",
       icon: Handshake,
     },
   ],

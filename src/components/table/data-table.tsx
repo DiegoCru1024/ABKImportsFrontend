@@ -31,12 +31,26 @@ import { DataTableToolbar } from "./data-table-toolbar"
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
+  toolbarOptions?: {
+    showSearch?: boolean
+    showViewOptions?: boolean
+  }
+  paginationOptions?: {
+    showSelectedCount?: boolean
+    showPagination?: boolean
+    showNavigation?: boolean
+  }
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  toolbarOptions,
+  paginationOptions,
 }: DataTableProps<TData, TValue>) {
+  const { showSearch = true, showViewOptions = true } = toolbarOptions || {}
+  const { showSelectedCount = true, showPagination = true, showNavigation = true } = paginationOptions || {}
+
   const [rowSelection, setRowSelection] = React.useState({})
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({})
@@ -74,7 +88,11 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="flex flex-col gap-4">
-      <DataTableToolbar table={table} />
+      <DataTableToolbar
+        table={table}
+        showSearch={showSearch}
+        showViewOptions={showViewOptions}
+      />
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -125,7 +143,12 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
-      <DataTablePagination table={table} />
+      <DataTablePagination
+        table={table}
+        showSelectedCount={showSelectedCount}
+        showPagination={showPagination}
+        showNavigation={showNavigation}
+      />
     </div>
   )
 }

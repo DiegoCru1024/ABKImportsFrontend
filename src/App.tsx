@@ -13,6 +13,7 @@ import Educacion from "./pages/Educacion";
 import Herramientas from "./pages/Herramientas";
 import Tarifas from "./pages/Tarifas";
 import Home from "./pages/Home";
+import GestionDeCotizacion from "./pages/GestionDeCotizacion";
 
 function App() {
   return (
@@ -20,7 +21,7 @@ function App() {
       <AppSidebar />
       <SidebarInset>
         <HeaderConBreadcrumb />
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+        <div className="flex flex-1 flex-col gap-4 px-0 pt-0">
           <Routes>
             <Route path="/inspeccion-de-mercancias" element={<Inspeccion />} />
             <Route path="/tracking-de-mercancias" element={<Tracking />} />
@@ -31,6 +32,7 @@ function App() {
             <Route path="/herramientas-logisticas" element={<Herramientas />} />
             <Route path="/tarifas-servicios" element={<Tarifas />} />
             <Route path="/" element={<Home />} />
+            <Route path="/gestion-de-cotizacion" element={<GestionDeCotizacion />} />
           </Routes>
         </div>
       </SidebarInset>

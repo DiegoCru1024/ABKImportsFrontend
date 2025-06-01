@@ -50,6 +50,11 @@ const data = {
       icon: IoMdPricetags,
     },
     {
+      title: "Gestión de cotización",
+      url: "/gestion-de-cotizacion",
+      icon: IoMdPricetags,
+    },
+    {
       title: "Calculador de impuestos",
       url: "/calculador-de-impuestos",
       icon: Calculator,

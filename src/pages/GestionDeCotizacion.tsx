@@ -6,6 +6,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import { FileText } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 
 interface Solicitud {
@@ -57,6 +60,13 @@ export default function GestionDeCotizaciones() {
     ],
   };
 
+  // Mapeo de colores para estado de respuesta
+  const estadoRespuestaColorMap: Record<ProductoItem['estadoRespuesta'], string> = {
+    'No respondido': 'bg-orange-400 text-white',
+    'Respondido': 'bg-green-500 text-white',
+    'Observado': 'bg-yellow-400 text-white',
+  };
+
   // Columnas para Solicitudes
   const colsSolicitudes: ColumnDef<Solicitud, any>[] = [
     { accessorKey: "id", header: "Id Solicitud" },
@@ -96,7 +106,11 @@ export default function GestionDeCotizaciones() {
     {
       accessorKey: "estadoRespuesta",
       header: "Estado",
-      cell: ({ row }) => <span>{row.original.estadoRespuesta}</span>,
+      cell: ({ row }) => {
+        const estado = row.original.estadoRespuesta;
+        const badgeClass = estadoRespuestaColorMap[estado] || 'bg-gray-200 text-gray-800';
+        return <Badge className={badgeClass}>{estado}</Badge>;
+      },
     },
     { accessorKey: "fecha", header: "Fecha" },
     {
@@ -135,45 +149,126 @@ export default function GestionDeCotizaciones() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
-      {/* Tabs Principales */}
-      <div className="flex space-x-4 border-b mb-6">
-        <button onClick={() => setMainTab("solicitudes")} className={`pb-2 ${mainTab === "solicitudes" ? "border-blue-500 text-blue-600" : "text-gray-600"}`}>Solicitudes</button>
-        <button onClick={() => selectedSolicitud && setMainTab("detalles")} disabled={!selectedSolicitud} className={`pb-2 ${mainTab === "detalles" ? "border-blue-500 text-blue-600" : "text-gray-400 cursor-not-allowed"}`}>Detalles de la cotización</button>
+    <div className="min-h-screen overflow-x-hidden bg-gray-100 border-t-2 border-b-2 border-gray-200">
+      {/* Barra de navegación superior */}
+      <div className="border-b-2 border-gray-100 px-4 py-4 bg-white ">
+        <div className="container flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 ">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-500 hover:bg-orange-600">
+                <FileText className="h-6 w-6 text-white" />
+              </div>
+              <h1 className="text-xl font-bold text-gray-900">Gestión de cotizaciones</h1>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {mainTab === "solicitudes" && (
-        <>
-          <p className="mb-4 text-gray-700">Aquí podrá ver todas las solicitudes de cotización recibidas.</p>
-          <DataTable
-            columns={colsSolicitudes}
-            data={solicitudes}
-            toolbarOptions={{ showSearch: true, showViewOptions: false }}
-            paginationOptions={{ showSelectedCount: true, showPagination: true, showNavigation: true }}
-          />
-        </>
-      )}
+      <div className="container mx-auto p-4">
+        <div className="overflow-hidden rounded-lg border bg-white shadow-sm">
+          {/* Tabs Principales */}
+          <div className="flex bg-white border-b border-gray-200">
+            <button
+              className={`flex items-center gap-2 px-6 py-4 text-sm font-medium transition-colors relative ${
+                mainTab === "solicitudes"
+                  ? "text-[#d7751f] bg-[#fdf9ef]"
+                  : "text-gray-600 hover:text-gray-800 hover:bg-[#fdf9ef]"
+              }`}
+              onClick={() => setMainTab("solicitudes")}
+            >
+              <FileText className="w-4 h-4" />
+              Solicitudes
+              {mainTab === "solicitudes" && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#d7751f]" />
+              )}
+            </button>
+            <button
+              className={`flex items-center gap-2 px-6 py-4 text-sm font-medium transition-colors relative ${
+                mainTab === "detalles"
+                  ? "text-[#d7751f] bg-[#fdf9ef]"
+                  : selectedSolicitud
+                  ? "text-gray-600 hover:text-gray-800 hover:bg-[#fdf9ef]"
+                  : "text-gray-400 cursor-not-allowed"
+              }`}
+              disabled={!selectedSolicitud}
+              onClick={() => selectedSolicitud && setMainTab("detalles")}
+            >
+              <FileText className="w-4 h-4" />
+              Detalles de la cotización
+              {mainTab === "detalles" && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#d7751f]" />
+              )}
+            </button>
+          </div>
 
-      {mainTab === "detalles" && selectedSolicitud && (
-        <>
-          <p className="mb-4 text-gray-700">Productos de la cotización <strong>{selectedSolicitud.id}</strong></p>
-          {/* Sub Tabs */}
-          <div className="flex space-x-4 border-b mb-4">
-            { ["Todos","No respondido","Respondido","Observado"].map(st => (
-              <button key={st} onClick={() => setSubTab(st as any)} className={`pb-2 ${subTab === st ? "border-green-500 text-green-600" : "text-gray-600"}`}>{st}</button>
-            )) }
-          </div>
-          <DataTable
-            columns={colsProductos}
-            data={filteredProductos}
-            toolbarOptions={{ showSearch: false, showViewOptions: false }}
-            paginationOptions={{ showSelectedCount: false, showPagination: false, showNavigation: false }}
-          />
-          <div className="flex justify-end mt-6">
-            <Button onClick={handleEnviarRespuestas}>Enviar Respuestas de la cotización</Button>
-          </div>
-        </>
-      )}
+          {mainTab === "solicitudes" && (
+            <div className="space-y-4 p-6">
+              <p className="text-black leading-relaxed">
+                Aquí podrá ver todas las solicitudes de cotización recibidas.
+              </p>
+              <DataTable
+                columns={colsSolicitudes}
+                data={solicitudes}
+                toolbarOptions={{ showSearch: true, showViewOptions: false }}
+                paginationOptions={{
+                  showSelectedCount: true,
+                  showPagination: true,
+                  showNavigation: true,
+                }}
+              />
+            </div>
+          )}
+
+          {mainTab === "detalles" && selectedSolicitud && (
+            <div className="space-y-4 p-6">
+              <p className="text-black leading-relaxed">
+                Productos de la cotización <strong>{selectedSolicitud.id}</strong>
+              </p>
+              {/* Sub Tabs */}
+              <div className="flex bg-white border-b border-gray-200">
+                {["Todos", "No respondido", "Respondido", "Observado"].map(
+                  (st) => (
+                    <button
+                      key={st}
+                      onClick={() => setSubTab(st as any)}
+                      className={`flex items-center gap-2 px-6 py-4 text-sm font-medium transition-colors relative ${
+                        subTab === st
+                          ? "text-[#d7751f] bg-[#fdf9ef]"
+                          : "text-gray-600 hover:text-gray-800 hover:bg-[#fdf9ef]"
+                      }`}
+                    >
+                      {st}
+                      {subTab === st && (
+                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#d7751f]" />
+                      )}
+                    </button>
+                  )
+                )}
+              </div>
+              <DataTable
+                columns={colsProductos}
+                data={filteredProductos}
+                toolbarOptions={{ showSearch: false, showViewOptions: false }}
+                paginationOptions={{
+                  showSelectedCount: false,
+                  showPagination: false,
+                  showNavigation: false,
+                }}
+              />
+              <div className="flex justify-end mt-6">
+                <ConfirmDialog
+                  trigger={<Button className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-full text-sm shadow-md flex items-center gap-2">Enviar respuestas</Button>}
+                  title="Confirmar envío de respuestas"
+                  description="¿Está seguro de enviar las respuestas de la cotización?"
+                  confirmText="Enviar"
+                  cancelText="Cancelar"
+                  onConfirm={handleEnviarRespuestas}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Dialog de Respuesta */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

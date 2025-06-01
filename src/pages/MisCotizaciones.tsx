@@ -1,6 +1,6 @@
 import {
   Calendar,
-  File,
+  DollarSign,
   FileText,
   Hash,
   IdCard,
@@ -10,15 +10,15 @@ import {
   Package,
   Palette,
   Ruler,
-  UserRound,
-  X,
+  UserRound
 } from "lucide-react";
 import { useState } from "react";
 import { DataTable } from "@/components/table/data-table";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent,CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 
 interface Cotizacion {
   id: string;
@@ -33,6 +33,15 @@ interface Producto {
   estado: string;
   fecha: string;
 }
+
+// Defino mapeo de colores para estados de cotización
+const estadoColorMap: Record<string, string> = {
+  Pendiente: 'bg-yellow-400 text-white',
+  Revisado: 'bg-green-500 text-white',
+  Completado: 'bg-green-500 text-white',
+  Observado: 'bg-yellow-400 text-white',
+  Cancelado: 'bg-red-500 text-white',
+};
 
 export default function MisCotizaciones() {
   const [tab, setTab] = useState<"mis" | "detalles" | "seguimiento">("mis");
@@ -78,7 +87,15 @@ export default function MisCotizaciones() {
   // Columnas Mis Cotizaciones
   const colsMis: ColumnDef<Cotizacion, any>[] = [
     { accessorKey: "id", header: "Id Solicitud" },
-    { accessorKey: "estado", header: "Estado" },
+    {
+      accessorKey: "estado",
+      header: "Estado",
+      cell: ({ row }) => {
+        const estado = row.original.estado;
+        const badgeClass = estadoColorMap[estado] || 'bg-gray-200 text-gray-800';
+        return <Badge className={badgeClass}>{estado}</Badge>;
+      },
+    },
     { accessorKey: "fecha", header: "Fecha" },
     {
       id: "acciones",
@@ -103,7 +120,19 @@ export default function MisCotizaciones() {
     { accessorKey: "nombre", header: "Producto" },
     { accessorKey: "cantidad", header: "Cantidad" },
     { accessorKey: "especificaciones", header: "Especificaciones" },
-    { accessorKey: "estado", header: "Estado" },
+    {
+      accessorKey: "estado",
+      header: "Estado",
+      cell: ({ row }) => {
+        const estado = row.original.estado;
+        const detalleColorMap: Record<string, string> = {
+          'En revisión': 'bg-yellow-400 text-white',
+          Respondido: 'bg-green-500 text-white',
+        };
+        const badgeClass = detalleColorMap[estado] || 'bg-gray-200 text-gray-800';
+        return <Badge className={badgeClass}>{estado}</Badge>;
+      },
+    },
     { accessorKey: "fecha", header: "Fecha" },
     {
       id: "verSeguimiento",
@@ -355,14 +384,13 @@ export default function MisCotizaciones() {
                       </div>
                     </div>
                   </div>
-
                 </CardContent>
               </Card>
 
               <Card>
                 <CardTitle className="px-4 py-3 border-b border-gray-200">
                   <h3 className="flex items-center font-semibold text-gray-900">
-                  <MessageCircleMore className="mr-2 h-6 w-6 text-orange-500" />
+                    <MessageCircleMore className="mr-2 h-6 w-6 text-orange-500" />
                     Detalle de respuesta
                   </h3>
                 </CardTitle>
@@ -371,33 +399,25 @@ export default function MisCotizaciones() {
                     <div className="space-y-4">
                       <div className="space-y-2">
                         <div className="flex items-center gap-2">
-                          <Package className="w-4 h-4 text-orange-500" />
+                          <DollarSign className="w-4 h-4 text-orange-500" />
                           <label className="text-sm font-medium text-gray-700">
-                            Nombre del Producto
+                            Precio Unitario
                           </label>
                         </div>
-                        <input
-                          name="nombre"
-                          value={selectedProducto.nombre}
-                          className="border-none outline-none"
-                          disabled
-                        />
+                        <p className="text-sm font-medium text-gray-700">
+                          $15.99
+                        </p>
                       </div>
 
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <div className="flex items-center gap-2">
-                            <Hash className="w-4 h-4 text-orange-500" />
+                            <Calendar className="w-4 h-4 text-orange-500" />
                             <label className="text-sm font-medium text-gray-700">
-                              Cantidad
+                              Tiempo de Entrega
                             </label>
                           </div>
-                          <input
-                            name="cantidad"
-                            type="number"
-                            value={selectedProducto.cantidad}
-                            disabled
-                          />
+                          <p className="font-medium">7-10 días hábiles</p>
                         </div>
 
                         <div className="space-y-2">
@@ -409,8 +429,7 @@ export default function MisCotizaciones() {
                           </div>
                           <input
                             name="tamano"
-                            type="number"
-                            value={1}
+                            type="string"
                             disabled
                           />
                         </div>
@@ -452,55 +471,31 @@ export default function MisCotizaciones() {
                             Comentario
                           </label>
                         </div>
-                        <Textarea name="comentario" value={"  "} disabled />
+                        <Textarea
+                          name="comentario"
+                          value=" Podemos entregar en 7 días hábiles. El logo será impreso en la parte frontal "
+                          disabled
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <MessageSquare className="w-4 h-4 text-orange-500" />
+                          <label className="text-sm font-medium text-gray-700">
+                            Recomendaciones
+                          </label>
+                        </div>
+                        <Textarea
+                          name="comentario"
+                          value="Recomendamos usar tela de algodón premium para mayor durabilidad. "
+                          disabled
+                        />
                       </div>
                     </div>
                   </div>
-
                 </CardContent>
               </Card>
 
-              <div className="grid grid-cols-2 gap-8">
-                <div className="space-y-4">
-                  <div>
-                    <p className="text-sm text-gray-500">Precio Unitario</p>
-                    <p className="font-medium">$15.99</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Precio Total</p>
-                    <p className="font-medium">$799.50</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Tiempo de Entrega</p>
-                    <p className="font-medium">7-10 días hábiles</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Descuento Aplicable</p>
-                    <p className="font-medium">5% por pago anticipado</p>
-                  </div>
-                </div>
-                <div className="space-y-4">
-                  <div>
-                    <p className="text-sm text-gray-500">Comentarios</p>
-                    <p>
-                      Podemos entregar en 7 días hábiles. El logo será impreso
-                      en la parte frontal.
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Recomendaciones</p>
-                    <p>
-                      Recomendamos usar tela de algodón premium para mayor
-                      durabilidad.
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Muestras</p>
-                    <p>Disponibles bajo solicitud</p>
-                  </div>
-                </div>
-              </div>
-              <div className="flex space-x-4 pt-6">
+              <div className="flex space-x-4 justify-end pt-6">
                 <Button
                   variant="outline"
                   onClick={() => window.open("https://wa.me/123456789")}

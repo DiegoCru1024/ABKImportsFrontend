@@ -20,12 +20,13 @@ import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/table/data-table";
 import { Textarea } from "@/components/ui/textarea";
 import type { ColumnDef } from "@tanstack/react-table";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 // Tipos para producto y formulario
 interface Producto {
   nombre: string;
   cantidad: number;
-  tamano: number;
+  tamano: string;
   color: string;
   url: string;
   comentario: string;
@@ -41,7 +42,7 @@ export default function Cotizacion() {
   const [form, setForm] = useState<FormProducto>({
     nombre: "",
     cantidad: 1,
-    tamano: 1,
+    tamano: "",
     color: "",
     url: "",
     comentario: "",
@@ -148,7 +149,7 @@ export default function Cotizacion() {
     setForm({
       nombre: "",
       cantidad: 1,
-      tamano: 1,
+      tamano: "",
       color: "",
       url: "",
       comentario: "",
@@ -260,8 +261,7 @@ export default function Cotizacion() {
                     </div>
                     <Input
                       name="tamano"
-                      type="number"
-                      min={1}
+                      type="string"
                       value={form.tamano}
                       onChange={handleInput}
                       required
@@ -422,12 +422,18 @@ export default function Cotizacion() {
 
           {/* Botón Enviar */}
           <div className="flex justify-end mt-8">
-            <Button
-              onClick={handleEnviar}
-              className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-2 rounded-full text-lg shadow-md flex items-center gap-2"
-            >
-              <Send className="w-5 h-5" /> Enviar
-            </Button>
+            <ConfirmDialog
+              trigger={
+                <Button className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-2 rounded-full text-lg shadow-md flex items-center gap-2">
+                  <Send className="w-5 h-5" /> Enviar
+                </Button>
+              }
+              title="Confirmar envío de cotización"
+              description="¿Está seguro de enviar la cotización?"
+              confirmText="Enviar"
+              cancelText="Cancelar"
+              onConfirm={handleEnviar}
+            />
           </div>
         </div>
       </div>

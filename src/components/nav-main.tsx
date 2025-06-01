@@ -1,7 +1,6 @@
 "use client";
 
 import { Link, useLocation } from "react-router-dom";
-import { Collapsible, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   SidebarGroup,
   SidebarGroupLabel,

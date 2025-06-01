@@ -6,6 +6,7 @@ import { type Table } from "@tanstack/react-table"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { DataTableViewOptions } from "@/components/table/data-table-view-options"
+import { Search } from "lucide-react"
 
 
 
@@ -27,14 +28,17 @@ export function DataTableToolbar<TData>({
     <div className="flex items-center justify-between">
       <div className="flex flex-1 items-center gap-2">
         {showSearch && (
-          <Input
-            placeholder="Filter tasks..."
+          <div className="flex items-center gap-2">
+            <Input
+              placeholder="Buscar"
             value={(table.getColumn("title")?.getFilterValue() as string) ?? ""}
             onChange={(event) =>
               table.getColumn("title")?.setFilterValue(event.target.value)
             }
             className="h-8 w-[150px] lg:w-[250px]"
           />
+            <Search className="w-4 h-4" />
+          </div>
         )}
       </div>
       <div className="flex items-center gap-2">

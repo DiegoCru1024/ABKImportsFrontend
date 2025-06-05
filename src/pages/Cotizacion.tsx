@@ -1,7 +1,6 @@
 import {
   FileText,
   Package,
-  Upload,
   Plus,
   Send,
   Ruler,
@@ -10,7 +9,6 @@ import {
   Link,
   MessageSquare,
   File,
-  X,
   Trash,
   PackageOpen,
 } from "lucide-react";
@@ -21,6 +19,16 @@ import { DataTable } from "@/components/table/data-table";
 import { Textarea } from "@/components/ui/textarea";
 import type { ColumnDef } from "@tanstack/react-table";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import FileUploadComponent from "@/components/comp-552";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // Tipos para producto y formulario
 interface Producto {
@@ -35,10 +43,14 @@ interface Producto {
 
 interface FormProducto extends Omit<Producto, "archivos"> {
   archivos: File[];
+  peso: number;
+  volumen: number;
+  nro_cajas: number;
 }
 
 export default function Cotizacion() {
   const [productos, setProductos] = useState<Producto[]>([]);
+  const [service, setService] = useState("Pendiente"); // valor inicial
   const [form, setForm] = useState<FormProducto>({
     nombre: "",
     cantidad: 1,
@@ -47,6 +59,9 @@ export default function Cotizacion() {
     url: "",
     comentario: "",
     archivos: [],
+    peso: 0,
+    volumen: 0,
+    nro_cajas: 0,
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -136,13 +151,6 @@ export default function Cotizacion() {
     }));
   };
 
-  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm((prev) => ({
-      ...prev,
-      archivos: e.target.files ? Array.from(e.target.files) : [],
-    }));
-  };
-
   const handleAgregar = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setProductos((prev) => [...prev, { ...form }]);
@@ -154,6 +162,9 @@ export default function Cotizacion() {
       url: "",
       comentario: "",
       archivos: [],
+      peso: 0,
+      volumen: 0,
+      nro_cajas: 0,
     });
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
@@ -161,27 +172,6 @@ export default function Cotizacion() {
   const handleEnviar = () => {
     // Aquí iría la lógica para enviar los productos
     alert("Productos enviados: " + JSON.stringify(productos));
-  };
-
-  const updateCurrentProduct = (field: keyof Producto, value: any) => {
-    setForm({ ...form, [field]: value });
-  };
-
-  const removeFile = (fileId: string) => {
-    updateCurrentProduct(
-      "archivos",
-      form.archivos.filter((f) => f.name !== fileId)
-    );
-  };
-
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return "0 Bytes";
-    const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return (
-      Number.parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i]
-    );
   };
 
   return (
@@ -297,12 +287,93 @@ export default function Cotizacion() {
                       name="url"
                       value={form.url}
                       onChange={handleInput}
-                      required
                       placeholder="https://temu.com/producto/123"
                       className="border-gray-300 focus:border-orange-500 focus:ring-orange-500"
                     />
                   </div>
                 </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <MessageSquare className="w-4 h-4 text-orange-500" />
+                      <label className="text-sm font-medium text-gray-700">
+                        Tipo servicio
+                      </label>
+                    </div>
+                    <Select defaultValue={service} onValueChange={setService}>
+                      <SelectTrigger className="w-60">
+                        <SelectValue placeholder="Seleccione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectLabel>Servicios</SelectLabel>
+                          <SelectItem value="Pendiente">Pendiente</SelectItem>
+                          <SelectItem value="Consolidado Express">
+                            Consolidado Express
+                          </SelectItem>
+                          <SelectItem value="Consolidado Grupal Express">
+                            Consolidado Grupal Express
+                          </SelectItem>
+                          <SelectItem value="Consolidado Maritimo">
+                            Consolidado Maritimo
+                          </SelectItem>
+                          <SelectItem value="Consolidado Grupal Maritimo">
+                            Consolidado Grupal Maritimo
+                          </SelectItem>
+                          <SelectItem value="Almacenaje de Mercancia">
+                            Almacenaje de Mercancía
+                          </SelectItem>
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                {service === "Almacenaje de Mercancia" && (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <MessageSquare className="w-4 h-4 text-orange-500" />
+                        <label className="text-sm font-medium text-gray-700">
+                          Peso (Kg)
+                        </label>
+                      </div>
+                      <Input
+                        name="peso"
+                        type="number"
+                        value={form.peso}
+                        onChange={handleInput}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <MessageSquare className="w-4 h-4 text-orange-500" />
+                        <label className="text-sm font-medium text-gray-700">
+                          Volumen
+                        </label>
+                      </div>
+                      <Input
+                        name="volumen"
+                        type="number"
+                        value={form.volumen}
+                        onChange={handleInput}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <MessageSquare className="w-4 h-4 text-orange-500" />
+                        <label className="text-sm font-medium text-gray-700">
+                          Nro. cajas
+                        </label>
+                      </div>
+                      <Input
+                        name="nro_cajas"
+                        type="number"
+                        value={form.nro_cajas}
+                        onChange={handleInput}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-4">
@@ -329,57 +400,7 @@ export default function Cotizacion() {
                   </div>
 
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 bg-white">
-                    {form.archivos.length > 0 ? (
-                      <div className="mb-4 flex flex-wrap gap-2">
-                        {form.archivos.map((file) => (
-                          <div
-                            key={file.name}
-                            className="flex items-center gap-2 bg-gray-100 rounded-full px-3 py-1 text-sm"
-                          >
-                            <FileText className="w-4 h-4 text-orange-500" />
-                            <span
-                              className="truncate max-w-[120px]"
-                              title={file.name}
-                            >
-                              {file.name}
-                            </span>
-                            <span className="text-gray-500 text-xs">
-                              ({formatFileSize(file.size)})
-                            </span>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-5 w-5 p-0 rounded-full hover:bg-red-100"
-                              onClick={() => removeFile(file.name)}
-                            >
-                              <X className="w-3 h-3 text-red-500" />
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-center text-gray-500 text-sm mb-4">
-                        No hay archivos adjuntos
-                      </div>
-                    )}
-
-                    <div className="relative">
-                      <input
-                        type="file"
-                        multiple
-                        onChange={handleFile}
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                        accept="image/*,.pdf,.doc,.docx,.txt"
-                      />
-                      <Button
-                        variant="outline"
-                        type="submit"
-                        className="w-full border-orange-300 text-orange-600 hover:bg-orange-50 hover:border-orange-400"
-                      >
-                        <Upload className="w-4 h-4 mr-2" />
-                        Subir archivos
-                      </Button>
-                    </div>
+                    <FileUploadComponent />
                   </div>
 
                   <div className="mt-6 flex justify-end">
@@ -405,7 +426,7 @@ export default function Cotizacion() {
                   Productos Cotizados
                 </h3>
               </div>
-              <div className="w-full overflow-x-auto border-b border-gray-200 px-4 py-3 bg-white" >
+              <div className="w-full overflow-x-auto border-b border-gray-200 px-4 py-3 bg-white">
                 <DataTable
                   columns={columns}
                   data={productos}

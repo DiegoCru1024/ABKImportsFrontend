@@ -1,49 +1,39 @@
 import "./App.css";
-
-import { SidebarInset, SidebarTrigger } from "./components/ui/sidebar";
-import { SidebarProvider } from "./components/ui/sidebar";
+import { SidebarInset, SidebarProvider } from "./components/ui/sidebar";
 import { AppSidebar } from "./components/app-sidebar";
-import { Separator } from "@radix-ui/react-separator";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
+
+import { Routes, Route } from "react-router-dom";
+import HeaderConBreadcrumb from "./components/header-breadcrumb";
+import Inspeccion from "./pages/Inspeccion";
+import Tracking from "./pages/Tracking";
+import Cotizacion from "./pages/Cotizacion";
+import MisCotizaciones from "./pages/MisCotizaciones";
+import Calculador from "./pages/Calculador";
+import Educacion from "./pages/Educacion";
+import Herramientas from "./pages/Herramientas";
+import Tarifas from "./pages/Tarifas";
+import Home from "./pages/Home";
+import GestionDeCotizacion from "./pages/GestionDeCotizacion";
 
 function App() {
   return (
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
-          <div className="flex items-center gap-2 px-4">
-            <SidebarTrigger className="-ml-1" />
-            <Separator orientation="vertical" className="mr-2 h-4" />
-            <Breadcrumb>
-              <BreadcrumbList>
-                <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="#">
-                    Building Your Application
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator className="hidden md:block" />
-                <BreadcrumbItem>
-                  <BreadcrumbPage>Data Fetching</BreadcrumbPage>
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
-          </div>
-        </header>
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-          <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-            <div className="aspect-video rounded-xl bg-muted/50" />
-            <div className="aspect-video rounded-xl bg-muted/50" />
-            <div className="aspect-video rounded-xl bg-muted/50" />
-          </div>
-          <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min" />
+        <HeaderConBreadcrumb />
+        <div className="flex flex-1 flex-col gap-4 px-0 pt-0">
+          <Routes>
+            <Route path="/inspeccion-de-mercancias" element={<Inspeccion />} />
+            <Route path="/tracking-de-mercancias" element={<Tracking />} />
+            <Route path="/cotizacion-de-productos" element={<Cotizacion />} />
+            <Route path="/mis-cotizaciones" element={<MisCotizaciones />} />
+            <Route path="/calculador-de-impuestos" element={<Calculador />} />
+            <Route path="/educacion" element={<Educacion />} />
+            <Route path="/herramientas-logisticas" element={<Herramientas />} />
+            <Route path="/tarifas-servicios" element={<Tarifas />} />
+            <Route path="/" element={<Home />} />
+            <Route path="/gestion-de-cotizacion" element={<GestionDeCotizacion />} />
+          </Routes>
         </div>
       </SidebarInset>
     </SidebarProvider>

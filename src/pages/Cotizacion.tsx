@@ -38,7 +38,12 @@ interface Producto {
   color: string;
   url: string;
   comentario: string;
+  tipoServicio: string;
+  peso: number;
+  volumen: number;
+  nro_cajas: number;
   archivos: File[];
+  
 }
 
 interface FormProducto extends Omit<Producto, "archivos"> {
@@ -58,10 +63,11 @@ export default function Cotizacion() {
     color: "",
     url: "",
     comentario: "",
-    archivos: [],
+    archivos: [], 
     peso: 0,
     volumen: 0,
     nro_cajas: 0,
+    tipoServicio: "",
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -94,6 +100,14 @@ export default function Cotizacion() {
       maxSize: 100,
     },
     {
+      accessorKey: "tipoServicio",
+      header: "Tipo Servicio",
+      cell: ({ row }) => <div>{row.original.tipoServicio}</div>,
+      minSize: 150,
+      size: 200,
+      maxSize: 250,
+    },
+    {
       accessorKey: "comentario",
       header: "Comentario",
       cell: ({ row }) => (
@@ -105,6 +119,9 @@ export default function Cotizacion() {
       size: 150,
       maxSize: 250,
     },
+    { accessorKey: "peso", header: "Peso", size: 50 },
+    { accessorKey: "volumen", header: "Volumen", size: 50 },
+    { accessorKey: "nro_cajas", header: "Nro. cajas", size: 50 },
     {
       accessorKey: "archivos",
       header: "Archivos",
@@ -165,6 +182,7 @@ export default function Cotizacion() {
       peso: 0,
       volumen: 0,
       nro_cajas: 0,
+      tipoServicio: "",
     });
     if (fileInputRef.current) fileInputRef.current.value = "";
   };

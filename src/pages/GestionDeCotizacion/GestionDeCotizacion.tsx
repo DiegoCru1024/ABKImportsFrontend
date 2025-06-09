@@ -32,28 +32,9 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import FileUploadComponent from "@/components/comp-552";
+import { type Solicitud, type ProductoItem, type QuotationResponse } from "./components/interface";
 
-interface Solicitud {
-  id: string;
-  cliente: string;
-  fecha: string;
-}
 
-interface ProductoItem {
-  id: string;
-  nombre: string;
-  comentarioCliente: string;
-  cliente: string;
-  cantidad: number;
-  especificaciones: string;
-  estadoRespuesta: "No respondido" | "Respondido" | "Observado";
-  precioUnitario: number;
-  recomendaciones: string;
-  comentariosAdicionales: string;
-  archivos: File[];
-  fecha: string;
-  url: string;
-}
 
 export default function GestionDeCotizaciones() {
   const [mainTab, setMainTab] = useState<
@@ -70,20 +51,7 @@ export default function GestionDeCotizaciones() {
     null
   );
 
-  // Estado para respuestas de cotización
-  interface QuotationResponse {
-    id: string;
-    pUnitario: string;
-    incoterms: string;
-    precioTotal: string;
-    precioExpress: string;
-    servicioLogistico: string;
-    tarifaServicio: string;
-    impuestos: string;
-    recomendaciones: string;
-    comentariosAdicionales: string;
-    archivos: File[];
-  }
+
   const [responses, setResponses] = useState<QuotationResponse[]>([
     {
       id: Date.now().toString(),
@@ -99,25 +67,7 @@ export default function GestionDeCotizaciones() {
       archivos: [],
     },
   ]);
-  const incotermsOptions = [
-    { value: "EXW", label: "EXW - Ex Works" },
-    { value: "FCA", label: "FCA - Free Carrier" },
-    { value: "CIF", label: "CIF - Cost, Insurance & Freight" },
-    { value: "FOB", label: "FOB - Free On Board" },
-    { value: "FAS", label: "FAS - Free Alongside Ship" },
-    { value: "DDP", label: "DDP - Delivered Duty Paid" },
-    { value: "DAP", label: "DAP - Delivered At Place" },
-    { value: "DAT", label: "DAT - Delivered At Terminal" },
-    { value: "DDU", label: "DDU - Delivered Duty Unpaid" },
-    { value: "DDP", label: "DDP - Delivered Duty Paid" },
-  ];
-  const serviciosLogisticos = [
-    { value: "Terrestre", label: "Terrestre" },
-    { value: "Marítimo", label: "Marítimo" },
-    { value: "Aéreo", label: "Aéreo" },
-    { value: "Multimodal", label: "Multimodal" },
-    { value: "Express", label: "Express" },
-  ];
+
 
   const updateResponse = (
     id: string,
@@ -217,109 +167,6 @@ export default function GestionDeCotizaciones() {
     Observado: "bg-yellow-400 text-white",
   };
 
-  // Columnas para Solicitudes
-  const colsSolicitudes: ColumnDef<Solicitud, any>[] = [
-    { accessorKey: "id", header: "Id Solicitud" },
-    { accessorKey: "cliente", header: "Cliente" },
-    { accessorKey: "tipo Servicio", header: "Tipo Servicio" },
-    { accessorKey: "estado", header: "Estado" },
-    { accessorKey: "fecha", header: "Fecha" },
-    {
-      id: "acciones",
-      header: "Acciones",
-      cell: ({ row }) => (
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => {
-            setSelectedSolicitud(row.original);
-            setProductos(productosMap[row.original.id] || []);
-            setMainTab("detalles");
-            setSubTab("Todos");
-          }}
-        >
-          Ver detalles
-        </Button>
-      ),
-    },
-  ];
-
-  // Columnas para Productos
-  const colsProductos: ColumnDef<ProductoItem, any>[] = [
-    {
-      accessorKey: "id",
-      header: "Id",
-    },
-    {
-      accessorKey: "nombre",
-      header: "Producto",
-      cell: ({ row }) => (
-        <div>
-          <div>{row.original.nombre}</div>
-        </div>
-      ),
-    },
-    { accessorKey: "cantidad", header: "Cantidad" },
-    {
-      accessorKey: "url",
-      header: "URL",
-      cell: ({ row }) => <div>{row.original.url}</div>,
-    },
-    {
-      accessorKey: "archivos",
-      header: "Archivos",
-      cell: ({ row }) => (
-        <div>
-          <Button variant="outline" size="icon">
-            <FileText className="h-4 w-4" />
-          </Button>
-        </div>
-      ),
-    },
-    {
-      accessorKey: "estadoRespuesta",
-      header: "Estado",
-      cell: ({ row }) => {
-        const estado = row.original.estadoRespuesta;
-        const badgeClass =
-          estadoRespuestaColorMap[estado] || "bg-gray-200 text-gray-800";
-        return <Badge className={badgeClass}>{estado}</Badge>;
-      },
-    },
-    { accessorKey: "fecha", header: "Fecha" },
-    {
-      id: "responder",
-      header: "Responder",
-      cell: ({ row }) => (
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => {
-            const p = row.original;
-            setCurrentProduct(p);
-            setResponses([
-              {
-                id: Date.now().toString(),
-                pUnitario: "",
-                incoterms: "FOB",
-                precioTotal: "",
-                precioExpress: "",
-                servicioLogistico: "Terrestre",
-                tarifaServicio: "Pendiente",
-                impuestos: "No Aplica",
-                recomendaciones: "",
-                comentariosAdicionales: "",
-                archivos: [],
-              },
-            ]);
-            setMainTab("respuesta");
-          }}
-        >
-          Responder
-        </Button>
-      ),
-    },
-  ];
 
   const filteredProductos = productos.filter(
     (p) => subTab === "Todos" || p.estadoRespuesta === subTab

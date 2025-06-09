@@ -79,7 +79,7 @@ const data = {
   dashboardSwitcher: [
     {
       title: "Dashboard",
-      url: "#",
+      url: "/dashboard",
       icon: SquareTerminal,
       isActive: true,
     },

@@ -8,7 +8,7 @@ import Calculador from "./pages/Calculador";
 import Educacion from "./pages/Educacion";
 import Herramientas from "./pages/Herramientas";
 import Tarifas from "./pages/Tarifas";
-import GestionDeCotizacion from "./pages/GestionDeCotizacion";
+import GestionDeCotizacion from "./pages/GestionDeCotizacion/GestionDeCotizacion";
 import LoginPage from "./pages/login";
 import DashboardPage from "./pages/dashboard";
 import BasicLayout from "./layouts/BasicLayout";
@@ -38,7 +38,7 @@ function App() {
       </Route>
 
       {/* Cualquier otra ruta redirige al login */}
-      {/*<Route path="*" element={<Navigate to="/login" replace />} />*/}
+      <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   );
 }

@@ -9,17 +9,14 @@ import {
   SelectValue,
   SelectContent,
   SelectItem,
-  SelectLabel,
-  SelectGroup,
+
 } from "@/components/ui/select";
 import type { ColumnDef } from "@tanstack/react-table";
 import {
   FileText,
   MessageSquare,
-  X,
   Plus,
   Trash2,
-  Upload,
   Truck,
   Package,
   Hash,
@@ -27,14 +24,14 @@ import {
   Palette,
   Link,
   File,
-  IdCard,
-  Calendar,
-  UserRound,
+
   DollarSign,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import FileUploadComponent from "@/components/comp-552";
 
 interface Solicitud {
   id: string;
@@ -86,7 +83,6 @@ export default function GestionDeCotizaciones() {
     recomendaciones: string;
     comentariosAdicionales: string;
     archivos: File[];
-    estado: string;
   }
   const [responses, setResponses] = useState<QuotationResponse[]>([
     {
@@ -96,20 +92,24 @@ export default function GestionDeCotizaciones() {
       precioTotal: "",
       precioExpress: "",
       servicioLogistico: "Terrestre",
-      tarifaServicio: "",
+      tarifaServicio: "Pendiente",
       impuestos: "IGV 18%",
       recomendaciones: "",
       comentariosAdicionales: "",
       archivos: [],
-      estado: "Pendiente",
     },
   ]);
   const incotermsOptions = [
-    { value: "FOB", label: "FOB - Free On Board" },
-    { value: "CIF", label: "CIF - Cost, Insurance & Freight" },
     { value: "EXW", label: "EXW - Ex Works" },
-    { value: "DDP", label: "DDP - Delivered Duty Paid" },
     { value: "FCA", label: "FCA - Free Carrier" },
+    { value: "CIF", label: "CIF - Cost, Insurance & Freight" },
+    { value: "FOB", label: "FOB - Free On Board" },
+    { value: "FAS", label: "FAS - Free Alongside Ship" },
+    { value: "DDP", label: "DDP - Delivered Duty Paid" },
+    { value: "DAP", label: "DAP - Delivered At Place" },
+    { value: "DAT", label: "DAT - Delivered At Terminal" },
+    { value: "DDU", label: "DDU - Delivered Duty Unpaid" },
+    { value: "DDP", label: "DDP - Delivered Duty Paid" },
   ];
   const serviciosLogisticos = [
     { value: "Terrestre", label: "Terrestre" },
@@ -118,19 +118,7 @@ export default function GestionDeCotizaciones() {
     { value: "Multimodal", label: "Multimodal" },
     { value: "Express", label: "Express" },
   ];
-  const impuestosOptions = [
-    { value: "IGV 18%", label: "IGV 18%" },
-    { value: "Sin impuestos", label: "Sin impuestos" },
-    { value: "IVA 21%", label: "IVA 21%" },
-    { value: "Otros", label: "Otros" },
-  ];
-  const estadosOptions = [
-    { value: "Pendiente", label: "Pendiente" },
-    { value: "Aceptado", label: "Aceptado" },
-    { value: "Rechazado", label: "Rechazado" },
-    { value: "En revisión", label: "En revisión" },
-    { value: "Completado", label: "Completado" },
-  ];
+
   const updateResponse = (
     id: string,
     field: keyof QuotationResponse,
@@ -148,30 +136,19 @@ export default function GestionDeCotizaciones() {
       precioTotal: "",
       precioExpress: "",
       servicioLogistico: "Terrestre",
-      tarifaServicio: "",
-      impuestos: "IGV 18%",
+      tarifaServicio: "Pendiente",
+      impuestos: "No Aplica",
       recomendaciones: "",
       comentariosAdicionales: "",
-      archivos: [],
-      estado: "Pendiente",
-    };
+      archivos: [], 
+    };  
     setResponses((prev) => [...prev, newR]);
   };
   const removeResponse = (id: string) => {
     if (responses.length > 1)
       setResponses((prev) => prev.filter((r) => r.id !== id));
   };
-  const handleFileUpload = (id: string, files: FileList | null) => {
-    if (files) updateResponse(id, "archivos", Array.from(files));
-  };
-  const getStatusColor = (st: string) =>
-    ({
-      Pendiente: "bg-gray-100 text-gray-700 border-gray-200",
-      Aceptado: "bg-black text-white border-black",
-      Rechazado: "bg-gray-400 text-white border-gray-400",
-      "En revisión": "bg-orange-50 text-orange-800 border-orange-200",
-      Completado: "bg-gray-800 text-white border-gray-800",
-    }[st] || "bg-gray-100 text-gray-700");
+
 
   // Datos de ejemplo
   const solicitudes: Solicitud[] = [
@@ -328,12 +305,11 @@ export default function GestionDeCotizaciones() {
                 precioTotal: "",
                 precioExpress: "",
                 servicioLogistico: "Terrestre",
-                tarifaServicio: "",
-                impuestos: "IGV 18%",
+                tarifaServicio: "Pendiente",
+                impuestos: "No Aplica",
                 recomendaciones: "",
                 comentariosAdicionales: "",
                 archivos: [],
-                estado: "Pendiente",
               },
             ]);
             setMainTab("respuesta");
@@ -605,34 +581,23 @@ export default function GestionDeCotizaciones() {
                   </h3>
                   <Button
                     onClick={addResponse}
-
-                    className="bg-orange-500 hover:bg-orange-600 text-white rounded-xl px-6 py-2 font-medium"
+                    className="bg-orange-500 hover:bg-orange-600 text-white rounded-xl px-6 py-2 font-medium "
                   >
                     <Plus className="h-4 w-4 mr-2" /> Agregar Respuesta
                   </Button>
                 </CardTitle>
                 <CardContent>
                   {responses.map((response, i) => (
-<div
+                    <div
                       key={response.id}
-                      className="bg-gray-50 rounded-2xl p-6 border border-gray-200"
+                      className="bg-white rounded-2xl p-6 border border-gray-200"
                     >
                       <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 bg-black text-white rounded-xl flex items-center justify-center font-bold">
-                            {i + 1}
-                          </div>
                           <div>
                             <h4 className="font-semibold text-black">
                               Respuesta #{i + 1}
                             </h4>
-                            <Badge
-                              className={`mt-1 ${getStatusColor(
-                                response.estado
-                              )}`}
-                            >
-                              {response.estado}
-                            </Badge>
                           </div>
                         </div>
                         {responses.length > 1 && (
@@ -647,7 +612,7 @@ export default function GestionDeCotizaciones() {
                         )}
                       </div>
                       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        {/* Información de Precios */}
+                        {/* Left Column - Pricing */}
                         <div className="space-y-6">
                           <div className="flex items-center gap-2 mb-4">
                             <DollarSign className="h-5 w-5 text-orange-500" />
@@ -655,11 +620,12 @@ export default function GestionDeCotizaciones() {
                               Información de Precios
                             </h5>
                           </div>
+
                           <div className="space-y-4">
                             <div className="space-y-2">
-                              <label className="text-gray-700 font-medium">
+                              <Label className="text-gray-700 font-medium">
                                 Precio Unitario ($)
-                              </label>
+                              </Label>
                               <Input
                                 type="number"
                                 step="0.01"
@@ -671,14 +637,14 @@ export default function GestionDeCotizaciones() {
                                     e.target.value
                                   )
                                 }
-                                className="bg-white border-gray-300 rounded-xl h-12 text-black font-medium"
                                 placeholder="0.00"
                               />
                             </div>
+
                             <div className="space-y-2">
-                              <label className="text-gray-700 font-medium">
+                              <Label className="text-gray-700 font-medium">
                                 Precio Total ($)
-                              </label>
+                              </Label>
                               <Input
                                 type="number"
                                 step="0.01"
@@ -690,14 +656,14 @@ export default function GestionDeCotizaciones() {
                                     e.target.value
                                   )
                                 }
-                                className="bg-white border-gray-300 rounded-xl h-12 text-black font-medium"
                                 placeholder="0.00"
                               />
                             </div>
+
                             <div className="space-y-2">
-                              <label className="text-gray-700 font-medium">
+                              <Label className="text-gray-700 font-medium">
                                 Precio Express ($)
-                              </label>
+                              </Label>
                               <Input
                                 type="number"
                                 step="0.01"
@@ -709,17 +675,15 @@ export default function GestionDeCotizaciones() {
                                     e.target.value
                                   )
                                 }
-                                className="bg-white border-gray-300 rounded-xl h-12 text-black font-medium"
                                 placeholder="0.00"
                               />
                             </div>
+
                             <div className="space-y-2">
-                              <label className="text-gray-700 font-medium">
+                              <Label className="text-gray-700 font-medium">
                                 Tarifa Servicio ($)
-                              </label>
+                              </Label>
                               <Input
-                                type="number"
-                                step="0.01"
                                 value={response.tarifaServicio}
                                 onChange={(e) =>
                                   updateResponse(
@@ -728,13 +692,12 @@ export default function GestionDeCotizaciones() {
                                     e.target.value
                                   )
                                 }
-                                className="bg-white border-gray-300 rounded-xl h-12 text-black font-medium"
-                                placeholder="0.00"
                               />
                             </div>
                           </div>
                         </div>
-                        {/* Logística y Términos */}
+
+                        {/* Middle Column - Logistics & Terms */}
                         <div className="space-y-6">
                           <div className="flex items-center gap-2 mb-4">
                             <Truck className="h-5 w-5 text-orange-500" />
@@ -742,11 +705,12 @@ export default function GestionDeCotizaciones() {
                               Logística y Términos
                             </h5>
                           </div>
+
                           <div className="space-y-4">
                             <div className="space-y-2">
-                              <label className="text-gray-700 font-medium">
+                              <Label className="text-gray-700 font-medium">
                                 Incoterms
-                              </label>
+                              </Label>
                               <Select
                                 value={response.incoterms}
                                 onValueChange={(value) =>
@@ -757,7 +721,7 @@ export default function GestionDeCotizaciones() {
                                   )
                                 }
                               >
-                                <SelectTrigger className="bg-white border-gray-300 rounded-xl h-12">
+                                <SelectTrigger className="w-64">
                                   <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -772,10 +736,11 @@ export default function GestionDeCotizaciones() {
                                 </SelectContent>
                               </Select>
                             </div>
+
                             <div className="space-y-2">
-                              <label className="text-gray-700 font-medium">
+                              <Label className="text-gray-700 font-medium">
                                 Servicio Logístico
-                              </label>
+                              </Label>
                               <Select
                                 value={response.servicioLogistico}
                                 onValueChange={(value) =>
@@ -786,78 +751,41 @@ export default function GestionDeCotizaciones() {
                                   )
                                 }
                               >
-                                <SelectTrigger className="bg-white border-gray-300 rounded-xl h-12">
+                                <SelectTrigger className="w-64">
                                   <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  {serviciosLogisticos.map((serv) => (
+                                  {serviciosLogisticos.map((servicio) => (
                                     <SelectItem
-                                      key={serv.value}
-                                      value={serv.value}
+                                      key={servicio.value}
+                                      value={servicio.value}
                                     >
-                                      {serv.label}
+                                      {servicio.label}
                                     </SelectItem>
                                   ))}
                                 </SelectContent>
                               </Select>
                             </div>
+
                             <div className="space-y-2">
-                              <label className="text-gray-700 font-medium">
+                              <Label className="text-gray-700 font-medium">
                                 Impuestos
-                              </label>
-                              <Select
+                              </Label>
+                              <Input
                                 value={response.impuestos}
-                                onValueChange={(value) =>
+                                onChange={(e) =>
                                   updateResponse(
                                     response.id,
                                     "impuestos",
-                                    value
+                                    e.target.value
                                   )
                                 }
-                              >
-                                <SelectTrigger className="bg-white border-gray-300 rounded-xl h-12">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {impuestosOptions.map((imp) => (
-                                    <SelectItem
-                                      key={imp.value}
-                                      value={imp.value}
-                                    >
-                                      {imp.label}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div className="space-y-2">
-                              <label className="text-gray-700 font-medium">
-                                Estado
-                              </label>
-                              <Select
-                                value={response.estado}
-                                onValueChange={(value) =>
-                                  updateResponse(response.id, "estado", value)
-                                }
-                              >
-                                <SelectTrigger className="bg-white border-gray-300 rounded-xl h-12">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {estadosOptions.map((est) => (
-                                    <SelectItem
-                                      key={est.value}
-                                      value={est.value}
-                                    >
-                                      {est.label}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
+                              />
                             </div>
                           </div>
                         </div>
-                        {/* Observaciones y Archivos */}
+
+                        {/* Right Column - Comments & Files */}
                         <div className="space-y-6">
                           <div className="flex items-center gap-2 mb-4">
                             <MessageSquare className="h-5 w-5 text-orange-500" />
@@ -865,11 +793,12 @@ export default function GestionDeCotizaciones() {
                               Observaciones y Archivos
                             </h5>
                           </div>
+
                           <div className="space-y-4">
                             <div className="space-y-2">
-                              <label className="text-gray-700 font-medium">
+                              <Label className="text-gray-700 font-medium">
                                 Recomendaciones
-                              </label>
+                              </Label>
                               <Textarea
                                 value={response.recomendaciones}
                                 onChange={(e) =>
@@ -879,14 +808,14 @@ export default function GestionDeCotizaciones() {
                                     e.target.value
                                   )
                                 }
-                                className="bg-white border-gray-300 rounded-xl min-h-[80px] resize-none"
                                 placeholder="Embalaje adicional por fragilidad..."
                               />
                             </div>
+
                             <div className="space-y-2">
-                              <label className="text-gray-700 font-medium">
+                              <Label className="text-gray-700 font-medium">
                                 Comentarios Adicionales
-                              </label>
+                              </Label>
                               <Textarea
                                 value={response.comentariosAdicionales}
                                 onChange={(e) =>
@@ -896,44 +825,17 @@ export default function GestionDeCotizaciones() {
                                     e.target.value
                                   )
                                 }
-                                className="bg-white border-gray-300 rounded-xl min-h-[80px] resize-none"
                                 placeholder="Se puede reducir el precio por volumen..."
                               />
                             </div>
+
                             <div className="space-y-2">
-                              <label className="flex items-center gap-2 text-gray-700 font-medium">
-                                <FileText className="h-4 w-4 text-gray-500" />{" "}
+                              <Label className="text-gray-700 font-medium flex items-center gap-2">
+                                <FileText className="h-4 w-4 text-gray-500" />
                                 Archivos Adjuntos
-                              </label>
-                              <div className="border-2 border-dashed border-gray-300 rounded-xl p-4 text-center hover:border-orange-300 transition-colors">
-                                <input
-                                  type="file"
-                                  multiple
-                                  onChange={(e) =>
-                                    handleFileUpload(
-                                      response.id,
-                                      e.target.files
-                                    )
-                                  }
-                                  className="hidden"
-                                  id={`file-upload-${response.id}`}
-                                />
-                                <label
-                                  htmlFor={`file-upload-${response.id}`}
-                                  className="cursor-pointer flex flex-col items-center gap-2"
-                                >
-                                  <Upload className="h-6 w-6 text-gray-400" />
-                                  <span className="text-sm text-gray-600">
-                                    Arrastra archivos aquí o haz clic para
-                                    seleccionar
-                                  </span>
-                                </label>
-                                {response.archivos.length > 0 && (
-                                  <div className="mt-2 text-xs text-gray-500">
-                                    {response.archivos.length} archivo(s)
-                                    seleccionado(s)
-                                  </div>
-                                )}
+                              </Label>
+                              <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 bg-white">
+                                <FileUploadComponent />
                               </div>
                             </div>
                           </div>
@@ -971,7 +873,7 @@ export default function GestionDeCotizaciones() {
                           </div>
                         </div>
                       </div>
-</div>
+                    </div>
                   ))}
                 </CardContent>
               </Card>

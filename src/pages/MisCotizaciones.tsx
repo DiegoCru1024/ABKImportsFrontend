@@ -11,6 +11,8 @@ import {
   Package,
   Palette,
   Ruler,
+  Search,
+  BarChart3,
   UserRound,
 } from "lucide-react";
 import { useState } from "react";
@@ -21,7 +23,7 @@ import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-
+import { motion } from "framer-motion"
 interface Cotizacion {
   id: string;
   estado: string;
@@ -55,9 +57,7 @@ const estadoColorMap: Record<string, string> = {
 };
 
 export default function MisCotizaciones() {
-  const [tab, setTab] = useState<"mis" | "detalles" | "seguimiento">("mis");
-  const [selectedCotizacion, setSelectedCotizacion] =
-    useState<Cotizacion | null>(null);
+
   const [selectedProducto, setSelectedProducto] = useState<Producto | null>(
     null
   );
@@ -146,7 +146,7 @@ export default function MisCotizaciones() {
           size="sm"
           variant="outline"
           onClick={() => {
-            setSelectedCotizacion(row.original);
+            /*setSelectedCotizacion(row.original);*/
             setTab("detalles");
           }}
         >
@@ -224,6 +224,32 @@ export default function MisCotizaciones() {
     },
   ];
 
+
+  const [tab, setTab] = useState("mis")
+  const [selectedCotizacion, setSelectedCotizacion] = useState(true) // Simulando que hay una cotización seleccionada
+
+  const tabs = [
+    {
+      id: "mis",
+      label: "Mis cotizaciones",
+      icon: FileText,
+      description: "Ver todas mis cotizaciones",
+    },
+    {
+      id: "detalles",
+      label: "Detalles de cotización",
+      icon: Search,
+      description: "Información detallada",
+    },
+    {
+      id: "seguimiento",
+      label: "Seguimiento",
+      icon: BarChart3,
+      description: "Estado y progreso",
+      disabled: !selectedCotizacion,
+    },
+  ]
+  
   return (
     <div className="min-h-screen overflow-x-hidden bg-gray-100 border-t-2 border-b-2 border-gray-200">
       {/* Top Navigation Bar */}
@@ -246,55 +272,67 @@ export default function MisCotizaciones() {
 
       <div className="container mx-auto p-4">
         <div className="overflow-hidden rounded-lg border bg-white shadow-sm">
-          {/* Tabs */}
-          <div className="flex bg-white border-b border-gray-200">
-            <button
-              className={`flex items-center gap-2 px-6 py-4 text-sm font-medium transition-colors relative ${
-                tab === "mis"
-                  ? "text-[#d7751f] bg-[#fdf9ef]"
-                  : "text-gray-600 hover:text-gray-800 hover:bg-[#fdf9ef]"
-              }`}
-              onClick={() => setTab("mis")}
-            >
-              <FileText className="w-4 h-4" />
-              Mis cotizaciones
-              {tab === "mis" && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#d7751f]"></div>
-              )}
-            </button>
-            <button
-              className={`flex items-center gap-2 px-6 py-4 text-sm font-medium transition-colors relative ${
-                tab === "detalles"
-                  ? "text-[#d7751f] bg-[#fdf9ef]"
-                  : "text-gray-600 hover:text-gray-800 hover:bg-[#fdf9ef]"
-              }`}
-              onClick={() => setTab("detalles")}
-            >
-              <FileText className="w-4 h-4" />
-              Detalles de cotización
-              {tab === "detalles" && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#d7751f]"></div>
-              )}
-            </button>
+        {/* Tabs mejorados */}
+        <div className="relative bg-gradient-to-r from-gray-900 to-gray-800">
+          <div className="flex">
+            {tabs.map((tabItem) => {
+              const Icon = tabItem.icon
+              const isActive = tab === tabItem.id
+              const isDisabled = tabItem.disabled
 
-            <button
-              className={`flex items-center gap-2 px-6 py-4 text-sm font-medium transition-colors relative ${
-                tab === "seguimiento"
-                  ? "text-[#d7751f] bg-[#fdf9ef]"
-                  : selectedCotizacion
-                  ? "text-gray-600 hover:text-gray-800 hover:bg-[#fdf9ef]"
-                  : "text-gray-400 cursor-not-allowed"
-              }`}
-              disabled={!selectedCotizacion}
-              onClick={() => selectedCotizacion && setTab("seguimiento")}
-            >
-              <FileText className="w-4 h-4" />
-              Seguimiento
-              {tab === "seguimiento" && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#d7751f]"></div>
-              )}
-            </button>
+              return (
+                <button
+                  key={tabItem.id}
+                  className={`
+                    relative flex items-center gap-3 px-6 py-4 text-sm font-medium transition-all duration-300 ease-in-out
+                    ${
+                      isActive
+                        ? "text-white bg-gradient-to-b from-orange-500/20 to-orange-600/10 border-b-2 border-orange-500"
+                        : isDisabled
+                          ? "text-gray-500 cursor-not-allowed opacity-50"
+                          : "text-gray-300 hover:text-white hover:bg-white/5"
+                    }
+                    ${!isDisabled && !isActive ? "hover:scale-105" : ""}
+                  `}
+                  disabled={isDisabled}
+                  onClick={() => !isDisabled && setTab(tabItem.id)}
+                  title={tabItem.description}
+                >
+                  <Icon className={`w-4 h-4 ${isActive ? "text-orange-500" : ""}`} />
+                  <span className="whitespace-nowrap">{tabItem.label}</span>
+
+                  {/* Indicador activo mejorado */}
+                  {isActive && (
+                    <motion.div
+                      layoutId="activeTab"
+                      className="absolute inset-0 bg-gradient-to-r from-orange-500/10 to-orange-600/5 rounded-t-lg"
+                      initial={false}
+                      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                    />
+                  )}
+
+                  {/* Línea inferior naranja */}
+                  {isActive && (
+                    <motion.div
+                      layoutId="activeIndicator"
+                      className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-400 to-orange-600 rounded-t-full"
+                      initial={false}
+                      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                    />
+                  )}
+
+                  {/* Efecto hover */}
+                  {!isActive && !isDisabled && (
+                    <div className="absolute bg-white/0 hover:bg-white/5 transition-colors duration-200 rounded-t-lg" />
+                  )}
+                </button>
+              )
+            })}
           </div>
+
+          {/* Línea divisoria sutil */}
+          <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gray-600 to-transparent" />
+        </div>
 
           {/* Contenidos */}
           {tab === "mis" && (
@@ -326,14 +364,14 @@ export default function MisCotizaciones() {
                   <strong>Id de cotización: </strong>
                   <div className="flex items-center gap-2">
                     <IdCard className="w-4 h-4 text-[#d7751f]" />
-                    {selectedCotizacion.id}
+                    {/*{selectedCotizacion.id}*/}
                   </div>
                 </div>
                 <div className="mb-4 text-black leading-relaxed flex flex-col">
                   <strong>Fecha de registro:</strong>{" "}
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-[#d7751f]" />{" "}
-                    {selectedCotizacion.fecha}
+                    {/*{selectedCotizacion.fecha}*/}
                   </div>
                 </div>
                 <div className="mb-4 text-black leading-relaxed flex flex-col">

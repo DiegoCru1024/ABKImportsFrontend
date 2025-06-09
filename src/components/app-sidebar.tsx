@@ -31,47 +31,47 @@ const data = {
   navMain: [
     {
       title: "Inspección de mercancias",
-      url: "/inspeccion-de-mercancias",
+      url: "/dashboard/inspeccion-de-mercancias",
       icon: PackageSearch,
     },
     {
       title: "Tracking de mercancias",
-      url: "/tracking-de-mercancias",
+      url: "/dashboard/tracking-de-mercancias",
       icon: MapPinned,
     },
     {
       title: "Cotización de productos",
-      url: "/cotizacion-de-productos",
+      url: "/dashboard/cotizacion-de-productos",
       icon: IoMdPricetags,
     },
     {
       title: "Mis cotizaciones",
-      url: "/mis-cotizaciones",
+      url: "/dashboard/mis-cotizaciones",
       icon: IoMdPricetags,
     },
     {
       title: "Gestión de cotización",
-      url: "/gestion-de-cotizacion",
+      url: "/dashboard/gestion-de-cotizacion",
       icon: IoMdPricetags,
     },
     {
       title: "Calculador de impuestos",
-      url: "/calculador-de-impuestos",
+      url: "/dashboard/calculador-de-impuestos",
       icon: Calculator,
     },
     {
       title: "Educación",
-      url: "/educacion",
+      url: "/dashboard/educacion",
       icon: BookMarked,
     },
     {
       title: "Herramientas Logísticas",
-      url: "/herramientas-logisticas",
+      url: "/dashboard/herramientas-logisticas",
       icon: BsTools,
     },
     {
       title: "Tarifas & Servicios",
-      url: "/tarifas-servicios",
+      url: "/dashboard/tarifas-servicios",
       icon: Handshake,
     },
   ],

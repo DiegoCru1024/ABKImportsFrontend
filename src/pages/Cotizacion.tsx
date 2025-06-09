@@ -43,7 +43,6 @@ interface Producto {
   volumen: number;
   nro_cajas: number;
   archivos: File[];
-  
 }
 
 interface FormProducto extends Omit<Producto, "archivos"> {
@@ -63,7 +62,7 @@ export default function Cotizacion() {
     color: "",
     url: "",
     comentario: "",
-    archivos: [], 
+    archivos: [],
     peso: 0,
     volumen: 0,
     nro_cajas: 0,
@@ -242,7 +241,7 @@ export default function Cotizacion() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
                       <Hash className="w-4 h-4 text-orange-500" />
@@ -275,9 +274,7 @@ export default function Cotizacion() {
                       required
                     />
                   </div>
-                </div>
 
-                <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
                       <Palette className="w-4 h-4 text-orange-500" />
@@ -293,7 +290,9 @@ export default function Cotizacion() {
                       required
                     />
                   </div>
+                </div>
 
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
                       <Link className="w-4 h-4 text-orange-500" />
@@ -309,8 +308,7 @@ export default function Cotizacion() {
                       className="border-gray-300 focus:border-orange-500 focus:ring-orange-500"
                     />
                   </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
                       <MessageSquare className="w-4 h-4 text-orange-500" />
@@ -392,23 +390,25 @@ export default function Cotizacion() {
                     </div>
                   </div>
                 )}
+
+                <div className="grid grid-cols-1  gap-4">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <MessageSquare className="w-4 h-4 text-orange-500" />
+                      <label className="text-sm font-medium text-gray-700">
+                        Comentario
+                      </label>
+                    </div>
+                    <Textarea
+                      name="comentario"
+                      value={form.comentario}
+                      onChange={handleInput}
+                    />
+                  </div>
+                </div>
               </div>
 
               <div className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <MessageSquare className="w-4 h-4 text-orange-500" />
-                    <label className="text-sm font-medium text-gray-700">
-                      Comentario
-                    </label>
-                  </div>
-                  <Textarea
-                    name="comentario"
-                    value={form.comentario}
-                    onChange={handleInput}
-                  />
-                </div>
-
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
                     <File className="w-4 h-4 text-orange-500" />

@@ -1,6 +1,7 @@
 import {
   Calendar,
   DollarSign,
+  File,
   FileText,
   Hash,
   IdCard,
@@ -10,15 +11,16 @@ import {
   Package,
   Palette,
   Ruler,
-  UserRound
+  UserRound,
 } from "lucide-react";
 import { useState } from "react";
 import { DataTable } from "@/components/table/data-table";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent,CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 
 interface Cotizacion {
   id: string;
@@ -35,15 +37,21 @@ interface Producto {
   url: string;
   archivos: File[];
   comentario: string;
+  tamano: string;
+  color: string;
+  tipo_servicio: string;
+  peso: number;
+  volumen: number;
+  nro_cajas: number;
 }
 
 // Defino mapeo de colores para estados de cotización
 const estadoColorMap: Record<string, string> = {
-  Pendiente: 'bg-yellow-400 text-white',
-  Revisado: 'bg-green-500 text-white',
-  Completado: 'bg-green-500 text-white',
-  Observado: 'bg-yellow-400 text-white',
-  Cancelado: 'bg-red-500 text-white',
+  Pendiente: "bg-yellow-400 text-white",
+  Revisado: "bg-green-500 text-white",
+  Completado: "bg-green-500 text-white",
+  Observado: "bg-yellow-400 text-white",
+  Cancelado: "bg-red-500 text-white",
 };
 
 export default function MisCotizaciones() {
@@ -73,6 +81,12 @@ export default function MisCotizaciones() {
       url: "https://www.google.com",
       comentario: "Comentario del producto",
       archivos: [],
+      tamano: "M",
+      color: "Azul",
+      tipo_servicio: "Pendiente",
+      peso: 10,
+      volumen: 10,
+      nro_cajas: 10,
     },
     {
       nombre: "Taza Cerámica",
@@ -83,6 +97,12 @@ export default function MisCotizaciones() {
       url: "https://www.google.com",
       comentario: "Comentario del producto",
       archivos: [],
+      tamano: "350ml",
+      color: "Blanco",
+      tipo_servicio: "Pendiente",
+      peso: 10,
+      volumen: 10,
+      nro_cajas: 10,
     },
     {
       nombre: "Llavero Promocional",
@@ -93,6 +113,12 @@ export default function MisCotizaciones() {
       url: "https://www.google.com",
       comentario: "Comentario del producto",
       archivos: [],
+      tamano: "Transparente",
+      color: "Transparente",
+      tipo_servicio: "Pendiente",
+      peso: 10,
+      volumen: 10,
+      nro_cajas: 10,
     },
   ];
 
@@ -105,11 +131,12 @@ export default function MisCotizaciones() {
       header: "Estado",
       cell: ({ row }) => {
         const estado = row.original.estado;
-        const badgeClass = estadoColorMap[estado] || 'bg-gray-200 text-gray-800';
+        const badgeClass =
+          estadoColorMap[estado] || "bg-gray-200 text-gray-800";
         return <Badge className={badgeClass}>{estado}</Badge>;
       },
     },
-   
+
     { accessorKey: "fecha", header: "Fecha" },
     {
       id: "acciones",
@@ -144,28 +171,23 @@ export default function MisCotizaciones() {
       accessorKey: "url",
       header: "URL",
       cell: ({ row }) => (
-        <div className="truncate max-w-[100px]">{row.original.url}</div>
+        <div className="max-w-[150px]">{row.original.url}</div>
       ),
       minSize: 70,
       size: 80,
       maxSize: 100,
     },
-    {
-      accessorKey: "comentario",
-      header: "Comentario",
-      cell: ({ row }) => (
-        <div className="whitespace-normal break-words w-[250px]">
-          {row.original.comentario}
-        </div>
-      ),
-      minSize: 120,
-      size: 150,
-      maxSize: 250,
-    },
+
     {
       accessorKey: "archivos",
       header: "Archivos",
-      cell: ({ row }) => <div><Button variant="outline" size="sm">Ver</Button></div>,
+      cell: ({ row }) => (
+        <div>
+          <Button variant="outline" size="sm">
+            Ver
+          </Button>
+        </div>
+      ),
       minSize: 120,
       size: 150,
       maxSize: 250,
@@ -176,14 +198,14 @@ export default function MisCotizaciones() {
       cell: ({ row }) => {
         const estado = row.original.estado;
         const detalleColorMap: Record<string, string> = {
-          'En revisión': 'bg-yellow-400 text-white',
-          Respondido: 'bg-green-500 text-white',
+          "En revisión": "bg-yellow-400 text-white",
+          Respondido: "bg-green-500 text-white",
         };
-        const badgeClass = detalleColorMap[estado] || 'bg-gray-200 text-gray-800';
+        const badgeClass =
+          detalleColorMap[estado] || "bg-gray-200 text-gray-800";
         return <Badge className={badgeClass}>{estado}</Badge>;
       },
     },
-    { accessorKey: "fecha", header: "Fecha" },
     {
       id: "verSeguimiento",
       header: "Acciones",
@@ -336,9 +358,9 @@ export default function MisCotizaciones() {
           )}
 
           {tab === "seguimiento" && selectedProducto && (
-            <div className="space-y-4 p-6">
-              <Card>
-                <CardTitle className="px-4 py-3 border-b border-gray-200">
+            <div className="space-y-4 p-6 ">
+              <Card className="py-4">
+                <CardTitle className="border-b border-gray-200 px-4 ">
                   <h3 className="flex items-center font-semibold text-gray-900">
                     <Package className="mr-2 h-6 w-6 text-orange-500" />
                     Detalle de producto
@@ -354,15 +376,14 @@ export default function MisCotizaciones() {
                             Nombre del Producto
                           </label>
                         </div>
-                        <input
+                        <Input
                           name="nombre"
+                          disabled={true}
                           value={selectedProducto.nombre}
-                          className="border-none outline-none"
-                          disabled
                         />
                       </div>
 
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div className="space-y-2">
                           <div className="flex items-center gap-2">
                             <Hash className="w-4 h-4 text-orange-500" />
@@ -370,9 +391,8 @@ export default function MisCotizaciones() {
                               Cantidad
                             </label>
                           </div>
-                          <input
+                          <Input
                             name="cantidad"
-                            type="number"
                             value={selectedProducto.cantidad}
                             disabled
                           />
@@ -385,16 +405,14 @@ export default function MisCotizaciones() {
                               Tamaño
                             </label>
                           </div>
-                          <input
+                          <Input
                             name="tamano"
-                            type="number"
-                            value={1}
+                            type="string"
+                            value={selectedProducto.tamano}
                             disabled
                           />
                         </div>
-                      </div>
 
-                      <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <div className="flex items-center gap-2">
                             <Palette className="w-4 h-4 text-orange-500" />
@@ -402,9 +420,15 @@ export default function MisCotizaciones() {
                               Color
                             </label>
                           </div>
-                          <input name="color" value={"color"} disabled />
+                          <Input
+                            name="color"
+                            value={selectedProducto.color}
+                            disabled
+                          />
                         </div>
+                      </div>
 
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <div className="flex items-center gap-2">
                             <Link className="w-4 h-4 text-orange-500" />
@@ -412,11 +436,89 @@ export default function MisCotizaciones() {
                               URL
                             </label>
                           </div>
-                          <input
+                          <Input
                             name="url"
-                            value={"url"}
+                            value={selectedProducto.url}
                             disabled
                             className="border-gray-300 focus:border-orange-500 focus:ring-orange-500"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                              <Link className="w-4 h-4 text-orange-500" />
+                              <label className="text-sm font-medium text-gray-700">
+                                Tipo de servicio
+                              </label>
+                            </div>
+                            <Input
+                              name="tipo_servicio"
+                              value={selectedProducto.tipo_servicio}
+                              disabled
+                              className="border-gray-300 focus:border-orange-500 focus:ring-orange-500"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <MessageSquare className="w-4 h-4 text-orange-500" />
+                            <label className="text-sm font-medium text-gray-700">
+                              Peso (Kg)
+                            </label>
+                          </div>
+                          <Input
+                            name="peso"
+                            type="number"
+                            value={selectedProducto.peso}
+                            disabled
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <MessageSquare className="w-4 h-4 text-orange-500" />
+                            <label className="text-sm font-medium text-gray-700">
+                              Volumen
+                            </label>
+                          </div>
+                          <Input
+                            name="volumen"
+                            type="number"
+                            value={selectedProducto.volumen}
+                            disabled
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <MessageSquare className="w-4 h-4 text-orange-500" />
+                            <label className="text-sm font-medium text-gray-700">
+                              Nro. cajas
+                            </label>
+                          </div>
+                          <Input
+                            name="nro_cajas"
+                            type="number"
+                            value={selectedProducto.nro_cajas}
+                            disabled
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 gap-4">
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <MessageSquare className="w-4 h-4 text-orange-500" />
+                            <label className="text-sm font-medium text-gray-700">
+                              Comentario
+                            </label>
+                          </div>
+                          <Textarea
+                            name="comentario"
+                            value={selectedProducto.comentario}
+                            disabled
                           />
                         </div>
                       </div>
@@ -425,20 +527,23 @@ export default function MisCotizaciones() {
                     <div className="space-y-4">
                       <div className="space-y-2">
                         <div className="flex items-center gap-2">
-                          <MessageSquare className="w-4 h-4 text-orange-500" />
+                          <File className="w-4 h-4 text-orange-500" />
                           <label className="text-sm font-medium text-gray-700">
-                            Comentario
+                            Archivos adjuntos
                           </label>
                         </div>
-                        <Textarea name="comentario" value={"  "} disabled />
+
+                        <Button variant="outline" size="sm">
+                          Ver archivos adjuntos
+                        </Button>
                       </div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardTitle className="px-4 py-3 border-b border-gray-200">
+              <Card className="py-4">
+                <CardTitle className="border-b border-gray-200 px-4 ">
                   <h3 className="flex items-center font-semibold text-gray-900">
                     <MessageCircleMore className="mr-2 h-6 w-6 text-orange-500" />
                     Detalle de respuesta
@@ -459,7 +564,7 @@ export default function MisCotizaciones() {
                         </p>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <div className="flex items-center gap-2">
                             <Calendar className="w-4 h-4 text-orange-500" />
@@ -477,11 +582,7 @@ export default function MisCotizaciones() {
                               Tamaño
                             </label>
                           </div>
-                          <input
-                            name="tamano"
-                            type="string"
-                            disabled
-                          />
+                          <input name="tamano" type="string" disabled />
                         </div>
                       </div>
 

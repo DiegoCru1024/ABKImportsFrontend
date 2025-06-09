@@ -174,7 +174,7 @@ export default function FileUploadComponent() {
           <div className="flex w-full flex-col gap-3">
             <div className="flex items-center justify-between gap-2">
               <h3 className="truncate text-sm font-medium">
-                Files ({files.length})
+                Archivos ({files.length})
               </h3>
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" onClick={openFileDialog}>
@@ -235,7 +235,7 @@ export default function FileUploadComponent() {
             </p>
             <Button variant="outline" className="mt-4 text-orange-500" onClick={openFileDialog}>
               <UploadIcon className="-ms-1 opacity-60" aria-hidden="true" />
-              Select images
+              Seleccionar archivos
             </Button>
           </div>
         )}

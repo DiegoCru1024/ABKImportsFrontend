@@ -176,6 +176,8 @@ export default function Cotizacion() {
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-gray-100 border-t-2 border-b-2 border-gray-200">
+      
+      
       {/* Top Navigation Bar */}
       <div className="border-b-2 border-gray-200 px-4 py-4 bg-white ">
         <div className="container   flex items-center justify-between">

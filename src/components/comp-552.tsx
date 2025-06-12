@@ -17,19 +17,16 @@ import {
   useFileUpload,
 } from "@/hooks/use-file-upload"
 import { Button } from "@/components/ui/button"
+import { useEffect, useRef } from "react"
 
 // Create some dummy initial files
-const initialFiles = [
 
-  {
-    name: "image-01.jpg",
-    size: 1528737,
-    type: "image/jpeg",
-    url: "https://picsum.photos/1000/800?grayscale&random=1",
-    id: "image-01-123456789",
-  },
 
-]
+// Props para controlar el componente desde el padre
+interface FileUploadComponentProps {
+  onFilesChange?: (files: File[]) => void;
+  resetCounter?: any;
+}
 
 const getFileIcon = (file: { file: File | { type: string; name: string } }) => {
   const fileType = file.file instanceof File ? file.file.type : file.file.type
@@ -93,12 +90,13 @@ const getFilePreview = (file: {
     <img
       src={src}
       alt={fileName}
-      className="size-full rounded-t-[inherit] object-cover"
+      className="size-full rounded-t-[inherit] object-contain"
+      //className="h-full w-full rounded-t-[inherit] object-cover"
     />
   )
 
   return (
-    <div className="bg-accent flex aspect-square items-center justify-center overflow-hidden rounded-t-[inherit]">
+    <div className="bg-accent flex h-24 items-center justify-center overflow-hidden rounded-t-[inherit]">
       {fileType.startsWith("image/") ? (
         file.file instanceof File ? (
           (() => {
@@ -117,10 +115,10 @@ const getFilePreview = (file: {
   )
 }
 
-export default function FileUploadComponent() {
+export default function FileUploadComponent({ onFilesChange, resetCounter }: FileUploadComponentProps) {
   const maxSizeMB = 20
   const maxSize = maxSizeMB * 1024 * 1024 // 20MB default
-  const maxFiles = 6
+  const maxFiles = 20
 
   const [
     { files, isDragging, errors },
@@ -138,8 +136,31 @@ export default function FileUploadComponent() {
     multiple: true,
     maxFiles,
     maxSize,
-    initialFiles,
   })
+
+  const prevFilesRef = useRef<string[]>([])
+
+  useEffect(() => {
+    clearFiles()
+  }, [resetCounter])
+
+  useEffect(() => {
+    if (onFilesChange) {
+      const uploadedFiles = files
+        .map(f => f.file)
+        .filter((file): file is File => file instanceof File)
+  
+      const currentNames = uploadedFiles.map(f => f.name + f.size).sort()
+      const prevNames = prevFilesRef.current
+  
+      const hasChanged = JSON.stringify(prevNames) !== JSON.stringify(currentNames)
+  
+      if (hasChanged) {
+        prevFilesRef.current = currentNames
+        onFilesChange(uploadedFiles)
+      }
+    }
+  }, [files, onFilesChange])
 
   return (
     <div className="flex flex-col gap-2">
@@ -182,7 +203,7 @@ export default function FileUploadComponent() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-6">
               {files.map((file) => (
                 <div
                   key={file.id}

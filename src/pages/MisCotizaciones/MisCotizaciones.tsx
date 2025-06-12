@@ -115,7 +115,7 @@ export default function MisCotizaciones() {
         </div>
       </div>
 
-      <div className="w-fill   p-4 px-16">
+      <div className="w-fill  p-4 px-16">
         <div className="overflow-hidden rounded-lg border bg-white shadow-sm">
           {/* Tabs mejorados */}
           <div className="relative bg-gradient-to-r from-gray-900 to-gray-800">

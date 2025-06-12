@@ -2,7 +2,7 @@ import "./App.css";
 import { Routes, Route, Navigate } from "react-router-dom";
 import Inspeccion from "./pages/Inspeccion";
 import Tracking from "./pages/Tracking";
-import Cotizacion from "./pages/Cotizacion";
+import CotizacionView from "./pages/Cotizacion/CotizacionView";
 
 import Calculador from "./pages/Calculador";
 import Educacion from "./pages/Educacion";
@@ -29,7 +29,7 @@ function App() {
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/dashboard/inspeccion-de-mercancias" element={<Inspeccion />} />
         <Route path="/dashboard/tracking-de-mercancias" element={<Tracking />} />
-        <Route path="/dashboard/cotizacion-de-productos" element={<Cotizacion />} />
+        <Route path="/dashboard/cotizacion-de-productos" element={<CotizacionView />} />
         <Route path="/dashboard/mis-cotizaciones" element={<MisCotizaciones />} />
         <Route path="/dashboard/calculador-de-impuestos" element={<Calculador />} />
         <Route path="/dashboard/educacion" element={<Educacion />} />

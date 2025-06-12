@@ -4,8 +4,9 @@ export interface Cotizacion {
     estado: string;
     fecha: Date;
   }
-  
+
   export interface Producto {
+    id:number;
     nombre: string;
     cantidad: number;
     especificaciones: string;

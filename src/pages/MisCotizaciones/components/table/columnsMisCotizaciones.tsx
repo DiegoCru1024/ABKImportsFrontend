@@ -15,7 +15,7 @@ interface ColsMisCotizacionesProps {
 export function colsMis({
   setTab,
   setSelectedCotizacion,
-}: ColsMisCotizacionesProps): ColumnDef<Cotizacion>[] {
+}: ColsMisCotizacionesProps): ColumnDef<Cotizacion,any>[] {
   return [
     {
       accessorKey: "id",

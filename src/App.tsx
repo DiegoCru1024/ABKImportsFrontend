@@ -3,7 +3,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import Inspeccion from "./pages/Inspeccion";
 import Tracking from "./pages/Tracking";
 import Cotizacion from "./pages/Cotizacion";
-import MisCotizaciones from "./pages/MisCotizaciones";
+
 import Calculador from "./pages/Calculador";
 import Educacion from "./pages/Educacion";
 import Herramientas from "./pages/Herramientas";
@@ -13,6 +13,7 @@ import LoginPage from "./pages/login";
 import DashboardPage from "./pages/dashboard";
 import BasicLayout from "./layouts/BasicLayout";
 import DashboardLayout from "./layouts/DashboardLayout";
+import MisCotizaciones from "./pages/MisCotizaciones/MisCotizaciones";
 
 function App() {
   return (

@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { type ColumnDef } from "@tanstack/react-table";
-import { type Solicitud } from "../interface";
+import { type Solicitud } from "../utils/interface";
 
   // Columnas para Solicitudes
  export const colsSolicitudes: ColumnDef<Solicitud, any>[] = [

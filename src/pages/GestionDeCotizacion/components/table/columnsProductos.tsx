@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { type ColumnDef } from "@tanstack/react-table";
-import { type ProductoItem } from "../interface";
+import { type ProductoItem } from "../utils/interface";
 import { Badge } from "@/components/ui/badge";
 import { FileText } from "lucide-react";
 

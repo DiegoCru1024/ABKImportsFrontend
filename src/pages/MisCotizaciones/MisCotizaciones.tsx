@@ -17,59 +17,23 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { DataTable } from "@/components/table/data-table";
-import type { ColumnDef } from "@tanstack/react-table";
+
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
+
 import { Input } from "@/components/ui/input";
-import { motion } from "framer-motion"
-interface Cotizacion {
-  id: string;
-  estado: string;
-  fecha: string;
-}
-
-interface Producto {
-  nombre: string;
-  cantidad: number;
-  especificaciones: string;
-  estado: string;
-  fecha: string;
-  url: string;
-  archivos: File[];
-  comentario: string;
-  tamano: string;
-  color: string;
-  tipo_servicio: string;
-  peso: number;
-  volumen: number;
-  nro_cajas: number;
-}
-
-// Defino mapeo de colores para estados de cotización
-const estadoColorMap: Record<string, string> = {
-  Pendiente: "bg-yellow-400 text-white",
-  Revisado: "bg-green-500 text-white",
-  Completado: "bg-green-500 text-white",
-  Observado: "bg-yellow-400 text-white",
-  Cancelado: "bg-red-500 text-white",
-};
+import { motion } from "framer-motion";
+import type { Cotizacion, Producto } from "./components/utils/interface";
+import { tabs } from "./components/utils/static";
+import { colsMis } from "./components/table/columnsMisCotizaciones";
+import { colsDetalles } from "./components/table/columnsDetallesDeCotizacion";
+import { cotizaciones } from "./components/utils/data";
 
 export default function MisCotizaciones() {
-
   const [selectedProducto, setSelectedProducto] = useState<Producto | null>(
     null
   );
-
-  // Datos de ejemplo
-  const cotizaciones: Cotizacion[] = [
-    { id: "1", estado: "Pendiente", fecha: "2025-05-12" },
-    { id: "2", estado: "Revisado", fecha: "2025-05-15" },
-    { id: "3", estado: "Completado", fecha: "2025-05-12" },
-    { id: "4", estado: "Observado", fecha: "2025-05-15" },
-    { id: "5", estado: "Cancelado", fecha: "2025-05-15" },
-  ];
 
   const productos: Producto[] = [
     {
@@ -83,7 +47,7 @@ export default function MisCotizaciones() {
       archivos: [],
       tamano: "M",
       color: "Azul",
-      tipo_servicio: "Pendiente",
+      tipoServicio: "Pendiente",
       peso: 10,
       volumen: 10,
       nro_cajas: 10,
@@ -99,7 +63,7 @@ export default function MisCotizaciones() {
       archivos: [],
       tamano: "350ml",
       color: "Blanco",
-      tipo_servicio: "Pendiente",
+      tipoServicio: "Pendiente",
       peso: 10,
       volumen: 10,
       nro_cajas: 10,
@@ -115,246 +79,135 @@ export default function MisCotizaciones() {
       archivos: [],
       tamano: "Transparente",
       color: "Transparente",
-      tipo_servicio: "Pendiente",
+      tipoServicio: "Pendiente",
       peso: 10,
       volumen: 10,
       nro_cajas: 10,
     },
   ];
 
-  // Columnas Mis Cotizaciones
-  const colsMis: ColumnDef<Cotizacion, any>[] = [
-    { accessorKey: "id", header: "Id Solicitud" },
-    { accessorKey: "tipo Servicio", header: "Tipo Servicio" },
-    {
-      accessorKey: "estado",
-      header: "Estado",
-      cell: ({ row }) => {
-        const estado = row.original.estado;
-        const badgeClass =
-          estadoColorMap[estado] || "bg-gray-200 text-gray-800";
-        return <Badge className={badgeClass}>{estado}</Badge>;
-      },
-    },
-
-    { accessorKey: "fecha", header: "Fecha" },
-    {
-      id: "acciones",
-      header: "Acciones",
-      cell: ({ row }) => (
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => {
-            /*setSelectedCotizacion(row.original);*/
-            setTab("detalles");
-          }}
-        >
-          Ver detalles
-        </Button>
-      ),
-    },
-  ];
-
-  // Columnas Detalles de Cotización
-  const colsDetalles: ColumnDef<Producto, any>[] = [
-    {
-      accessorKey: "nombre",
-      header: "Nombre",
-      cell: ({ row }) => <div>{row.original.nombre}</div>,
-      minSize: 150,
-      size: 200,
-      maxSize: 250,
-    },
-    { accessorKey: "cantidad", header: "Cantidad", size: 50 },
-    {
-      accessorKey: "url",
-      header: "URL",
-      cell: ({ row }) => (
-        <div className="max-w-[150px]">{row.original.url}</div>
-      ),
-      minSize: 70,
-      size: 80,
-      maxSize: 100,
-    },
-
-    {
-      accessorKey: "archivos",
-      header: "Archivos",
-      cell: ({ row }) => (
-        <div>
-          <Button variant="outline" size="sm">
-            Ver
-          </Button>
-        </div>
-      ),
-      minSize: 120,
-      size: 150,
-      maxSize: 250,
-    },
-    {
-      accessorKey: "estado",
-      header: "Estado",
-      cell: ({ row }) => {
-        const estado = row.original.estado;
-        const detalleColorMap: Record<string, string> = {
-          "En revisión": "bg-yellow-400 text-white",
-          Respondido: "bg-green-500 text-white",
-        };
-        const badgeClass =
-          detalleColorMap[estado] || "bg-gray-200 text-gray-800";
-        return <Badge className={badgeClass}>{estado}</Badge>;
-      },
-    },
-    {
-      id: "verSeguimiento",
-      header: "Acciones",
-      cell: ({ row }) => (
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => {
-            setSelectedProducto(row.original);
-            setTab("seguimiento");
-          }}
-        >
-          Ver seguimiento
-        </Button>
-      ),
-    },
-  ];
+  //********Tabs**** */
+  const [tab, setTab] = useState("mis");
 
 
-  const [tab, setTab] = useState("mis")
-  const [selectedCotizacion, setSelectedCotizacion] = useState(true) // Simulando que hay una cotización seleccionada
+  //********Cotización seleccionada**** */
+  const [selectedCotizacion, setSelectedCotizacion] = useState<number>(0); // Simulando que hay una cotización seleccionada
 
-  const tabs = [
-    {
-      id: "mis",
-      label: "Mis cotizaciones",
-      icon: FileText,
-      description: "Ver todas mis cotizaciones",
-    },
-    {
-      id: "detalles",
-      label: "Detalles de cotización",
-      icon: Search,
-      description: "Información detallada",
-    },
-    {
-      id: "seguimiento",
-      label: "Seguimiento",
-      icon: BarChart3,
-      description: "Estado y progreso",
-      disabled: !selectedCotizacion,
-    },
-  ]
-  
+
+
+
+  //********Columnas de mis cotizaciones */
+ const columnas = colsMis({setTab, setSelectedCotizacion});
+
   return (
-    <div className="min-h-screen overflow-x-hidden bg-gray-100 border-t-2 border-b-2 border-gray-200">
+    <div className="min-h-screen bg-gradient-to-br from-orange-500/5 via-background to-orange-400/10">
       {/* Top Navigation Bar */}
-      <div className="border-b-2 border-gray-100 px-4 py-4 bg-white ">
-        <div className="container   flex items-center justify-between">
+      <div className="border-t border-border/60 bg-background/80 backdrop-blur-sm sticky top-0 z-10">
+        <div className="w-full p-1 px-16 py-4 border-b border-border/60">
           <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2 ">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-500 hover:bg-orange-600">
-                <FileText className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">
-                  Mis cotizaciones
-                </h1>
-              </div>
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-500 hover:bg-orange-600">
+              <FileText className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-gray-900">
+                Mis cotizaciones
+              </h1>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto p-4">
+      <div className="w-fill   p-4 px-16">
         <div className="overflow-hidden rounded-lg border bg-white shadow-sm">
-        {/* Tabs mejorados */}
-        <div className="relative bg-gradient-to-r from-gray-900 to-gray-800">
-          <div className="flex">
-            {tabs.map((tabItem) => {
-              const Icon = tabItem.icon
-              const isActive = tab === tabItem.id
-              const isDisabled = tabItem.disabled
+          {/* Tabs mejorados */}
+          <div className="relative bg-gradient-to-r from-gray-900 to-gray-800">
+            <div className="flex">
+              {tabs.map((tabItem) => {
+                const Icon = tabItem.icon;
+                const isActive = tab === tabItem.id;
+                const isDisabled = tabItem.disabled;
 
-              return (
-                <button
-                  key={tabItem.id}
-                  className={`
-                    relative flex items-center gap-3 px-6 py-4 text-sm font-medium transition-all duration-300 ease-in-out
+                return (
+                  <button
+                    key={tabItem.id}
+                    className={`
+                    relative flex items-center gap-3 px-6 py-3 text-sm font-medium transition-all duration-300 ease-in-out
                     ${
                       isActive
-                        ? "text-white bg-gradient-to-b from-orange-500/20 to-orange-600/10 border-b-2 border-orange-500"
+                        ? "text-white bg-gradient-to-b from-orange-400/2 to-orange-400/90 border-b-2 border-orange-400"
                         : isDisabled
-                          ? "text-gray-500 cursor-not-allowed opacity-50"
-                          : "text-gray-300 hover:text-white hover:bg-white/5"
+                        ? "text-gray-500 cursor-not-allowed opacity-50"
+                        : "text-gray-300 hover:text-white hover:bg-white/5"
                     }
                     ${!isDisabled && !isActive ? "hover:scale-105" : ""}
                   `}
-                  disabled={isDisabled}
-                  onClick={() => !isDisabled && setTab(tabItem.id)}
-                  title={tabItem.description}
-                >
-                  <Icon className={`w-4 h-4 ${isActive ? "text-orange-500" : ""}`} />
-                  <span className="whitespace-nowrap">{tabItem.label}</span>
-
-                  {/* Indicador activo mejorado */}
-                  {isActive && (
-                    <motion.div
-                      layoutId="activeTab"
-                      className="absolute inset-0 bg-gradient-to-r from-orange-500/10 to-orange-600/5 rounded-t-lg"
-                      initial={false}
-                      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                    disabled={isDisabled}
+                    onClick={() => !isDisabled && setTab(tabItem.id)}
+                    title={tabItem.description}
+                  >
+                    <Icon
+                      className={`w-4 h-4 ${isActive ? "text-white" : ""}`}
                     />
-                  )}
+                    <span className="whitespace-nowrap">{tabItem.label}</span>
 
-                  {/* Línea inferior naranja */}
-                  {isActive && (
-                    <motion.div
-                      layoutId="activeIndicator"
-                      className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-400 to-orange-600 rounded-t-full"
-                      initial={false}
-                      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                    />
-                  )}
+                    {/* Indicador activo mejorado */}
+                    {isActive && (
+                      <motion.div
+                        layoutId="activeTab"
+                        className="absolute inset-0 bg-gradient-to-r from-orange-500/10 to-orange-600/5 rounded-t-lg"
+                        initial={false}
+                        transition={{
+                          type: "spring",
+                          bounce: 0.2,
+                          duration: 0.6,
+                        }}
+                      />
+                    )}
 
-                  {/* Efecto hover */}
-                  {!isActive && !isDisabled && (
-                    <div className="absolute bg-white/0 hover:bg-white/5 transition-colors duration-200 rounded-t-lg" />
-                  )}
-                </button>
-              )
-            })}
+                    {/* Efecto hover */}
+                    {!isActive && !isDisabled && (
+                      <div className="absolute bg-white/0 hover:bg-white/5 transition-colors duration-200 rounded-t-lg" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Línea divisoria sutil */}
+            <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gray-600 to-transparent" />
           </div>
-
-          {/* Línea divisoria sutil */}
-          <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gray-600 to-transparent" />
-        </div>
 
           {/* Contenidos */}
           {tab === "mis" && (
-            <div className="space-y-4 p-6">
-              <p className="text-black   leading-relaxed">
-                En este apartado se especifican las solicitudes de cotización
-                que han sido registrados en el sistema. Puede verificar su
-                estado, la respuesta del administrador y los documentos
-                asociados a su cotización; seleccionando el botón que indica
-                "Ver Detalles".
-              </p>
-              <DataTable
-                columns={colsMis}
-                data={cotizaciones}
-                toolbarOptions={{ showSearch: true, showViewOptions: false }}
-                paginationOptions={{
-                  showSelectedCount: true,
-                  showPagination: true,
-                  showNavigation: true,
-                }}
-              />
-            </div>
+            <Card className="shadow-xl border-0 bg-card/95 backdrop-blur-sm">
+              <CardHeader className="pb-6">
+                <CardTitle className="text-necro font-medium text-lg">
+                  Solicitudes de Cotización
+                </CardTitle>
+                <p className="text-muted-foreground text-sm leading-relaxed">
+                  En este apartado se especifican las solicitudes de cotización
+                  que han sido registrados en el sistema. Puede verificar su
+                  estado, la respuesta del administrador y los documentos
+                  asociados a su cotización; seleccionando el botón que indica
+                  "Ver Detalles".
+                </p>
+              </CardHeader>
+              <CardContent>
+                <DataTable
+                  columns={columnas}
+                  data={cotizaciones}
+                  toolbarOptions={{
+                    showSearch: true,
+                    showViewOptions: false,
+                  }}
+                  paginationOptions={{
+                    showSelectedCount: true,
+                    showPagination: true,
+                    showNavigation: true,
+                  }}
+                />
+              </CardContent>
+            </Card>
           )}
 
           {tab === "detalles" && selectedCotizacion && (
@@ -492,7 +345,7 @@ export default function MisCotizaciones() {
                             </div>
                             <Input
                               name="tipo_servicio"
-                              value={selectedProducto.tipo_servicio}
+                              value={selectedProducto.tipoServicio}
                               disabled
                               className="border-gray-300 focus:border-orange-500 focus:ring-orange-500"
                             />

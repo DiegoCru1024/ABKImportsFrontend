@@ -9,9 +9,8 @@ import {
   SelectValue,
   SelectContent,
   SelectItem,
-
 } from "@/components/ui/select";
-import type { ColumnDef } from "@tanstack/react-table";
+
 import {
   FileText,
   MessageSquare,
@@ -24,7 +23,6 @@ import {
   Palette,
   Link,
   File,
-
   DollarSign,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -32,9 +30,15 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import FileUploadComponent from "@/components/comp-552";
-import { type Solicitud, type ProductoItem, type QuotationResponse } from "./components/interface";
-
-
+import {
+  type Solicitud,
+  type ProductoItem,
+  type QuotationResponse,
+} from "./components/utils/interface";
+import { colsSolicitudes } from "./components/table/columnsSolicitudes";
+import { colsProductos } from "./components/table/columnsProductos";
+import { serviciosLogisticos } from "./components/utils/static";
+import { incotermsOptions } from "./components/utils/static";
 
 export default function GestionDeCotizaciones() {
   const [mainTab, setMainTab] = useState<
@@ -51,7 +55,6 @@ export default function GestionDeCotizaciones() {
     null
   );
 
-
   const [responses, setResponses] = useState<QuotationResponse[]>([
     {
       id: Date.now().toString(),
@@ -67,7 +70,6 @@ export default function GestionDeCotizaciones() {
       archivos: [],
     },
   ]);
-
 
   const updateResponse = (
     id: string,
@@ -90,15 +92,14 @@ export default function GestionDeCotizaciones() {
       impuestos: "No Aplica",
       recomendaciones: "",
       comentariosAdicionales: "",
-      archivos: [], 
-    };  
+      archivos: [],
+    };
     setResponses((prev) => [...prev, newR]);
   };
   const removeResponse = (id: string) => {
     if (responses.length > 1)
       setResponses((prev) => prev.filter((r) => r.id !== id));
   };
-
 
   // Datos de ejemplo
   const solicitudes: Solicitud[] = [
@@ -166,7 +167,6 @@ export default function GestionDeCotizaciones() {
     Respondido: "bg-green-500 text-white",
     Observado: "bg-yellow-400 text-white",
   };
-
 
   const filteredProductos = productos.filter(
     (p) => subTab === "Todos" || p.estadoRespuesta === subTab
@@ -572,7 +572,7 @@ export default function GestionDeCotizaciones() {
                                   <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  {incotermsOptions.map((option) => (
+                                  {incotermsOptions.map((option: any) => (
                                     <SelectItem
                                       key={option.value}
                                       value={option.value}

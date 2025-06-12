@@ -11,8 +11,6 @@ import {
   Package,
   Palette,
   Ruler,
-  Search,
-  BarChart3,
   UserRound,
 } from "lucide-react";
 import { useState } from "react";
@@ -24,7 +22,7 @@ import { Textarea } from "@/components/ui/textarea";
 
 import { Input } from "@/components/ui/input";
 import { motion } from "framer-motion";
-import type { Cotizacion, Producto } from "./components/utils/interface";
+import type { Producto } from "./components/utils/interface";
 import { tabs } from "./components/utils/static";
 import { colsMis } from "./components/table/columnsMisCotizaciones";
 import { colsDetalles } from "./components/table/columnsDetallesDeCotizacion";

@@ -20,13 +20,7 @@ import { Button } from "@/components/ui/button"
 
 // Create some dummy initial files
 const initialFiles = [
-  {
-    name: "intro.zip",
-    size: 252873,
-    type: "application/zip",
-    url: "https://example.com/intro.zip",
-    id: "intro.zip-1744638436563-8u5xuls",
-  },
+
   {
     name: "image-01.jpg",
     size: 1528737,
@@ -34,13 +28,7 @@ const initialFiles = [
     url: "https://picsum.photos/1000/800?grayscale&random=1",
     id: "image-01-123456789",
   },
-  {
-    name: "audio.mp3",
-    size: 1528737,
-    type: "audio/mpeg",
-    url: "https://example.com/audio.mp3",
-    id: "audio-123456789",
-  },
+
 ]
 
 const getFileIcon = (file: { file: File | { type: string; name: string } }) => {
@@ -174,10 +162,10 @@ export default function FileUploadComponent() {
           <div className="flex w-full flex-col gap-3">
             <div className="flex items-center justify-between gap-2">
               <h3 className="truncate text-sm font-medium">
-                Files ({files.length})
+                Archivos ({files.length})
               </h3>
               <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={openFileDialog}>
+                <Button variant="outline" size="sm" onClick={openFileDialog} >
                   <UploadIcon
                     className="-ms-0.5 size-3.5 opacity-60 text-orange-500"
                     aria-hidden="true"
@@ -235,7 +223,7 @@ export default function FileUploadComponent() {
             </p>
             <Button variant="outline" className="mt-4 text-orange-500" onClick={openFileDialog}>
               <UploadIcon className="-ms-1 opacity-60" aria-hidden="true" />
-              Select images
+              Seleccionar archivos
             </Button>
           </div>
         )}

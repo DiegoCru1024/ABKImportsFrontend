@@ -1,6 +1,7 @@
 import {
   Calendar,
   DollarSign,
+  File,
   FileText,
   Hash,
   IdCard,
@@ -10,55 +11,27 @@ import {
   Package,
   Palette,
   Ruler,
-  UserRound
+  UserRound,
 } from "lucide-react";
 import { useState } from "react";
 import { DataTable } from "@/components/table/data-table";
-import type { ColumnDef } from "@tanstack/react-table";
+
 import { Button } from "@/components/ui/button";
-import { Card, CardContent,CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 
-interface Cotizacion {
-  id: string;
-  estado: string;
-  fecha: string;
-}
-
-interface Producto {
-  nombre: string;
-  cantidad: number;
-  especificaciones: string;
-  estado: string;
-  fecha: string;
-}
-
-// Defino mapeo de colores para estados de cotización
-const estadoColorMap: Record<string, string> = {
-  Pendiente: 'bg-yellow-400 text-white',
-  Revisado: 'bg-green-500 text-white',
-  Completado: 'bg-green-500 text-white',
-  Observado: 'bg-yellow-400 text-white',
-  Cancelado: 'bg-red-500 text-white',
-};
+import { Input } from "@/components/ui/input";
+import { motion } from "framer-motion";
+import type { Producto } from "./components/utils/interface";
+import { tabs } from "./components/utils/static";
+import { colsMis } from "./components/table/columnsMisCotizaciones";
+import { colsDetalles } from "./components/table/columnsDetallesDeCotizacion";
+import { cotizaciones } from "./components/utils/data";
 
 export default function MisCotizaciones() {
-  const [tab, setTab] = useState<"mis" | "detalles" | "seguimiento">("mis");
-  const [selectedCotizacion, setSelectedCotizacion] =
-    useState<Cotizacion | null>(null);
   const [selectedProducto, setSelectedProducto] = useState<Producto | null>(
     null
   );
-
-  // Datos de ejemplo
-  const cotizaciones: Cotizacion[] = [
-    { id: "1", estado: "Pendiente", fecha: "2025-05-12" },
-    { id: "2", estado: "Revisado", fecha: "2025-05-15" },
-    { id: "3", estado: "Completado", fecha: "2025-05-12" },
-    { id: "4", estado: "Observado", fecha: "2025-05-15" },
-    { id: "5", estado: "Cancelado", fecha: "2025-05-15" },
-  ];
 
   const productos: Producto[] = [
     {
@@ -67,6 +40,15 @@ export default function MisCotizaciones() {
       especificaciones: "Tamaño: M, Color: Azul",
       estado: "En revisión",
       fecha: "2024-01-14",
+      url: "https://www.google.com",
+      comentario: "Comentario del producto",
+      archivos: [],
+      tamano: "M",
+      color: "Azul",
+      tipoServicio: "Pendiente",
+      peso: 10,
+      volumen: 10,
+      nro_cajas: 10,
     },
     {
       nombre: "Taza Cerámica",
@@ -74,6 +56,15 @@ export default function MisCotizaciones() {
       especificaciones: "Tamaño: 350ml, Color: Blanco",
       estado: "Respondido",
       fecha: "2024-01-13",
+      url: "https://www.google.com",
+      comentario: "Comentario del producto",
+      archivos: [],
+      tamano: "350ml",
+      color: "Blanco",
+      tipoServicio: "Pendiente",
+      peso: 10,
+      volumen: 10,
+      nro_cajas: 10,
     },
     {
       nombre: "Llavero Promocional",
@@ -81,170 +72,140 @@ export default function MisCotizaciones() {
       especificaciones: "Material: Acrílico, Color: Transparente",
       estado: "Respondido",
       fecha: "2024-01-15",
+      url: "https://www.google.com",
+      comentario: "Comentario del producto",
+      archivos: [],
+      tamano: "Transparente",
+      color: "Transparente",
+      tipoServicio: "Pendiente",
+      peso: 10,
+      volumen: 10,
+      nro_cajas: 10,
     },
   ];
 
-  // Columnas Mis Cotizaciones
-  const colsMis: ColumnDef<Cotizacion, any>[] = [
-    { accessorKey: "id", header: "Id Solicitud" },
-    {
-      accessorKey: "estado",
-      header: "Estado",
-      cell: ({ row }) => {
-        const estado = row.original.estado;
-        const badgeClass = estadoColorMap[estado] || 'bg-gray-200 text-gray-800';
-        return <Badge className={badgeClass}>{estado}</Badge>;
-      },
-    },
-    { accessorKey: "fecha", header: "Fecha" },
-    {
-      id: "acciones",
-      header: "Acciones",
-      cell: ({ row }) => (
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => {
-            setSelectedCotizacion(row.original);
-            setTab("detalles");
-          }}
-        >
-          Ver detalles
-        </Button>
-      ),
-    },
-  ];
+  //********Tabs**** */
+  const [tab, setTab] = useState("mis");
 
-  // Columnas Detalles de Cotización
-  const colsDetalles: ColumnDef<Producto, any>[] = [
-    { accessorKey: "nombre", header: "Producto" },
-    { accessorKey: "cantidad", header: "Cantidad" },
-    { accessorKey: "especificaciones", header: "Especificaciones" },
-    {
-      accessorKey: "estado",
-      header: "Estado",
-      cell: ({ row }) => {
-        const estado = row.original.estado;
-        const detalleColorMap: Record<string, string> = {
-          'En revisión': 'bg-yellow-400 text-white',
-          Respondido: 'bg-green-500 text-white',
-        };
-        const badgeClass = detalleColorMap[estado] || 'bg-gray-200 text-gray-800';
-        return <Badge className={badgeClass}>{estado}</Badge>;
-      },
-    },
-    { accessorKey: "fecha", header: "Fecha" },
-    {
-      id: "verSeguimiento",
-      header: "Acciones",
-      cell: ({ row }) => (
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => {
-            setSelectedProducto(row.original);
-            setTab("seguimiento");
-          }}
-        >
-          Ver seguimiento
-        </Button>
-      ),
-    },
-  ];
+
+  //********Cotización seleccionada**** */
+  const [selectedCotizacion, setSelectedCotizacion] = useState<number>(0); // Simulando que hay una cotización seleccionada
+
+
+
+
+  //********Columnas de mis cotizaciones */
+ const columnas = colsMis({setTab, setSelectedCotizacion});
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-gray-100 border-t-2 border-b-2 border-gray-200">
+    <div className="min-h-screen bg-gradient-to-br from-orange-500/5 via-background to-orange-400/10">
       {/* Top Navigation Bar */}
-      <div className="border-b-2 border-gray-100 px-4 py-4 bg-white ">
-        <div className="container   flex items-center justify-between">
+      <div className="border-t border-border/60 bg-background/80 backdrop-blur-sm sticky top-0 z-10">
+        <div className="w-full p-1 px-16 py-4 border-b border-border/60">
           <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2 ">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-500 hover:bg-orange-600">
-                <FileText className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">
-                  Mis cotizaciones
-                </h1>
-              </div>
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-500 hover:bg-orange-600">
+              <FileText className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-gray-900">
+                Mis cotizaciones
+              </h1>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto p-4">
+      <div className="w-fill   p-4 px-16">
         <div className="overflow-hidden rounded-lg border bg-white shadow-sm">
-          {/* Tabs */}
-          <div className="flex bg-white border-b border-gray-200">
-            <button
-              className={`flex items-center gap-2 px-6 py-4 text-sm font-medium transition-colors relative ${
-                tab === "mis"
-                  ? "text-[#d7751f] bg-[#fdf9ef]"
-                  : "text-gray-600 hover:text-gray-800 hover:bg-[#fdf9ef]"
-              }`}
-              onClick={() => setTab("mis")}
-            >
-              <FileText className="w-4 h-4" />
-              Mis cotizaciones
-              {tab === "mis" && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#d7751f]"></div>
-              )}
-            </button>
-            <button
-              className={`flex items-center gap-2 px-6 py-4 text-sm font-medium transition-colors relative ${
-                tab === "detalles"
-                  ? "text-[#d7751f] bg-[#fdf9ef]"
-                  : "text-gray-600 hover:text-gray-800 hover:bg-[#fdf9ef]"
-              }`}
-              onClick={() => setTab("detalles")}
-            >
-              <FileText className="w-4 h-4" />
-              Detalles de cotización
-              {tab === "detalles" && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#d7751f]"></div>
-              )}
-            </button>
+          {/* Tabs mejorados */}
+          <div className="relative bg-gradient-to-r from-gray-900 to-gray-800">
+            <div className="flex">
+              {tabs.map((tabItem) => {
+                const Icon = tabItem.icon;
+                const isActive = tab === tabItem.id;
+                const isDisabled = tabItem.disabled;
 
-            <button
-              className={`flex items-center gap-2 px-6 py-4 text-sm font-medium transition-colors relative ${
-                tab === "seguimiento"
-                  ? "text-[#d7751f] bg-[#fdf9ef]"
-                  : selectedCotizacion
-                  ? "text-gray-600 hover:text-gray-800 hover:bg-[#fdf9ef]"
-                  : "text-gray-400 cursor-not-allowed"
-              }`}
-              disabled={!selectedCotizacion}
-              onClick={() => selectedCotizacion && setTab("seguimiento")}
-            >
-              <FileText className="w-4 h-4" />
-              Seguimiento
-              {tab === "seguimiento" && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#d7751f]"></div>
-              )}
-            </button>
+                return (
+                  <button
+                    key={tabItem.id}
+                    className={`
+                    relative flex items-center gap-3 px-6 py-3 text-sm font-medium transition-all duration-300 ease-in-out
+                    ${
+                      isActive
+                        ? "text-white bg-gradient-to-b from-orange-400/2 to-orange-400/90 border-b-2 border-orange-400"
+                        : isDisabled
+                        ? "text-gray-500 cursor-not-allowed opacity-50"
+                        : "text-gray-300 hover:text-white hover:bg-white/5"
+                    }
+                    ${!isDisabled && !isActive ? "hover:scale-105" : ""}
+                  `}
+                    disabled={isDisabled}
+                    onClick={() => !isDisabled && setTab(tabItem.id)}
+                    title={tabItem.description}
+                  >
+                    <Icon
+                      className={`w-4 h-4 ${isActive ? "text-white" : ""}`}
+                    />
+                    <span className="whitespace-nowrap">{tabItem.label}</span>
+
+                    {/* Indicador activo mejorado */}
+                    {isActive && (
+                      <motion.div
+                        layoutId="activeTab"
+                        className="absolute inset-0 bg-gradient-to-r from-orange-500/10 to-orange-600/5 rounded-t-lg"
+                        initial={false}
+                        transition={{
+                          type: "spring",
+                          bounce: 0.2,
+                          duration: 0.6,
+                        }}
+                      />
+                    )}
+
+                    {/* Efecto hover */}
+                    {!isActive && !isDisabled && (
+                      <div className="absolute bg-white/0 hover:bg-white/5 transition-colors duration-200 rounded-t-lg" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Línea divisoria sutil */}
+            <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gray-600 to-transparent" />
           </div>
 
           {/* Contenidos */}
           {tab === "mis" && (
-            <div className="space-y-4 p-6">
-              <p className="text-black   leading-relaxed">
-                En este apartado se especifican las solicitudes de cotización
-                que han sido registrados en el sistema. Puede verificar su
-                estado, la respuesta del administrador y los documentos
-                asociados a su cotización; seleccionando el botón que indica
-                "Ver Detalles".
-              </p>
-              <DataTable
-                columns={colsMis}
-                data={cotizaciones}
-                toolbarOptions={{ showSearch: true, showViewOptions: false }}
-                paginationOptions={{
-                  showSelectedCount: true,
-                  showPagination: true,
-                  showNavigation: true,
-                }}
-              />
-            </div>
+            <Card className="shadow-xl border-0 bg-card/95 backdrop-blur-sm">
+              <CardHeader className="pb-6">
+                <CardTitle className="text-necro font-medium text-lg">
+                  Solicitudes de Cotización
+                </CardTitle>
+                <p className="text-muted-foreground text-sm leading-relaxed">
+                  En este apartado se especifican las solicitudes de cotización
+                  que han sido registrados en el sistema. Puede verificar su
+                  estado, la respuesta del administrador y los documentos
+                  asociados a su cotización; seleccionando el botón que indica
+                  "Ver Detalles".
+                </p>
+              </CardHeader>
+              <CardContent>
+                <DataTable
+                  columns={columnas}
+                  data={cotizaciones}
+                  toolbarOptions={{
+                    showSearch: true,
+                    showViewOptions: false,
+                  }}
+                  paginationOptions={{
+                    showSelectedCount: true,
+                    showPagination: true,
+                    showNavigation: true,
+                  }}
+                />
+              </CardContent>
+            </Card>
           )}
 
           {tab === "detalles" && selectedCotizacion && (
@@ -254,14 +215,14 @@ export default function MisCotizaciones() {
                   <strong>Id de cotización: </strong>
                   <div className="flex items-center gap-2">
                     <IdCard className="w-4 h-4 text-[#d7751f]" />
-                    {selectedCotizacion.id}
+                    {/*{selectedCotizacion.id}*/}
                   </div>
                 </div>
                 <div className="mb-4 text-black leading-relaxed flex flex-col">
                   <strong>Fecha de registro:</strong>{" "}
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-[#d7751f]" />{" "}
-                    {selectedCotizacion.fecha}
+                    {/*{selectedCotizacion.fecha}*/}
                   </div>
                 </div>
                 <div className="mb-4 text-black leading-relaxed flex flex-col">
@@ -286,9 +247,9 @@ export default function MisCotizaciones() {
           )}
 
           {tab === "seguimiento" && selectedProducto && (
-            <div className="space-y-4 p-6">
-              <Card>
-                <CardTitle className="px-4 py-3 border-b border-gray-200">
+            <div className="space-y-4 p-6 ">
+              <Card className="py-4">
+                <CardTitle className="border-b border-gray-200 px-4 ">
                   <h3 className="flex items-center font-semibold text-gray-900">
                     <Package className="mr-2 h-6 w-6 text-orange-500" />
                     Detalle de producto
@@ -304,15 +265,14 @@ export default function MisCotizaciones() {
                             Nombre del Producto
                           </label>
                         </div>
-                        <input
+                        <Input
                           name="nombre"
+                          disabled={true}
                           value={selectedProducto.nombre}
-                          className="border-none outline-none"
-                          disabled
                         />
                       </div>
 
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div className="space-y-2">
                           <div className="flex items-center gap-2">
                             <Hash className="w-4 h-4 text-orange-500" />
@@ -320,9 +280,8 @@ export default function MisCotizaciones() {
                               Cantidad
                             </label>
                           </div>
-                          <input
+                          <Input
                             name="cantidad"
-                            type="number"
                             value={selectedProducto.cantidad}
                             disabled
                           />
@@ -335,16 +294,14 @@ export default function MisCotizaciones() {
                               Tamaño
                             </label>
                           </div>
-                          <input
+                          <Input
                             name="tamano"
-                            type="number"
-                            value={1}
+                            type="string"
+                            value={selectedProducto.tamano}
                             disabled
                           />
                         </div>
-                      </div>
 
-                      <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <div className="flex items-center gap-2">
                             <Palette className="w-4 h-4 text-orange-500" />
@@ -352,9 +309,15 @@ export default function MisCotizaciones() {
                               Color
                             </label>
                           </div>
-                          <input name="color" value={"color"} disabled />
+                          <Input
+                            name="color"
+                            value={selectedProducto.color}
+                            disabled
+                          />
                         </div>
+                      </div>
 
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <div className="flex items-center gap-2">
                             <Link className="w-4 h-4 text-orange-500" />
@@ -362,11 +325,89 @@ export default function MisCotizaciones() {
                               URL
                             </label>
                           </div>
-                          <input
+                          <Input
                             name="url"
-                            value={"url"}
+                            value={selectedProducto.url}
                             disabled
                             className="border-gray-300 focus:border-orange-500 focus:ring-orange-500"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                              <Link className="w-4 h-4 text-orange-500" />
+                              <label className="text-sm font-medium text-gray-700">
+                                Tipo de servicio
+                              </label>
+                            </div>
+                            <Input
+                              name="tipo_servicio"
+                              value={selectedProducto.tipoServicio}
+                              disabled
+                              className="border-gray-300 focus:border-orange-500 focus:ring-orange-500"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <MessageSquare className="w-4 h-4 text-orange-500" />
+                            <label className="text-sm font-medium text-gray-700">
+                              Peso (Kg)
+                            </label>
+                          </div>
+                          <Input
+                            name="peso"
+                            type="number"
+                            value={selectedProducto.peso}
+                            disabled
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <MessageSquare className="w-4 h-4 text-orange-500" />
+                            <label className="text-sm font-medium text-gray-700">
+                              Volumen
+                            </label>
+                          </div>
+                          <Input
+                            name="volumen"
+                            type="number"
+                            value={selectedProducto.volumen}
+                            disabled
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <MessageSquare className="w-4 h-4 text-orange-500" />
+                            <label className="text-sm font-medium text-gray-700">
+                              Nro. cajas
+                            </label>
+                          </div>
+                          <Input
+                            name="nro_cajas"
+                            type="number"
+                            value={selectedProducto.nro_cajas}
+                            disabled
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 gap-4">
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <MessageSquare className="w-4 h-4 text-orange-500" />
+                            <label className="text-sm font-medium text-gray-700">
+                              Comentario
+                            </label>
+                          </div>
+                          <Textarea
+                            name="comentario"
+                            value={selectedProducto.comentario}
+                            disabled
                           />
                         </div>
                       </div>
@@ -375,20 +416,23 @@ export default function MisCotizaciones() {
                     <div className="space-y-4">
                       <div className="space-y-2">
                         <div className="flex items-center gap-2">
-                          <MessageSquare className="w-4 h-4 text-orange-500" />
+                          <File className="w-4 h-4 text-orange-500" />
                           <label className="text-sm font-medium text-gray-700">
-                            Comentario
+                            Archivos adjuntos
                           </label>
                         </div>
-                        <Textarea name="comentario" value={"  "} disabled />
+
+                        <Button variant="outline" size="sm">
+                          Ver archivos adjuntos
+                        </Button>
                       </div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardTitle className="px-4 py-3 border-b border-gray-200">
+              <Card className="py-4">
+                <CardTitle className="border-b border-gray-200 px-4 ">
                   <h3 className="flex items-center font-semibold text-gray-900">
                     <MessageCircleMore className="mr-2 h-6 w-6 text-orange-500" />
                     Detalle de respuesta
@@ -409,7 +453,7 @@ export default function MisCotizaciones() {
                         </p>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <div className="flex items-center gap-2">
                             <Calendar className="w-4 h-4 text-orange-500" />
@@ -427,11 +471,7 @@ export default function MisCotizaciones() {
                               Tamaño
                             </label>
                           </div>
-                          <input
-                            name="tamano"
-                            type="string"
-                            disabled
-                          />
+                          <input name="tamano" type="string" disabled />
                         </div>
                       </div>
 

@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { addToast } from "@heroui/react";
 
 import { login } from "@/api/login";
 import { z } from "zod";
@@ -18,6 +17,9 @@ import {
   FormMessage,
   FormControl,
 } from "@/components/ui/form";
+import { toast } from "sonner";
+import SendingModal from "@/components/sending-modal";
+import { useState } from "react";
 
 const loginSchema = z.object({
   email: z.string().email("El correo electrónico no es válido"),
@@ -26,7 +28,7 @@ const loginSchema = z.object({
 
 export default function LoginPage() {
   const navigate = useNavigate();
-
+  const [isLoading, setIsLoading] = useState(false);
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -36,23 +38,30 @@ export default function LoginPage() {
   });
 
   const onSubmit = async (data: z.infer<typeof loginSchema>) => {
+    setIsLoading(true);
     console.log("Enviando datos:", JSON.stringify(data, null, 2));
-    const res = await login(data.email, data.password);
-    console.log("Respuesta del servidor:", res);
-    if (res.status === 201) {
-      addToast({ title: "Inicio de sesión exitoso", color: "success" });
-      localStorage.setItem("access_token", res.data.access_token);
-      // Espera 300ms antes de redirigir
-      setTimeout(() => {
-        navigate("/dashboard");
-      }, 300);
-      
-    } else {
-      addToast({
-        title: "Credenciales incorrectas, por favor intente nuevamente",
-        color: "danger",
-      });
+
+    try {
+      const res = await login(data.email, data.password);
+      console.log("Respuesta del servidor:", res);
+      if (res.status === 201) {
+        toast.success("Inicio de sesión exitoso");
+        localStorage.setItem("access_token", res.data.access_token);
+        // Espera 300ms antes de redirigir
+        setTimeout(() => {
+          navigate("/dashboard");
+        }, 300);
+        setIsLoading(false);
+      } else {
+        toast.error("Credenciales incorrectas, por favor intente nuevamente", {
+          description: "Por favor, verifique sus credenciales",
+        });
+      }
+    } catch (error) {
+      toast.error("Error al iniciar sesión, por favor intente nuevamente");
+      setIsLoading(false);
     }
+    setIsLoading(false);
   };
 
   return (
@@ -150,7 +159,11 @@ export default function LoginPage() {
               </Form>
             </CardContent>
           </Card>
-
+          {/* Modal de animación de carga */}
+          <SendingModal
+            isOpen={isLoading}
+            onClose={() => setIsLoading(false)}
+          />
           {/* Contact Administrator Section */}
           {/*<Card className="shadow-md">
             <CardContent className="pt-6">

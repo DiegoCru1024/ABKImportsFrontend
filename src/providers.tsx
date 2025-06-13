@@ -1,14 +1,13 @@
 import type { ReactNode } from "react";
-import { HeroUIProvider } from "@heroui/react";
-import { ToastProvider } from "@heroui/toast";
+import { Toaster } from "sonner";
 
 type ProvidersProps = { children: ReactNode };
 
 export default function Providers({ children }: ProvidersProps) {
   return (
-    <HeroUIProvider>
-      <ToastProvider placement="top-right" />
+    <>
+      <Toaster position="top-right" richColors />
       {children}
-    </HeroUIProvider>
+    </>
   );
 }

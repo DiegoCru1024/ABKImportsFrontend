@@ -1,9 +1,9 @@
 export async function apiFetch(endpoint: string, options: RequestInit = {}) {
-  //const token = localStorage.getItem("token"); // 🔹 Obtener el token del localStorage
+  const access_token = localStorage.getItem("access_token"); // 🔹 Obtener el token del localStorage
 
   const headers = {
     "Content-Type": "application/json",
-    //Authorization: token ? `Bearer ${token}` : "", // 🔹 Agregar el token si existe
+    Authorization: access_token ? `Bearer ${access_token}` : "", // 🔹 Agregar el token si existe
     ...options.headers, // 🔹 Permitir sobreescribir headers si es necesario
   };
 

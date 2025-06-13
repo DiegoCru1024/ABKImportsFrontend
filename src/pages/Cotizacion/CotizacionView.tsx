@@ -517,6 +517,16 @@ export default function CotizacionView() {
                     showPagination: false,
                     showNavigation: false,
                   }}
+                  pageInfo={{
+                    pageNumber: 1,
+                    pageSize: 10,
+                    totalElements: 0,
+                    totalPages: 0,
+                  }}
+                  onPageChange={() => {}}
+                  onSearch={() => {}}
+                  searchTerm={""}
+                  isLoading={false}
                 />
               </div>
             </div>

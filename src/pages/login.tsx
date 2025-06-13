@@ -1,32 +1,58 @@
 "use client";
 
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { Mail, MessageCircle, Phone } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
-import { Label } from "@/components/ui/label";
+import { addToast } from "@heroui/react";
+
+import { login } from "@/api/login";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  Form,
+  FormItem,
+  FormLabel,
+  FormField,
+  FormMessage,
+  FormControl,
+} from "@/components/ui/form";
+
+const loginSchema = z.object({
+  email: z.string().email("El correo electrónico no es válido"),
+  password: z.string().min(3),
+});
 
 export default function LoginPage() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
-  const handleSubmit = async (e: any) => {
-    e.preventDefault();
-    navigate("/dashboard");
-    /*const res = await fetch('/api/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
-    })
-    if (res.ok) {
-      navigate('/dashboard')
+  const form = useForm<z.infer<typeof loginSchema>>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+
+  const onSubmit = async (data: z.infer<typeof loginSchema>) => {
+    console.log("Enviando datos:", JSON.stringify(data, null, 2));
+    const res = await login(data.email, data.password);
+    console.log("Respuesta del servidor:", res);
+    if (res.status === 201) {
+      addToast({ title: "Inicio de sesión exitoso", color: "success" });
+      localStorage.setItem("access_token", res.data.access_token);
+      // Espera 300ms antes de redirigir
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 300);
+      
     } else {
-      alert('Credenciales incorrectas')
-    }*/
+      addToast({
+        title: "Credenciales incorrectas, por favor intente nuevamente",
+        color: "danger",
+      });
+    }
   };
 
   return (
@@ -48,7 +74,7 @@ export default function LoginPage() {
           <div className="text-center">
             <div className="flex justify-center mb-6">
               <img
-                src="/public/abk-white.png"
+                src="/LOGO-02.png"
                 alt="ABK Logistics"
                 width={200}
                 height={80}
@@ -71,35 +97,57 @@ export default function LoginPage() {
               </h2>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="username">Usuario</Label>
-                <Input
-                  id="username"
-                  type="text"
-                  placeholder="Ingresa tu usuario"
-                  className="h-11"
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="password">Contraseña</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="Ingresa tu contraseña"
-                  className="h-11"
-                  required
-                />
-              </div>
-
-              <Button
-                type="submit"
-                className="w-full h-11 bg-orange-600 hover:bg-orange-700"
-                onClick={handleSubmit}
-              >
-                Iniciar Sesión
-              </Button>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)}>
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Usuario</FormLabel>
+                        <FormControl>
+                          <Input
+                            id="username"
+                            type="text"
+                            placeholder="Ingresa tu usuario"
+                            className="h-11"
+                            required
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Contraseña</FormLabel>
+                        <FormControl>
+                          <Input
+                            id="password"
+                            type="password"
+                            placeholder="Ingresa tu contraseña"
+                            className="h-11"
+                            required
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button
+                    type="submit"
+                    className="w-full h-11 bg-orange-600 hover:bg-orange-700"
+                    onClick={form.handleSubmit(onSubmit)}
+                  >
+                    Iniciar Sesión
+                  </Button>
+                </form>
+              </Form>
             </CardContent>
           </Card>
 

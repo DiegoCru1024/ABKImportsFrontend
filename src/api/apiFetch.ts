@@ -8,8 +8,9 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
   };
 
   try {
+    
     const response = await fetch(
-      `http://localhost:8080/api${endpoint}`, // 🔹 Base URL + endpoint
+      `http://localhost:8080/${endpoint}`, // 🔹 Base URL + endpoint
       //`https://crmbackendv2-production.up.railway.app/api${endpoint}`, // 🔹 Base URL + endpoint
       {
         ...options,

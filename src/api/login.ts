@@ -1,17 +1,21 @@
-import { apiFetch } from "./apiFetch";
-
-const login = async (email: string, password: string) => {
+export const login = async (email: string, password: string) => {
   try {
-    const response = await apiFetch("/users/login", {
+    const response = await fetch("http://localhost:3000/users/login", {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({ email, password }),
     });
-    return response.json();
+
+    if (!response.ok) {
+      return { status: response.status }; 
+    }
+
+    const data = await response.json();
+    return { status: response.status, data };
   } catch (error) {
     console.error("Error al iniciar sesión:", error);
-    throw error;
+    return { status: 500 };
   }
-  
 };
-
-export default login; 

@@ -10,6 +10,7 @@ import {
 import { SidebarTrigger } from "./ui/sidebar";
 import { Separator } from "@radix-ui/react-separator";
 import { Bell } from "lucide-react";
+import React from "react";
 
 function toTitle(segment: string) {
   return segment
@@ -38,7 +39,7 @@ export default function HeaderConBreadcrumb() {
               path += `/${seg}`;
               const isLast = i === segments.length - 1;
               return (
-                <>
+                <React.Fragment key={`sep-${i}`}>
                   <BreadcrumbSeparator key={`sep-${i}`} className="hidden md:block" />
                   <BreadcrumbItem key={path}>
                     {isLast ? (
@@ -49,7 +50,7 @@ export default function HeaderConBreadcrumb() {
                       </BreadcrumbLink>
                     )}
                   </BreadcrumbItem>
-                </>
+                </React.Fragment>
               );
             })}
           </BreadcrumbList>

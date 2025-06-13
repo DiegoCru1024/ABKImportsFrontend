@@ -64,15 +64,15 @@ export default function SendingModal({ isOpen, onClose }: SendingModalProps) {
             {/* Animación de datos moviéndose */}
             <div className="relative mb-6 h-12 bg-gray-50 rounded-lg overflow-hidden">
               <div className="absolute inset-0 flex items-center justify-between px-4">
-                <div className="w-3 h-3 bg-[#701a75] rounded-full"></div>
-                <div className="w-3 h-3 bg-[#701a75] rounded-full"></div>
+                <div className="w-3 h-3 bg-orange-400 rounded-full"></div>
+                <div className="w-3 h-3 bg-orange-400 rounded-full"></div>
               </div>
 
               {/* Partículas animadas */}
               {[...Array(5)].map((_, i) => (
                 <motion.div
                   key={i}
-                  className="absolute top-1/2 w-2 h-2 bg-[#701a75] rounded-full"
+                  className="absolute top-1/2 w-2 h-2 bg-orange-400 rounded-full"
                   initial={{ x: 16, y: -4, opacity: 0 }}
                   animate={{
                     x: "calc(100vw - 80px)",
@@ -89,7 +89,7 @@ export default function SendingModal({ isOpen, onClose }: SendingModalProps) {
 
               {/* Línea de conexión animada */}
               <motion.div
-                className="absolute top-1/2 h-0.5 bg-gradient-to-r from-[#701a75] to-transparent"
+                className="absolute top-1/2 h-0.5 bg-gradient-to-r from-orange-400 to-transparent"
                 initial={{ width: 0, x: 16 }}
                 animate={{ width: "calc(100% - 32px)" }}
                 transition={{ duration: 1, repeat: Number.POSITIVE_INFINITY, repeatType: "reverse" }}
@@ -105,7 +105,7 @@ export default function SendingModal({ isOpen, onClose }: SendingModalProps) {
 
               <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
                 <motion.div
-                  className="h-full bg-[#701a75] rounded-full relative"
+                  className="h-full bg-orange-400 rounded-full relative"
                   initial={{ width: 0 }}
                   animate={{ width: progress + "%" }}
                   transition={{ duration: 0.3, ease: "easeOut" }}
@@ -127,17 +127,17 @@ export default function SendingModal({ isOpen, onClose }: SendingModalProps) {
             {/* Indicador de estado */}
             <div className="mt-6 flex items-center justify-center space-x-2">
               <motion.div
-                className="w-2 h-2 bg-[#701a75] rounded-full"
+                className="w-2 h-2 bg-orange-400 rounded-full"
                 animate={{ scale: [1, 1.2, 1] }}
                 transition={{ duration: 1, repeat: Number.POSITIVE_INFINITY }}
               />
               <motion.div
-                className="w-2 h-2 bg-[#701a75] rounded-full"
+                className="w-2 h-2 bg-orange-400 rounded-full"
                 animate={{ scale: [1, 1.2, 1] }}
                 transition={{ duration: 1, repeat: Number.POSITIVE_INFINITY, delay: 0.2 }}
               />
               <motion.div
-                className="w-2 h-2 bg-[#701a75] rounded-full"
+                className="w-2 h-2 bg-orange-400 rounded-full"
                 animate={{ scale: [1, 1.2, 1] }}
                 transition={{ duration: 1, repeat: Number.POSITIVE_INFINITY, delay: 0.4 }}
               />

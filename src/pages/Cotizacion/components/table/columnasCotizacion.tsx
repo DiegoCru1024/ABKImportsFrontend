@@ -13,40 +13,35 @@ export function columnasCotizacion({
   handleEliminar,
 }: ColumnasCotizacionProps): ColumnDef<Producto, any>[] {
   return [
-    {
-      id: "id",
-      accessorKey: "id",
-      header: "ID",
-      cell: ({ row }) => <div>{row.original.id}</div>,
-      minSize: 150,
-      size: 200,
-      maxSize: 250,
-    },
+
     {
       id: "nombre",
       accessorKey: "nombre",
       header: "Nombre",
-      cell: ({ row }) => <div>{row.original.nombre}</div>,
+      cell: ({ row }) => <div>{row.original.name}</div>,
       minSize: 150,
       size: 200,
       maxSize: 250,
     },
     {
       id: "cantidad",
-      accessorKey: "cantidad",
+      accessorKey: "quantity",
       header: "Cantidad",
+      cell: ({ row }) => <div>{row.original.quantity}</div>,
       size: 50,
     },
     {
       id: "tamano",
-      accessorKey: "tamano",
+      accessorKey: "size",
       header: "Tamaño",
+      cell: ({ row }) => <div>{row.original.size}</div>,
       size: 50,
     },
     {
       id: "color",
       accessorKey: "color",
       header: "Color",
+      cell: ({ row }) => <div>{row.original.color}</div>,
       size: 100,
     },
 
@@ -65,7 +60,7 @@ export function columnasCotizacion({
       id: "tipoServicio",
       accessorKey: "tipoServicio",
       header: "Tipo Servicio",
-      cell: ({ row }) => <div>{row.original.tipoServicio}</div>,
+      cell: ({ row }) => <div>{row.original.service_type}</div>,
       minSize: 150,
       size: 200,
       maxSize: 250,
@@ -75,7 +70,7 @@ export function columnasCotizacion({
       header: "Comentario",
       cell: ({ row }) => (
         <div className="whitespace-normal break-words w-[250px]">
-          {row.original.comentario}
+          {row.original.comment}
         </div>
       ),
       minSize: 120,
@@ -106,7 +101,7 @@ export function columnasCotizacion({
       header: "Archivos",
       size: 80,
       cell: ({ row }) => {
-        const archivos: File[] = row.original.archivos;
+        const archivos: string[] = row.original.attachments;
         return (
           <Dialog>
             <DialogTrigger asChild>
@@ -120,14 +115,18 @@ export function columnasCotizacion({
               </DialogHeader>
               <div className="flex space-x-4 overflow-x-auto snap-x snap-mandatory py-4">
                 {archivos.map((file, idx) => {
-                  const url = URL.createObjectURL(file);
-                  const isImage = file.type.startsWith("image/");
+                  const url = file;
+                  const isImage = url.includes("/images/") || url.match(/\.(jpg|jpeg|png|gif|webp)$/i);
                   return (
                     <div key={idx} className="flex-shrink-0 w-full snap-center">
                       {isImage ? (
                         <img src={url} alt={`archivo-${idx}`} className="h-64 object-contain" />
                       ) : (
-                        <video src={url} controls className="h-64 object-contain" />
+                        <div className="h-64 flex items-center justify-center bg-gray-100 rounded">
+                          <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-500 underline">
+                            Ver archivo
+                          </a>
+                        </div>
                       )}
                     </div>
                   );
@@ -152,7 +151,7 @@ export function columnasCotizacion({
         <div className="flex items-center gap-2">
           <Trash
             className="w-4 h-4 text-red-500"
-            onClick={() => handleEliminar(Number(row.original.id))}
+            //onClick={() => handleEliminar(Number(row.original.id_product))}
           />
         </div>
       ),

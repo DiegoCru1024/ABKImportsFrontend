@@ -8,9 +8,10 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
   };
 
   try {
-    
+    console.log("Request URL: ", `http://localhost:3000${endpoint}`);
+    console.log("Request Body: ", options.body);
     const response = await fetch(
-      `http://localhost:8080/${endpoint}`, // 🔹 Base URL + endpoint
+      `http://localhost:3000${endpoint}`, // 🔹 Base URL + endpoint
       //`https://crmbackendv2-production.up.railway.app/api${endpoint}`, // 🔹 Base URL + endpoint
       {
         ...options,

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DataTable } from "@/components/table/data-table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,16 +34,19 @@ import {
   type Solicitud,
   type ProductoItem,
   type QuotationResponse,
+  type Product,
 } from "./components/utils/interface";
 import { colsSolicitudes } from "./components/table/columnsSolicitudes";
 import { colsProductos } from "./components/table/columnsProductos";
 import { serviciosLogisticos } from "./components/utils/static";
 import { incotermsOptions } from "./components/utils/static";
+import { useGetQuotationById } from "@/hooks/use-quation";
+import { servicios } from "../Cotizacion/components/data/static";
 
 export default function GestionDeCotizaciones() {
   const [mainTab, setMainTab] = useState<
     "solicitudes" | "detalles" | "respuesta"
-  >("solicitudes");
+  >("respuesta");
   const [selectedSolicitud, setSelectedSolicitud] = useState<Solicitud | null>(
     null
   );
@@ -51,9 +54,24 @@ export default function GestionDeCotizaciones() {
   const [subTab, setSubTab] = useState<
     "Todos" | "No respondido" | "Respondido" | "Observado"
   >("Todos");
-  const [currentProduct, setCurrentProduct] = useState<ProductoItem | null>(
+  const [currentProduct, setCurrentProduct] = useState<Product | null>(
     null
   );
+
+ const [solicitudId, setSolicitudId] = useState<string | null>("b5b38dc1-d7a5-4479-af4f-342c2d12be77");
+  const { data: quotation, isLoading: isLoadingQuotation  } = useGetQuotationById(solicitudId || "");
+
+  useEffect(() => {
+    if (quotation && quotation.products && quotation.products.length > 0) {
+      //console.log("Estos son los productos de la cotización", quotation.products);
+      setCurrentProduct(quotation.products[0]);  // Asigna el primer producto
+      console.log("Estas es el primer producto", JSON.stringify(quotation.products[0],null,2) );
+      console.log("Valor de currentProduct", currentProduct);
+    } 
+    else {
+      console.log("No se encontraron productos en la cotización");
+    }
+  }, [quotation]);
 
   const [responses, setResponses] = useState<QuotationResponse[]>([
     {
@@ -339,7 +357,7 @@ export default function GestionDeCotizaciones() {
                             Nombre del Producto
                           </label>
                         </div>
-                        <Input disabled value={currentProduct.nombre} />
+                        <Input disabled value={currentProduct.name} />
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div className="space-y-2">
@@ -349,7 +367,7 @@ export default function GestionDeCotizaciones() {
                               Cantidad
                             </label>
                           </div>
-                          <Input disabled value={currentProduct.cantidad} />
+                          <Input disabled value={currentProduct.quantity} />
                         </div>
                         <div className="space-y-2">
                           <div className="flex items-center gap-2">
@@ -360,7 +378,7 @@ export default function GestionDeCotizaciones() {
                           </div>
                           <Input
                             disabled
-                            value={currentProduct.especificaciones}
+                            value={currentProduct.size}
                           />
                         </div>
                         <div className="space-y-2">
@@ -372,7 +390,7 @@ export default function GestionDeCotizaciones() {
                           </div>
                           <Input
                             disabled
-                            value={currentProduct.comentarioCliente}
+                            value={currentProduct.color}
                           />
                         </div>
                       </div>
@@ -386,7 +404,7 @@ export default function GestionDeCotizaciones() {
                           </div>
                           <Input
                             disabled
-                            value={currentProduct.especificaciones}
+                            value={currentProduct.url}
                           />
                         </div>
                         <div className="space-y-2">
@@ -398,7 +416,7 @@ export default function GestionDeCotizaciones() {
                           </div>
                           <Input
                             disabled
-                            value={currentProduct.estadoRespuesta}
+                            value={currentProduct.service_type}
                           />
                         </div>
                       </div>
@@ -599,10 +617,10 @@ export default function GestionDeCotizaciones() {
                                 }
                               >
                                 <SelectTrigger className="w-64">
-                                  <SelectValue />
-                                </SelectTrigger>
+                                  <SelectValue placeholder="Seleccione" />
+                                </SelectTrigger >
                                 <SelectContent>
-                                  {serviciosLogisticos.map((servicio) => (
+                                  {servicios.map((servicio) => (
                                     <SelectItem
                                       key={servicio.value}
                                       value={servicio.value}

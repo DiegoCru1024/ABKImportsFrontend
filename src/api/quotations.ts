@@ -9,15 +9,16 @@ import type { Quotation } from "@/pages/Cotizacion/utils/interface";
  * @returns {Promise<any>} - La cotización creada
  */
 export const createQuotation = async (quotation: Quotation) => {
+  //console.log("Estas esta la informacion de la cotizacion", JSON.stringify(quotation,null,2));
   try {
-    const response = await apiFetch("/quotations", {
+    const data = await apiFetch("/quotations", {
       method: "POST",
       body: JSON.stringify(quotation),
     });
-    if (!response.ok) {
+    if (!data) {
       throw new Error("Error al crear la cotización");
     }
-    return response.json();
+    return data;
   } catch (error) {
     console.error("Error al crear la cotización:", error);
     throw error;
@@ -31,11 +32,11 @@ export const createQuotation = async (quotation: Quotation) => {
  */ 
 export const getQuotationById = async (id: string) => {
   try {
-    const response = await apiFetch(`/quotations/${id}`);
-    if (!response.ok) {
+    const data = await apiFetch(`/quotations/${id}`);
+    if (!data) {
       throw new Error("Error al obtener la cotización");
     }
-    return response.json();
+    return data;
   } catch (error) {
     console.error("Error al obtener la cotización:", error);
     throw error;
@@ -48,11 +49,11 @@ export const getQuotationById = async (id: string) => {
  */
 export const getQuotationsByUser = async () => {
   try {
-    const response = await apiFetch("/quotations");
-    if (!response.ok) {
+    const data = await apiFetch("/quotations");
+    if (!data) {
       throw new Error("Error al obtener las cotizaciones");
     }
-    return response.json();
+    return data;
   } catch (error) {
     console.error("Error al obtener las cotizaciones:", error);
     throw error;
@@ -67,14 +68,14 @@ export const getQuotationsByUser = async () => {
  */
 export const updateQuotation = async (id: string, quotation: Quotation) => {
   try {
-    const response = await apiFetch(`/quotations/${id}`, {
+    const data = await apiFetch(`/quotations/${id}`, {
       method: "PATCH",
       body: JSON.stringify(quotation),
     });
-    if (!response.ok) {
+    if (!data) {
       throw new Error("Error al actualizar la cotización");
     }
-    return response.json();
+    return data;
   } catch (error) {
     console.error("Error al actualizar la cotización:", error);
     throw error;
@@ -89,13 +90,13 @@ export const updateQuotation = async (id: string, quotation: Quotation) => {
  */
 export const deleteQuotation = async (id: string) => {  
   try {
-    const response = await apiFetch(`/quotations/${id}`, {
+    const data = await apiFetch(`/quotations/${id}`, {
       method: "DELETE",
     });
-    if (!response.ok) {
+    if (!data) {
       throw new Error("Error al eliminar la cotización");
     }
-    return response.json();
+    return data;
   } catch (error) {
     console.error("Error al eliminar la cotización:", error);
     throw error;

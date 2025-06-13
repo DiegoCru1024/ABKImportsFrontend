@@ -10,13 +10,14 @@ import {
   MessageSquare,
   File,
   PackageOpen,
+  Loader2,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/table/data-table";
 import { Textarea } from "@/components/ui/textarea";
-
+import { z } from "zod";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import FileUploadComponent from "@/components/comp-552";
 import {
@@ -31,128 +32,141 @@ import {
 import type { Producto } from "./utils/interface";
 import { columnasCotizacion } from "./components/table/columnasCotizacion";
 import { servicios } from "./components/data/static";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { useCreateQuotation } from "@/hooks/use-quation";
+import { uploadMultipleFiles, deleteFile } from "@/api/fileUpload";
+import { toast } from "sonner";
+import SendingModal from "@/components/sending-modal";
+
+const productoSchema = z.object({
+  name: z.string().min(1, { message: "El nombre es requerido" }),
+  quantity: z.number().min(1, { message: "La cantidad es requerida" }),
+  size: z.string().min(1, { message: "El tamaño es requerido" }),
+  color: z.string().min(1, { message: "El color es requerido" }),
+  url: z.string().optional(),
+  comment: z.string().optional(),
+  service_type: z.string().optional(),
+  weight: z.number().optional(),
+  volume: z.number().optional(),
+  number_of_boxes: z.number().optional(),
+  attachments: z.array(z.string()).optional(),
+});
 
 export default function CotizacionView() {
   const [productos, setProductos] = useState<Producto[]>([]);
   const [service, setService] = useState("Pendiente"); // valor inicial
-  const [form, setForm] = useState<Producto>({
-    id: 0,
-    nombre: "",
-    cantidad: 1,
-    tamano: "",
-    color: "",
-    url: "",
-    comentario: "",
-    archivos: [],
-    peso: 0,
-    volumen: 0,
-    nro_cajas: 0,
-    tipoServicio: "",
-  });
-  // Estado para controlar reseteo del FileUploadComponent
-  const [resetCounter, setResetCounter] = useState(0)
-  // Callback para recibir archivos del componente de upload
-  const handleFilesChange = (files: File[]) => {
-    setForm(prev => ({ ...prev, archivos: files }));
-  };
+  const [resetCounter, setResetCounter] = useState(0); // Controlar el reset del FileUploadComponent
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
+  const form = useForm<z.infer<typeof productoSchema>>({
+    resolver: zodResolver(productoSchema),
+    defaultValues: {
+      name: "",
+      quantity: 1,
+      size: "",
+      color: "",
+      url: "",
+      comment: "",
+      service_type: "Pendiente",
+      weight: 0,
+      volume: 0,
+      number_of_boxes: 0,
+      attachments: [],
+    },
+  });
   // Eliminar producto
   const handleEliminar = (index: number) => {
     setProductos((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleInput = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value, type } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: type === "number" ? Math.max(1, Number(value)) : value,
-    }));
-  };
+  const columns = columnasCotizacion({ handleEliminar });
 
-  const handleAgregar = (e: React.FormEvent<HTMLFormElement>) => {
+  // Agregar producto con archivos adjuntos
+  const handleAgregar = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setProductos(prev => [...prev, { ...form }]);
-    // Resetear formulario y archivos
-    setForm({
-      id: 0,
-      nombre: "",
-      cantidad: 1,
-      tamano: "",
-      color: "",
-      url: "",
-      comentario: "",
-      archivos: [],
-      peso: 0,
-      volumen: 0,
-      nro_cajas: 0,
-      tipoServicio: "",
-    });
-    setResetCounter(prev => prev + 1)
-  };
 
-  const handleEnviar = async () => {
-    // Construir DTO de cotización
-    const dto = {
-      idUsuario: 101, // Reemplazar por ID real de usuario
-      estado: service,
-      fecha: new Date(),
-      productos: productos.map((p) => ({
-        nombre: p.nombre,
-        cantidad: p.cantidad,
-        tamano: p.tamano,
-        color: p.color,
-        url: p.url,
-        comentario: p.comentario,
-        tipoServicio: p.tipoServicio,
-        peso: p.peso,
-        volumen: p.volumen,
-        nro_cajas: p.nro_cajas,
-        archivos: p.archivos,
-      })),
+    // Validar que haya al menos un archivo antes de proceder
+    if (selectedFiles.length === 0) {
+      toast.error(
+        "Por favor, adjunte al menos un archivo antes de agregar el producto."
+      );
+      return;
+    }
+
+    // Validar formulario antes de proceder
+    const isValid = await form.trigger();
+    if (!isValid) {
+      return;
+    }
+
+    // Subir archivos a AWS y obtener URLs
+    let attachmentsUrls: string[] = [];
+    try {
+      if (selectedFiles.length > 0) {
+        const { urls } = await uploadMultipleFiles(selectedFiles);
+        attachmentsUrls = urls;
+        console.log("Estas son las urls", attachmentsUrls);
+      }
+    } catch (error) {
+      console.error("Error uploading files:", error);
+      return;
+    }
+
+    // Obtener los valores del formulario
+    const values = form.getValues();
+    const newProduct = {
+      name: values.name,
+      quantity: values.quantity,
+      size: values.size,
+      color: values.color,
+      url: values.url || "",
+      comment: values.comment || "",
+      service_type: values.service_type || "",
+      weight: values.weight || 0,
+      volume: values.volume || 0,
+      number_of_boxes: values.number_of_boxes || 0,
+      attachments: attachmentsUrls,
     };
 
-    // Enviar como FormData para incluir archivos
-    const formData = new FormData();
-    formData.append("idUsuario", dto.idUsuario.toString());
-    formData.append("estado", dto.estado);
-    formData.append("fecha", dto.fecha.toISOString());
-    dto.productos.forEach((prod, i) => {
-      formData.append(`productos[${i}][nombre]`, prod.nombre);
-      formData.append(`productos[${i}][cantidad]`, prod.cantidad.toString());
-      formData.append(`productos[${i}][tamano]`, prod.tamano);
-      formData.append(`productos[${i}][color]`, prod.color);
-      formData.append(`productos[${i}][url]`, prod.url);
-      formData.append(`productos[${i}][comentario]`, prod.comentario);
-      formData.append(`productos[${i}][tipoServicio]`, prod.tipoServicio);
-      formData.append(`productos[${i}][peso]`, prod.peso.toString());
-      formData.append(`productos[${i}][volumen]`, prod.volumen.toString());
-      formData.append(`productos[${i}][nro_cajas]`, prod.nro_cajas.toString());
-      prod.archivos.forEach((file) => {
-        formData.append(`productos[${i}][archivos]`, file);
-      });
-    });
+    // Agregar el producto a la lista
+    setProductos((prev) => [...prev, newProduct]);
 
-    try {
-      const response = await fetch('/api/cotizacion', {
-        method: 'POST',
-        body: formData,
-      });
-      if (!response.ok) {
-        throw new Error('Error en el servidor al enviar cotización');
-      }
-      const result = await response.json();
-      console.log('Cotización enviada exitosamente', result);
-      // Reiniciar productos tras envío
-      setProductos([]);
-    } catch (error) {
-      console.error('Error al enviar cotización', error);
-    }
+    // Resetear el formulario y los archivos
+    form.reset();
+    setResetCounter((prev) => prev + 1);
+    setSelectedFiles([]); // Limpiar los archivos seleccionados
   };
 
-  // Columnas de la tabla
-  const columns = columnasCotizacion({ handleEliminar });
+  const [isLoading, setIsLoading] = useState(false);
+  // Enviar cotización completa
+  const createQuotationMut = useCreateQuotation();
+  const handleEnviar = () => {
+    setIsLoading(true); // Mostrar el modal de carga
+    createQuotationMut.mutate(
+      { data: { products: productos } },
+      {
+        onSuccess: () => {
+          setIsLoading(false); // Ocultar el modal de carga
+        },
+        onError: () => {
+          setIsLoading(false); // Ocultar el modal de carga
+        },
+      }
+    );
+  };
+
+  useEffect(() => {
+    console.log("Estas son los productos", productos);
+  }, [productos]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-500/5 via-background to-orange-400/10">
@@ -182,258 +196,310 @@ export default function CotizacionView() {
               </h3>
             </div>
             {/* Formulario */}
-            <form onSubmit={handleAgregar}>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white p-6">
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Package className="w-4 h-4 text-orange-500" />
-                      <label
-                        className="text-sm font-medium text-gray-700"
-                        htmlFor="nombre"
-                      >
-                        Nombre del Producto
-                      </label>
+            <Form {...form}>
+              <form onSubmit={handleAgregar}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white p-6">
+                  {/* Primera Columna */}
+                  <div className="space-y-4">
+                    {/* Nombre del producto */}
+                    <div className="space-y-2">
+                      <FormField
+                        control={form.control}
+                        name="name"
+                        render={({ field }) => (
+                          <FormItem>
+                            <div className="flex items-center gap-2">
+                              <Package className="w-4 h-4 text-orange-500" />
+                              <FormLabel>Nombre del Producto</FormLabel>
+                            </div>
+                            <FormControl>
+                              <Input
+                                {...field}
+                                placeholder="Ej: Monitor, Teclado, Mouse..."
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                     </div>
-                    <Input
-                      id="nombre"
-                      name="nombre"
-                      placeholder="Ej: Monitor, Teclado, Mouse..."
-                      value={form.nombre}
-                      onChange={handleInput}
-                      required
+
+                    {/* URL del producto */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <FormField
+                          control={form.control}
+                          name="url"
+                          render={({ field }) => (
+                            <FormItem>
+                              <div className="flex items-center gap-2">
+                                <Link className="w-4 h-4 text-orange-500" />
+                                <FormLabel>URL</FormLabel>
+                              </div>
+                              <FormControl>
+                                <Input
+                                  {...field}
+                                  placeholder="https://temu.com/producto/123"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <FormField
+                            control={form.control}
+                            name="service_type"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center gap-2">
+                                  <MessageSquare className="w-4 h-4 text-orange-500" />
+                                  <FormLabel className="text-sm font-medium text-gray-700">
+                                    Tipo servicio
+                                  </FormLabel>
+                                </div>
+                                <FormControl>
+                                  <div>
+                                    <Select
+                                      {...field}
+                                      defaultValue={field.value}
+                                      onValueChange={(value) => {
+                                        field.onChange(value);
+                                        setService(value);
+                                      }}
+                                    >
+                                      <SelectTrigger className="w-60">
+                                        <SelectValue placeholder="Seleccione" />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectGroup>
+                                          <SelectLabel>Servicios</SelectLabel>
+                                          {servicios.map((servicio) => (
+                                            <SelectItem
+                                              key={servicio.id}
+                                              value={servicio.value}
+                                            >
+                                              {servicio.label}
+                                            </SelectItem>
+                                          ))}
+                                        </SelectGroup>
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {service === "Almacenaje de Mercancia" && (
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="space-y-2">
+                          <FormField
+                            control={form.control}
+                            name="weight"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center gap-2">
+                                  <MessageSquare className="w-4 h-4 text-orange-500" />
+                                  <FormLabel className="text-sm font-medium text-gray-700">
+                                    Peso (Kg)
+                                  </FormLabel>
+                                </div>
+                                <FormControl>
+                                  <Input {...field} type="number" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <FormField
+                            control={form.control}
+                            name="volume"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center gap-2">
+                                  <MessageSquare className="w-4 h-4 text-orange-500" />
+                                  <FormLabel className="text-sm font-medium text-gray-700">
+                                    Volumen
+                                  </FormLabel>
+                                </div>
+                                <FormControl>
+                                  <Input {...field} type="number" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <FormField
+                            control={form.control}
+                            name="number_of_boxes"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center gap-2">
+                                  <MessageSquare className="w-4 h-4 text-orange-500" />
+                                  <FormLabel className="text-sm font-medium text-gray-700">
+                                    Nro. cajas
+                                  </FormLabel>
+                                </div>
+                                <FormControl>
+                                  <Input {...field} type="number" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  {/* Segunda Columna */}
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <FormField
+                          control={form.control}
+                          name="quantity"
+                          render={({ field }) => (
+                            <FormItem>
+                              <div className="flex items-center gap-2">
+                                <Hash className="w-4 h-4 text-orange-500" />
+                                <FormLabel className="text-sm font-medium text-gray-700">
+                                  Cantidad
+                                </FormLabel>
+                              </div>
+                              <FormControl>
+                                <Input
+                                  {...field}
+                                  type="number"
+                                  min={1}
+                                  required
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <FormField
+                          control={form.control}
+                          name="size"
+                          render={({ field }) => (
+                            <FormItem>
+                              <div className="flex items-center gap-2">
+                                <Ruler className="w-4 h-4 text-orange-500" />
+                                <FormLabel className="text-sm font-medium text-gray-700">
+                                  Tamaño
+                                </FormLabel>
+                              </div>
+                              <FormControl>
+                                <Input
+                                  {...field}
+                                  placeholder="Ej: 10x10x10 cm"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <FormField
+                          control={form.control}
+                          name="color"
+                          render={({ field }) => (
+                            <FormItem>
+                              <div className="flex items-center gap-2">
+                                <Palette className="w-4 h-4 text-orange-500" />
+                                <FormLabel className="text-sm font-medium text-gray-700">
+                                  Color
+                                </FormLabel>
+                              </div>
+                              <FormControl>
+                                <Input
+                                  {...field}
+                                  placeholder="Ej: Rojo, Azul, Verde..."
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1  gap-4">
+                      <div className="space-y-2">
+                        <FormField
+                          control={form.control}
+                          name="comment"
+                          render={({ field }) => (
+                            <FormItem>
+                              <div className="flex items-center gap-2">
+                                <MessageSquare className="w-4 h-4 text-orange-500" />
+                                <FormLabel className="text-sm font-medium text-gray-700">
+                                  Comentario
+                                </FormLabel>
+                              </div>
+                              <FormControl>
+                                <Textarea
+                                  {...field}
+                                  placeholder="Ej: Producto en buen estado, etc."
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4 bg-white p-6">
+                  <div className="flex items-center gap-2">
+                    <File className="w-4 h-4 text-orange-500" />
+                    <FormLabel className="text-sm font-medium text-gray-700">
+                      Archivos
+                    </FormLabel>
+                  </div>
+
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 bg-white">
+                    <FileUploadComponent
+                      onFilesChange={setSelectedFiles}
+                      resetCounter={resetCounter}
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <Link className="w-4 h-4 text-orange-500" />
-                        <label
-                          className="text-sm font-medium text-gray-700"
-                          htmlFor="url"
-                        >
-                          URL
-                        </label>
-                      </div>
-                      <Input
-                        id="url"
-                        name="url"
-                        value={form.url}
-                        onChange={handleInput}
-                        placeholder="https://temu.com/producto/123"
-                        className="border-gray-300 focus:border-orange-500 focus:ring-orange-500"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <MessageSquare className="w-4 h-4 text-orange-500" />
-                        <label
-                          className="text-sm font-medium text-gray-700"
-                          htmlFor="tipoServicio"
-                        >
-                          Tipo servicio
-                        </label>
-                      </div>
-                      <Select defaultValue={service} onValueChange={setService}>
-                        <SelectTrigger className="w-60">
-                          <SelectValue placeholder="Seleccione" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectGroup>
-                            <SelectLabel>Servicios</SelectLabel>
-                            {servicios.map((servicio) => (
-                              <SelectItem
-                                key={servicio.id}
-                                value={servicio.value}
-                              >
-                                {servicio.label}
-                              </SelectItem>
-                            ))}
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  {service === "Almacenaje de Mercancia" && (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          <MessageSquare className="w-4 h-4 text-orange-500" />
-                          <label
-                            className="text-sm font-medium text-gray-700"
-                            htmlFor="peso"
-                          >
-                            Peso (Kg)
-                          </label>
-                        </div>
-                        <Input
-                          id="peso"
-                          name="peso"
-                          type="number"
-                          value={form.peso}
-                          onChange={handleInput}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          <MessageSquare className="w-4 h-4 text-orange-500" />
-                          <label
-                            className="text-sm font-medium text-gray-700"
-                            htmlFor="volumen"
-                          >
-                            Volumen
-                          </label>
-                        </div>
-                        <Input
-                          id="volumen"
-                          name="volumen"
-                          type="number"
-                          value={form.volumen}
-                          onChange={handleInput}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          <MessageSquare className="w-4 h-4 text-orange-500" />
-                          <label
-                            className="text-sm font-medium text-gray-700"
-                            htmlFor="nro_cajas"
-                          >
-                            Nro. cajas
-                          </label>
-                        </div>
-                        <Input
-                          id="nro_cajas"
-                          name="nro_cajas"
-                          type="number"
-                          value={form.nro_cajas}
-                          onChange={handleInput}
-                        />
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <Hash className="w-4 h-4 text-orange-500" />
-                        <label
-                          className="text-sm font-medium text-gray-700"
-                          htmlFor="cantidad"
-                        >
-                          Cantidad
-                        </label>
-                      </div>
-                      <Input
-                        id="cantidad"
-                        name="cantidad"
-                        type="number"
-                        min={1}
-                        value={form.cantidad}
-                        onChange={handleInput}
-                        required
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <Ruler className="w-4 h-4 text-orange-500" />
-                        <label
-                          className="text-sm font-medium text-gray-700"
-                          htmlFor="tamano"
-                        >
-                          Tamaño
-                        </label>
-                      </div>
-                      <Input
-                        id="tamano"
-                        name="tamano"
-                        type="string"
-                        value={form.tamano}
-                        onChange={handleInput}
-                        required
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <Palette className="w-4 h-4 text-orange-500" />
-                        <label
-                          className="text-sm font-medium text-gray-700"
-                          htmlFor="color"
-                        >
-                          Color
-                        </label>
-                      </div>
-                      <Input
-                        id="color"
-                        name="color"
-                        placeholder="Ej: Rojo, Azul, Verde..."
-                        value={form.color}
-                        onChange={handleInput}
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1  gap-4">
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <MessageSquare className="w-4 h-4 text-orange-500" />
-                        <label
-                          className="text-sm font-medium text-gray-700"
-                          htmlFor="comentario"
-                        >
-                          Comentario
-                        </label>
-                      </div>
-                      <Textarea
-                        id="comentario"
-                        name="comentario"
-                        value={form.comentario}
-                        onChange={handleInput}
-                      />
-                    </div>
+                  <div className="mt-6 flex justify-end">
+                    <Button
+                      className="bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-full px-8 py-2 shadow-md transition-all duration-200 transform hover:scale-105"
+                      type="submit"
+                    >
+                      <Plus className="w-5 h-5 mr-2" />
+                      Agregar Producto
+                    </Button>
                   </div>
                 </div>
-              </div>
-
-              <div className="space-y-4 bg-white p-6">
-                <div className="flex items-center gap-2">
-                  <File className="w-4 h-4 text-orange-500" />
-                  <label
-                    className="text-sm font-medium text-gray-700"
-                    htmlFor="archivos"
-                  >
-                    Archivos
-                  </label>
-                </div>
-
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 bg-white">
-                  <FileUploadComponent
-                    onFilesChange={handleFilesChange}
-                    resetCounter={resetCounter}
-                  />
-                </div>
-
-                <div className="mt-6 flex justify-end">
-                  <Button
-                    type="submit"
-                    className="bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-full px-8 py-2 shadow-md transition-all duration-200 transform hover:scale-105"
-                  >
-                    <Plus className="w-5 h-5 mr-2" />
-                    Agregar Producto
-                  </Button>
-                </div>
-              </div>
-            </form>
+              </form>
+            </Form>
           </div>
 
           {/* Tabla de productos */}
-          <div className="container mx-auto pt-6">
+          <div className="w-full p-1 pt-6">
             <div className="overflow-hidden rounded-xl border bg-gradient-to-r from-gray-900 to-gray-800 shadow-sm">
               <div className="border-b border-gray-200 px-4 py-3">
                 <h3 className="flex items-center font-semibold text-white">
@@ -460,8 +526,8 @@ export default function CotizacionView() {
           <div className="flex justify-end mt-8">
             <ConfirmDialog
               trigger={
-                <Button className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-2 rounded-full text-lg shadow-md flex items-center gap-2">
-                  <Send className="w-5 h-5" /> Enviar
+                <Button  disabled={isLoading} className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-2 rounded-full text-lg shadow-md flex items-center gap-2">
+                  {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />} Enviar
                 </Button>
               }
               title="Confirmar envío de cotización"
@@ -469,11 +535,14 @@ export default function CotizacionView() {
               confirmText="Enviar"
               cancelText="Cancelar"
               onConfirm={handleEnviar}
+             
             />
           </div>
-          
         </div>
       </div>
+
+      {/* Animación de carga */}
+      <SendingModal isOpen={isLoading} onClose={() => setIsLoading(false)} />
     </div>
   );
 }

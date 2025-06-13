@@ -116,7 +116,7 @@ const getFilePreview = (file: {
 }
 
 export default function FileUploadComponent({ onFilesChange, resetCounter }: FileUploadComponentProps) {
-  const maxSizeMB = 20
+  const maxSizeMB = 16
   const maxSize = maxSizeMB * 1024 * 1024 // 20MB default
   const maxFiles = 20
 
@@ -157,7 +157,9 @@ export default function FileUploadComponent({ onFilesChange, resetCounter }: Fil
   
       if (hasChanged) {
         prevFilesRef.current = currentNames
-        onFilesChange(uploadedFiles)
+        setTimeout(() => {
+          onFilesChange(uploadedFiles)
+        }, 0)
       }
     }
   }, [files, onFilesChange])

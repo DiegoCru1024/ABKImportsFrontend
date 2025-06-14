@@ -45,11 +45,6 @@ const data = {
       icon: IoMdPricetags,
     },
     {
-      title: "Mis cotizaciones",
-      url: "/dashboard/mis-cotizaciones",
-      icon: IoMdPricetags,
-    },
-    {
       title: "Gestión de cotización",
       url: "/dashboard/gestion-de-cotizacion",
       icon: IoMdPricetags,

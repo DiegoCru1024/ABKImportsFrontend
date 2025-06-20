@@ -172,7 +172,7 @@ export default function CotizacionView() {
     <div className="min-h-screen bg-gradient-to-br from-orange-500/5 via-background to-orange-400/10">
       {/* Top Navigation Bar */}
       <div className="border-t border-border/60 bg-background/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="w-full p-1 px-10 py-4 border-b border-border/60">
+        <div className="w-full  px-4 py-4 border-b border-border/60">
           <div className="flex items-center space-x-4">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-500 hover:bg-orange-600">
               <FileText className="h-6 w-6 text-white" />
@@ -186,7 +186,7 @@ export default function CotizacionView() {
         </div>
       </div>
 
-      <div className="w-fill  p-4 px-16">
+      <div className="w-full  px-4 p-2">
         <div className="grid grid-cols-1  gap-6">
           <div className="overflow-hidden rounded-xl border bg-gradient-to-r from-gray-900 to-gray-800 shadow-sm">
             <div className="px-4 py-3">
@@ -536,8 +536,16 @@ export default function CotizacionView() {
           <div className="flex justify-end mt-8">
             <ConfirmDialog
               trigger={
-                <Button  disabled={isLoading} className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-2 rounded-full text-lg shadow-md flex items-center gap-2">
-                  {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />} Enviar
+                <Button
+                  disabled={isLoading}
+                  className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-2 rounded-full text-lg shadow-md flex items-center gap-2"
+                >
+                  {isLoading ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <Send className="w-5 h-5" />
+                  )}{" "}
+                  Enviar
                 </Button>
               }
               title="Confirmar envío de cotización"
@@ -545,7 +553,6 @@ export default function CotizacionView() {
               confirmText="Enviar"
               cancelText="Cancelar"
               onConfirm={handleEnviar}
-             
             />
           </div>
         </div>

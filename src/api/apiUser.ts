@@ -45,6 +45,21 @@ export const getAllUserProfile = async () => {
 };
 
 /**
+ * Obtiene todos los usuarios con paginacion   (admin)
+ * @returns {Promise<any>} - Los usuarios
+ */
+export const getAllUserProfileWithPagination = async (searchTerm: string, page: number, size: number) => {
+  try {
+    return await apiFetch(`/users?searchTerm=${searchTerm}&page=${page}&size=${size}`, {
+      method: "GET",
+    });
+  } catch (error) {
+    console.error("Error al obtener los usuarios:", error);
+    return { status: 500, message: "Error al obtener los usuarios" };
+  }
+};
+
+/**
  * Obtiene el perfil de un usuario por su ID
  * @param {number} id - El ID del usuario
  * @returns {Promise<any>} - El perfil del usuario

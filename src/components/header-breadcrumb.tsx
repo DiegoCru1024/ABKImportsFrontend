@@ -56,7 +56,7 @@ export default function HeaderConBreadcrumb() {
           </BreadcrumbList>
         </Breadcrumb>
         <div className="ml-auto">
-          <Bell className="w-6 h-6 text-gray-500 cursor-pointer" />
+          <Bell className="w-5 h-5 text-yellow-500 cursor-pointer hover:text-yellow-600" />
         </div>
       </div>
     </header>

@@ -13,6 +13,10 @@ import LoginPage from "./pages/login";
 import DashboardPage from "./pages/dashboard";
 import BasicLayout from "./layouts/BasicLayout";
 import DashboardLayout from "./layouts/DashboardLayout";
+import GestionDeUsuarios from "./pages/GestionDeUsuarios/gestion-de-usuarios-view";
+import GestionDeTracking from "./pages/GestionDeTracking";
+import GestionDeMercanciasView from "./pages/GestionDeMercancias/gestion-de-mercancias-view";
+
 
 
 function App() {
@@ -29,13 +33,19 @@ function App() {
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/dashboard/inspeccion-de-mercancias" element={<Inspeccion />} />
         <Route path="/dashboard/tracking-de-mercancias" element={<Tracking />} />
+        <Route path="/dashboard/gestion-de-tracking" element={<GestionDeTracking />} />
+        <Route path="/dashboard/gestion-de-mercancias" element={<GestionDeMercanciasView />} />
+        <Route path="/dashboard/gestion-de-cotizacion" element={<GestionDeCotizacion />} />
+        <Route path="/dashboard/gestion-de-usuarios" element={<GestionDeUsuarios />} />
+
+        {/* Rutas de la plataforma */}
         <Route path="/dashboard/cotizacion-de-productos" element={<CotizacionView />} />
-        {/* <Route path="/dashboard/mis-cotizaciones" element={<MisCotizaciones />} /> */}
         <Route path="/dashboard/calculador-de-impuestos" element={<Calculador />} />
         <Route path="/dashboard/educacion" element={<Educacion />} />
         <Route path="/dashboard/herramientas-logisticas" element={<Herramientas />} />
         <Route path="/dashboard/tarifas-servicios" element={<Tarifas />} />
-        <Route path="/dashboard/gestion-de-cotizacion" element={<GestionDeCotizacion />} />
+        
+        
       </Route>
 
       {/* Cualquier otra ruta redirige al login */}

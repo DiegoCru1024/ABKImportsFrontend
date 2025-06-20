@@ -35,7 +35,7 @@ const data = {
     },
     {
       title: "Gestión de mercancias",
-      url: "/dashboard/gestion-de-usuarios",
+      url: "/dashboard/gestion-de-mercancias",
       icon: PackageSearch,
       rolesPermitidos: ["admin"],
     },

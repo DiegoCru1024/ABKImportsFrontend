@@ -6,6 +6,7 @@ import {
   updateUserProfile,
   deleteUserProfile,
   registerUser,
+  getAllUserProfileWithPagination,
 } from "@/api/apiUser";
 import { toast } from "sonner";
 import type { User } from "@/api/apiUser";
@@ -32,6 +33,11 @@ export function useGetAllUserProfile() {
   });
 }
 
+/**
+ * Hook para obtener el perfil de un usuario por su ID
+ * @param {number} id - El ID del usuario
+ * @returns {useQuery} - El perfil del usuario
+ */
 export function useGetUserProfileById(id: number) {
   return useQuery({
     queryKey: ["userProfileById", id],
@@ -39,6 +45,24 @@ export function useGetUserProfileById(id: number) {
   });
 }
 
+/**
+ * Hook para obtener todos los usuarios con paginacion
+ * @param {string} searchTerm - El termino de busqueda
+ * @param {number} page - La pagina actual
+ * @param {number} size - El numero de usuarios por pagina
+ * @returns {useQuery} - Todos los usuarios con paginacion
+ */
+export function useGetAllUserProfileWithPagination(searchTerm: string, page: number, size: number) {
+  return useQuery({
+    queryKey: ["allUserProfileWithPagination", searchTerm, page, size],
+    queryFn: () => getAllUserProfileWithPagination(searchTerm, page, size),
+  });
+}
+
+/**
+ * Hook para crear un usuario
+ * @returns {useMutation} - El usuario creado
+ */
 export function useCreateUserProfile() {
   const queryClient = useQueryClient();
 
@@ -61,6 +85,11 @@ export function useCreateUserProfile() {
   });
 }
 
+/**
+ * Hook para actualizar el perfil de un usuario
+ * @param {number} id - El ID del usuario
+ * @returns {useMutation} - El perfil del usuario actualizado
+ */
 export function useUpdateUserProfile(id: number) {
   const queryClient = useQueryClient();
 
@@ -82,6 +111,11 @@ export function useUpdateUserProfile(id: number) {
   });
 }
 
+/**
+ * Hook para eliminar el perfil de un usuario
+ * @param {number} id - El ID del usuario
+ * @returns {useMutation} - El perfil del usuario eliminado
+ */
 export function useDeleteUserProfile(id: number) {
   const queryClient = useQueryClient();
 

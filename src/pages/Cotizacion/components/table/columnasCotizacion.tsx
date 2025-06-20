@@ -1,8 +1,9 @@
 import type { Producto } from "@/pages/Cotizacion/utils/interface";
 import type { ColumnDef } from "@tanstack/react-table";
-import { EyeIcon, FileText, Trash } from "lucide-react";
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import { EyeIcon, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import ImageViewerModal from "../ImageViewerModal";
 
 interface ColumnasCotizacionProps {
   handleEliminar: (index: number) => void;
@@ -13,7 +14,6 @@ export function columnasCotizacion({
   handleEliminar,
 }: ColumnasCotizacionProps): ColumnDef<Producto, any>[] {
   return [
-
     {
       id: "nombre",
       accessorKey: "nombre",
@@ -44,7 +44,6 @@ export function columnasCotizacion({
       cell: ({ row }) => <div>{row.original.color}</div>,
       size: 100,
     },
-
     {
       id: "url",
       accessorKey: "url",
@@ -77,82 +76,63 @@ export function columnasCotizacion({
       size: 150,
       maxSize: 250,
     },
-    /*{
-      id: "peso",
-      accessorKey: "peso",
-      header: "Peso",
-      size: 50,
-    },
-    {
-      id: "volumen",
-      accessorKey: "volumen",
-      header: "Volumen",
-      size: 50,
-    },
-    {
-      id: "nro_cajas",
-      accessorKey: "nro_cajas",
-      header: "Nro. cajas",
-      size: 50,
-    },*/
     {
       id: "archivos",
       accessorKey: "archivos",
       header: "Archivos",
-      size: 80,
+      size: 100,
       cell: ({ row }) => {
-        const archivos: string[] = row.original.attachments;
-        return (
-          <Dialog>
-            <DialogTrigger asChild>
-              <button>
+        const files: File[] = row.original.files || [];
+        
+        const FileViewerCell = () => {
+          const [isModalOpen, setIsModalOpen] = useState(false);
+          
+          return (
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsModalOpen(true)}
+                className="h-8 w-8 p-0"
+                disabled={files.length === 0}
+              >
                 <EyeIcon className="w-4 h-4 text-blue-500" />
-              </button>
-            </DialogTrigger>
-            <DialogContent className="max-w-4xl bg-white">
-              <DialogHeader>
-                <DialogTitle>Archivos del producto</DialogTitle>
-              </DialogHeader>
-              <div className="flex space-x-4 overflow-x-auto snap-x snap-mandatory py-4">
-                {archivos.map((file, idx) => {
-                  const url = file;
-                  const isImage = url.includes("/images/") || url.match(/\.(jpg|jpeg|png|gif|webp)$/i);
-                  return (
-                    <div key={idx} className="flex-shrink-0 w-full snap-center">
-                      {isImage ? (
-                        <img src={url} alt={`archivo-${idx}`} className="h-64 object-contain" />
-                      ) : (
-                        <div className="h-64 flex items-center justify-center bg-gray-100 rounded">
-                          <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-500 underline">
-                            Ver archivo
-                          </a>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-              <DialogFooter>
-                <DialogClose asChild>
-                  <Button>Cerrar</Button>
-                </DialogClose>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+              </Button>
+              
+              <ImageViewerModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                files={files}
+                productName={row.original.name}
+              />
+            </>
+          );
+        };
+        
+        return (
+          <div className="flex items-center gap-2">
+            <FileViewerCell />
+            <span className="text-xs text-muted-foreground">
+              ({files.length} archivo{files.length !== 1 ? 's' : ''})
+            </span>
+          </div>
         );
       },
     },
-
     {
       id: "actions",
       header: "Acciones",
       size: 100,
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
-          <Trash
-            className="w-4 h-4 text-red-500"
-            //onClick={() => handleEliminar(Number(row.original.id_product))}
-          />
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleEliminar(row.index)}
+            className="h-8 w-8 p-0 text-red-500 hover:text-red-700"
+          >
+            <Trash className="w-4 h-4" />
+          </Button>
         </div>
       ),
     },

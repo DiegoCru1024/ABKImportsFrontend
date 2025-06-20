@@ -2,13 +2,13 @@ import "./App.css";
 import { Routes, Route, Navigate } from "react-router-dom";
 import Inspeccion from "./pages/Inspeccion";
 import Tracking from "./pages/Tracking";
-import CotizacionView from "./pages/Cotizacion/CotizacionView";
+
 
 import Calculador from "./pages/Calculador";
 import Educacion from "./pages/Educacion";
 import Herramientas from "./pages/Herramientas";
 import Tarifas from "./pages/Tarifas";
-import GestionDeCotizacion from "./pages/GestionDeCotizacion/GestionDeCotizacion";
+import GestionDeCotizacionesView from "./pages/GestionDeCotizacion/gestion-de-cotizacion-view";
 import LoginPage from "./pages/login";
 import DashboardPage from "./pages/dashboard";
 import BasicLayout from "./layouts/BasicLayout";
@@ -16,6 +16,7 @@ import DashboardLayout from "./layouts/DashboardLayout";
 import GestionDeUsuarios from "./pages/GestionDeUsuarios/gestion-de-usuarios-view";
 import GestionDeTracking from "./pages/GestionDeTracking";
 import GestionDeMercanciasView from "./pages/GestionDeMercancias/gestion-de-mercancias-view";
+import CotizacionViewNew from "./pages/Cotizacion/CotizacionView";
 
 
 
@@ -35,11 +36,11 @@ function App() {
         <Route path="/dashboard/tracking-de-mercancias" element={<Tracking />} />
         <Route path="/dashboard/gestion-de-tracking" element={<GestionDeTracking />} />
         <Route path="/dashboard/gestion-de-mercancias" element={<GestionDeMercanciasView />} />
-        <Route path="/dashboard/gestion-de-cotizacion" element={<GestionDeCotizacion />} />
+        <Route path="/dashboard/gestion-de-cotizacion" element={<GestionDeCotizacionesView />} />
         <Route path="/dashboard/gestion-de-usuarios" element={<GestionDeUsuarios />} />
 
         {/* Rutas de la plataforma */}
-        <Route path="/dashboard/cotizacion-de-productos" element={<CotizacionView />} />
+        <Route path="/dashboard/cotizacion-de-productos" element={<CotizacionViewNew />} />
         <Route path="/dashboard/calculador-de-impuestos" element={<Calculador />} />
         <Route path="/dashboard/educacion" element={<Educacion />} />
         <Route path="/dashboard/herramientas-logisticas" element={<Herramientas />} />

@@ -61,12 +61,11 @@ const productoSchema = z.object({
   attachments: z.array(z.string()).optional(),
 });
 
-export default function CotizacionViewNew() {
+export default function CotizacionViewAntiguo() {
   const [productos, setProductos] = useState<Producto[]>([]);
-  const [service, setService] = useState("Pendiente");
-  const [resetCounter, setResetCounter] = useState(0);
+  const [service, setService] = useState("Pendiente"); // valor inicial
+  const [resetCounter, setResetCounter] = useState(0); // Controlar el reset del FileUploadComponent
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<z.infer<typeof productoSchema>>({
     resolver: zodResolver(productoSchema),
@@ -84,7 +83,6 @@ export default function CotizacionViewNew() {
       attachments: [],
     },
   });
-
   // Eliminar producto
   const handleEliminar = (index: number) => {
     setProductos((prev) => prev.filter((_, i) => i !== index));
@@ -92,7 +90,7 @@ export default function CotizacionViewNew() {
 
   const columns = columnasCotizacion({ handleEliminar });
 
-  // Agregar producto SIN subir archivos (nueva lógica)
+  // Agregar producto con archivos adjuntos
   const handleAgregar = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -110,9 +108,22 @@ export default function CotizacionViewNew() {
       return;
     }
 
+    // Subir archivos a AWS y obtener URLs
+    let attachmentsUrls: string[] = [];
+    try {
+      if (selectedFiles.length > 0) {
+        const { urls } = await uploadMultipleFiles(selectedFiles);
+        attachmentsUrls = urls;
+        console.log("Estas son las urls", attachmentsUrls);
+      }
+    } catch (error) {
+      console.error("Error uploading files:", error);
+      return;
+    }
+
     // Obtener los valores del formulario
     const values = form.getValues();
-    const newProduct: Producto = {
+    const newProduct = {
       name: values.name,
       quantity: values.quantity,
       size: values.size,
@@ -123,8 +134,8 @@ export default function CotizacionViewNew() {
       weight: values.weight || 0,
       volume: values.volume || 0,
       number_of_boxes: values.number_of_boxes || 0,
-      attachments: [], // Vacío por ahora, se llenará al enviar
-      files: selectedFiles, // Guardar archivos originales
+      attachments: attachmentsUrls,
+      files: selectedFiles,
     };
 
     // Agregar el producto a la lista
@@ -133,96 +144,29 @@ export default function CotizacionViewNew() {
     // Resetear el formulario y los archivos
     form.reset();
     setResetCounter((prev) => prev + 1);
-    setSelectedFiles([]);
-
-    toast.success("Producto agregado correctamente");
+    setSelectedFiles([]); // Limpiar los archivos seleccionados
   };
 
-  // Enviar cotización completa (nueva lógica)
+  const [isLoading, setIsLoading] = useState(false);
+  // Enviar cotización completa
   const createQuotationMut = useCreateQuotation();
-
-  const handleEnviar = async () => {
-    if (productos.length === 0) {
-      toast.error("No hay productos para enviar");
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      // 1. Recopilar TODOS los archivos de TODOS los productos
-      const allFiles: File[] = [];
-      const fileIndexMap: {
-        [productIndex: number]: { start: number; count: number };
-      } = {};
-
-      productos.forEach((producto, productIndex) => {
-        const startIndex = allFiles.length;
-        allFiles.push(...producto.files);
-        fileIndexMap[productIndex] = {
-          start: startIndex,
-          count: producto.files.length,
-        };
-      });
-
-      console.log("Archivos totales a subir:", allFiles.length);
-
-      // 2. Subir TODOS los archivos a AWS
-      let allUploadedUrls: string[] = [];
-      if (allFiles.length > 0) {
-        const uploadResponse = await uploadMultipleFiles(allFiles);
-        allUploadedUrls = uploadResponse.urls;
-        console.log("URLs obtenidas:", allUploadedUrls);
+  const handleEnviar = () => {
+    setIsLoading(true); // Mostrar el modal de carga
+    createQuotationMut.mutate(
+      { data: { products: productos } },
+      {
+        onSuccess: () => {
+          setIsLoading(false); // Ocultar el modal de carga
+        },
+        onError: () => {
+          setIsLoading(false); // Ocultar el modal de carga
+        },
       }
-
-      // 3. Distribuir las URLs a cada producto según corresponda
-      const productosConUrls = productos.map((producto, productIndex) => {
-        const { start, count } = fileIndexMap[productIndex];
-        const productUrls = allUploadedUrls.slice(start, start + count);
-
-        return {
-          name: producto.name,
-          quantity: producto.quantity,
-          size: producto.size,
-          color: producto.color,
-          url: producto.url,
-          comment: producto.comment,
-          service_type: producto.service_type,
-          weight: producto.weight,
-          volume: producto.volume,
-          number_of_boxes: producto.number_of_boxes,
-          attachments: productUrls, // URLs distribuidas
-        };
-      });
-
-      console.log("Productos con URLs:", productosConUrls);
-
-      // 4. Enviar al hook de cotización
-      createQuotationMut.mutate(
-        { data: { products: productosConUrls } },
-        {
-          onSuccess: () => {
-            setIsLoading(false);
-            // Limpiar productos después del envío exitoso
-            setProductos([]);
-            toast.success("Cotización enviada exitosamente");
-          },
-          onError: (error) => {
-            setIsLoading(false);
-            console.error("Error al enviar cotización:", error);
-            toast.error("Error al enviar la cotización");
-          },
-        }
-      );
-    } catch (error) {
-      console.error("Error durante el proceso de envío:", error);
-      toast.error("Error al procesar los archivos");
-      setIsLoading(false);
-    }
+    );
   };
 
   useEffect(() => {
-    console.log("Productos actuales:", productos);
+    console.log("Estas son los productos", productos);
   }, [productos]);
 
   return (
@@ -441,16 +385,6 @@ export default function CotizacionViewNew() {
                                   type="number"
                                   min={1}
                                   required
-                                  onChange={(e) => {
-                                    const value =
-                                      e.target.value === ""
-                                        ? 1
-                                        : Number(e.target.value);
-                                    field.onChange(value);
-                                  }}
-                                  onBlur={() => {
-                                    form.clearErrors("quantity");
-                                  }}
                                 />
                               </FormControl>
                               <FormMessage />
@@ -571,7 +505,7 @@ export default function CotizacionViewNew() {
               <div className="border-b border-gray-200 px-4 py-3">
                 <h3 className="flex items-center font-semibold text-white">
                   <PackageOpen className="mr-2 h-5 w-5 text-orange-500" />
-                  Productos Cotizados ({productos.length})
+                  Productos Cotizados
                 </h3>
               </div>
               <div className="w-full overflow-x-auto border-b border-gray-200 px-4 py-3 bg-white">
@@ -604,22 +538,19 @@ export default function CotizacionViewNew() {
             <ConfirmDialog
               trigger={
                 <Button
-                  disabled={isLoading || productos.length === 0}
-                  className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-2 rounded-full text-lg shadow-md flex items-center gap-2 disabled:opacity-50"
+                  disabled={isLoading}
+                  className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-2 rounded-full text-lg shadow-md flex items-center gap-2"
                 >
                   {isLoading ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
                   ) : (
                     <Send className="w-5 h-5" />
-                  )}
-                  Enviar ({productos.length} producto
-                  {productos.length !== 1 ? "s" : ""})
+                  )}{" "}
+                  Enviar
                 </Button>
               }
               title="Confirmar envío de cotización"
-              description={`¿Está seguro de enviar la cotización con ${
-                productos.length
-              } producto${productos.length !== 1 ? "s" : ""}?`}
+              description="¿Está seguro de enviar la cotización?"
               confirmText="Enviar"
               cancelText="Cancelar"
               onConfirm={handleEnviar}
@@ -628,7 +559,7 @@ export default function CotizacionViewNew() {
         </div>
       </div>
 
-      {/* Modal de carga */}
+      {/* Animación de carga */}
       <SendingModal isOpen={isLoading} onClose={() => setIsLoading(false)} />
     </div>
   );

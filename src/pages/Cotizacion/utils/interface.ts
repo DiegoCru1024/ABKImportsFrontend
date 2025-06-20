@@ -10,7 +10,9 @@ export interface Producto {
   weight: number;
   volume: number;
   number_of_boxes: number;
-  attachments: string[];
+  attachments: string[]; // URLs de los archivos (para envío final)
+  files: File[]; // Archivos originales (para mostrar preview y subir después)
+  
 }
 
 export interface Quotation {

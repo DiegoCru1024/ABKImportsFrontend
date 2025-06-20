@@ -43,7 +43,7 @@ import { incotermsOptions } from "./components/utils/static";
 import { useGetQuotationById } from "@/hooks/use-quation";
 import { servicios } from "../Cotizacion/components/data/static";
 
-export default function GestionDeCotizaciones() {
+export default function GestionDeCotizacionesView() {
   const [mainTab, setMainTab] = useState<
     "solicitudes" | "detalles" | "respuesta"
   >("respuesta");

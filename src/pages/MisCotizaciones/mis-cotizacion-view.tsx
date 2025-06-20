@@ -13,7 +13,7 @@ import {
   Ruler,
   UserRound,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DataTable } from "@/components/table/data-table";
 
 import { Button } from "@/components/ui/button";
@@ -22,80 +22,35 @@ import { Textarea } from "@/components/ui/textarea";
 
 import { Input } from "@/components/ui/input";
 import { motion } from "framer-motion";
-import type { Producto } from "./components/utils/interface";
+import type { Cotizacion, Producto } from "./components/utils/interface";
 import { tabs } from "./components/utils/static";
 import { colsMis } from "./components/table/columnsMisCotizaciones";
 import { colsDetalles } from "./components/table/columnsDetallesDeCotizacion";
 import { cotizaciones } from "./components/utils/data";
+import { getQuotationsByUser } from "@/api/quotations";
 
-export default function MisCotizaciones() {
+export default function MisCotizacionesView() {
+  const [data, setData] = useState<Cotizacion[]>([]);
   const [selectedProducto, setSelectedProducto] = useState<Producto | null>(
     null
   );
 
-  const productos: Producto[] = [
-    {
-      nombre: "Camiseta Personalizada",
-      cantidad: 50,
-      especificaciones: "Tamaño: M, Color: Azul",
-      estado: "En revisión",
-      fecha: "2024-01-14",
-      url: "https://www.google.com",
-      comentario: "Comentario del producto",
-      archivos: [],
-      tamano: "M",
-      color: "Azul",
-      tipoServicio: "Pendiente",
-      peso: 10,
-      volumen: 10,
-      nro_cajas: 10,
-    },
-    {
-      nombre: "Taza Cerámica",
-      cantidad: 100,
-      especificaciones: "Tamaño: 350ml, Color: Blanco",
-      estado: "Respondido",
-      fecha: "2024-01-13",
-      url: "https://www.google.com",
-      comentario: "Comentario del producto",
-      archivos: [],
-      tamano: "350ml",
-      color: "Blanco",
-      tipoServicio: "Pendiente",
-      peso: 10,
-      volumen: 10,
-      nro_cajas: 10,
-    },
-    {
-      nombre: "Llavero Promocional",
-      cantidad: 200,
-      especificaciones: "Material: Acrílico, Color: Transparente",
-      estado: "Respondido",
-      fecha: "2024-01-15",
-      url: "https://www.google.com",
-      comentario: "Comentario del producto",
-      archivos: [],
-      tamano: "Transparente",
-      color: "Transparente",
-      tipoServicio: "Pendiente",
-      peso: 10,
-      volumen: 10,
-      nro_cajas: 10,
-    },
-  ];
+  useEffect(() => {
+    const fetchData = async () => {
+      const response = await getQuotationsByUser();
+      setData(response.content);
+    };
+    fetchData();
+  }, []);
 
   //********Tabs**** */
   const [tab, setTab] = useState("mis");
 
-
   //********Cotización seleccionada**** */
   const [selectedCotizacion, setSelectedCotizacion] = useState<number>(0); // Simulando que hay una cotización seleccionada
 
-
-
-
   //********Columnas de mis cotizaciones */
- const columnas = colsMis({setTab, setSelectedCotizacion});
+  const columnas = colsMis({ setTab, setSelectedCotizacion });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-500/5 via-background to-orange-400/10">
@@ -193,7 +148,7 @@ export default function MisCotizaciones() {
               <CardContent>
                 <DataTable
                   columns={columnas}
-                  data={cotizaciones}
+                  data={data}
                   toolbarOptions={{
                     showSearch: true,
                     showViewOptions: false,

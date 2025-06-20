@@ -18,7 +18,7 @@ export function colsMis({
 }: ColsMisCotizacionesProps): ColumnDef<Cotizacion,any>[] {
   return [
     {
-      accessorKey: "id",
+      accessorKey: "correlative",
       header: "ID Solicitud",
       cell: ({ row }) => {
         return (
@@ -26,17 +26,17 @@ export function colsMis({
             variant="outline"
             className="bg-orange-400/15 text-black border-orange-400/30 hover:bg-orange-400/20"
           >
-            {row.original.id}
+            {row.original.correlative}
           </Badge>
         );
       },
     },
-    { accessorKey: "tipoServicio", header: "Tipo Servicio" },
+    { accessorKey: "service_type", header: "Tipo Servicio" },
     {
-      accessorKey: "estado",
+      accessorKey: "status",
       header: "Estado",
       cell: ({ row }) => {
-        const estado = row.original.estado.toLowerCase();
+        const estado = row.original.status.toLowerCase();
         return (
           <Badge
             variant="outline"
@@ -63,7 +63,7 @@ export function colsMis({
       header: "Fecha",
       cell: ({ row }) => {
         const fecha = format(
-          new Date(row.original.fecha),
+          new Date(row.original.created_at),
           "dd/MM/yyyy HH:mm:ss"
         );
         return <span className="text-muted-foreground text-sm">{fecha}</span>;
@@ -78,7 +78,7 @@ export function colsMis({
           variant="outline"
           className="rounded-lg border-orange-400/30 text-orange-400 hover:bg-orange-400 hover:text-white transition-all duration-200 group"
           onClick={() => {
-            setSelectedCotizacion(Number(row.original.id));
+            setSelectedCotizacion(Number(row.original.correlative));
             setTab("detalles");
           }}
         >

@@ -1,8 +1,16 @@
 export interface Cotizacion {
     id: string;
-    tipoServicio: string;
-    estado: string;
-    fecha: Date;
+    correlative: string;
+    service_type: string;
+    status: string;
+    created_at: Date;
+    updated_at: Date;
+    productQuantity: number;
+    user: {
+        id: string;
+        name: string;
+        email: string;
+    }[];
   }
 
   export interface Producto {

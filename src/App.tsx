@@ -17,6 +17,7 @@ import GestionDeUsuarios from "./pages/GestionDeUsuarios/gestion-de-usuarios-vie
 import GestionDeTracking from "./pages/GestionDeTracking";
 import GestionDeMercanciasView from "./pages/GestionDeMercancias/gestion-de-mercancias-view";
 import CotizacionViewNew from "./pages/Cotizacion/CotizacionView";
+import MisCotizacionesView from "./pages/MisCotizaciones/mis-cotizacion-view";
 
 
 
@@ -45,9 +46,8 @@ function App() {
         <Route path="/dashboard/educacion" element={<Educacion />} />
         <Route path="/dashboard/herramientas-logisticas" element={<Herramientas />} />
         <Route path="/dashboard/tarifas-servicios" element={<Tarifas />} />
-        
-        
-      </Route>
+        <Route path="/dashboard/mis-cotizaciones" element={<MisCotizacionesView />} />
+      </Route>  
 
       {/* Cualquier otra ruta redirige al login */}
       <Route path="*" element={<Navigate to="/login" replace />} />

@@ -4,9 +4,7 @@ import {
   BadgeCheck,
   Bell,
   ChevronsUpDown,
-  CreditCard,
   LogOut,
-  Sparkles,
 } from "lucide-react"
 
 import {
@@ -29,17 +27,20 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
-
+import userAvatar from '../assets/userlogo.png'
+import { obtenerUser } from "@/lib/functions"
 export function NavUser({
-  user,
-}: {
-  user: {
-    name: string
-    rol: string
-    avatar: string
-  }
 }) {
   const { isMobile } = useSidebar()
+
+  const userData = obtenerUser();
+ 
+  const user = {
+    name: userData.name || "Usuario",
+    email: userData.email || "user@gmail.com",
+    avatar: userAvatar,
+  }
+
 
   return (
     <SidebarMenu>
@@ -56,7 +57,7 @@ export function NavUser({
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">{user.name}</span>
-                <span className="truncate text-xs">{user.rol}</span>
+                <span className="truncate text-xs">{user.email}</span>
               </div>
               <ChevronsUpDown className="ml-auto size-4" />
             </SidebarMenuButton>
@@ -75,7 +76,7 @@ export function NavUser({
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">{user.name}</span>
-                  <span className="truncate text-xs">{user.rol}</span>
+                  <span className="truncate text-xs">{user.email}</span>
                 </div>
               </div>
             </DropdownMenuLabel>

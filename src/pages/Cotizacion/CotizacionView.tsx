@@ -43,7 +43,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useCreateQuotation } from "@/hooks/use-quation";
-import { uploadMultipleFiles, deleteFile } from "@/api/fileUpload";
+import { uploadMultipleFiles } from "@/api/fileUpload";
 import { toast } from "sonner";
 import SendingModal from "@/components/sending-modal";
 

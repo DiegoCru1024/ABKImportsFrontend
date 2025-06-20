@@ -9,11 +9,11 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
 
   try {
     //console.log("Request URL: ", `http://localhost:3000${endpoint}`);
-    console.log("Request URL: ", `https://abkimportsbackend-production.up.railway.app/${endpoint}`);
+    console.log("Request URL: ", `https://abkimportsbackend-production.up.railway.app${endpoint}`);
     //console.log("Request Body: ", options.body);
     const response = await fetch(
       //`http://localhost:3000${endpoint}`, // 🔹 Base URL + endpoint
-      `https://abkimportsbackend-production.up.railway.app/${endpoint}`, // 🔹 Base URL + endpoint
+      `https://abkimportsbackend-production.up.railway.app${endpoint}`, // 🔹 Base URL + endpoint
       {
         ...options,
         headers,

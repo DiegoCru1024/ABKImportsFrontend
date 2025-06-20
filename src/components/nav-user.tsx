@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/sidebar"
 import userAvatar from '../assets/userlogo.png'
 import { obtenerUser } from "@/lib/functions"
+import { useNavigate } from "react-router-dom";
 export function NavUser({
 }) {
   const { isMobile } = useSidebar()
@@ -41,6 +42,18 @@ export function NavUser({
     avatar: userAvatar,
   }
 
+
+  const router = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("user.email")
+    localStorage.removeItem("user.name")
+    localStorage.removeItem("user.role")
+    localStorage.removeItem("user.id")
+    localStorage.removeItem("user.type")
+    router("/login");
+  }
 
   return (
     <SidebarMenu>
@@ -94,8 +107,8 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <LogOut />
+            <DropdownMenuItem onClick={handleLogout}>
+              <LogOut  />
               Cerrar sesión
             </DropdownMenuItem>
           </DropdownMenuContent>

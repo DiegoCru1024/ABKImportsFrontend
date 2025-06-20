@@ -20,7 +20,7 @@ interface UserProfile {
 
 function GestionDeUsuarios() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
   // Hook para obtener los usuarios con paginación
@@ -33,7 +33,7 @@ function GestionDeUsuarios() {
   // Datos de los usuarios y información de paginación
   const users = data?.content || [];
   const pageInfo = {
-    pageNumber: data?.number || 0,
+    pageNumber: data?.number || 1,
     pageSize: data?.size || 10,
     totalElements: data?.totalElements || 0,
     totalPages: data?.totalPages || 0,

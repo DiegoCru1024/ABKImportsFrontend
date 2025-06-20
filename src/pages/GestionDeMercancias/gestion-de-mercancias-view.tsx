@@ -1,5 +1,4 @@
 import { PackageSearch } from 'lucide-react'
-import React from 'react'
 
 function gestionDeMercancias() {
   return (

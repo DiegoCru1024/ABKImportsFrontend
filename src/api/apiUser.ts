@@ -34,6 +34,8 @@ export const getCurrentUserProfile = async () => {
  * @returns {Promise<any>} - Los usuarios
  */
 export const getAllUserProfile = async () => {
+
+
   try {
     return await apiFetch("/users", {
       method: "GET",
@@ -49,8 +51,20 @@ export const getAllUserProfile = async () => {
  * @returns {Promise<any>} - Los usuarios
  */
 export const getAllUserProfileWithPagination = async (searchTerm: string, page: number, size: number) => {
+  
+  const url = new URL(
+    "/users",
+    "https://abkimportsbackend-production.up.railway.app"
+  )
+  if (searchTerm) {
+    url.searchParams.append("searchTerm", searchTerm.toString());
+  }
+
+  url.searchParams.append("page", page.toString());
+  url.searchParams.append("size", size.toString());
+
   try {
-    return await apiFetch(`/users?searchTerm=${searchTerm}&page=${page}&size=${size}`, {
+    return await apiFetch(url.pathname + url.search, {
       method: "GET",
     });
   } catch (error) {

@@ -7,10 +7,12 @@ import type { ProductDetail } from "../../types/interfaces";
 
 interface QuotationDetailsTabProps {
   selectedQuotationId: string;
+  onViewTracking?: (productId: string, productName: string) => void;
 }
 
 const QuotationDetailsTab: React.FC<QuotationDetailsTabProps> = ({ 
-  selectedQuotationId 
+  selectedQuotationId,
+  onViewTracking
 }) => {
   const { data: quotationDetail, isLoading, isError } = useGetQuotationById(selectedQuotationId);
 
@@ -27,7 +29,7 @@ const QuotationDetailsTab: React.FC<QuotationDetailsTabProps> = ({
     }
   };
 
-  const columns = columnsProductDetails();
+  const columns = columnsProductDetails({ onViewTracking });
   const products: ProductDetail[] = quotationDetail?.products || [];
 
   if (isLoading) {

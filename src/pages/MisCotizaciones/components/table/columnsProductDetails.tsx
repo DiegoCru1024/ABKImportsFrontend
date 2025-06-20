@@ -1,11 +1,17 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import { EyeIcon } from "lucide-react";
+import { EyeIcon, TruckIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import UrlImageViewerModal from "../UrlImageViewerModal";
 import type { ProductDetail } from "../../types/interfaces";
 
-export function columnsProductDetails(): ColumnDef<ProductDetail, any>[] {
+interface ColumnsProductDetailsProps {
+  onViewTracking?: (productId: string, productName: string) => void;
+}
+
+export function columnsProductDetails({
+  onViewTracking,
+}: ColumnsProductDetailsProps = {}): ColumnDef<ProductDetail, any>[] {
   return [
     {
       id: "nombre",
@@ -106,6 +112,26 @@ export function columnsProductDetails(): ColumnDef<ProductDetail, any>[] {
           </div>
         );
       },
+    },
+    {
+      id: "actions",
+      header: "Acciones",
+      size: 150,
+      cell: ({ row }) => (
+        <div className="flex items-center gap-2">
+          {onViewTracking && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onViewTracking(row.original.id, row.original.name)}
+              className="h-8 px-2 text-green-600 hover:text-green-800 hover:bg-green-50"
+            >
+              <TruckIcon className="w-4 h-4 mr-1" />
+              Ver Seguimiento
+            </Button>
+          )}
+        </div>
+      ),
     },
   ];
 } 

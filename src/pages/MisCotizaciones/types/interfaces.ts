@@ -58,4 +58,24 @@ export interface QuotationDetail {
   statusHistory: StatusHistory[];
   createdAt: string;
   updatedAt: string;
+}
+
+export interface QuotationResponse {
+  id: string;
+  quotation: any;
+  product: any;
+  status: string;
+  unit_price: number;
+  incoterms: string;
+  total_price: number;
+  express_price: number;
+  logistics_service: string;
+  service_fee: number;
+  taxes: number;
+  recommendations: string;
+  additional_comments: string;
+  files: string[];
+  response_date: string;
+  created_at: string;
+  updated_at: string;
 } 

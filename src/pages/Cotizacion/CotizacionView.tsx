@@ -44,6 +44,7 @@ import { useCreateQuotation } from "@/hooks/use-quation";
 import { uploadMultipleFiles } from "@/api/fileUpload";
 import { toast } from "sonner";
 import SendingModal from "@/components/sending-modal";
+  import { useNavigate } from "react-router-dom";
 
 const productoSchema = z.object({
   name: z.string().min(1, { message: "El nombre es requerido" }),
@@ -59,6 +60,7 @@ const productoSchema = z.object({
 });
 
 export default function CotizacionViewNew() {
+  const navigate = useNavigate();
   const [productos, setProductos] = useState<Producto[]>([]);
   const [service, setService] = useState("Pendiente");
   const [resetCounter, setResetCounter] = useState(0);
@@ -199,12 +201,11 @@ export default function CotizacionViewNew() {
             setIsLoading(false);
             // Limpiar productos después del envío exitoso
             setProductos([]);
-            toast.success("Cotización enviada exitosamente");
+            navigate("/mis-cotizaciones");
           },
           onError: (error) => {
             setIsLoading(false);
             console.error("Error al enviar cotización:", error);
-            toast.error("Error al enviar la cotización");
           },
         }
       );

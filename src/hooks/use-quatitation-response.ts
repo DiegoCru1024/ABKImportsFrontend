@@ -1,5 +1,6 @@
 import {
   createQuatitationResponse,
+  createQuatitationResponseMultiple,
   deleteQuatitationResponse,
   getAllResponsesForSpecificProductoInQuotation,
   getAllResponsesForSpecificQuotation,
@@ -63,6 +64,33 @@ export function useCreateQuatitationResponse() {
         toast.error(`Error: ${error.message}`);
       } else {
         toast.error("Error desconocido al crear la respuesta de la cotización");
+      }
+    },
+  });
+}
+
+/**
+ * Hook para crear varias respuestas de una cotización
+ * @returns {useMutation} - La respuesta de la cotización creada
+ */
+export function useCreateQuatitationResponseMultiple() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ data }: { data: QuotationResponse }) =>
+      createQuatitationResponseMultiple(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["allQuatitationResponse"],
+      });
+      toast.success("Respuestas de cotización creadas exitosamente");
+    },
+    onError: (error: any) => {
+      console.error("Error al crear las respuestas de la cotización:", error);
+      if (error instanceof Error) {
+        toast.error(`Error: ${error.message}`);
+      } else {
+        toast.error("Error desconocido al crear las respuestas de la cotización");
       }
     },
   });

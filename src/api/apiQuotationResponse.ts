@@ -55,6 +55,25 @@ export const createQuatitationResponse = async (data: any) => {
   }
 };
 
+
+/**
+ * Crea una varias de una cotización (admin)
+ * @param {any} data - Los datos a crear 
+ * @returns {Promise<any>} - La respuesta de la cotización
+ */
+export const createQuatitationResponseMultiple = async (data: any) => {
+  try {
+    return await apiFetch(`/quotation-responses/multiple`, {
+      //TODO: Cambiar a la ruta correcta
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  } catch (error) {
+    console.error("Error al crear la respuesta de la cotización:", error);
+    throw error;
+  }
+};
+
 /**
  * Elimina una respuesta de una cotización por su ID (admin)
  * @param {string} id - El ID de la respuesta

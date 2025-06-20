@@ -59,10 +59,10 @@ export function useGetQuotationById(id: string) {
 }
 
 /**
- * Hook para obtener todas las cotizaciones
+ * Hook para obtener todas las cotizaciones realizadas por el usuario
  * @returns {useQuery} - Consulta para obtener todas las cotizaciones
  */ 
-export function useGetQuotations() {
+export function useGetQuotationsByUser() {
   const { isLoading, isError, data, refetch, isSuccess } = useQuery({
     queryKey: ["Quotations"],
     queryFn: getQuotationsByUser,

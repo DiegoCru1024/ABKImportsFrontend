@@ -6,7 +6,6 @@ export interface Producto {
   color: string;
   url: string;
   comment: string;
-  service_type: string;
   weight: number;
   volume: number;
   number_of_boxes: number;
@@ -16,6 +15,7 @@ export interface Producto {
 }
 
 export interface Quotation {
+  service_type: string;
   products: {
       name: string;
       quantity: number;
@@ -23,7 +23,6 @@ export interface Quotation {
       color: string;
       url: string;
       comment: string;
-      service_type: string;
       weight: number;
       volume: number;
       number_of_boxes: number;

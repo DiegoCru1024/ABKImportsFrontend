@@ -23,9 +23,7 @@ import FileUploadComponent from "@/components/comp-552";
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -54,7 +52,6 @@ const productoSchema = z.object({
   color: z.string().min(1, { message: "El color es requerido" }),
   url: z.string().optional(),
   comment: z.string().optional(),
-  service_type: z.string().optional(),
   weight: z.number().optional(),
   volume: z.number().optional(),
   number_of_boxes: z.number().optional(),
@@ -77,7 +74,6 @@ export default function CotizacionViewNew() {
       color: "",
       url: "",
       comment: "",
-      service_type: "Pendiente",
       weight: 0,
       volume: 0,
       number_of_boxes: 0,
@@ -119,7 +115,6 @@ export default function CotizacionViewNew() {
       color: values.color,
       url: values.url || "",
       comment: values.comment || "",
-      service_type: values.service_type || "",
       weight: values.weight || 0,
       volume: values.volume || 0,
       number_of_boxes: values.number_of_boxes || 0,
@@ -187,7 +182,6 @@ export default function CotizacionViewNew() {
           color: producto.color,
           url: producto.url,
           comment: producto.comment,
-          service_type: producto.service_type,
           weight: producto.weight,
           volume: producto.volume,
           number_of_boxes: producto.number_of_boxes,
@@ -199,7 +193,7 @@ export default function CotizacionViewNew() {
 
       // 4. Enviar al hook de cotización
       createQuotationMut.mutate(
-        { data: { products: productosConUrls } },
+        { data: { products: productosConUrls, service_type: service } },
         {
           onSuccess: () => {
             setIsLoading(false);
@@ -229,8 +223,8 @@ export default function CotizacionViewNew() {
     <div className="min-h-screen bg-gradient-to-br from-orange-500/5 via-background to-orange-400/10">
       {/* Top Navigation Bar */}
       <div className="border-t border-border/60 bg-background/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="w-full  px-4 py-4 border-b border-border/60">
-          <div className="flex items-center space-x-4">
+        <div className="w-full  px-4 py-4 border-b border-border/60 flex items-center justify-between">
+          <div className="flex items-center space-x-4 ">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-500 hover:bg-orange-600">
               <FileText className="h-6 w-6 text-white" />
             </div>
@@ -240,13 +234,33 @@ export default function CotizacionViewNew() {
               </h1>
             </div>
           </div>
+          <div className="rounded-md flex items-center gap-2 ">
+            <h3 className="text-sm font-normal text-gray-900">
+              Tipo de servicio :
+            </h3>
+            <Select
+              onValueChange={(value) => setService(value)}
+              defaultValue={service}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Seleccione" />
+              </SelectTrigger>
+              <SelectContent>
+                {servicios.map((servicio) => (
+                  <SelectItem key={servicio.id} value={servicio.value}>
+                    {servicio.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 
       <div className="w-full  px-4 p-2">
         <div className="grid grid-cols-1  gap-6">
-          <div className="overflow-hidden rounded-xl border bg-gradient-to-r from-gray-900 to-gray-800 shadow-sm">
-            <div className="px-4 py-3">
+          <div className="overflow-hidden rounded-md border bg-gradient-to-r from-gray-900 to-gray-800 shadow-sm">
+            <div className="px-4 py-3 flex items-center justify-between">
               <h3 className="flex items-center font-semibold text-white">
                 <Package className="mr-2 h-6 w-6 text-orange-500" />
                 Detalle de producto
@@ -282,7 +296,7 @@ export default function CotizacionViewNew() {
                     </div>
 
                     {/* URL del producto */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1  gap-4">
                       <div className="space-y-2">
                         <FormField
                           control={form.control}
@@ -307,7 +321,7 @@ export default function CotizacionViewNew() {
 
                       <div className="space-y-2">
                         <div className="flex items-center gap-2">
-                          <FormField
+                          {/*<FormField
                             control={form.control}
                             name="service_type"
                             render={({ field }) => (
@@ -350,7 +364,7 @@ export default function CotizacionViewNew() {
                                 <FormMessage />
                               </FormItem>
                             )}
-                          />
+                          />*/}
                         </div>
                       </div>
                     </div>

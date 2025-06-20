@@ -56,15 +56,6 @@ export function columnasCotizacion({
       maxSize: 100,
     },
     {
-      id: "tipoServicio",
-      accessorKey: "tipoServicio",
-      header: "Tipo Servicio",
-      cell: ({ row }) => <div>{row.original.service_type}</div>,
-      minSize: 150,
-      size: 200,
-      maxSize: 250,
-    },
-    {
       accessorKey: "comentario",
       header: "Comentario",
       cell: ({ row }) => (

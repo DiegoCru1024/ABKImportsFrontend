@@ -21,7 +21,7 @@ export interface ProductoItem {
 }
 
 // Estado para respuestas de cotización
-  export interface QuotationResponse {
+export interface QuotationResponse {
   id: string;
   pUnitario: string;
   incoterms: string;
@@ -35,8 +35,38 @@ export interface ProductoItem {
   archivos: File[];
 }
 
+export interface QuotationResponseRequest {
+  quotation_id: string;
+  product_id: string;
+  status: string;
+  unit_price: number;
+  incoterms: string;
+  total_price: number;
+  express_price: number;
+  logistics_service: string;
+  service_fee: number;
+  taxes: number;
+  recommendations: string;
+  additional_comments: string;
+  files: string[]; // URLs de AWS
+}
 
-export  interface User {
+export interface AdminQuotationResponse {
+  id: string;
+  pUnitario: string;
+  incoterms: string;
+  precioTotal: string;
+  precioExpress: string;
+  servicioLogistico: string;
+  tarifaServicio: string;
+  impuestos: string;
+  recomendaciones: string;
+  comentariosAdicionales: string;
+  archivos: File[];
+  status: string;
+}
+
+export interface User {
   id: string;
   name: string;
   email: string;

@@ -8,7 +8,6 @@ export const incotermsOptions = [
     { value: "DAP", label: "DAP - Delivered At Place" },
     { value: "DAT", label: "DAT - Delivered At Terminal" },
     { value: "DDU", label: "DDU - Delivered Duty Unpaid" },
-    { value: "DDP", label: "DDP - Delivered Duty Paid" },
   ];
   export const serviciosLogisticos = [
     { value: "Terrestre", label: "Terrestre" },

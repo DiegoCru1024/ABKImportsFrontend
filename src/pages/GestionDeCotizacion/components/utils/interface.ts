@@ -36,19 +36,19 @@ export interface QuotationResponse {
 }
 
 export interface QuotationResponseRequest {
-  quotation_id: string;
-  product_id: string;
   status: string;
-  unit_price: number;
-  incoterms: string;
-  total_price: number;
-  express_price: number;
-  logistics_service: string;
-  service_fee: number;
-  taxes: number;
-  recommendations: string;
-  additional_comments: string;
-  files: string[]; // URLs de AWS
+  responses: {
+    unit_price: number;
+    incoterms: string;
+    total_price: number;
+    express_price: number;
+    logistics_service: string;
+    service_fee: number;
+    taxes: number;
+    recommendations: string;
+    additional_comments: string;
+    files: string[]; // URLs de AWS
+  }[];
 }
 
 export interface AdminQuotationResponse {

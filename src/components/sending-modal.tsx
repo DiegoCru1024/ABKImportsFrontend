@@ -38,7 +38,7 @@ export default function SendingModal({ isOpen, onClose }: SendingModalProps) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+          className="fixed top-0 left-0 w-full h-full inset-0 bg-black/50 flex items-center justify-center z-50"
           onClick={onClose}
         >
           <motion.div

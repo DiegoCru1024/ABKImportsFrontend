@@ -201,7 +201,7 @@ export default function CotizacionViewNew() {
             setIsLoading(false);
             // Limpiar productos después del envío exitoso
             setProductos([]);
-            navigate("/mis-cotizaciones");
+            navigate("/dashboard/mis-cotizaciones");
           },
           onError: (error) => {
             setIsLoading(false);

@@ -61,9 +61,9 @@ export const createQuatitationResponse = async (data: any) => {
  * @param {any} data - Los datos a crear 
  * @returns {Promise<any>} - La respuesta de la cotización
  */
-export const createQuatitationResponseMultiple = async (data: any) => {
+export const createQuatitationResponseMultiple = async (data: any, quotationId: string, productId: string) => {
   try {
-    return await apiFetch(`/quotation-responses/multiple`, {
+    return await apiFetch(`/quotation-responses/multiple/quotation/${quotationId}/product/${productId}`, {
       //TODO: Cambiar a la ruta correcta
       method: "POST",
       body: JSON.stringify(data),

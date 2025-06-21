@@ -2,31 +2,40 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import FileUploadComponent from "@/components/comp-552";
-import { 
-  FileText, 
-  MessageSquare, 
-  Plus, 
-  Trash2, 
-  Truck, 
-  Package, 
-  Hash, 
-  Ruler, 
-  Palette, 
-  Link, 
-  File, 
-  DollarSign 
+import {
+  FileText,
+  MessageSquare,
+  Plus,
+  Trash2,
+  Truck,
+  Package,
+  Hash,
+  Ruler,
+  Palette,
+  Link,
+  File,
+  DollarSign,
 } from "lucide-react";
 import { useGetQuotationById } from "@/hooks/use-quation";
-import { useCreateQuatitationResponse } from "@/hooks/use-quatitation-response";
+import { useCreateQuatitationResponseMultiple } from "@/hooks/use-quatitation-response";
 import { uploadMultipleFiles } from "@/api/fileUpload";
 import { serviciosLogisticos, incotermsOptions } from "../utils/static";
 import { servicios } from "../../../Cotizacion/components/data/static";
-import type { AdminQuotationResponse, QuotationResponseRequest } from "../utils/interface";
+import type {
+  AdminQuotationResponse,
+  QuotationResponseRequest,
+} from "../utils/interface";
 import { toast } from "sonner";
 
 interface RespuestaTabProps {
@@ -40,8 +49,9 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
   selectedProductId,
   selectedProductName,
 }) => {
-  const { data: quotationDetail, isLoading: isLoadingQuotation } = useGetQuotationById(selectedQuotationId);
-  const createResponseMutation = useCreateQuatitationResponse();
+  const { data: quotationDetail, isLoading: isLoadingQuotation } =
+    useGetQuotationById(selectedQuotationId);
+  const createResponseMutation = useCreateQuatitationResponseMultiple();
 
   const [responses, setResponses] = useState<AdminQuotationResponse[]>([
     {
@@ -102,7 +112,9 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
     try {
       // 1. Recopilar TODOS los archivos de TODAS las respuestas
       const allFiles: File[] = [];
-      const fileIndexMap: { [responseIndex: number]: { start: number; count: number } } = {};
+      const fileIndexMap: {
+        [responseIndex: number]: { start: number; count: number };
+      } = {};
 
       responses.forEach((response, responseIndex) => {
         const startIndex = allFiles.length;
@@ -124,35 +136,32 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
       }
 
       // 3. Preparar las respuestas para enviar al backend
-      const responsesToSend: QuotationResponseRequest[] = responses.map((response, responseIndex) => {
-        const { start, count } = fileIndexMap[responseIndex];
-        const responseFiles = allUploadedUrls.slice(start, start + count);
+      const responsesToSend: QuotationResponseRequest = {
+        status: "approved", // Puedes usar el status de la primera respuesta o un valor por defecto
+        responses: responses.map((response, responseIndex) => {
+          const { start, count } = fileIndexMap[responseIndex];
+          const responseFiles = allUploadedUrls.slice(start, start + count);
 
-        return {
-          quotation_id: selectedQuotationId,
-          product_id: selectedProductId,
-          status: response.status,
-          unit_price: parseFloat(response.pUnitario) || 0,
-          incoterms: response.incoterms,
-          total_price: parseFloat(response.precioTotal) || 0,
-          express_price: parseFloat(response.precioExpress) || 0,
-          logistics_service: response.servicioLogistico,
-          service_fee: parseFloat(response.tarifaServicio) || 0,
-          taxes: parseFloat(response.impuestos) || 0,
-          recommendations: response.recomendaciones,
-          additional_comments: response.comentariosAdicionales,
-          files: responseFiles,
-        };
-      });
+          return {
+            unit_price: parseFloat(response.pUnitario) || 0,
+            incoterms: response.incoterms,
+            total_price: parseFloat(response.precioTotal) || 0,
+            express_price: parseFloat(response.precioExpress) || 0,
+            logistics_service: response.servicioLogistico,
+            service_fee: parseFloat(response.tarifaServicio) || 0,
+            taxes: parseFloat(response.impuestos) || 0,
+            recommendations: response.recomendaciones,
+            additional_comments: response.comentariosAdicionales,
+            files: responseFiles,
+          };
+        }),
+      };
 
-      console.log("Respuestas a enviar:", responsesToSend);
+      console.log("Respuestas a enviar:", JSON.stringify(responsesToSend, null, 2));
 
       // 4. Enviar al backend
-      for (const responseData of responsesToSend) {
-        await createResponseMutation.mutateAsync({ data: responseData });
-      }
+      await createResponseMutation.mutateAsync({ data: responsesToSend, quotationId: selectedQuotationId, productId: selectedProductId });
 
-      toast.success("Respuestas enviadas exitosamente");
       setIsLoading(false);
 
       // Limpiar respuestas después del envío exitoso
@@ -172,7 +181,6 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
           status: "approved",
         },
       ]);
-
     } catch (error) {
       console.error("Error durante el proceso de envío:", error);
       toast.error("Error al enviar las respuestas");
@@ -196,14 +204,17 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
     return (
       <div className="space-y-4 p-6">
         <div className="text-center text-red-600">
-          Error al cargar los detalles de la cotización. Por favor, intente nuevamente.
+          Error al cargar los detalles de la cotización. Por favor, intente
+          nuevamente.
         </div>
       </div>
     );
   }
 
   // Encontrar el producto seleccionado
-  const currentProduct = quotationDetail.products?.find((p: any) => p.id === selectedProductId);
+  const currentProduct = quotationDetail.products?.find(
+    (p: any) => p.id === selectedProductId
+  );
 
   if (!currentProduct) {
     return (
@@ -295,7 +306,8 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
                   </label>
                 </div>
                 <Button variant="outline" size="sm">
-                  Ver archivos adjuntos ({currentProduct.attachments?.length || 0})
+                  Ver archivos adjuntos (
+                  {currentProduct.attachments?.length || 0})
                 </Button>
               </div>
             </div>
@@ -361,7 +373,11 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
                         step="0.01"
                         value={response.pUnitario}
                         onChange={(e) =>
-                          updateResponse(response.id, "pUnitario", e.target.value)
+                          updateResponse(
+                            response.id,
+                            "pUnitario",
+                            e.target.value
+                          )
                         }
                         placeholder="0.00"
                       />
@@ -376,7 +392,11 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
                         step="0.01"
                         value={response.precioTotal}
                         onChange={(e) =>
-                          updateResponse(response.id, "precioTotal", e.target.value)
+                          updateResponse(
+                            response.id,
+                            "precioTotal",
+                            e.target.value
+                          )
                         }
                         placeholder="0.00"
                       />
@@ -391,7 +411,11 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
                         step="0.01"
                         value={response.precioExpress}
                         onChange={(e) =>
-                          updateResponse(response.id, "precioExpress", e.target.value)
+                          updateResponse(
+                            response.id,
+                            "precioExpress",
+                            e.target.value
+                          )
                         }
                         placeholder="0.00"
                       />
@@ -406,7 +430,11 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
                         step="0.01"
                         value={response.tarifaServicio}
                         onChange={(e) =>
-                          updateResponse(response.id, "tarifaServicio", e.target.value)
+                          updateResponse(
+                            response.id,
+                            "tarifaServicio",
+                            e.target.value
+                          )
                         }
                         placeholder="0.00"
                       />
@@ -421,7 +449,11 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
                         step="0.01"
                         value={response.impuestos}
                         onChange={(e) =>
-                          updateResponse(response.id, "impuestos", e.target.value)
+                          updateResponse(
+                            response.id,
+                            "impuestos",
+                            e.target.value
+                          )
                         }
                         placeholder="0.00"
                       />
@@ -469,7 +501,11 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
                       <Select
                         value={response.servicioLogistico}
                         onValueChange={(value) =>
-                          updateResponse(response.id, "servicioLogistico", value)
+                          updateResponse(
+                            response.id,
+                            "servicioLogistico",
+                            value
+                          )
                         }
                       >
                         <SelectTrigger className="w-64">
@@ -477,7 +513,10 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
                         </SelectTrigger>
                         <SelectContent>
                           {servicios.map((servicio) => (
-                            <SelectItem key={servicio.value} value={servicio.value}>
+                            <SelectItem
+                              key={servicio.value}
+                              value={servicio.value}
+                            >
                               {servicio.label}
                             </SelectItem>
                           ))}
@@ -526,7 +565,11 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
                       <Textarea
                         value={response.recomendaciones}
                         onChange={(e) =>
-                          updateResponse(response.id, "recomendaciones", e.target.value)
+                          updateResponse(
+                            response.id,
+                            "recomendaciones",
+                            e.target.value
+                          )
                         }
                         placeholder="Embalaje adicional por fragilidad..."
                       />
@@ -539,7 +582,11 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
                       <Textarea
                         value={response.comentariosAdicionales}
                         onChange={(e) =>
-                          updateResponse(response.id, "comentariosAdicionales", e.target.value)
+                          updateResponse(
+                            response.id,
+                            "comentariosAdicionales",
+                            e.target.value
+                          )
                         }
                         placeholder="Se puede reducir el precio por volumen..."
                       />
@@ -552,7 +599,9 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
                       </Label>
                       <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 bg-white">
                         <FileUploadComponent
-                          onFilesChange={(files) => updateResponse(response.id, "archivos", files)}
+                          onFilesChange={(files) =>
+                            updateResponse(response.id, "archivos", files)
+                          }
                         />
                       </div>
                     </div>
@@ -579,7 +628,9 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
                   </div>
                   <div>
                     <p className="text-gray-600 text-sm">Servicio</p>
-                    <p className="font-bold text-black">{response.servicioLogistico}</p>
+                    <p className="font-bold text-black">
+                      {response.servicioLogistico}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -599,7 +650,9 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
             </Button>
           }
           title="Confirmar envío de respuestas"
-          description={`¿Está seguro de enviar ${responses.length} respuesta${responses.length !== 1 ? 's' : ''} para el producto "${selectedProductName}"?`}
+          description={`¿Está seguro de enviar ${responses.length} respuesta${
+            responses.length !== 1 ? "s" : ""
+          } para el producto "${selectedProductName}"?`}
           confirmText="Enviar"
           cancelText="Cancelar"
           onConfirm={handleEnviarRespuestas}

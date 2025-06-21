@@ -8,6 +8,7 @@ import {
 } from "@/api/apiQuotationResponse";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import type { QuotationResponseRequest } from "@/pages/GestionDeCotizacion/components/utils/interface";
 
 /**
  * Interfaz para la respuesta de una cotización
@@ -77,8 +78,15 @@ export function useCreateQuatitationResponseMultiple() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ data }: { data: QuotationResponse }) =>
-      createQuatitationResponseMultiple(data),
+    mutationFn: ({
+      data,
+      quotationId,
+      productId,
+    }: {
+      data: QuotationResponseRequest;
+      quotationId: string;
+      productId: string;
+    }) => createQuatitationResponseMultiple(data, quotationId, productId),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["allQuatitationResponse"],
@@ -90,7 +98,9 @@ export function useCreateQuatitationResponseMultiple() {
       if (error instanceof Error) {
         toast.error(`Error: ${error.message}`);
       } else {
-        toast.error("Error desconocido al crear las respuestas de la cotización");
+        toast.error(
+          "Error desconocido al crear las respuestas de la cotización"
+        );
       }
     },
   });
@@ -167,8 +177,11 @@ export function usePatchQuatitationResponse(id: string) {
       toast.success("Respuesta de cotización actualizada exitosamente");
     },
     onError: (error: any) => {
-      console.error("Error al actualizar la respuesta de la cotización:", error);
+      console.error(
+        "Error al actualizar la respuesta de la cotización:",
+        error
+      );
       throw error;
     },
   });
-  }
+}

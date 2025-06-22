@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { X, Download, ExternalLink } from "lucide-react";
+import { X, Download, ExternalLink, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface UrlImageViewerModalProps {
   isOpen: boolean;
@@ -16,6 +16,9 @@ const UrlImageViewerModal: React.FC<UrlImageViewerModalProps> = ({
   urls,
   productName,
 }) => {
+  // Índice de la imagen seleccionada en el carrusel
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
   const getFileName = (url: string) => {
     try {
       const urlObj = new URL(url);
@@ -41,23 +44,35 @@ const UrlImageViewerModal: React.FC<UrlImageViewerModalProps> = ({
   const handleDownload = async (url: string, fileName: string) => {
     try {
       const response = await fetch(url);
+      if (!response.ok) {
+        // Si la respuesta no es exitosa, abrir directamente en nueva pestaña
+        window.open(url, '_blank');
+        return;
+      }
       const blob = await response.blob();
       const downloadUrl = window.URL.createObjectURL(blob);
-      
-      const a = document.createElement('a');
-      a.href = downloadUrl;
-      a.download = fileName;
-      document.body.appendChild(a);
-      a.click();
-      
-      window.URL.revokeObjectURL(downloadUrl);
-      document.body.removeChild(a);
+
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = fileName;
+      link.style.display = 'none';
+      document.body.appendChild(link);
+      link.click();
+
+      // Liberar objeto y remover enlace después de un breve retraso
+      setTimeout(() => {
+        window.URL.revokeObjectURL(downloadUrl);
+        document.body.removeChild(link);
+      }, 100);
     } catch (error) {
       console.error('Error downloading file:', error);
-      // Fallback: abrir en nueva ventana
       window.open(url, '_blank');
     }
   };
+
+  // URL y nombre del archivo actualmente mostrados
+  const selectedUrl = urls[selectedIndex] || "";
+  const selectedFileName = getFileName(selectedUrl);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -77,63 +92,60 @@ const UrlImageViewerModal: React.FC<UrlImageViewerModalProps> = ({
               No hay archivos adjuntos
             </p>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {urls.map((url, index) => {
-                const fileName = getFileName(url);
-                const isImage = isImageUrl(url);
-                
-                return (
-                  <div key={index} className="border rounded-lg p-3 space-y-2">
-                    <div className="aspect-square bg-gray-100 rounded-md overflow-hidden">
-                      {isImage ? (
-                        <img
-                          src={url}
-                          alt={fileName}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            // Fallback si la imagen no carga
-                            e.currentTarget.style.display = 'none';
-                            e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                          }}
-                        />
-                      ) : null}
-                      
-                      <div className={`w-full h-full flex items-center justify-center text-4xl ${isImage ? 'hidden' : ''}`}>
-                        {getFileIcon(url)}
+            <>
+              {/* Imagen principal */}
+              <div className="relative w-full h-96 bg-gray-100 rounded-md overflow-hidden flex items-center justify-center">
+                {isImageUrl(selectedUrl) ? (
+                  <img
+                    src={selectedUrl}
+                    alt={selectedFileName}
+                    className="object-contain max-h-full max-w-full"
+                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                  />
+                ) : (
+                  <div className="text-6xl">{getFileIcon(selectedUrl)}</div>
+                )}
+                {/* Botones sobre la imagen */}
+                <div className="absolute top-4 right-4 flex space-x-2">
+                  <Button variant="outline" size="sm" onClick={() => handleDownload(selectedUrl, selectedFileName)}>
+                    <Download className="h-4 w-4 mr-1" /> Descargar
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => window.open(selectedUrl, '_blank')}>
+                    <ExternalLink className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Carrusel de miniaturas */}
+              <div className="flex items-center justify-center mt-4 space-x-2">
+                <Button variant="ghost" size="icon" disabled={selectedIndex === 0} onClick={() => setSelectedIndex(i => Math.max(0, i - 1))}>
+                  <ChevronLeft className="h-5 w-5" />
+                </Button>
+                <div className="flex overflow-x-auto space-x-2">
+                  {urls.map((url, i) => {
+                    const thumbName = getFileName(url);
+                    return (
+                      <div
+                        key={i}
+                        className={`w-20 h-20 flex-shrink-0 border rounded-md overflow-hidden cursor-pointer ${i === selectedIndex ? 'border-blue-500' : 'border-gray-200'}`}
+                        onClick={() => setSelectedIndex(i)}
+                      >
+                        {isImageUrl(url) ? (
+                          <img src={url} alt={thumbName} className="object-cover w-full h-full" />
+                        ) : (
+                          <div className="flex items-center justify-center w-full h-full bg-gray-200 text-2xl">
+                            {getFileIcon(url)}
+                          </div>
+                        )}
                       </div>
-                    </div>
-                    
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium truncate" title={fileName}>
-                        {fileName}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {isImage ? 'Imagen' : 'Archivo'}
-                      </p>
-                    </div>
-                    
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex-1"
-                        onClick={() => handleDownload(url, fileName)}
-                      >
-                        <Download className="h-3 w-3 mr-2" />
-                        Descargar
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => window.open(url, '_blank')}
-                      >
-                        <ExternalLink className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                    );
+                  })}
+                </div>
+                <Button variant="ghost" size="icon" disabled={selectedIndex === urls.length - 1} onClick={() => setSelectedIndex(i => Math.min(urls.length - 1, i + 1))}>
+                  <ChevronRight className="h-5 w-5" />
+                </Button>
+              </div>
+            </>
           )}
         </div>
       </DialogContent>

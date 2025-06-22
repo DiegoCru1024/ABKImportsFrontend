@@ -198,7 +198,7 @@ const QuotationDetailsTab: React.FC<QuotationDetailsTabProps> = ({
           />
         </div>
       </div>
-      <div className="min-h-screen pt-4 px-4 bg-white rounded-lg border">
+      <div className=" pt-4 px-4 bg-white rounded-lg border">
         <div className="w-full  mx-auto space-y-4">
           {/* Header */}
           <div className="text-center space-y-3 mb-8">
@@ -287,7 +287,7 @@ const QuotationDetailsTab: React.FC<QuotationDetailsTabProps> = ({
           </div>
 
           {/* Footer Note */}
-          <div className="text-center pt-8">
+          <div className="text-center p-8">
             <div className="inline-flex items-center space-x-2 text-xs text-slate-400 font-light">
               <div className="w-1 h-1 bg-slate-300 rounded-full"></div>
               <span>Cotización válida por 30 días</span>

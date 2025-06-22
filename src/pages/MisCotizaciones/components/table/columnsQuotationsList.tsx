@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Eye } from "lucide-react";
 import type { QuotationListItem } from "../../types/interfaces";
+import { obtenerUser } from "@/lib/functions";
 
 
 
@@ -13,6 +14,7 @@ interface ColumnsQuotationsListProps {
 export function columnsQuotationsList({
   onViewDetails,
 }: ColumnsQuotationsListProps): ColumnDef<QuotationListItem, any>[] {
+  const currentUser = obtenerUser();
   
   const getStatusBadge = (status: string) => {
     switch (status.toLowerCase()) {
@@ -48,6 +50,14 @@ export function columnsQuotationsList({
     }
   };
 
+  const userColumn: ColumnDef<QuotationListItem, any> = {
+    id: "user",
+    accessorKey: "user",
+    header: "Cliente",
+    cell: ({ row }) => <div>{row.original.user.name}</div>,
+    size: 120,
+  };
+
   return [
     /*{
       id: "id",
@@ -71,6 +81,7 @@ export function columnsQuotationsList({
       ),
       size: 120,
     },
+    ...(currentUser?.type === "admin" ? [userColumn] : []),
     {
       id: "status",
       accessorKey: "status",
@@ -78,6 +89,7 @@ export function columnsQuotationsList({
       cell: ({ row }) => getStatusBadge(row.original.status),
       size: 120,
     },
+   
     {
       id: "service_type",
       accessorKey: "service_type",

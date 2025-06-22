@@ -1,9 +1,12 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import { EyeIcon, TruckIcon } from "lucide-react";
+import { EllipsisVerticalIcon, EyeIcon, MessageCircleIcon, TruckIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import UrlImageViewerModal from "../UrlImageViewerModal";
 import type { ProductDetail } from "../../types/interfaces";
+import { obtenerUser } from "@/lib/functions";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
+
 
 interface ColumnsProductDetailsProps {
   onViewTracking?: (productId: string, productName: string) => void;
@@ -12,6 +15,7 @@ interface ColumnsProductDetailsProps {
 export function columnsProductDetails({
   onViewTracking,
 }: ColumnsProductDetailsProps = {}): ColumnDef<ProductDetail, any>[] {
+  const currentUser = obtenerUser();
   return [
     {
       id: "nombre",
@@ -119,17 +123,44 @@ export function columnsProductDetails({
       size: 150,
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
-          {onViewTracking && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onViewTracking(row.original.id, row.original.name)}
-              className="h-8 px-2 text-green-600 hover:text-green-800 hover:bg-green-50"
-            >
-              <TruckIcon className="w-4 h-4 mr-1" />
-              Ver Seguimiento
+            {onViewTracking && currentUser?.type === "admin" ? 
+          
+          <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm">
+              <EllipsisVerticalIcon className="w-4 h-4 text-blue-500" />
             </Button>
-          )}
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem>
+              {onViewTracking && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() =>
+                    onViewTracking(row.original.id, row.original.name)
+                  }
+                  className=" text-green-600 hover:text-green-800 hover:bg-green-50"
+                >
+                  <MessageCircleIcon className="w-4 h-4 mr-1" />
+                  Responder
+                </Button>
+              )}
+            </DropdownMenuItem>
+           
+          </DropdownMenuContent>  
+        </DropdownMenu>:
+          ( <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onViewTracking && onViewTracking(row.original.id, row.original.name)}
+            className="h-8 px-2 text-green-600 hover:text-green-800 hover:bg-green-50"
+          >
+            <TruckIcon className="w-4 h-4 mr-1" />
+            Ver Seguimiento
+            </Button>)}
+          
+          
         </div>
       ),
     },

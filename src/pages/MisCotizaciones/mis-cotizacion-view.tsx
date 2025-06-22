@@ -1,6 +1,4 @@
-import {
-  FileText,
-} from "lucide-react";
+import { FileText } from "lucide-react";
 import { useState } from "react";
 
 import { motion } from "framer-motion";
@@ -43,7 +41,11 @@ const TrackingTabInline: React.FC<TrackingTabInlineProps> = ({
   selectedProductName,
   quotationId,
 }) => {
-  const { data: responses, isLoading, isError } = useGetAllQuatitationResponse(quotationId);
+  const {
+    data: responses,
+    isLoading,
+    isError,
+  } = useGetAllQuatitationResponse(quotationId);
 
   // Buscar la respuesta específica para el producto seleccionado
   const productResponse = responses?.find(
@@ -66,7 +68,8 @@ const TrackingTabInline: React.FC<TrackingTabInlineProps> = ({
     return (
       <div className="space-y-4 p-6">
         <div className="text-center text-red-600">
-          Error al cargar la información de seguimiento. Por favor, intente nuevamente.
+          Error al cargar la información de seguimiento. Por favor, intente
+          nuevamente.
         </div>
       </div>
     );
@@ -147,11 +150,7 @@ const TrackingTabInline: React.FC<TrackingTabInlineProps> = ({
                       Color
                     </label>
                   </div>
-                  <Input
-                    name="color"
-                    value={product.color || ""}
-                    disabled
-                  />
+                  <Input name="color" value={product.color || ""} disabled />
                 </div>
               </div>
 
@@ -311,7 +310,9 @@ const TrackingTabInline: React.FC<TrackingTabInlineProps> = ({
                       Precio Total
                     </label>
                   </div>
-                  <p className="font-medium">${productResponse.total_price || 0}</p>
+                  <p className="font-medium">
+                    ${productResponse.total_price || 0}
+                  </p>
                 </div>
 
                 <div className="space-y-2">
@@ -321,7 +322,9 @@ const TrackingTabInline: React.FC<TrackingTabInlineProps> = ({
                       Precio Express
                     </label>
                   </div>
-                  <p className="font-medium">${productResponse.express_price || 0}</p>
+                  <p className="font-medium">
+                    ${productResponse.express_price || 0}
+                  </p>
                 </div>
               </div>
 
@@ -439,7 +442,7 @@ export default function MisCotizacionesView() {
 
   //********Cotización seleccionada**** */
   const [selectedCotizacionId, setSelectedCotizacionId] = useState<string>("");
-  
+
   //********Producto seleccionado para seguimiento**** */
   const [selectedProductId, setSelectedProductId] = useState<string>("");
   const [selectedProductName, setSelectedProductName] = useState<string>("");
@@ -458,24 +461,28 @@ export default function MisCotizacionesView() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-500/5 via-background to-orange-400/10">
+    <div className="min-h-screen  overflow-x-hidden bg-gradient-to-br from-orange-500/5 via-background to-orange-400/10 border-t-2 border-b-2">
       {/* Top Navigation Bar */}
-      <div className="border-t border-border/60 bg-background/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="w-full p-1 px-16 py-4 border-b border-border/60">
+      <div className="border-b-2 px-4 py-4 backdrop-blur-sm sticky border-border/60 bg-background/80">
+        <div className="container flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-500 hover:bg-orange-600">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-500  hover:bg-orange-600">
               <FileText className="h-6 w-6 text-white" />
             </div>
             <div>
               <h1 className="text-xl font-bold text-gray-900">
                 Mis cotizaciones
               </h1>
+              <p className="text-sm text-muted-foreground">
+                Visualiza tus cotizaciones, y el
+                seguimiento de la cotización
+              </p>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="w-fill  p-4 px-16">
+      <div className="w-full p-2">
         <div className="overflow-hidden rounded-lg border bg-white shadow-sm">
           {/* Tabs mejorados */}
           <div className="relative bg-gradient-to-r from-gray-900 to-gray-800">
@@ -541,19 +548,21 @@ export default function MisCotizacionesView() {
           )}
 
           {tab === "detalles" && selectedCotizacionId && (
-            <QuotationDetailsTab 
-              selectedQuotationId={selectedCotizacionId} 
+            <QuotationDetailsTab
+              selectedQuotationId={selectedCotizacionId}
               onViewTracking={handleViewTracking}
             />
           )}
 
-          {tab === "seguimiento" && selectedProductId && selectedCotizacionId && (
-            <TrackingTabInline 
-              selectedProductId={selectedProductId}
-              selectedProductName={selectedProductName}
-              quotationId={selectedCotizacionId}
-            />
-          )}
+          {tab === "seguimiento" &&
+            selectedProductId &&
+            selectedCotizacionId && (
+              <TrackingTabInline
+                selectedProductId={selectedProductId}
+                selectedProductName={selectedProductName}
+                quotationId={selectedCotizacionId}
+              />
+            )}
         </div>
       </div>
     </div>

@@ -65,9 +65,9 @@ const UrlImageViewerModal: React.FC<UrlImageViewerModalProps> = ({
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
             <span>Archivos adjuntos - {productName}</span>
-            <Button variant="ghost" size="sm" onClick={onClose}>
+            {/*<Button variant="ghost" size="sm" onClick={onClose}>
               <X className="h-4 w-4" />
-            </Button>
+            </Button>*/}
           </DialogTitle>
         </DialogHeader>
         

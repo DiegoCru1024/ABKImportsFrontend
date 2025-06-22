@@ -3,8 +3,8 @@ import { DataTable } from "@/components/table/data-table";
 import { Calendar, IdCard, UserRound } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useGetQuotationById } from "@/hooks/use-quation";
-import { columnsDetallesDeCotizacionAdmin } from "../table/columnsDetallesDeCotizacion";
   import type { ColumnasDetallesDeCotizacionAdmin } from "../utils/interface";
+import { columnsProductDetails } from "@/pages/MisCotizaciones/components/table/columnsProductDetails";
 
 interface DetallesTabProps {
   selectedQuotationId: string;
@@ -44,7 +44,7 @@ const DetallesTab: React.FC<DetallesTabProps> = ({
     (p) => subTab === "Todos" || p.estadoRespuesta === subTab
   );
 
-  const columns = columnsDetallesDeCotizacionAdmin({
+  const columns = columnsProductDetails({
     onViewTracking: (productId: string, productName: string) => {
       onSelectProductForResponse(productId, productName);
     }

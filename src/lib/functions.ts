@@ -7,3 +7,10 @@ export const obtenerUser = () => {
   };
   return user;
 };
+
+export const formatCurrency = (amount: number) => {
+  return new Intl.NumberFormat("es-ES", {
+    style: "currency",
+    currency: "USD",
+  }).format(amount)
+}

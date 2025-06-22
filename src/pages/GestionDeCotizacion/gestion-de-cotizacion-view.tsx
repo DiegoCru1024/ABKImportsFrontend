@@ -40,7 +40,7 @@ export default function GestionDeCotizacionesView() {
 
   //********Cotización seleccionada**** */
   const [selectedQuotationId, setSelectedQuotationId] = useState<string>("");
-  
+
   //********Producto seleccionado para respuesta**** */
   const [selectedProductId, setSelectedProductId] = useState<string>("");
   const [selectedProductName, setSelectedProductName] = useState<string>("");
@@ -52,7 +52,10 @@ export default function GestionDeCotizacionesView() {
   };
 
   // Función para manejar la selección de producto para respuesta
-  const handleSelectProductForResponse = (productId: string, productName: string) => {
+  const handleSelectProductForResponse = (
+    productId: string,
+    productName: string
+  ) => {
     setSelectedProductId(productId);
     setSelectedProductName(productName);
     setMainTab("respuesta");
@@ -61,7 +64,7 @@ export default function GestionDeCotizacionesView() {
   return (
     <div className="min-h-screen overflow-x-hidden bg-gray-100 border-t-2 border-b-2 border-gray-200">
       {/* Barra de navegación superior */}
-      <div className="border-b-2 border-gray-100 px-4 py-4 bg-white">
+      <div className="border-b-2 px-4 py-4 backdrop-blur-sm sticky border-border/60 bg-background/80">
         <div className="container flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
@@ -76,7 +79,7 @@ export default function GestionDeCotizacionesView() {
         </div>
       </div>
 
-      <div className="w-full p-1 px-4">
+      <div className="w-full p-2">
         <div className="overflow-x-auto rounded-lg bg-white p-4 shadow-sm">
           {/* Tabs Principales mejorados */}
           <div className="relative bg-gradient-to-r from-gray-900 to-gray-800">
@@ -84,11 +87,12 @@ export default function GestionDeCotizacionesView() {
               {tabs.map((tabItem) => {
                 const Icon = tabItem.icon;
                 const isActive = mainTab === tabItem.id;
-                
+
                 // Lógica de habilitación de tabs
-                const isDisabled = 
+                const isDisabled =
                   (tabItem.id === "detalles" && !selectedQuotationId) ||
-                  (tabItem.id === "respuesta" && (!selectedProductId || !selectedQuotationId));
+                  (tabItem.id === "respuesta" &&
+                    (!selectedProductId || !selectedQuotationId));
 
                 return (
                   <button
@@ -108,7 +112,9 @@ export default function GestionDeCotizacionesView() {
                     onClick={() => !isDisabled && setMainTab(tabItem.id)}
                     title={tabItem.description}
                   >
-                    <Icon className={`w-4 h-4 ${isActive ? "text-white" : ""}`} />
+                    <Icon
+                      className={`w-4 h-4 ${isActive ? "text-white" : ""}`}
+                    />
                     <span className="whitespace-nowrap">{tabItem.label}</span>
 
                     {/* Indicador activo mejorado */}
@@ -144,19 +150,21 @@ export default function GestionDeCotizacionesView() {
           )}
 
           {mainTab === "detalles" && selectedQuotationId && (
-            <DetallesTab 
+            <DetallesTab
               selectedQuotationId={selectedQuotationId}
               onSelectProductForResponse={handleSelectProductForResponse}
             />
           )}
 
-          {mainTab === "respuesta" && selectedProductId && selectedQuotationId && (
-            <RespuestaTab
-              selectedQuotationId={selectedQuotationId}
-              selectedProductId={selectedProductId}
-              selectedProductName={selectedProductName}
-            />
-          )}
+          {mainTab === "respuesta" &&
+            selectedProductId &&
+            selectedQuotationId && (
+              <RespuestaTab
+                selectedQuotationId={selectedQuotationId}
+                selectedProductId={selectedProductId}
+                selectedProductName={selectedProductName}
+              />
+            )}
         </div>
       </div>
     </div>

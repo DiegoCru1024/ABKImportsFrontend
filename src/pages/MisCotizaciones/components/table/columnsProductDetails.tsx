@@ -118,6 +118,14 @@ export function columnsProductDetails({
       },
     },
     {
+      id: "status",
+      accessorKey: "responses",
+      header: "Estado de respuesta",
+      cell: ({ row }) => <div>{row.original.responses?.length > 0 ? "Respondido" : "No respondido"}</div>,
+      minSize: 100,
+      size: 100,
+    },
+    {
       id: "actions",
       header: "Acciones",
       size: 150,

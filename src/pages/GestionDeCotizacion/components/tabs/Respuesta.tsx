@@ -9,7 +9,7 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { Card, CardContent, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import FileUploadComponent from "@/components/comp-552";
@@ -26,17 +26,21 @@ import {
   Link,
   File,
   DollarSign,
+  Eye,
+  ExternalLink,
+  Star,
 } from "lucide-react";
 import { useGetQuotationById } from "@/hooks/use-quation";
 import { useCreateQuatitationResponseMultiple } from "@/hooks/use-quatitation-response";
 import { uploadMultipleFiles } from "@/api/fileUpload";
-import {  incotermsOptions } from "../utils/static";
+import { incotermsOptions } from "../utils/static";
 import { servicios } from "../../../Cotizacion/components/data/static";
 import type {
   AdminQuotationResponse,
   QuotationResponseRequest,
 } from "../utils/interface";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 
 interface RespuestaTabProps {
   selectedQuotationId: string;
@@ -157,10 +161,17 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
         }),
       };
 
-      console.log("Respuestas a enviar:", JSON.stringify(responsesToSend, null, 2));
+      console.log(
+        "Respuestas a enviar:",
+        JSON.stringify(responsesToSend, null, 2)
+      );
 
       // 4. Enviar al backend
-      await createResponseMutation.mutateAsync({ data: responsesToSend, quotationId: selectedQuotationId, productId: selectedProductId });
+      await createResponseMutation.mutateAsync({
+        data: responsesToSend,
+        quotationId: selectedQuotationId,
+        productId: selectedProductId,
+      });
 
       setIsLoading(false);
 
@@ -227,90 +238,165 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
   }
 
   return (
-    <div className="space-y-4 p-6">
-      <Card className="py-4">
-        <CardTitle className="border-b border-gray-200 px-4">
-          <h3 className="flex items-center font-semibold text-gray-900">
+    <div className="space-y-4 pt-2">
+      <Card>
+        <CardHeader className="border-b border-gray-200 px-4">
+          <CardTitle className="flex items-center font-semibold text-gray-900">
             <Package className="mr-2 h-6 w-6 text-orange-500" />
             Detalle de producto
-          </h3>
-        </CardTitle>
+          </CardTitle>
+        </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white py-4">
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <Package className="w-4 h-4 text-orange-500" />
-                  <label className="text-sm font-medium text-gray-700">
-                    Nombre del Producto
-                  </label>
-                </div>
-                <Input disabled value={currentProduct.name} />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Hash className="w-4 h-4 text-orange-500" />
-                    <label className="text-sm font-medium text-gray-700">
-                      Cantidad
-                    </label>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 auto-rows-fr">
+            {/* Main Product Card - Spans 2 columns */}
+            <Card className="lg:col-span-2 bg-white border-2 hover:border-orange-100 hover:shadow-md">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Package className="h-6 w-6 text-orange-500" />
+                  <span className="text-orange-800">
+                    Nombre del producto: {selectedProductName}
+                  </span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-2 md:grid-cols-3">
+                    <div className="text-sm  flex items-center gap-2">
+                      <Package className="h-4 w-4 text-orange-500 hover:text-orange-800" />{" "}
+                      Cantidad:{" "}
+                      <span className="hover:text-orange-500">
+                        {currentProduct.quantity}
+                      </span>
+                    </div>
+                    <div className="text-sm  flex items-center gap-2">
+                      <Ruler className="h-4 w-4 text-orange-500 hover:text-orange-800" />{" "}
+                      Tamaño:{" "}
+                      <span className="hover:text-orange-500">
+                        {currentProduct.size}
+                      </span>
+                    </div>
+
+                    <div className="text-sm   flex items-center gap-2">
+                      <Palette className="h-4 w-4 text-orange-500 hover:text-orange-800 " />{" "}
+                      Color:{" "}
+                      <span className="hover:text-orange-500">
+                        {currentProduct.color}
+                      </span>
+                    </div>
                   </div>
-                  <Input disabled value={currentProduct.quantity} />
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Ruler className="w-4 h-4 text-orange-500" />
-                    <label className="text-sm font-medium text-gray-700">
-                      Tamaño
-                    </label>
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-2">
+                      <ExternalLink className="h-4 w-4 text-orange-500 hover:text-orange-800" />
+                      <span className="text-sm hover:text-orange-500">Fuente del producto: </span>
+                    </div>
+                    <div className="text-sm">
+                      <span className="hover:text-orange-500">{currentProduct.url}</span>
+                    </div>
                   </div>
-                  <Input disabled value={currentProduct.size} />
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Palette className="w-4 h-4 text-orange-500" />
-                    <label className="text-sm font-medium text-gray-700">
-                      Color
-                    </label>
+                  <div className=" flex flex-col text-sm gap-2">
+                    <div className="flex items-center gap-2">
+                      <MessageSquare className="h-4 w-4 text-orange-500 hover:text-orange-800" />
+                      <span className="hover:text-orange-500">Comentario:</span>
+                    </div>
+                    <Textarea
+                      className="w-full"
+                      value={currentProduct.comment}
+                      placeholder="Comentario"
+                    />
                   </div>
-                  <Input disabled value={currentProduct.color} />
                 </div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Link className="w-4 h-4 text-orange-500" />
-                    <label className="text-sm font-medium text-gray-700">
-                      URL
-                    </label>
+              </CardContent>
+            </Card>
+
+            {/* Size Card */}
+            <Card className="bg-white border-2 border-orange-300">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Ruler className="h-5 w-5 text-amber-700" />
+                  Talla
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center">
+                  <span className="text-4xl font-bold text-amber-800">XL</span>
+                  <p className="text-sm text-amber-700 mt-2">
+                    Talla Extra Grande
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Color Card */}
+            <Card className="bg-white border-2 border-orange-300">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Palette className="h-5 w-5 text-red-700" />
+                  Color
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-red-500 rounded-full mx-auto mb-3 shadow-lg border-2 border-red-300"></div>
+                  <span className="text-xl font-semibold text-red-800">
+                    Rojo
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Source Link Card - Spans 2 columns */}
+            <Card className="lg:col-span-2 bg-white border-2 border-orange-300">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <ExternalLink className="h-5 w-5 text-yellow-700" />
+                  Fuente del Producto
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="bg-white/70 p-3 rounded-lg border border-yellow-300">
+                    <code className="text-yellow-800 font-mono text-sm break-all">
+                      temu.com//as...
+                    </code>
                   </div>
-                  <Input disabled value={currentProduct.url} />
+                  <Button
+                    variant="outline"
+                    className="w-full bg-white/50 border-yellow-400 text-yellow-800 hover:bg-yellow-100"
+                  >
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    Visitar Enlace
+                  </Button>
                 </div>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Link className="w-4 h-4 text-orange-500" />
-                    <label className="text-sm font-medium text-gray-700">
-                      Tipo de servicio
-                    </label>
+              </CardContent>
+            </Card>
+
+            {/* Status Card */}
+            <Card className="lg:col-span-2 bg-white border-2 border-orange-300">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Star className="h-5 w-5 text-orange-700" />
+                  Estado del Producto
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Badge className="bg-orange-500 text-white mb-2">
+                      ✓ Aprobado
+                    </Badge>
+                    <p className="text-orange-800 font-medium">
+                      Listo para cotización
+                    </p>
                   </div>
-                  <Input disabled value={quotationDetail.service_type} />
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-orange-800">
+                      100%
+                    </div>
+                    <p className="text-sm text-orange-700">Completado</p>
+                  </div>
                 </div>
-              </div>
-            </div>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <File className="w-4 h-4 text-orange-500" />
-                  <label className="text-sm font-medium text-gray-700">
-                    Archivos adjuntos
-                  </label>
-                </div>
-                <Button variant="outline" size="sm">
-                  Ver archivos adjuntos (
-                  {currentProduct.attachments?.length || 0})
-                </Button>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           </div>
         </CardContent>
       </Card>

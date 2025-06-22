@@ -23,7 +23,7 @@ import { useState } from "react";
 
 const loginSchema = z.object({
   email: z.string().email("El correo electrónico no es válido"),
-  password: z.string().min(3),
+  password: z.string().min(3, "La contraseña debe tener al menos 3 caracteres"),
 });
 
 export default function LoginPage() {
@@ -110,9 +110,12 @@ export default function LoginPage() {
                 Iniciar Sesión
               </h2>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 ">
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)}>
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  className="space-y-4"
+                >
                   <FormField
                     control={form.control}
                     name="email"

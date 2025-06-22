@@ -9,8 +9,8 @@ import {
 } from "@/components/ui/breadcrumb";
 import { SidebarTrigger } from "./ui/sidebar";
 import { Separator } from "@radix-ui/react-separator";
-import { Bell } from "lucide-react";
 import React from "react";
+import SocketNotification from "./socket-notification";
 
 function toTitle(segment: string) {
   return segment
@@ -55,9 +55,7 @@ export default function HeaderConBreadcrumb() {
             })}
           </BreadcrumbList>
         </Breadcrumb>
-        <div className="ml-auto">
-          <Bell className="w-5 h-5 text-yellow-500 cursor-pointer hover:text-yellow-600" />
-        </div>
+        <SocketNotification />
       </div>
     </header>
   );

@@ -30,7 +30,7 @@ import {
 import { useGetQuotationById } from "@/hooks/use-quation";
 import { useCreateQuatitationResponseMultiple } from "@/hooks/use-quatitation-response";
 import { uploadMultipleFiles } from "@/api/fileUpload";
-import { serviciosLogisticos, incotermsOptions } from "../utils/static";
+import {  incotermsOptions } from "../utils/static";
 import { servicios } from "../../../Cotizacion/components/data/static";
 import type {
   AdminQuotationResponse,

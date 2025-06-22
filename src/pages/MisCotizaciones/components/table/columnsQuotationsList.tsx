@@ -4,6 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Eye } from "lucide-react";
 import type { QuotationListItem } from "../../types/interfaces";
 
+
+
 interface ColumnsQuotationsListProps {
   onViewDetails: (quotationId: string) => void;
 }
@@ -47,7 +49,7 @@ export function columnsQuotationsList({
   };
 
   return [
-    {
+    /*{
       id: "id",
       accessorKey: "id",
       header: "ID",
@@ -57,11 +59,11 @@ export function columnsQuotationsList({
         </div>
       ),
       size: 100,
-    },
+    },*/
     {
       id: "correlative",
       accessorKey: "correlative",
-      header: "Correlativo",
+      header: "Id Cotizacion",
       cell: ({ row }) => (
         <div className="font-semibold text-orange-600">
           {row.original.correlative}
@@ -90,9 +92,9 @@ export function columnsQuotationsList({
     {
       id: "productQuantity",
       accessorKey: "productQuantity",
-      header: "Productos",
+      header: "Cantidad de Productos",
       cell: ({ row }) => (
-        <div className="text-center font-medium">
+        <div >
           {row.original.productQuantity}
         </div>
       ),
@@ -119,7 +121,9 @@ export function columnsQuotationsList({
     {
       id: "actions",
       header: "Acciones",
-      cell: ({ row }) => (
+      cell: ({ row }) => 
+        
+        (
         <Button
           variant="ghost"
           size="sm"

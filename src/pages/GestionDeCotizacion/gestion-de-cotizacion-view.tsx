@@ -76,8 +76,8 @@ export default function GestionDeCotizacionesView() {
         </div>
       </div>
 
-      <div className="container mx-auto p-4">
-        <div className="overflow-hidden rounded-md border bg-white shadow-sm">
+      <div className="w-full p-1 px-4">
+        <div className="overflow-x-auto rounded-lg bg-white p-4 shadow-sm">
           {/* Tabs Principales mejorados */}
           <div className="relative bg-gradient-to-r from-gray-900 to-gray-800">
             <div className="flex">

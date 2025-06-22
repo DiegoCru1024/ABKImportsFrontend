@@ -4,6 +4,24 @@ export interface Solicitud {
   fecha: string;
 }
 
+
+export interface ColumnasDetallesDeCotizacionAdmin {
+  id: string;
+  name: string;
+  quantity: number;
+  size: string;
+  color: string;
+  url: string;
+  comment: string;
+  weight: string;
+  volume: string;
+  number_of_boxes: number;
+  attachments: string[];
+  responses: any[];
+  status: string;
+}
+
+
 export interface ProductoItem {
   id: string;
   nombre: string;

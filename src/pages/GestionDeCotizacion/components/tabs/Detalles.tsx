@@ -3,8 +3,8 @@ import { DataTable } from "@/components/table/data-table";
 import { Calendar, IdCard, UserRound } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useGetQuotationById } from "@/hooks/use-quation";
-import { columnsProductDetails } from "../../../MisCotizaciones/components/table/columnsProductDetails";
-import type { ProductDetail } from "../../../MisCotizaciones/types/interfaces";
+import { columnsDetallesDeCotizacionAdmin } from "../table/columnsDetallesDeCotizacion";
+  import type { ColumnasDetallesDeCotizacionAdmin } from "../utils/interface";
 
 interface DetallesTabProps {
   selectedQuotationId: string;
@@ -33,8 +33,8 @@ const DetallesTab: React.FC<DetallesTabProps> = ({
   };
 
   // Mapear productos y agregar estado de respuesta mock
-  const products: (ProductDetail & { estadoRespuesta: string })[] = 
-    (quotationDetail?.products || []).map((product: ProductDetail) => ({
+  const products: (ColumnasDetallesDeCotizacionAdmin & { estadoRespuesta: string })[] = 
+    (quotationDetail?.products || []).map((product: ColumnasDetallesDeCotizacionAdmin) => ({
       ...product,
       estadoRespuesta: product.responses?.length > 0 ? "Respondido" : "No respondido"
     }));
@@ -44,7 +44,7 @@ const DetallesTab: React.FC<DetallesTabProps> = ({
     (p) => subTab === "Todos" || p.estadoRespuesta === subTab
   );
 
-  const columns = columnsProductDetails({
+  const columns = columnsDetallesDeCotizacionAdmin({
     onViewTracking: (productId: string, productName: string) => {
       onSelectProductForResponse(productId, productName);
     }

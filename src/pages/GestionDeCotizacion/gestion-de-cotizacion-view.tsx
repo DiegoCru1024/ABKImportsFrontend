@@ -82,66 +82,43 @@ export default function GestionDeCotizacionesView() {
       <div className="w-full p-2">
         <div className="overflow-x-auto rounded-lg bg-white p-4 shadow-sm">
           {/* Tabs Principales mejorados */}
-          <div className="relative bg-gradient-to-r from-gray-900 to-gray-800">
-            <div className="flex">
-              {tabs.map((tabItem) => {
-                const Icon = tabItem.icon;
-                const isActive = mainTab === tabItem.id;
-
-                // Lógica de habilitación de tabs
-                const isDisabled =
-                  (tabItem.id === "detalles" && !selectedQuotationId) ||
-                  (tabItem.id === "respuesta" &&
-                    (!selectedProductId || !selectedQuotationId));
-
-                return (
-                  <button
-                    key={tabItem.id}
+          <div className="relative flex bg-gray-50/50">
+            {tabs.map((tabItem, index) => {
+              const Icon = tabItem.icon;
+              const isActive = mainTab === tabItem.id;
+              // Lógica de habilitación de tabs
+              const isDisabled =
+                (tabItem.id === "detalles" && !selectedQuotationId) ||
+                (tabItem.id === "respuesta" && (!selectedProductId || !selectedQuotationId));
+              return (
+                <button
+                  key={tabItem.id}
+                  disabled={isDisabled}
+                  onClick={() => !isDisabled && setMainTab(tabItem.id)}
+                  className={`
+                    relative flex-1 px-6 py-4 text-sm font-medium transition-all duration-300 ease-out
+                    flex items-center justify-center gap-2 group
+                    ${isActive ? "text-orange-700 bg-orange-50" : "text-gray-600 hover:text-orange-600 hover:bg-orange-25"}
+                    ${index !== tabs.length - 1 ? "border-r border-gray-200" : ""}
+                    ${isDisabled ? "opacity-50 cursor-not-allowed" : ""}
+                  `}
+                >
+                  <Icon
+                    size={18}
                     className={`
-                      relative flex items-center gap-3 px-6 py-3 text-sm font-medium transition-all duration-300 ease-in-out
-                      ${
-                        isActive
-                          ? "text-white bg-gradient-to-b from-orange-400/20 to-orange-400/90 border-b-2 border-orange-400"
-                          : isDisabled
-                          ? "text-gray-500 cursor-not-allowed opacity-50"
-                          : "text-gray-300 hover:text-white hover:bg-white/5"
-                      }
-                      ${!isDisabled && !isActive ? "hover:scale-105" : ""}
+                      transition-all duration-300 ease-out
+                      ${isActive ? "text-orange-600 scale-110" : "text-gray-500 group-hover:text-orange-500 group-hover:scale-105"}
                     `}
-                    disabled={isDisabled}
-                    onClick={() => !isDisabled && setMainTab(tabItem.id)}
-                    title={tabItem.description}
-                  >
-                    <Icon
-                      className={`w-4 h-4 ${isActive ? "text-white" : ""}`}
-                    />
-                    <span className="whitespace-nowrap">{tabItem.label}</span>
-
-                    {/* Indicador activo mejorado */}
-                    {isActive && (
-                      <motion.div
-                        layoutId="activeTabAdmin"
-                        className="absolute inset-0 bg-gradient-to-r from-orange-500/10 to-orange-600/5 rounded-t-lg"
-                        initial={false}
-                        transition={{
-                          type: "spring",
-                          bounce: 0.2,
-                          duration: 0.6,
-                        }}
-                      />
-                    )}
-
-                    {/* Efecto hover */}
-                    {!isActive && !isDisabled && (
-                      <div className="absolute bg-white/0 hover:bg-white/5 transition-colors duration-200 rounded-t-lg" />
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Línea divisoria sutil */}
-            <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gray-600 to-transparent" />
+                  />
+                  <span className="transition-all duration-300 ease-out">
+                    {tabItem.label}
+                  </span>
+                  {isActive && (
+                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-orange-400 to-orange-500 animate-in slide-in-from-bottom-1 duration-300" />
+                  )}
+                </button>
+              );
+            })}
           </div>
 
           {/* Contenidos de las tabs */}

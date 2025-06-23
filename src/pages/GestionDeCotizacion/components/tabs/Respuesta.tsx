@@ -30,12 +30,9 @@ import { useCreateQuatitationResponseMultiple } from "@/hooks/use-quatitation-re
 import { uploadMultipleFiles } from "@/api/fileUpload";
 import { incotermsOptions } from "../utils/static";
 import { servicios } from "../../../Cotizacion/components/data/static";
-import type {
-  AdminQuotationResponse,
-  QuotationResponseRequest,
-} from "../utils/interface";
-import { toast } from "sonner";
+import type { AdminQuotationResponse } from "../utils/interface";
 import { Badge } from "@/components/ui/badge";
+import type { QuotationResponseRequest } from "@/api/interface/quotationResponseInterfaces";
 
 interface RespuestaTabProps {
   selectedQuotationId: string;
@@ -70,7 +67,7 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
   ]);
 
   const [isLoading, setIsLoading] = useState(false);
-  const [statusResponse, setStatusResponse] = useState("no-respondido");
+  const [statusResponse, setStatusResponse] = useState("answered");
   const updateResponse = (
     id: string,
     field: keyof AdminQuotationResponse,
@@ -154,20 +151,16 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
 
       const responsesToSend: QuotationResponseRequest = {
         statusResponseProduct: statusResponse,
-        summationTotal,
-        summationExpress,
-        summationTaxes,
-        summationServiceFee,
+        sendResponse: true,
         responses: responses.map((response, responseIndex) => {
           const { start, count } = fileIndexMap[responseIndex];
           const responseFiles = allUploadedUrls.slice(start, start + count);
-
           return {
+            logistics_service: response.servicioLogistico,
             unit_price: parseFloat(response.pUnitario) || 0,
             incoterms: response.incoterms,
             total_price: parseFloat(response.precioTotal) || 0,
             express_price: parseFloat(response.precioExpress) || 0,
-            logistics_service: response.servicioLogistico,
             service_fee: parseFloat(response.tarifaServicio) || 0,
             taxes: parseFloat(response.impuestos) || 0,
             recommendations: response.recomendaciones,
@@ -183,11 +176,11 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
       );
 
       // 4. Enviar al backend
-      await createResponseMutation.mutateAsync({
+      /*await createResponseMutation.mutateAsync({
         data: responsesToSend,
         quotationId: selectedQuotationId,
         productId: selectedProductId,
-      });
+      });*/
 
       setIsLoading(false);
 
@@ -300,7 +293,8 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
                         variant="outline"
                         className="bg-orange-500 text-white"
                       >
-                        {currentProduct?.status || "No respondido"}
+                        {currentProduct?.statusResponseProduct ||
+                          "No respondido"}
                       </Badge>
                     </div>
                   </div>
@@ -373,8 +367,10 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
             Detalle de respuesta ({responses.length})
           </h3>
           <div className="flex items-center justify-between gap-2">
-            <div className="space-y-2">
-              <Label className="text-gray-700 font-medium">Estado</Label>
+            <div>
+              <Label className="text-gray-700 font-medium">
+                Estado general de respuesta del producto
+              </Label>
               <Select
                 value={statusResponse}
                 onValueChange={(value) => setStatusResponse(value)}
@@ -383,20 +379,20 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
                   <SelectValue placeholder="Seleccione" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="respondido">Respondido</SelectItem>
-                  <SelectItem value="no-respondido">No respondido</SelectItem>
-                  <SelectItem value="observado">Observado</SelectItem>
+                  <SelectItem value="answered">Respondido</SelectItem>
+                  <SelectItem value="not_answered">No respondido</SelectItem>
+                  <SelectItem value="observed">Observado</SelectItem>
                 </SelectContent>
               </Select>
             </div>
+            <Button
+              onClick={addResponse}
+              size="sm"
+              className="bg-orange-500 hover:bg-orange-600 text-white rounded-xl px-6 py-2 text-sm"
+            >
+              <Plus className="h-4 w-4 mr-2" /> Agregar Respuesta
+            </Button>
           </div>
-          <Button
-            onClick={addResponse}
-            size="sm"
-            className="bg-orange-500 hover:bg-orange-600 text-white rounded-xl px-6 py-2 text-sm"
-          >
-            <Plus className="h-4 w-4 mr-2" /> Agregar Respuesta
-          </Button>
         </CardTitle>
         <CardContent>
           {responses.map((response, i) => (
@@ -433,83 +429,88 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
                     </h5>
                   </div>
 
-                  {/*Precio Unitario*/}
                   <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label className="text-gray-700 font-medium">
-                        Precio Unitario ($)
-                      </Label>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        value={response.pUnitario}
-                        onChange={(e) =>
-                          updateResponse(
-                            response.id,
-                            "pUnitario",
-                            e.target.value
-                          )
-                        }
-                        placeholder="0.00"
-                      />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      {/*Precio Unitario*/}
+                      <div className="space-y-2">
+                        <Label className="text-gray-700 font-medium">
+                          Precio Unitario ($)
+                        </Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={response.pUnitario}
+                          onChange={(e) =>
+                            updateResponse(
+                              response.id,
+                              "pUnitario",
+                              e.target.value
+                            )
+                          }
+                          placeholder="0.00"
+                        />
+                      </div>
+                      {/*Precio Total*/}
+                      <div className="space-y-2">
+                        <Label className="text-gray-700 font-medium">
+                          Precio Total ($)
+                        </Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={response.precioTotal}
+                          onChange={(e) =>
+                            updateResponse(
+                              response.id,
+                              "precioTotal",
+                              e.target.value
+                            )
+                          }
+                          placeholder="0.00"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      {/*Precio Express*/}
+                      <div className="space-y-2">
+                        <Label className="text-gray-700 font-medium">
+                          Precio Express ($)
+                        </Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={response.precioExpress}
+                          onChange={(e) =>
+                            updateResponse(
+                              response.id,
+                              "precioExpress",
+                              e.target.value
+                            )
+                          }
+                          placeholder="0.00"
+                        />
+                      </div>
+                      {/*Tarifa Servicio*/}
+                      <div className="space-y-2">
+                        <Label className="text-gray-700 font-medium">
+                          Tarifa Servicio ($)
+                        </Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={response.tarifaServicio}
+                          onChange={(e) =>
+                            updateResponse(
+                              response.id,
+                              "tarifaServicio",
+                              e.target.value
+                            )
+                          }
+                          placeholder="0.00"
+                        />
+                      </div>
                     </div>
 
-                    <div className="space-y-2">
-                      <Label className="text-gray-700 font-medium">
-                        Precio Total ($)
-                      </Label>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        value={response.precioTotal}
-                        onChange={(e) =>
-                          updateResponse(
-                            response.id,
-                            "precioTotal",
-                            e.target.value
-                          )
-                        }
-                        placeholder="0.00"
-                      />
-                    </div>
-                    {/*Precio Express*/}
-                    <div className="space-y-2">
-                      <Label className="text-gray-700 font-medium">
-                        Precio Express ($)
-                      </Label>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        value={response.precioExpress}
-                        onChange={(e) =>
-                          updateResponse(
-                            response.id,
-                            "precioExpress",
-                            e.target.value
-                          )
-                        }
-                        placeholder="0.00"
-                      />
-                    </div>
-                    {/*Tarifa Servicio*/}
-                    <div className="space-y-2">
-                      <Label className="text-gray-700 font-medium">
-                        Tarifa Servicio ($)
-                      </Label>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        value={response.tarifaServicio}
-                        onChange={(e) =>
-                          updateResponse(
-                            response.id,
-                            "tarifaServicio",
-                            e.target.value
-                          )
-                        }
-                        placeholder="0.00"
-                      />
-                    </div>
                     {/*Impuestos*/}
                     <div className="space-y-2">
                       <Label className="text-gray-700 font-medium">

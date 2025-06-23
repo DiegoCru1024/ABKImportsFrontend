@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { DataTable } from "@/components/table/data-table";
 import { useGetQuotationsByUser } from "@/hooks/use-quation";
 import { columnsQuotationsList } from "../../../MisCotizaciones/components/table/columnsQuotationsList";
@@ -8,16 +8,51 @@ interface SolicitudesTabProps {
 }
 
 const SolicitudesTab: React.FC<SolicitudesTabProps> = ({ onViewDetails }) => {
-  const { data, isLoading, isError } = useGetQuotationsByUser();
+  const [data, setData] = useState<any[]>([]);
+  
+  // Estados para nueva creación y eliminación
+  const [searchTerm, setSearchTerm] = useState("");
+  const [pageInfo, setPageInfo] = useState({
+    pageNumber: 1,
+    pageSize: 10,
+    totalElements: 0,
+    totalPages: 0,
+  });
+
+  const { data: dataQuotations, isLoading, isError } = useGetQuotationsByUser();
 
   // Configurar datos para la tabla con paginación mock
-  const quotations = data?.content || [];
-  const pageInfo = {
-    pageNumber: parseInt(data?.pageNumber || "1"),
-    pageSize: parseInt(data?.pageSize || "10"),
-    totalElements: data?.totalElements || 0,
-    totalPages: data?.totalPages || 1,
+
+  useEffect(() => {
+    if (dataQuotations) {
+      console.log("data", dataQuotations);
+      setData(dataQuotations.content); // Aquí actualizas el estado de forma controlada
+      setPageInfo({
+        pageNumber: dataQuotations.pageNumber,
+        pageSize: dataQuotations.pageSize,
+        totalElements: dataQuotations.totalElements,
+        totalPages: dataQuotations.totalPages,
+      });
+    }
+  }, [dataQuotations, isLoading]);
+
+  const handlePageChange = (page: number, pageSize: number) => {
+    console.log(`Cambiando a página ${page} con tamaño ${pageSize}`);
+    setPageInfo((prev) => ({
+      ...prev,
+      pageNumber: page,
+      pageSize: pageSize,
+    }));
   };
+
+  const handleSearch = (newSearchTerm: string) => {
+    setSearchTerm(newSearchTerm);
+    setPageInfo((prev) => ({
+      ...prev,
+      pageNumber: 0,
+    }));
+  };
+
 
   if (isLoading) {
     return (
@@ -50,11 +85,11 @@ const SolicitudesTab: React.FC<SolicitudesTabProps> = ({ onViewDetails }) => {
       </p>
       <DataTable
         columns={columns}
-        data={quotations}
+        data={data}
         pageInfo={pageInfo}
-        onPageChange={() => {}}
-        onSearch={() => {}}
-        searchTerm=""
+        onPageChange={handlePageChange}
+        onSearch={handleSearch}
+        searchTerm={searchTerm}
         isLoading={isLoading}
         toolbarOptions={{ showSearch: true, showViewOptions: false }}
         paginationOptions={{

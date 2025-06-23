@@ -12,7 +12,6 @@ import {
 } from "lucide-react";
 import { useGetQuotationById } from "@/hooks/use-quation";
 import { columnsProductDetails } from "../table/columnsProductDetails";
-import type { ProductDetail } from "../../types/interfaces";
 import {
   Card,
   CardContent,
@@ -21,6 +20,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/functions";
+import type { ProductoResponseIdInterface } from "@/api/quotations";
 
 interface QuotationDetailsTabProps {
   selectedQuotationId: string;
@@ -51,12 +51,12 @@ const QuotationDetailsTab: React.FC<QuotationDetailsTabProps> = ({
   };
 
   const total_price =
-    quotationDetail?.summationTotal +
-      quotationDetail?.express_price +
-      quotationDetail?.summationTaxes +
-      quotationDetail?.summationServiceFee || 0;
+    (quotationDetail?.summaryByServiceType[0].summationTotal || 0) +
+      (quotationDetail?.summaryByServiceType[0].summationExpress || 0) +
+      (quotationDetail?.summaryByServiceType[0].summationTaxes || 0) +
+      (quotationDetail?.summaryByServiceType[0].summationServiceFee || 0);
   const columns = columnsProductDetails({ onViewTracking });
-  const products: ProductDetail[] = quotationDetail?.products || [];
+  const products: ProductoResponseIdInterface[] = quotationDetail?.products || [];
   console.log(quotationDetail);
 
   //* Pricing Data
@@ -73,28 +73,28 @@ const QuotationDetailsTab: React.FC<QuotationDetailsTabProps> = ({
     {
       id: "quote",
       title: "Precio de la cotización",
-      amount: quotationDetail?.summationTotal || 0,
+      amount: quotationDetail?.summaryByServiceType[0].summationTotal || 0,
       description: "Costo base del servicio cotizado",
       icon: FileText,
     },
     {
       id: "express",
       title: "Precio express",
-      amount: quotationDetail?.express_price || 0,
+      amount: quotationDetail?.summaryByServiceType[0].summationExpress || 0,
       description: "Cargo adicional por servicio urgente",
       icon: Clock,
     },
     {
       id: "taxes",
       title: "Precio de los impuestos",
-      amount: quotationDetail?.summationTaxes || 0,
+      amount: quotationDetail?.summaryByServiceType[0].summationTaxes || 0,
       description: "Impuestos aplicables según legislación",
       icon: Receipt,
     },
     {
       id: "services",
       title: "Precio de los servicios",
-      amount: quotationDetail?.summationServiceFee || 0,
+      amount: quotationDetail?.summaryByServiceType[0].summationServiceFee || 0,
       description: "Servicios adicionales incluidos",
       icon: Settings,
     },
@@ -160,11 +160,11 @@ const QuotationDetailsTab: React.FC<QuotationDetailsTabProps> = ({
           <h4 className="font-semibold text-orange-800 mb-2">
             Tipo de Servicio
           </h4>
-          <p className="text-orange-700">{quotationDetail.service_type}</p>
+          <p className="text-orange-700">{quotationDetail.statusResponseQuotation}</p>
         </div>
         <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
           <h4 className="font-semibold text-blue-800 mb-2">Estado</h4>
-          <p className="text-blue-700 capitalize">{quotationDetail.status}</p>
+          <p className="text-blue-700 capitalize">{quotationDetail.statusResponseQuotation  }</p>
         </div>
       </div>
 
@@ -178,7 +178,7 @@ const QuotationDetailsTab: React.FC<QuotationDetailsTabProps> = ({
         <div className="p-4">
           <DataTable
             columns={columns}
-            data={products}
+            data={products as any }
             pageInfo={{
               pageNumber: 1,
               pageSize: products.length,

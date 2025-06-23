@@ -1,5 +1,6 @@
 import { apiFetch } from "./apiFetch";
 import type { Quotation } from "@/pages/Cotizacion/utils/interface";
+import type { QuotationResponseIdInterface, QuotationsByUserResponseInterface } from "./interface/quotationInterface";
 
 /**
  * Crea una nueva cotización
@@ -26,20 +27,25 @@ export const createQuotation = async (quotation: Quotation) => {
  */
 export const getQuotationById = async (id: string) => {
   try {
-    return await apiFetch(`/quotations/${id}`);
+    return await apiFetch<QuotationResponseIdInterface>(`/quotations/${id}`, {
+      method: "GET",
+    });
   } catch (error) {
     console.error("Error al obtener la cotización:", error);
     throw error;
   }
 };
 
+
 /**
  * Obtiene todas las cotizaciones que ha realizado el usuario
- * @returns {Promise<any>} - Las cotizaciones
+ * @returns {Promise<QuotationsByUserResponseInterface>} - Las cotizaciones
  */
 export const getQuotationsByUser = async () => {
   try {
-    return await apiFetch("/quotations");
+    return await apiFetch<QuotationsByUserResponseInterface>("/quotations", {
+      method: "GET",
+    });
   } catch (error) {
     console.error("Error al obtener las cotizaciones:", error);
     throw error;

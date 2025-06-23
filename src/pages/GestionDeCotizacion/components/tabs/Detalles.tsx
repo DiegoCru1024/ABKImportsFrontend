@@ -3,10 +3,10 @@ import { DataTable } from "@/components/table/data-table";
 import { Calendar, IdCard, UserRound, Calculator, FileText, Clock, Receipt, Settings } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useGetQuotationById } from "@/hooks/use-quation";
-  import type { ColumnasDetallesDeCotizacionAdmin } from "../utils/interface";
 import { columnsProductDetails } from "@/pages/MisCotizaciones/components/table/columnsProductDetails";
 import { Card, CardContent, CardDescription, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/functions";
+import type { ProductoResponseIdInterface } from "@/api/interface/quotationInterface";
 
 interface DetallesTabProps {
   selectedQuotationId: string;
@@ -35,10 +35,10 @@ const DetallesTab: React.FC<DetallesTabProps> = ({
   };
 
   // Mapear productos y agregar estado de respuesta mock
-  const products: (ColumnasDetallesDeCotizacionAdmin & { estadoRespuesta: string })[] = 
-    (quotationDetail?.products || []).map((product: ColumnasDetallesDeCotizacionAdmin) => ({
+  const products: (ProductoResponseIdInterface & { estadoRespuesta: string })[] = 
+    (quotationDetail?.products || []).map((product: ProductoResponseIdInterface) => ({
       ...product,
-      estadoRespuesta: product.responses?.length > 0 ? "Respondido" : "No respondido"
+      estadoRespuesta: product.statusResponseProduct ? "Respondido" : "No respondido"
     }));
 
   // Filtrar productos según el sub-tab
@@ -74,12 +74,7 @@ const DetallesTab: React.FC<DetallesTabProps> = ({
     );
   }
 
-  const total_price =
-    quotationDetail?.summationTotal +
-      quotationDetail?.express_price +
-      quotationDetail?.summationTaxes +
-      quotationDetail?.summationServiceFee || 0;
-
+  const total_price =0
   //* Pricing Data
   // Estructura de los datos para el resumen de precios
   const pricingData = [
@@ -94,28 +89,28 @@ const DetallesTab: React.FC<DetallesTabProps> = ({
     {
       id: "quote",
       title: "Precio de la cotización",
-      amount: quotationDetail?.summationTotal || 0,
+      amount:   0,
       description: "Costo base del servicio cotizado",
       icon: FileText,
     },
     {
       id: "express",
       title: "Precio express",
-      amount: quotationDetail?.express_price || 0,
+      amount:  0,
       description: "Cargo adicional por servicio urgente",
       icon: Clock,
     },
     {
       id: "taxes",
       title: "Precio de los impuestos",
-      amount: quotationDetail?.summationTaxes || 0,
+      amount:  0,
       description: "Impuestos aplicables según legislación",
       icon: Receipt,
     },
     {
       id: "services",
       title: "Precio de los servicios",
-      amount: quotationDetail?.summationServiceFee || 0,
+      amount:  0,
       description: "Servicios adicionales incluidos",
       icon: Settings,
     },
@@ -152,12 +147,12 @@ const DetallesTab: React.FC<DetallesTabProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4  mb-6">
         <div className="bg-orange-50 p-2 rounded-lg border border-orange-200">
           <h4 className="font-semibold text-orange-800 mb-2">Tipo de Servicio</h4>
-          <p className="text-orange-700">{quotationDetail.service_type}</p>
+          <p className="text-orange-700">{quotationDetail.statusResponseQuotation}</p>
         </div>
         <div className="bg-blue-50 p-2 rounded-lg border border-blue-200">
           <h4 className="font-semibold text-blue-800 mb-2">Estado de la cotización</h4>
           <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
-            {quotationDetail.status}
+            {quotationDetail.statusResponseQuotation  }
           </Badge>
         </div>
       </div>
@@ -191,7 +186,7 @@ const DetallesTab: React.FC<DetallesTabProps> = ({
         <div className="p-4">
           <DataTable
             columns={columns}
-            data={filteredProducts}
+            data={filteredProducts as any}
             pageInfo={{
               pageNumber: 1,
               pageSize: filteredProducts.length,

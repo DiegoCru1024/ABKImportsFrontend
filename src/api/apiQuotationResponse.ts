@@ -1,4 +1,5 @@
 import { apiFetch } from "./apiFetch";
+import type { QuotationResponseRequest } from "./interface/quotationResponseInterfaces";
 
 /**
  * Obtiene todas las respuestas de una cotización por su ID
@@ -58,10 +59,10 @@ export const createQuatitationResponse = async (data: any) => {
 
 /**
  * Crea una varias de una cotización (admin)
- * @param {any} data - Los datos a crear 
+ * @param {QuotationResponseRequest} data - Los datos a crear 
  * @returns {Promise<any>} - La respuesta de la cotización
  */
-export const createQuatitationResponseMultiple = async (data: any, quotationId: string, productId: string) => {
+export const createQuatitationResponseMultiple = async (data: QuotationResponseRequest, quotationId: string, productId: string) => {
   try {
     return await apiFetch(`/quotation-responses/multiple/quotation/${quotationId}/product/${productId}`, {
       //TODO: Cambiar a la ruta correcta

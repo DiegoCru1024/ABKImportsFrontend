@@ -8,7 +8,6 @@ import {
   Receipt,
   Settings,
   User,
-
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useGetQuotationById } from "@/hooks/use-quation";
@@ -17,7 +16,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-
   CardTitle,
 } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/functions";
@@ -105,6 +103,10 @@ const DetallesTab: React.FC<DetallesTabProps> = ({
     );
   }
 
+  //* Arrays de tipos de servicio
+  const serviceTypes:string[] = quotationDetail.summaryByServiceType?.map(item => item.service_type) || [];
+
+
   const total_price = 0;
   //* Pricing Data
   // Estructura de los datos para el resumen de precios
@@ -166,7 +168,9 @@ const DetallesTab: React.FC<DetallesTabProps> = ({
             </div>
 
             <div className="flex items-center space-x-4">
-              <p className="text-gray-800 text-sm font-semibold">Estado de la cotización:</p>
+              <p className="text-gray-800 text-sm font-semibold">
+                Estado de la cotización:
+              </p>
               <Badge
                 className={`${
                   statusColorsQuotation[
@@ -174,7 +178,6 @@ const DetallesTab: React.FC<DetallesTabProps> = ({
                   ]
                 } px-4 py-2 text-sm font-semibold flex items-center gap-2`}
               >
-              
                 {
                   statusResponseQuotation[
                     quotationDetail.statusResponseQuotation as keyof typeof statusResponseQuotation
@@ -186,7 +189,6 @@ const DetallesTab: React.FC<DetallesTabProps> = ({
 
           {/* Timeline */}
           <div>
-
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Fecha de registro */}
               <div className="flex items-center space-x-4">
@@ -252,7 +254,7 @@ const DetallesTab: React.FC<DetallesTabProps> = ({
 
       {/* Sub Tabs */}
       <div className="flex bg-white border-b border-gray-200">
-        {["Todos", "No respondido", "Respondido", "Observado"].map((st) => (
+        {["Todos", "no_answered", "answered", "observed"].map((st) => (
           <button
             key={st}
             onClick={() => setSubTab(st as any)}

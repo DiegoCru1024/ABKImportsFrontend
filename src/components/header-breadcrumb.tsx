@@ -9,7 +9,8 @@ import {
 } from "@/components/ui/breadcrumb";
 import { SidebarTrigger } from "./ui/sidebar";
 import { Separator } from "@radix-ui/react-separator";
-import { Bell } from "lucide-react";
+import React from "react";
+import SocketNotification from "./socket-notification";
 
 function toTitle(segment: string) {
   return segment
@@ -23,7 +24,7 @@ export default function HeaderConBreadcrumb() {
   let path = "";
 
   return (
-    <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
+    <header className="flex h-12 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
       <div className="flex items-center gap-2 px-4 flex-1">
         <SidebarTrigger className="-ml-1" />
         <Separator orientation="vertical" className="mr-2 h-4" />
@@ -38,7 +39,7 @@ export default function HeaderConBreadcrumb() {
               path += `/${seg}`;
               const isLast = i === segments.length - 1;
               return (
-                <>
+                <React.Fragment key={`sep-${i}`}>
                   <BreadcrumbSeparator key={`sep-${i}`} className="hidden md:block" />
                   <BreadcrumbItem key={path}>
                     {isLast ? (
@@ -49,14 +50,12 @@ export default function HeaderConBreadcrumb() {
                       </BreadcrumbLink>
                     )}
                   </BreadcrumbItem>
-                </>
+                </React.Fragment>
               );
             })}
           </BreadcrumbList>
         </Breadcrumb>
-        <div className="ml-auto">
-          <Bell className="w-6 h-6 text-gray-500 cursor-pointer" />
-        </div>
+        <SocketNotification />
       </div>
     </header>
   );

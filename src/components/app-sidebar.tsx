@@ -6,6 +6,7 @@ import {
   MapPinned,
   PackageSearch,
   SquareTerminal,
+  User,
 } from "lucide-react";
 import { IoMdPricetags } from "react-icons/io";
 import { BsTools } from "react-icons/bs";
@@ -20,73 +21,110 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { DashboardSwitcher } from "./dashboard-switcher";
-import userAvatar from '../assets/userlogo.png'
+
+
 // This is sample data.
 const data = {
-  user: {
-    name: "Usuario",
-    rol: "Admin",
-    avatar: userAvatar,
-  },
+
   navMain: [
     {
       title: "Inspección de mercancias",
-      url: "/inspeccion-de-mercancias",
+      url: "/dashboard/inspeccion-de-mercancias",
       icon: PackageSearch,
+      rolesPermitidos: ["temporal","guest","final"],
+    },
+    {
+      title: "Gestión de mercancias",
+      url: "/dashboard/gestion-de-mercancias",
+      icon: PackageSearch,
+      rolesPermitidos: ["admin"],
     },
     {
       title: "Tracking de mercancias",
-      url: "/tracking-de-mercancias",
+      url: "/dashboard/tracking-de-mercancias",
       icon: MapPinned,
+      rolesPermitidos: ["temporal","guest","final"],
+    },
+    {
+      title: "Gestión de tracking ",
+      url: "/dashboard/gestion-de-tracking",
+      icon: MapPinned,
+      rolesPermitidos: ["admin"],
     },
     {
       title: "Cotización de productos",
-      url: "/cotizacion-de-productos",
+      url: "/dashboard/cotizacion-de-productos",
       icon: IoMdPricetags,
+      rolesPermitidos: ["temporal","guest","final"],
     },
     {
       title: "Mis cotizaciones",
-      url: "/mis-cotizaciones",
+      url: "/dashboard/mis-cotizaciones",
       icon: IoMdPricetags,
+      rolesPermitidos: ["temporal","guest","final"],
     },
     {
-      title: "Gestión de cotización",
-      url: "/gestion-de-cotizacion",
+      title: "Gestión de cotizaciones",
+      url: "/dashboard/gestion-de-cotizacion",
       icon: IoMdPricetags,
+      rolesPermitidos: ["admin"],
     },
     {
       title: "Calculador de impuestos",
-      url: "/calculador-de-impuestos",
+      url: "/dashboard/calculador-de-impuestos",
       icon: Calculator,
+      rolesPermitidos: ["temporal","guest","final","admin"],
     },
+
     {
       title: "Educación",
-      url: "/educacion",
+      url: "/dashboard/educacion",
       icon: BookMarked,
+      rolesPermitidos: ["temporal","guest","final","admin"],
     },
+
     {
       title: "Herramientas Logísticas",
-      url: "/herramientas-logisticas",
+      url: "/dashboard/herramientas-logisticas",
       icon: BsTools,
+      rolesPermitidos: ["temporal","guest","final","admin"],
     },
+
     {
       title: "Tarifas & Servicios",
-      url: "/tarifas-servicios",
+      url: "/dashboard/tarifas-servicios",
       icon: Handshake,
+      rolesPermitidos: ["temporal","guest","final","admin"],
+    },
+    {
+      title: "Gestión de usuarios",
+      url: "/dashboard/gestion-de-usuarios",
+      icon: User,
+      rolesPermitidos: ["admin"],
     },
   ],
 
   dashboardSwitcher: [
     {
       title: "Dashboard",
-      url: "#",
+      url: "/dashboard",
       icon: SquareTerminal,
       isActive: true,
+      rolesPermitidos: ["temporal","guest","final"],
+    },
+    {
+      title: "Dashboard Admin",
+      url: "/dashboard/admin",
+      icon: SquareTerminal,
+      isActive: true,
+      rolesPermitidos: ["admin"],
     },
   ],
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -97,7 +135,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavMain items={data.navMain} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser  />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

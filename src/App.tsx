@@ -1,42 +1,57 @@
 import "./App.css";
-import { SidebarInset, SidebarProvider } from "./components/ui/sidebar";
-import { AppSidebar } from "./components/app-sidebar";
-
-import { Routes, Route } from "react-router-dom";
-import HeaderConBreadcrumb from "./components/header-breadcrumb";
+import { Routes, Route, Navigate } from "react-router-dom";
 import Inspeccion from "./pages/Inspeccion";
 import Tracking from "./pages/Tracking";
-import Cotizacion from "./pages/Cotizacion";
-import MisCotizaciones from "./pages/MisCotizaciones";
+
+
 import Calculador from "./pages/Calculador";
 import Educacion from "./pages/Educacion";
 import Herramientas from "./pages/Herramientas";
 import Tarifas from "./pages/Tarifas";
-import Home from "./pages/Home";
-import GestionDeCotizacion from "./pages/GestionDeCotizacion";
+import GestionDeCotizacionesView from "./pages/GestionDeCotizacion/gestion-de-cotizacion-view";
+import LoginPage from "./pages/login";
+import DashboardPage from "./pages/dashboard";
+import BasicLayout from "./layouts/BasicLayout";
+import DashboardLayout from "./layouts/DashboardLayout";
+import GestionDeUsuarios from "./pages/GestionDeUsuarios/gestion-de-usuarios-view";
+import GestionDeTracking from "./pages/GestionDeTracking";
+import GestionDeMercanciasView from "./pages/GestionDeMercancias/gestion-de-mercancias-view";
+import CotizacionViewNew from "./pages/Cotizacion/CotizacionView";
+import MisCotizacionesView from "./pages/MisCotizaciones/mis-cotizacion-view";
+
+
 
 function App() {
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
-        <HeaderConBreadcrumb />
-        <div className="flex flex-1 flex-col gap-4 px-0 pt-0">
-          <Routes>
-            <Route path="/inspeccion-de-mercancias" element={<Inspeccion />} />
-            <Route path="/tracking-de-mercancias" element={<Tracking />} />
-            <Route path="/cotizacion-de-productos" element={<Cotizacion />} />
-            <Route path="/mis-cotizaciones" element={<MisCotizaciones />} />
-            <Route path="/calculador-de-impuestos" element={<Calculador />} />
-            <Route path="/educacion" element={<Educacion />} />
-            <Route path="/herramientas-logisticas" element={<Herramientas />} />
-            <Route path="/tarifas-servicios" element={<Tarifas />} />
-            <Route path="/" element={<Home />} />
-            <Route path="/gestion-de-cotizacion" element={<GestionDeCotizacion />} />
-          </Routes>
-        </div>
-      </SidebarInset>
-    </SidebarProvider>
+    <Routes>
+      {/* Layout básico para login */}
+      <Route element={<BasicLayout />}>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/" element={<Navigate to="/login" replace />} />
+      </Route>
+
+      {/* Dashboard con sidebar */}
+      <Route element={<DashboardLayout />}>
+        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/dashboard/inspeccion-de-mercancias" element={<Inspeccion />} />
+        <Route path="/dashboard/tracking-de-mercancias" element={<Tracking />} />
+        <Route path="/dashboard/gestion-de-tracking" element={<GestionDeTracking />} />
+        <Route path="/dashboard/gestion-de-mercancias" element={<GestionDeMercanciasView />} />
+        <Route path="/dashboard/gestion-de-cotizacion" element={<GestionDeCotizacionesView />} />
+        <Route path="/dashboard/gestion-de-usuarios" element={<GestionDeUsuarios />} />
+
+        {/* Rutas de la plataforma */}
+        <Route path="/dashboard/cotizacion-de-productos" element={<CotizacionViewNew />} />
+        <Route path="/dashboard/calculador-de-impuestos" element={<Calculador />} />
+        <Route path="/dashboard/educacion" element={<Educacion />} />
+        <Route path="/dashboard/herramientas-logisticas" element={<Herramientas />} />
+        <Route path="/dashboard/tarifas-servicios" element={<Tarifas />} />
+        <Route path="/dashboard/mis-cotizaciones" element={<MisCotizacionesView />} />
+      </Route>  
+
+      {/* Cualquier otra ruta redirige al login */}
+      <Route path="*" element={<Navigate to="/login" replace />} />
+    </Routes>
   );
 }
 

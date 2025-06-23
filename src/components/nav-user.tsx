@@ -27,17 +27,33 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
-
+import userAvatar from '../assets/userlogo.png'
+import { obtenerUser } from "@/lib/functions"
+import { useNavigate } from "react-router-dom";
 export function NavUser({
-  user,
-}: {
-  user: {
-    name: string
-    rol: string
-    avatar: string
-  }
 }) {
   const { isMobile } = useSidebar()
+
+  const userData = obtenerUser();
+ 
+  const user = {
+    name: userData.name || "Usuario",
+    email: userData.email || "user@gmail.com",
+    avatar: userAvatar,
+  }
+
+
+  const router = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("user.email")
+    localStorage.removeItem("user.name")
+    localStorage.removeItem("user.role")
+    localStorage.removeItem("user.id")
+    localStorage.removeItem("user.type")
+    router("/login");
+  }
 
   return (
     <SidebarMenu>
@@ -54,7 +70,7 @@ export function NavUser({
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">{user.name}</span>
-                <span className="truncate text-xs">{user.rol}</span>
+                <span className="truncate text-xs">{user.email}</span>
               </div>
               <ChevronsUpDown className="ml-auto size-4" />
             </SidebarMenuButton>
@@ -73,7 +89,7 @@ export function NavUser({
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">{user.name}</span>
-                  <span className="truncate text-xs">{user.rol}</span>
+                  <span className="truncate text-xs">{user.email}</span>
                 </div>
               </div>
             </DropdownMenuLabel>
@@ -91,8 +107,8 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <LogOut />
+            <DropdownMenuItem onClick={handleLogout}>
+              <LogOut  />
               Cerrar sesión
             </DropdownMenuItem>
           </DropdownMenuContent>

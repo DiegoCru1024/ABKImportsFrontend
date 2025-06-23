@@ -122,7 +122,7 @@ const DetallesTab: React.FC<DetallesTabProps> = ({
     {
       id: "total",
       title: "Precio Total de la cotización",
-      amount: serviceData.total_price,
+      amount: serviceData.total_price+serviceData.service_fee+serviceData.taxes+serviceData.express_price,
       description: "Suma total de todos los conceptos",
       icon: Calculator,
       isTotal: true,

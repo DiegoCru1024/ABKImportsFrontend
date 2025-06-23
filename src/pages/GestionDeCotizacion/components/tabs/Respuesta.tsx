@@ -82,7 +82,7 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
     const newResponse: AdminQuotationResponse = {
       id: Date.now().toString(),
       pUnitario: "",
-      incoterms: "FOB",
+      incoterms: "EXW",
       precioTotal: "",
       precioExpress: "",
       servicioLogistico: "Consolidado Grupal Maritimo",
@@ -91,7 +91,7 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
       recomendaciones: "",
       comentariosAdicionales: "",
       archivos: [],
-      status: "approved",
+      status: "answered",
     };
     setResponses((prev) => [...prev, newResponse]);
   };
@@ -131,23 +131,6 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
         console.log("URLs obtenidas:", allUploadedUrls);
       }
 
-      // 3. Preparar las respuestas para enviar al backend
-      /*const summationTotal = responses.reduce(
-        (sum, r) => sum + (parseFloat(r.precioTotal) || 0),
-        0
-      );
-      const summationExpress = responses.reduce(
-        (sum, r) => sum + (parseFloat(r.precioExpress) || 0),
-        0
-      );
-      const summationTaxes = responses.reduce(
-        (sum, r) => sum + (parseFloat(r.impuestos) || 0),
-        0
-      );
-      const summationServiceFee = responses.reduce(
-        (sum, r) => sum + (parseFloat(r.tarifaServicio) || 0),
-        0
-      );*/
 
       const responsesToSend: QuotationResponseRequest = {
         statusResponseProduct: statusResponse,

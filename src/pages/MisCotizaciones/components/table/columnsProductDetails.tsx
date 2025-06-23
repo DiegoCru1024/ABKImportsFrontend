@@ -168,7 +168,7 @@ export function columnsProductDetails({
       header: "Acciones",
       size: 150,
       cell: ({ row }) => (
-        <div className="flex items-center gap-2">
+        <div className="flex items-right align-right justify-right gap-2">
           {onViewTracking && currentUser?.type === "admin" ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -178,7 +178,7 @@ export function columnsProductDetails({
               </DropdownMenuTrigger>
               <DropdownMenuContent>
                 <DropdownMenuItem>
-                  {onViewTracking && (
+                  {!row.original.sendResponse  ?  (
                     <Button
                       variant="ghost"
                       size="sm"
@@ -190,7 +190,21 @@ export function columnsProductDetails({
                       <MessageCircleIcon className="w-4 h-4 mr-1" />
                       Responder
                     </Button>
-                  )}
+                  ):
+                  (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() =>
+                        onViewTracking(row.original.id, row.original.name)
+                      }
+                      className=" text-green-600 hover:text-green-800 hover:bg-green-50"
+                    >
+                      <MessageCircleIcon className="w-4 h-4 mr-1" />
+                      Editar Respuesta
+                    </Button>
+                  )
+                  }
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

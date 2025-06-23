@@ -54,7 +54,11 @@ export interface QuotationResponse {
 }
 
 export interface QuotationResponseRequest {
-  status: string;
+  statusResponseProduct: string;
+  summationTotal: number;
+  summationExpress: number;
+  summationTaxes: number;
+  summationServiceFee: number;
   responses: {
     unit_price: number;
     incoterms: string;

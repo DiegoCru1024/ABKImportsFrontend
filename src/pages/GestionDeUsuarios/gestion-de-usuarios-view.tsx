@@ -8,20 +8,23 @@ import { useGetAllUserProfileWithPagination } from "@/hooks/useUserHook";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogClose } from "@/components/ui/dialog";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import SendingModal from "@/components/sending-modal";
+import { useCreateUserProfile, useUpdateUserProfile, useDeleteUserProfile } from "@/hooks/useUserHook";
 
 interface UserProfile {
   id: number;
   name: string;
   email: string;
-  role: "admin" | "user" | "moderator";
-  status: "active" | "inactive";
-  createdAt: string;
+  type: string;
 }
 
 function GestionDeUsuarios() {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [sending, setSending] = useState(false);
 
   // Hook para obtener los usuarios con paginación
   const { data, isLoading, error } = useGetAllUserProfileWithPagination(
@@ -42,8 +45,8 @@ function GestionDeUsuarios() {
   // Estadísticas calculadas
   const stats = useMemo(() => {
     const totalUsers = data?.totalElements || 0;
-    const activeUsers = users.filter((user: UserProfile) => user.status === "active").length;
-    const adminUsers = users.filter((user: UserProfile) => user.role === "admin").length;
+    const activeUsers = users.filter((user: UserProfile) => user.type === "active").length;
+    const adminUsers = users.filter((user: UserProfile) => user.type === "admin").length;
     
     return {
       total: totalUsers,
@@ -52,8 +55,118 @@ function GestionDeUsuarios() {
     };
   }, [users, data?.totalElements]);
 
+  // Crear usuario dialog
+  const CreateUserDialog: React.FC = () => {
+    const createMutation = useCreateUserProfile();
+    const [open, setOpen] = useState(false);
+    const [form, setForm] = useState({ name: "", email: "", password: "" });
+    return (
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
+          <Button className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-full shadow-md flex items-center gap-2">
+            <PlusIcon className="h-4 w-4" />
+            Crear usuario
+          </Button>
+        </DialogTrigger>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Crear Usuario</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Nombre" />
+            <Input value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="Email" />
+            <Input type="password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} placeholder="Contraseña" />
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Cancelar</Button>
+            </DialogClose>
+            <ConfirmDialog
+              trigger={<Button>Crear</Button>}
+              title="Confirmar creación de usuario"
+              description={`¿Crear usuario ${form.name}?`}
+              onConfirm={() => {
+                setSending(true);
+                createMutation.mutate({ data: form }, { onSettled: () => { setSending(false); setOpen(false); } });
+              }}
+            />
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  };
+
+  // Editar usuario dialog
+  const EditUserDialog: React.FC<{ user: UserProfile }> = ({ user }) => {
+    const updateMutation = useUpdateUserProfile(user.id);
+    const [open, setOpen] = useState(false);
+    const [form, setForm] = useState({ name: user.name, email: user.email, password: "" });
+    return (
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
+          <Button variant="ghost" size="sm">Editar</Button>
+        </DialogTrigger>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Usuario</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Nombre" />
+            <Input value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="Email" />
+            <Input type="password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} placeholder="Contraseña" />
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Cancelar</Button>
+            </DialogClose>
+            <ConfirmDialog
+              trigger={<Button>Actualizar</Button>}
+              title="Confirmar actualización de usuario"
+              description={`¿Actualizar usuario ${user.name}?`}
+              onConfirm={() => {
+                setSending(true);
+                updateMutation.mutate(form, { onSettled: () => { setSending(false); setOpen(false); } });
+              }}
+            />
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  };
+
+  // Eliminar usuario dialog
+  const DeleteUserDialog: React.FC<{ user: UserProfile }> = ({ user }) => {
+    const deleteMutation = useDeleteUserProfile(user.id);
+    return (
+      <ConfirmDialog
+        trigger={<Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">Eliminar</Button>}
+        title="Confirmar eliminación de usuario"
+        description={`¿Eliminar usuario ${user.name}?`}
+        confirmText="Eliminar"
+        onConfirm={() => {
+          setSending(true);
+          deleteMutation.mutate(undefined, { onSettled: () => setSending(false) });
+        }}
+      />
+    );
+  };
+
   // Definición de columnas para la tabla
   const columns: ColumnDef<UserProfile>[] = [
+    {
+      accessorKey: "id",
+      header: "ID",
+      cell: ({ row }) => {
+        return (
+          <div className="flex items-center space-x-2">
+            <div className="h-8 w-8 rounded-full bg-orange-100 flex items-center justify-center">
+              <UserIcon className="h-4 w-4 text-orange-600" />
+            </div>
+            <span className="font-medium">{row.getValue("id")}</span>
+          </div>
+        );
+      },
+    },
     {
       accessorKey: "name",
       header: "Usuario",
@@ -76,10 +189,10 @@ function GestionDeUsuarios() {
       ),
     },
     {
-      accessorKey: "role",
+      accessorKey: "type",
       header: "Rol",
       cell: ({ row }) => {
-        const role = row.getValue("role") as string;
+        const role = row.getValue("type") as string;
         const roleVariants = {
           admin: { label: "Administrador", variant: "destructive" as const },
           user: { label: "Usuario", variant: "secondary" as const },
@@ -95,42 +208,17 @@ function GestionDeUsuarios() {
       },
     },
     {
-      accessorKey: "status",
-      header: "Estado",
-      cell: ({ row }) => {
-        const status = row.getValue("status") as string;
-        return (
-          <Badge variant={status === "active" ? "default" : "secondary"}>
-            {status === "active" ? "Activo" : "Inactivo"}
-          </Badge>
-        );
-      },
-    },
-    {
-      accessorKey: "createdAt",
-      header: "Fecha de Registro",
-      cell: ({ row }) => {
-        const date = new Date(row.getValue("createdAt"));
-        return (
-          <span className="text-muted-foreground">
-            {date.toLocaleDateString("es-ES")}
-          </span>
-        );
-      },
-    },
-    {
       id: "actions",
       header: "Acciones",
-      cell: ({ row }) => (
-        <div className="flex items-center space-x-2">
-          <Button variant="ghost" size="sm">
-            Editar
-          </Button>
-          <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
-            Eliminar
-          </Button>
-        </div>
-      ),
+      cell: ({ row }) => {
+        const user = row.original as UserProfile;
+        return (
+          <div className="flex items-center space-x-2">
+            <EditUserDialog user={user} />
+            <DeleteUserDialog user={user} />
+          </div>
+        );
+      },
     },
   ];
 
@@ -165,10 +253,7 @@ function GestionDeUsuarios() {
                 </p>
               </div>
             </div>
-            <Button className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-full shadow-md flex items-center gap-2">
-              <PlusIcon className="h-4 w-4" />
-              Crear usuario
-            </Button>
+            <CreateUserDialog />
           </div>
         </div>
       </div>
@@ -246,6 +331,7 @@ function GestionDeUsuarios() {
             />
           </CardContent>
         </Card>
+        <SendingModal isOpen={sending} onClose={() => setSending(false)} />
       </div>
     </div>
   );

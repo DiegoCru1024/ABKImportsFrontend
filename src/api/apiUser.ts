@@ -8,7 +8,7 @@ export interface User {
 
 export const registerUser = async (user: User) => {
   try {
-    return await apiFetch("/users", {
+    return await apiFetch("/users/register", {
       method: "POST",
       body: JSON.stringify(user),
     });

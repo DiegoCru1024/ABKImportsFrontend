@@ -20,15 +20,10 @@ import {
   Trash2,
   Truck,
   Package,
-  Hash,
   Ruler,
   Palette,
-  Link,
-  File,
   DollarSign,
-  Eye,
   ExternalLink,
-  Star,
 } from "lucide-react";
 import { useGetQuotationById } from "@/hooks/use-quation";
 import { useCreateQuatitationResponseMultiple } from "@/hooks/use-quatitation-response";
@@ -75,7 +70,7 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
   ]);
 
   const [isLoading, setIsLoading] = useState(false);
-
+  const [statusResponse, setStatusResponse] = useState("no-respondido");
   const updateResponse = (
     id: string,
     field: keyof AdminQuotationResponse,
@@ -140,8 +135,29 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
       }
 
       // 3. Preparar las respuestas para enviar al backend
+      const summationTotal = responses.reduce(
+        (sum, r) => sum + (parseFloat(r.precioTotal) || 0),
+        0
+      );
+      const summationExpress = responses.reduce(
+        (sum, r) => sum + (parseFloat(r.precioExpress) || 0),
+        0
+      );
+      const summationTaxes = responses.reduce(
+        (sum, r) => sum + (parseFloat(r.impuestos) || 0),
+        0
+      );
+      const summationServiceFee = responses.reduce(
+        (sum, r) => sum + (parseFloat(r.tarifaServicio) || 0),
+        0
+      );
+
       const responsesToSend: QuotationResponseRequest = {
-        status: "approved", // Puedes usar el status de la primera respuesta o un valor por defecto
+        statusResponseProduct: statusResponse,
+        summationTotal,
+        summationExpress,
+        summationTaxes,
+        summationServiceFee,
         responses: responses.map((response, responseIndex) => {
           const { start, count } = fileIndexMap[responseIndex];
           const responseFiles = allUploadedUrls.slice(start, start + count);
@@ -189,12 +205,11 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
           recomendaciones: "",
           comentariosAdicionales: "",
           archivos: [],
-          status: "approved",
+          status: "no-respondido",
         },
       ]);
     } catch (error) {
       console.error("Error durante el proceso de envío:", error);
-      toast.error("Error al enviar las respuestas");
       setIsLoading(false);
     }
   };
@@ -237,6 +252,24 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
     );
   }
 
+  // Calcular sumatorias de todas las respuestas para UI y payload
+  const summationTotal = responses.reduce(
+    (sum, r) => sum + (parseFloat(r.precioTotal) || 0),
+    0
+  );
+  const summationExpress = responses.reduce(
+    (sum, r) => sum + (parseFloat(r.precioExpress) || 0),
+    0
+  );
+  const summationTaxes = responses.reduce(
+    (sum, r) => sum + (parseFloat(r.impuestos) || 0),
+    0
+  );
+  const summationServiceFee = responses.reduce(
+    (sum, r) => sum + (parseFloat(r.tarifaServicio) || 0),
+    0
+  );
+
   return (
     <div className="space-y-4 pt-2">
       <Card>
@@ -251,11 +284,29 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
             {/* Main Product Card - Spans 2 columns */}
             <Card className="lg:col-span-2 bg-white border-2 hover:border-orange-100 hover:shadow-md">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Package className="h-6 w-6 text-orange-500" />
-                  <span className="text-orange-800">
-                    Nombre del producto: {selectedProductName}
-                  </span>
+                <CardTitle className="flex items-center gap-2 flex-col w-full">
+                  <div className="flex items-center  w-full justify-between">
+                    <div className="flex items-center justify-between gap-2">
+                      <Package className="h-6 w-6 text-orange-500" />
+                      <span className="text-sm font-semibold">
+                        Nombre del producto:
+                      </span>
+                    </div>
+                    <div className="text-sm flex items-center gap-2">
+                      <span className="hover:text-orange-800">
+                        Estado de respuesta:
+                      </span>
+                      <Badge
+                        variant="outline"
+                        className="bg-orange-500 text-white"
+                      >
+                        {currentProduct?.status || "No respondido"}
+                      </Badge>
+                    </div>
+                  </div>
+                  <div className="text-orange-800 text-sm font-semibold w-full">
+                    {selectedProductName}
+                  </div>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -287,10 +338,14 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
                   <div className="flex flex-col gap-2">
                     <div className="flex items-center gap-2">
                       <ExternalLink className="h-4 w-4 text-orange-500 hover:text-orange-800" />
-                      <span className="text-sm hover:text-orange-500">Fuente del producto: </span>
+                      <span className="text-sm hover:text-orange-500">
+                        Fuente del producto:{" "}
+                      </span>
                     </div>
                     <div className="text-sm">
-                      <span className="hover:text-orange-500">{currentProduct.url}</span>
+                      <div className="hover:text-orange-500 truncate max-w-full">
+                        {currentProduct.url}
+                      </div>
                     </div>
                   </div>
                   <div className=" flex flex-col text-sm gap-2">
@@ -307,109 +362,38 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
                 </div>
               </CardContent>
             </Card>
-
-            {/* Size Card */}
-            <Card className="bg-white border-2 border-orange-300">
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Ruler className="h-5 w-5 text-amber-700" />
-                  Talla
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center">
-                  <span className="text-4xl font-bold text-amber-800">XL</span>
-                  <p className="text-sm text-amber-700 mt-2">
-                    Talla Extra Grande
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Color Card */}
-            <Card className="bg-white border-2 border-orange-300">
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Palette className="h-5 w-5 text-red-700" />
-                  Color
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-red-500 rounded-full mx-auto mb-3 shadow-lg border-2 border-red-300"></div>
-                  <span className="text-xl font-semibold text-red-800">
-                    Rojo
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Source Link Card - Spans 2 columns */}
-            <Card className="lg:col-span-2 bg-white border-2 border-orange-300">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <ExternalLink className="h-5 w-5 text-yellow-700" />
-                  Fuente del Producto
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="bg-white/70 p-3 rounded-lg border border-yellow-300">
-                    <code className="text-yellow-800 font-mono text-sm break-all">
-                      temu.com//as...
-                    </code>
-                  </div>
-                  <Button
-                    variant="outline"
-                    className="w-full bg-white/50 border-yellow-400 text-yellow-800 hover:bg-yellow-100"
-                  >
-                    <ExternalLink className="h-4 w-4 mr-2" />
-                    Visitar Enlace
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Status Card */}
-            <Card className="lg:col-span-2 bg-white border-2 border-orange-300">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Star className="h-5 w-5 text-orange-700" />
-                  Estado del Producto
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Badge className="bg-orange-500 text-white mb-2">
-                      ✓ Aprobado
-                    </Badge>
-                    <p className="text-orange-800 font-medium">
-                      Listo para cotización
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-2xl font-bold text-orange-800">
-                      100%
-                    </div>
-                    <p className="text-sm text-orange-700">Completado</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </div>
         </CardContent>
       </Card>
 
-      <Card className="py-4">
-        <CardTitle className="border-b border-gray-200 px-4 flex items-center justify-between">
-          <h3 className="flex items-center font-semibold text-gray-900">
+      <Card className="py-2">
+        <CardTitle className="border-b border-gray-200 px-4 flex items-center justify-between py-2">
+          <h3 className="flex items-center font-semibold text-gray-900 text-sm">
             <Package className="mr-2 h-6 w-6 text-orange-500" />
             Detalle de respuesta ({responses.length})
           </h3>
+          <div className="flex items-center justify-between gap-2">
+            <div className="space-y-2">
+              <Label className="text-gray-700 font-medium">Estado</Label>
+              <Select
+                value={statusResponse}
+                onValueChange={(value) => setStatusResponse(value)}
+              >
+                <SelectTrigger className="w-64">
+                  <SelectValue placeholder="Seleccione" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="respondido">Respondido</SelectItem>
+                  <SelectItem value="no-respondido">No respondido</SelectItem>
+                  <SelectItem value="observado">Observado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
           <Button
             onClick={addResponse}
-            className="bg-orange-500 hover:bg-orange-600 text-white rounded-xl px-6 py-2 font-medium"
+            size="sm"
+            className="bg-orange-500 hover:bg-orange-600 text-white rounded-xl px-6 py-2 text-sm"
           >
             <Plus className="h-4 w-4 mr-2" /> Agregar Respuesta
           </Button>
@@ -449,6 +433,7 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
                     </h5>
                   </div>
 
+                  {/*Precio Unitario*/}
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <Label className="text-gray-700 font-medium">
@@ -487,7 +472,7 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
                         placeholder="0.00"
                       />
                     </div>
-
+                    {/*Precio Express*/}
                     <div className="space-y-2">
                       <Label className="text-gray-700 font-medium">
                         Precio Express ($)
@@ -506,7 +491,7 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
                         placeholder="0.00"
                       />
                     </div>
-
+                    {/*Tarifa Servicio*/}
                     <div className="space-y-2">
                       <Label className="text-gray-700 font-medium">
                         Tarifa Servicio ($)
@@ -525,7 +510,7 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
                         placeholder="0.00"
                       />
                     </div>
-
+                    {/*Impuestos*/}
                     <div className="space-y-2">
                       <Label className="text-gray-700 font-medium">
                         Impuestos (%)
@@ -609,28 +594,6 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
                         </SelectContent>
                       </Select>
                     </div>
-
-                    <div className="space-y-2">
-                      <Label className="text-gray-700 font-medium">
-                        Estado
-                      </Label>
-                      <Select
-                        value={response.status}
-                        onValueChange={(value) =>
-                          updateResponse(response.id, "status", value)
-                        }
-                      >
-                        <SelectTrigger className="w-64">
-                          <SelectValue placeholder="Seleccione" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="approved">Aprobado</SelectItem>
-                          <SelectItem value="pending">Pendiente</SelectItem>
-                          <SelectItem value="rejected">Rechazado</SelectItem>
-                          <SelectItem value="observed">Observado</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
                   </div>
                 </div>
 
@@ -694,35 +657,35 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
                   </div>
                 </div>
               </div>
-              <div className="mt-6 bg-white rounded-xl p-4 border border-gray-200">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                  <div>
-                    <p className="text-gray-600 text-sm">Precio Unitario</p>
-                    <p className="font-bold text-black">
-                      ${response.pUnitario || "0.00"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-gray-600 text-sm">Precio Total</p>
-                    <p className="font-bold text-black">
-                      ${response.precioTotal || "0.00"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-gray-600 text-sm">Incoterms</p>
-                    <p className="font-bold text-black">{response.incoterms}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-600 text-sm">Servicio</p>
-                    <p className="font-bold text-black">
-                      {response.servicioLogistico}
-                    </p>
-                  </div>
-                </div>
-              </div>
             </div>
           ))}
         </CardContent>
+      </Card>
+
+      {/* Resumen de todas las respuestas */}
+      <Card className="bg-white rounded-xl p-4 border border-gray-200">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+          <div>
+            <p className="text-gray-600 text-sm">Precio Total</p>
+            <p className="font-bold text-black">${summationTotal.toFixed(2)}</p>
+          </div>
+          <div>
+            <p className="text-gray-600 text-sm">Precio Express</p>
+            <p className="font-bold text-black">
+              ${summationExpress.toFixed(2)}
+            </p>
+          </div>
+          <div>
+            <p className="text-gray-600 text-sm">Impuestos</p>
+            <p className="font-bold text-black">${summationTaxes.toFixed(2)}</p>
+          </div>
+          <div>
+            <p className="text-gray-600 text-sm">Tarifa Servicio</p>
+            <p className="font-bold text-black">
+              ${summationServiceFee.toFixed(2)}
+            </p>
+          </div>
+        </div>
       </Card>
 
       <div className="flex space-x-4 justify-end pt-6">

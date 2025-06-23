@@ -54,13 +54,13 @@ export function useGetUserProfileById(id: number) {
  */
 export function useGetAllUserProfileWithPagination(searchTerm: string, page: number, size: number) {
   return useQuery({
-    queryKey: ["allUserProfileWithPagination", searchTerm, page, size],
+    queryKey: ["allUserProfileWithPagination"],
     queryFn: () => getAllUserProfileWithPagination(searchTerm, page, size),
   });
 }
 
 /**
- * Hook para crear un usuario
+ * Hook para crear un usuario 
  * @returns {useMutation} - El usuario creado
  */
 export function useCreateUserProfile() {
@@ -70,7 +70,7 @@ export function useCreateUserProfile() {
     mutationFn: ({ data }: { data: User }) => registerUser(data),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["allUserProfile"],
+        queryKey: ["allUserProfileWithPagination"],
       });
       toast.success("Usuario creado exitosamente");
     },
@@ -97,7 +97,7 @@ export function useUpdateUserProfile(id: number) {
     mutationFn: (user: User) => updateUserProfile(id, user),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["allUserProfile"],
+        queryKey: ["allUserProfileWithPagination"],
       });
     },
     onError: (error: any) => {
@@ -123,7 +123,7 @@ export function useDeleteUserProfile(id: number) {
     mutationFn: () => deleteUserProfile(id),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["allUserProfile"],
+        queryKey: ["allUserProfileWithPagination"],
       });
     },
     onError: (error: any) => {

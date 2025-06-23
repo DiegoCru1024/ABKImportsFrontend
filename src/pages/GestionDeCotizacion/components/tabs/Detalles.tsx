@@ -149,13 +149,13 @@ const DetallesTab: React.FC<DetallesTabProps> = ({
       </div>
 
       {/* Información adicional */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4  mb-6">
+        <div className="bg-orange-50 p-2 rounded-lg border border-orange-200">
           <h4 className="font-semibold text-orange-800 mb-2">Tipo de Servicio</h4>
           <p className="text-orange-700">{quotationDetail.service_type}</p>
         </div>
-        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-          <h4 className="font-semibold text-blue-800 mb-2">Estado</h4>
+        <div className="bg-blue-50 p-2 rounded-lg border border-blue-200">
+          <h4 className="font-semibold text-blue-800 mb-2">Estado de la cotización</h4>
           <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
             {quotationDetail.status}
           </Badge>

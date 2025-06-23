@@ -20,10 +20,11 @@ export interface QuotationResponseIdInterface {
  * Interfaz para el resumen por tipo de servicio
  */
 export interface SumaryByServiceTypeInterface{
-  summationTotal:number;
-  summationExpress:number;
-  summationTaxes:number;
-  summationServiceFee:number;
+  service_type: string;
+  total_price: number;
+  express_price: number;
+  service_fee: number;
+  taxes: number;
 }
 
 /**

@@ -33,12 +33,13 @@ export interface ProductDetail {
   size: string;
   color: string;
   url: string;
+  statusResponseProduct: string;
+  sendResponse: boolean;
   comment: string;
   weight: string;
   volume: string;
   number_of_boxes: number;
   attachments: string[];
-  responses: any[];
 }
 
 export interface StatusHistory {

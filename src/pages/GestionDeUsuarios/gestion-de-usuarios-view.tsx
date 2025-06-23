@@ -153,20 +153,7 @@ function GestionDeUsuarios() {
 
   // Definición de columnas para la tabla
   const columns: ColumnDef<UserProfile>[] = [
-    {
-      accessorKey: "id",
-      header: "ID",
-      cell: ({ row }) => {
-        return (
-          <div className="flex items-center space-x-2">
-            <div className="h-8 w-8 rounded-full bg-orange-100 flex items-center justify-center">
-              <UserIcon className="h-4 w-4 text-orange-600" />
-            </div>
-            <span className="font-medium">{row.getValue("id")}</span>
-          </div>
-        );
-      },
-    },
+
     {
       accessorKey: "name",
       header: "Usuario",
@@ -192,17 +179,10 @@ function GestionDeUsuarios() {
       accessorKey: "type",
       header: "Rol",
       cell: ({ row }) => {
-        const role = row.getValue("type") as string;
-        const roleVariants = {
-          admin: { label: "Administrador", variant: "destructive" as const },
-          user: { label: "Usuario", variant: "secondary" as const },
-          moderator: { label: "Moderador", variant: "outline" as const },
-        };
-        const roleInfo = roleVariants[role as keyof typeof roleVariants] || roleVariants.user;
-        
+        const type = row.getValue("type") as string;
         return (
-          <Badge variant={roleInfo.variant}>
-            {roleInfo.label}
+          <Badge className="bg-orange-100 text-orange-600 font-medium capitalize">
+            {type}
           </Badge>
         );
       },

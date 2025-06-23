@@ -1,7 +1,7 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { EllipsisVerticalIcon, Eye, Trash, Truck } from "lucide-react";
+import { EllipsisVerticalIcon, Eye, Truck } from "lucide-react";
 import type { QuotationListItem } from "../../types/interfaces";
 import { obtenerUser } from "@/lib/functions";
 import {

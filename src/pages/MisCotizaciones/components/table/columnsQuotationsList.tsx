@@ -1,31 +1,58 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Eye } from "lucide-react";
+import { EllipsisVerticalIcon, Eye, Trash, Truck } from "lucide-react";
 import type { QuotationListItem } from "../../types/interfaces";
 import { obtenerUser } from "@/lib/functions";
-
-
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface ColumnsQuotationsListProps {
   onViewDetails: (quotationId: string) => void;
+  onGenerateInspectionId?: (quotationId: string,estado:string ) => void;
 }
 
 export function columnsQuotationsList({
   onViewDetails,
+  onGenerateInspectionId,
 }: ColumnsQuotationsListProps): ColumnDef<QuotationListItem, any>[] {
   const currentUser = obtenerUser();
-  
+
   const getStatusBadge = (status: string) => {
     switch (status.toLowerCase()) {
       case "pending":
-        return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">Pendiente</Badge>;
+        return (
+          <Badge
+            variant="outline"
+            className="bg-yellow-50 text-yellow-700 border-yellow-200"
+          >
+            Pendiente
+          </Badge>
+        );
       case "completed":
-        return <Badge variant="default" className="bg-green-50 text-green-700 border-green-200">Completado</Badge>;
+        return (
+          <Badge
+            variant="default"
+            className="bg-green-50 text-green-700 border-green-200"
+          >
+            Completado
+          </Badge>
+        );
       case "cancelled":
         return <Badge variant="destructive">Cancelado</Badge>;
       case "in_progress":
-        return <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200">En Progreso</Badge>;
+        return (
+          <Badge
+            variant="secondary"
+            className="bg-blue-50 text-blue-700 border-blue-200"
+          >
+            En Progreso
+          </Badge>
+        );
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -89,13 +116,16 @@ export function columnsQuotationsList({
       cell: ({ row }) => getStatusBadge(row.original.status),
       size: 120,
     },
-   
+
     {
       id: "service_type",
       accessorKey: "service_type",
       header: "Tipo de Servicio",
       cell: ({ row }) => (
-        <div className="max-w-[200px] truncate" title={row.original.service_type}>
+        <div
+          className="max-w-[200px] truncate"
+          title={row.original.service_type}
+        >
           {row.original.service_type}
         </div>
       ),
@@ -105,11 +135,7 @@ export function columnsQuotationsList({
       id: "productQuantity",
       accessorKey: "productQuantity",
       header: "Cantidad de Productos",
-      cell: ({ row }) => (
-        <div >
-          {row.original.productQuantity}
-        </div>
-      ),
+      cell: ({ row }) => <div>{row.original.productQuantity}</div>,
       size: 80,
     },
     {
@@ -133,20 +159,48 @@ export function columnsQuotationsList({
     {
       id: "actions",
       header: "Acciones",
-      cell: ({ row }) => 
+      cell: ({ row }) => {
         
-        (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => onViewDetails(row.original.id)}
-          className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
-        >
-          <Eye className="h-4 w-4 mr-2" />
-          Ver Detalles
-        </Button>
-      ),
+        return (
+          <>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm">
+                  <EllipsisVerticalIcon className="w-4 h-4 text-blue-500" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem className=" text-green-600 hover:text-green-800 hover:bg-green-50">
+                  <Button
+                    variant="ghost"
+                    className=" text-green-600 hover:text-green-800 hover:bg-green-50"
+                    size="sm"
+                    onClick={() => onViewDetails(row.original.id)}
+                  >
+                    <Eye className="h-4 w-4 mr-2 text-green-500" />
+                    Ver Detalles
+                  </Button>
+                </DropdownMenuItem>
+                <DropdownMenuItem className=" text-blue-600 hover:text-blue-800 hover:bg-blue-50">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      onGenerateInspectionId?.(row.original.id,row.original.status);
+                    }}
+                    className=" text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                  >
+                    <Truck className="h-4 w-4 mr-2 text-blue-500" />
+                    Generar Id de Inspección
+                  </Button>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </>
+        );
+      },
+
       size: 120,
     },
   ];
-} 
+}

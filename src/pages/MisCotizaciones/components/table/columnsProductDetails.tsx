@@ -7,7 +7,6 @@ import {
   TruckIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useEffect, useState } from "react";
 import UrlImageViewerModal from "../UrlImageViewerModal";
 import type { ProductDetail } from "../../types/interfaces";
 import { obtenerUser } from "@/lib/functions";
@@ -18,6 +17,7 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
+import { useState } from "react";
 
 const statusResponseProduct = {
   pending: "Pendiente",
@@ -41,11 +41,7 @@ export function columnsProductDetails({
   onViewTracking,
 }: ColumnsProductDetailsProps = {}): ColumnDef<ProductDetail, any>[] {
   const currentUser = obtenerUser();
-  const [isAdmin, setIsAdmin] = useState(currentUser?.type === "admin");
-
-  useEffect(() => {
-    setIsAdmin(currentUser?.type === "admin");
-  }, [currentUser]);
+  const isAdmin = currentUser?.type === "admin";
 
   return [
     {

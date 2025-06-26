@@ -10,7 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useState, useEffect } from "react";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 interface ColumnsQuotationsListProps {
   onViewDetails: (quotationId: string) => void;
@@ -22,11 +22,7 @@ export function columnsQuotationsList({
   onGenerateInspectionId,
 }: ColumnsQuotationsListProps): ColumnDef<QuotationListItem, any>[] {
   const currentUser = obtenerUser();
-  const [isAdmin, setIsAdmin] = useState(currentUser?.type === "admin");
-
-  useEffect(() => {
-    setIsAdmin(currentUser?.type === "admin");
-  }, [currentUser]);
+  const isAdmin = currentUser?.type === "admin";
 
   const getStatusBadge = (status: string) => {
     switch (status.toLowerCase()) {
@@ -114,7 +110,7 @@ export function columnsQuotationsList({
       ),
       size: 120,
     },
-    ...(currentUser?.type === "admin" ? [userColumn] : []),
+    ...(isAdmin ? [userColumn] : []),
     {
       id: "status",
       accessorKey: "status",
@@ -188,17 +184,19 @@ export function columnsQuotationsList({
                   </Button>
                 </DropdownMenuItem>
                 <DropdownMenuItem className=" text-blue-600 hover:text-blue-800 hover:bg-blue-50">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      onGenerateInspectionId?.(row.original.id,row.original.status);
-                    }}
-                    className=" text-blue-600 hover:text-blue-800 hover:bg-blue-50"
-                  >
-                    <Truck className="h-4 w-4 mr-2 text-blue-500" />
-                    Generar Id de Inspección
-                  </Button>
+                  <ConfirmDialog
+                    trigger={
+                      <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-800 hover:bg-blue-50">
+                        <Truck className="h-4 w-4 mr-2 text-blue-500" />
+                        Generar Id de Inspección
+                      </Button>
+                    }
+                    title="Confirmar generación de ID de inspección"
+                    description={`¿Generar ID de inspección para cotización ${row.original.correlative}?`}
+                    confirmText="Generar"
+                    cancelText="Cancelar"
+                    onConfirm={() => onGenerateInspectionId?.(row.original.id, "maritimo")}
+                  />
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

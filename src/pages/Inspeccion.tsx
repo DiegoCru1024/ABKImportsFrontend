@@ -1,9 +1,44 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { PackageSearch, FileText, CheckCircle, AlertTriangle } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useGetInspectionsByUser, useGenerateInspectionId } from "@/hooks/use-inspections";
+import { DataTable } from "@/components/table/data-table";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Button } from "@/components/ui/button";
+import type { ColumnDef } from "@tanstack/react-table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 function Inspeccion() {
+  const { data, isLoading, error } = useGetInspectionsByUser();
+  const inspections = (data as any)?.content || [];
+  const generateMutation = useGenerateInspectionId();
+  const columns = useMemo<ColumnDef<any, any>[]>(() => [
+    { accessorKey: "id", header: "ID Inspección" },
+    { accessorKey: "quotation_id", header: "ID Cotización" },
+    { accessorKey: "shipping_service_type", header: "Tipo de Servicio" },
+    { accessorKey: "status", header: "Estado" },
+    {
+      accessorKey: "createdAt",
+      header: "Fecha de creación",
+      cell: ({ row }) => <span>{new Date(row.original.createdAt).toLocaleString("es-ES")}</span>,
+    },
+    {
+      id: "actions",
+      header: "Acciones",
+      cell: ({ row }) => (
+        <ConfirmDialog
+          trigger={<Button variant="ghost" size="sm">Generar ID de Inspección</Button>}
+          title="Confirmar generación de ID"
+          description={`¿Generar ID de inspección para cotización ${row.original.quotation_id}?`}
+          confirmText="Generar"
+          cancelText="Cancelar"
+          onConfirm={() =>
+            generateMutation.mutate({ quotation_id: row.original.quotation_id, shipping_service_type: "maritimo" })
+          }
+        />
+      ),
+    },
+  ], [generateMutation]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-500/5 via-background to-blue-400/10">
       {/* Header */}
@@ -78,12 +113,25 @@ function Inspeccion() {
             </p>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center justify-center h-64 text-muted-foreground">
-              <div className="text-center">
-                <PackageSearch className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Funcionalidad de inspección en desarrollo</p>
+            {error && (
+              <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
+                <p className="text-red-800">Error al cargar las inspecciones: {error.message}</p>
               </div>
-            </div>
+            )}
+            <DataTable
+              columns={columns}
+              data={inspections}
+              pageInfo={{
+                pageNumber: (data as any)?.number || 0,
+                pageSize: (data as any)?.size || inspections.length,
+                totalElements: (data as any)?.totalElements || inspections.length,
+                totalPages: (data as any)?.totalPages || 1,
+              }}
+              onPageChange={() => {}}
+              onSearch={() => {}}
+              searchTerm=""
+              isLoading={isLoading}
+            />
           </CardContent>
         </Card>
       </div>

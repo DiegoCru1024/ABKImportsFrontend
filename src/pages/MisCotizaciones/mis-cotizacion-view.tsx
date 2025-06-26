@@ -72,7 +72,7 @@ export default function MisCotizacionesView() {
                 <FileText className="h-6 w-6 text-white" />
               </div>
               <h1 className="text-xl font-bold text-gray-900">
-                Gestión de cotizaciones
+                Mis cotizaciones
               </h1>
             </div>
           </div>

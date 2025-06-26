@@ -7,7 +7,7 @@ import {
   TruckIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import UrlImageViewerModal from "../UrlImageViewerModal";
 import type { ProductDetail } from "../../types/interfaces";
 import { obtenerUser } from "@/lib/functions";
@@ -41,6 +41,12 @@ export function columnsProductDetails({
   onViewTracking,
 }: ColumnsProductDetailsProps = {}): ColumnDef<ProductDetail, any>[] {
   const currentUser = obtenerUser();
+  const [isAdmin, setIsAdmin] = useState(currentUser?.type === "admin");
+
+  useEffect(() => {
+    setIsAdmin(currentUser?.type === "admin");
+  }, [currentUser]);
+
   return [
     {
       id: "nombre",
@@ -169,7 +175,7 @@ export function columnsProductDetails({
       size: 150,
       cell: ({ row }) => (
         <div className="flex items-right align-right justify-right gap-2">
-          {onViewTracking && currentUser?.type === "admin" ? (
+          {onViewTracking && isAdmin ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm">

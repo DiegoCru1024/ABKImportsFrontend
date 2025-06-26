@@ -10,6 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useState, useEffect } from "react";
 
 interface ColumnsQuotationsListProps {
   onViewDetails: (quotationId: string) => void;
@@ -21,6 +22,11 @@ export function columnsQuotationsList({
   onGenerateInspectionId,
 }: ColumnsQuotationsListProps): ColumnDef<QuotationListItem, any>[] {
   const currentUser = obtenerUser();
+  const [isAdmin, setIsAdmin] = useState(currentUser?.type === "admin");
+
+  useEffect(() => {
+    setIsAdmin(currentUser?.type === "admin");
+  }, [currentUser]);
 
   const getStatusBadge = (status: string) => {
     switch (status.toLowerCase()) {
@@ -162,7 +168,7 @@ export function columnsQuotationsList({
       cell: ({ row }) => {
         
         return (
-          <>
+          isAdmin ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm">
@@ -196,7 +202,16 @@ export function columnsQuotationsList({
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          </>
+          ) : (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onViewDetails(row.original.id)}
+            >
+              <Eye className="h-4 w-4 mr-2 text-green-500" />
+              Ver Detalles
+            </Button>
+          )
         );
       },
 

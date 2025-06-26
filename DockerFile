@@ -4,10 +4,10 @@ WORKDIR /app
 
 COPY ..
 
-RUN bun install
+RUN npm install
 
 COPY . .
 
 EXPOSE 5173
 
-CMD ["bun", "run", "dev"]
+CMD ["npm", "run", "dev"]

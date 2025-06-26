@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { FileText } from "lucide-react";
-import { motion } from "framer-motion";
+
 
 // Importar componentes modulares
 import SolicitudesTab from "./components/tabs/Solicitudes";
@@ -80,7 +80,7 @@ export default function GestionDeCotizacionesView() {
       </div>
 
       <div className="w-full p-2">
-        <div className="overflow-x-auto rounded-lg bg-white p-4 shadow-sm">
+        <div className="overflow-x-auto rounded-lg bg-white  shadow-sm">
           {/* Tabs Principales mejorados */}
           <div className="relative flex bg-gray-50/50">
             {tabs.map((tabItem, index) => {

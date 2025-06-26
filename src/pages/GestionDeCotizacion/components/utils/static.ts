@@ -16,3 +16,20 @@ export const incotermsOptions = [
     { value: "Multimodal", label: "Multimodal" },
     { value: "Express", label: "Express" },
   ];
+
+
+  export const statusResponseQuotation = {
+    pending: "Pendiente",
+    answered: "Respondido",
+    observed: "Observado",
+    completed: "Completado",
+    cancelled: "Cancelado",
+  };
+
+  export const statusColorsQuotation: Record<keyof typeof statusResponseQuotation, string> = {
+    pending: "bg-yellow-100 text-yellow-800",
+    answered: "bg-green-100  text-green-800",
+    observed: "bg-blue-100   text-blue-800",
+    completed: "bg-green-100   text-green-800",
+    cancelled: "bg-gray-100   text-gray-800",
+  };

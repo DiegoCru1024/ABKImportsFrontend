@@ -30,12 +30,9 @@ import { useCreateQuatitationResponseMultiple } from "@/hooks/use-quatitation-re
 import { uploadMultipleFiles } from "@/api/fileUpload";
 import { incotermsOptions } from "../utils/static";
 import { servicios } from "../../../Cotizacion/components/data/static";
-import type {
-  AdminQuotationResponse,
-  QuotationResponseRequest,
-} from "../utils/interface";
-import { toast } from "sonner";
+import type { AdminQuotationResponse } from "../utils/interface";
 import { Badge } from "@/components/ui/badge";
+import type { QuotationResponseRequest } from "@/api/interface/quotationResponseInterfaces";
 
 interface RespuestaTabProps {
   selectedQuotationId: string;
@@ -70,7 +67,7 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
   ]);
 
   const [isLoading, setIsLoading] = useState(false);
-  const [statusResponse, setStatusResponse] = useState("no-respondido");
+  const [statusResponse, setStatusResponse] = useState("answered");
   const updateResponse = (
     id: string,
     field: keyof AdminQuotationResponse,
@@ -85,7 +82,7 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
     const newResponse: AdminQuotationResponse = {
       id: Date.now().toString(),
       pUnitario: "",
-      incoterms: "FOB",
+      incoterms: "EXW",
       precioTotal: "",
       precioExpress: "",
       servicioLogistico: "Consolidado Grupal Maritimo",
@@ -94,7 +91,7 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
       recomendaciones: "",
       comentariosAdicionales: "",
       archivos: [],
-      status: "approved",
+      status: "answered",
     };
     setResponses((prev) => [...prev, newResponse]);
   };
@@ -134,40 +131,19 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
         console.log("URLs obtenidas:", allUploadedUrls);
       }
 
-      // 3. Preparar las respuestas para enviar al backend
-      const summationTotal = responses.reduce(
-        (sum, r) => sum + (parseFloat(r.precioTotal) || 0),
-        0
-      );
-      const summationExpress = responses.reduce(
-        (sum, r) => sum + (parseFloat(r.precioExpress) || 0),
-        0
-      );
-      const summationTaxes = responses.reduce(
-        (sum, r) => sum + (parseFloat(r.impuestos) || 0),
-        0
-      );
-      const summationServiceFee = responses.reduce(
-        (sum, r) => sum + (parseFloat(r.tarifaServicio) || 0),
-        0
-      );
 
       const responsesToSend: QuotationResponseRequest = {
         statusResponseProduct: statusResponse,
-        summationTotal,
-        summationExpress,
-        summationTaxes,
-        summationServiceFee,
+        sendResponse: true,
         responses: responses.map((response, responseIndex) => {
           const { start, count } = fileIndexMap[responseIndex];
           const responseFiles = allUploadedUrls.slice(start, start + count);
-
           return {
+            logistics_service: response.servicioLogistico,
             unit_price: parseFloat(response.pUnitario) || 0,
             incoterms: response.incoterms,
             total_price: parseFloat(response.precioTotal) || 0,
             express_price: parseFloat(response.precioExpress) || 0,
-            logistics_service: response.servicioLogistico,
             service_fee: parseFloat(response.tarifaServicio) || 0,
             taxes: parseFloat(response.impuestos) || 0,
             recommendations: response.recomendaciones,
@@ -252,26 +228,10 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
     );
   }
 
-  // Calcular sumatorias de todas las respuestas para UI y payload
-  const summationTotal = responses.reduce(
-    (sum, r) => sum + (parseFloat(r.precioTotal) || 0),
-    0
-  );
-  const summationExpress = responses.reduce(
-    (sum, r) => sum + (parseFloat(r.precioExpress) || 0),
-    0
-  );
-  const summationTaxes = responses.reduce(
-    (sum, r) => sum + (parseFloat(r.impuestos) || 0),
-    0
-  );
-  const summationServiceFee = responses.reduce(
-    (sum, r) => sum + (parseFloat(r.tarifaServicio) || 0),
-    0
-  );
+
 
   return (
-    <div className="space-y-4 pt-2">
+    <div className="space-y-2 p-4 ">
       <Card>
         <CardHeader className="border-b border-gray-200 px-4">
           <CardTitle className="flex items-center font-semibold text-gray-900">
@@ -300,11 +260,12 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
                         variant="outline"
                         className="bg-orange-500 text-white"
                       >
-                        {currentProduct?.status || "No respondido"}
+                        {currentProduct?.statusResponseProduct ||
+                          "No respondido"}
                       </Badge>
                     </div>
                   </div>
-                  <div className="text-orange-800 text-sm font-semibold w-full">
+                  <div className="text-orange-800 text-lg font-semibold w-full">
                     {selectedProductName}
                   </div>
                 </CardTitle>
@@ -366,77 +327,91 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
         </CardContent>
       </Card>
 
-      <Card className="py-2">
-        <CardTitle className="border-b border-gray-200 px-4 flex items-center justify-between py-2">
-          <h3 className="flex items-center font-semibold text-gray-900 text-sm">
-            <Package className="mr-2 h-6 w-6 text-orange-500" />
-            Detalle de respuesta ({responses.length})
-          </h3>
-          <div className="flex items-center justify-between gap-2">
-            <div className="space-y-2">
-              <Label className="text-gray-700 font-medium">Estado</Label>
-              <Select
-                value={statusResponse}
-                onValueChange={(value) => setStatusResponse(value)}
-              >
-                <SelectTrigger className="w-64">
-                  <SelectValue placeholder="Seleccione" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="respondido">Respondido</SelectItem>
-                  <SelectItem value="no-respondido">No respondido</SelectItem>
-                  <SelectItem value="observado">Observado</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+      {/* Header con estado y botón agregar */}
+      <div className="flex items-center justify-between mb-6 p-4">
+        <div className="flex items-center gap-2 flex-col">
+          <div className="flex items-center gap-2">
+            <FileText className="h-5 w-5 text-orange-500" />
+            <h3 className="text-lg font-semibold text-gray-900">
+              Detalle de Respuesta
+            </h3>
           </div>
+
+          <span className="text-sm text-gray-500">
+            Cantidad de Respuestas: {responses.length > 0 ? 1 : 0}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Label className="text-sm text-gray-600">
+              Estado de respuesta:
+            </Label>
+            <Select
+              value={statusResponse}
+              onValueChange={(value) => setStatusResponse(value)}
+            >
+              <SelectTrigger className="w-40">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="answered">Respondido</SelectItem>
+                <SelectItem value="not_answered">No respondido</SelectItem>
+                <SelectItem value="observed">Observado</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           <Button
             onClick={addResponse}
             size="sm"
-            className="bg-orange-500 hover:bg-orange-600 text-white rounded-xl px-6 py-2 text-sm"
+            className="bg-orange-500 hover:bg-orange-600 text-white"
           >
-            <Plus className="h-4 w-4 mr-2" /> Agregar Respuesta
+            <Plus className="h-4 w-4 mr-2" />
+            Agregar Respuesta
           </Button>
-        </CardTitle>
-        <CardContent>
-          {responses.map((response, i) => (
-            <div
-              key={response.id}
-              className="bg-white rounded-2xl p-6 border border-gray-200 mb-4"
-            >
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-4">
-                  <div>
-                    <h4 className="font-semibold text-black">
-                      Respuesta #{i + 1}
-                    </h4>
-                  </div>
-                </div>
+        </div>
+      </div>
+
+      {/* Respuestas */}
+      <div className="space-y-2 p-4 shadow-md rounded-lg">
+        {responses.map((response, i) => (
+          <Card
+            key={response.id}
+            className="bg-white border-2 hover:border-orange-100 hover:shadow-md"
+          >
+            <CardHeader className="border-b border-gray-100 pb-4">
+              <div className="flex items-center justify-between">
+                <h4 className="font-medium text-gray-900">
+                  Respuesta #{i + 1}
+                </h4>
                 {responses.length > 1 && (
                   <Button
                     variant="ghost"
-                    size="icon"
+                    size="sm"
                     onClick={() => removeResponse(response.id)}
-                    className="h-9 w-9 rounded-xl hover:bg-gray-200 text-gray-500 hover:text-red-600"
+                    className="text-red-500 hover:text-red-700 hover:bg-red-50"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 )}
               </div>
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Left Column - Pricing */}
-                <div className="space-y-6">
-                  <div className="flex items-center gap-2 mb-4">
-                    <DollarSign className="h-5 w-5 text-orange-500" />
-                    <h5 className="font-semibold text-black">
+            </CardHeader>
+
+            <CardContent>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-4">
+                {/* Información de Precios */}
+                <div className="space-y-4 bg-white border-2 p-4 rounded-lg hover:border-orange-100 hover:shadow-md">
+                  <div className="flex items-center gap-2 text-orange-500 mb-4">
+                    <DollarSign className="h-4 w-4" />
+                    <h5 className="font-medium text-gray-900">
                       Información de Precios
                     </h5>
                   </div>
-
-                  {/*Precio Unitario*/}
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label className="text-gray-700 font-medium">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    {/*Precio Unitario*/}
+                    <div>
+                      <Label className="text-sm text-gray-600">
                         Precio Unitario ($)
                       </Label>
                       <Input
@@ -451,11 +426,12 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
                           )
                         }
                         placeholder="0.00"
+                        className="mt-1"
                       />
                     </div>
-
-                    <div className="space-y-2">
-                      <Label className="text-gray-700 font-medium">
+                    {/*Precio Total*/}
+                    <div>
+                      <Label className="text-sm text-gray-600">
                         Precio Total ($)
                       </Label>
                       <Input
@@ -470,11 +446,14 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
                           )
                         }
                         placeholder="0.00"
+                        className="mt-1"
                       />
                     </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                     {/*Precio Express*/}
-                    <div className="space-y-2">
-                      <Label className="text-gray-700 font-medium">
+                    <div>
+                      <Label className="text-sm text-gray-600">
                         Precio Express ($)
                       </Label>
                       <Input
@@ -489,11 +468,12 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
                           )
                         }
                         placeholder="0.00"
+                        className="mt-1"
                       />
                     </div>
                     {/*Tarifa Servicio*/}
-                    <div className="space-y-2">
-                      <Label className="text-gray-700 font-medium">
+                    <div>
+                      <Label className="text-sm text-gray-600">
                         Tarifa Servicio ($)
                       </Label>
                       <Input
@@ -508,51 +488,47 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
                           )
                         }
                         placeholder="0.00"
-                      />
-                    </div>
-                    {/*Impuestos*/}
-                    <div className="space-y-2">
-                      <Label className="text-gray-700 font-medium">
-                        Impuestos (%)
-                      </Label>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        value={response.impuestos}
-                        onChange={(e) =>
-                          updateResponse(
-                            response.id,
-                            "impuestos",
-                            e.target.value
-                          )
-                        }
-                        placeholder="0.00"
+                        className="mt-1"
                       />
                     </div>
                   </div>
+
+                  <div className="space-y-3">
+                    <Label className="text-sm text-gray-600">
+                      Impuestos (%)
+                    </Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={response.impuestos}
+                      onChange={(e) =>
+                        updateResponse(response.id, "impuestos", e.target.value)
+                      }
+                      placeholder="0.00"
+                      className="mt-1"
+                    />
+                  </div>
                 </div>
 
-                {/* Middle Column - Logistics & Terms */}
-                <div className="space-y-6">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Truck className="h-5 w-5 text-orange-500" />
-                    <h5 className="font-semibold text-black">
+                {/* Logística y Términos */}
+                <div className="space-y-4 bg-white border-2 p-4 rounded-lg hover:border-orange-100 hover:shadow-md">
+                  <div className="flex items-center gap-2 text-orange-500 mb-4">
+                    <Truck className="h-4 w-4" />
+                    <h5 className="font-medium text-gray-900">
                       Logística y Términos
                     </h5>
                   </div>
 
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label className="text-gray-700 font-medium">
-                        Incoterms
-                      </Label>
+                  <div className="space-y-3">
+                    <div>
+                      <Label className="text-sm text-gray-600">Incoterms</Label>
                       <Select
                         value={response.incoterms}
                         onValueChange={(value) =>
                           updateResponse(response.id, "incoterms", value)
                         }
                       >
-                        <SelectTrigger className="w-64">
+                        <SelectTrigger className="mt-1">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -565,8 +541,8 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
                       </Select>
                     </div>
 
-                    <div className="space-y-2">
-                      <Label className="text-gray-700 font-medium">
+                    <div>
+                      <Label className="text-sm text-gray-600">
                         Servicio Logístico
                       </Label>
                       <Select
@@ -579,7 +555,7 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
                           )
                         }
                       >
-                        <SelectTrigger className="w-64">
+                        <SelectTrigger className="mt-1">
                           <SelectValue placeholder="Seleccione" />
                         </SelectTrigger>
                         <SelectContent>
@@ -597,18 +573,18 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
                   </div>
                 </div>
 
-                {/* Right Column - Comments & Files */}
-                <div className="space-y-6">
-                  <div className="flex items-center gap-2 mb-4">
-                    <MessageSquare className="h-5 w-5 text-orange-500" />
-                    <h5 className="font-semibold text-black">
+                {/* Observaciones y Archivos */}
+                <div className="space-y-4 bg-white border-2 p-4 rounded-lg hover:border-orange-100 hover:shadow-md">
+                  <div className="flex items-center gap-2 text-orange-500 mb-4">
+                    <MessageSquare className="h-4 w-4" />
+                    <h5 className="font-medium text-gray-900">
                       Observaciones y Archivos
                     </h5>
                   </div>
 
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label className="text-gray-700 font-medium">
+                  <div className="space-y-3">
+                    <div>
+                      <Label className="text-sm text-gray-600">
                         Recomendaciones
                       </Label>
                       <Textarea
@@ -621,11 +597,12 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
                           )
                         }
                         placeholder="Embalaje adicional por fragilidad..."
+                        className="mt-1 min-h-[80px]"
                       />
                     </div>
 
-                    <div className="space-y-2">
-                      <Label className="text-gray-700 font-medium">
+                    <div>
+                      <Label className="text-sm text-gray-600">
                         Comentarios Adicionales
                       </Label>
                       <Textarea
@@ -638,55 +615,33 @@ const RespuestaTab: React.FC<RespuestaTabProps> = ({
                           )
                         }
                         placeholder="Se puede reducir el precio por volumen..."
+                        className="mt-1 min-h-[80px]"
                       />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label className="text-gray-700 font-medium flex items-center gap-2">
-                        <FileText className="h-4 w-4 text-gray-500" />
-                        Archivos Adjuntos
-                      </Label>
-                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 bg-white">
-                        <FileUploadComponent
-                          onFilesChange={(files) =>
-                            updateResponse(response.id, "archivos", files)
-                          }
-                        />
-                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
 
-      {/* Resumen de todas las respuestas */}
-      <Card className="bg-white rounded-xl p-4 border border-gray-200">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-          <div>
-            <p className="text-gray-600 text-sm">Precio Total</p>
-            <p className="font-bold text-black">${summationTotal.toFixed(2)}</p>
-          </div>
-          <div>
-            <p className="text-gray-600 text-sm">Precio Express</p>
-            <p className="font-bold text-black">
-              ${summationExpress.toFixed(2)}
-            </p>
-          </div>
-          <div>
-            <p className="text-gray-600 text-sm">Impuestos</p>
-            <p className="font-bold text-black">${summationTaxes.toFixed(2)}</p>
-          </div>
-          <div>
-            <p className="text-gray-600 text-sm">Tarifa Servicio</p>
-            <p className="font-bold text-black">
-              ${summationServiceFee.toFixed(2)}
-            </p>
-          </div>
-        </div>
-      </Card>
+              {/*Archivos Adjuntos*/}
+              <div className="rounded-lg w-full border-gray-200 border-2 p-4  hover:border-orange-100 hover:shadow-md">
+                <Label className="text-sm text-gray-600">
+                  Archivos Adjuntos
+                </Label>
+                <div className="mt-1">
+                  <FileUploadComponent
+                    onFilesChange={(files) =>
+                      updateResponse(response.id, "archivos", files)
+                    }
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Máx 20 archivos • Máx 10MB c/u
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
       <div className="flex space-x-4 justify-end pt-6">
         <ConfirmDialog

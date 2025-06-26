@@ -1,4 +1,4 @@
-export async function apiFetch(endpoint: string, options: RequestInit = {}) {
+export async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const access_token = localStorage.getItem("access_token"); // 🔹 Obtener el token del localStorage
 
   const headers = {

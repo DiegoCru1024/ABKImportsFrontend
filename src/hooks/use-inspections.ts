@@ -34,10 +34,10 @@ export function useGenerateInspectionId() {
    * Hook para obtener todas las inspecciones
    * @returns {useQuery} - Query para obtener todas las inspecciones
    */
-  export function useGetInspectionsByUser() {
+    export function useGetInspectionsByUser(searchTerm:string,page:number,size:number) {
     return useQuery({
       queryKey: ["Inspections"],
-      queryFn: getInspectionsByUser,
+      queryFn: () => getInspectionsByUser(searchTerm,page,size),
     });
   }
   

@@ -8,7 +8,7 @@ import {
 } from "@/api/apiQuotationResponse";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import type { QuotationResponseRequest } from "@/pages/GestionDeCotizacion/components/utils/interface";
+
 
 /**
  * Interfaz para la respuesta de una cotización
@@ -83,7 +83,7 @@ export function useCreateQuatitationResponseMultiple() {
       quotationId,
       productId,
     }: {
-      data: QuotationResponseRequest;
+      data:any;
       quotationId: string;
       productId: string;
     }) => createQuatitationResponseMultiple(data, quotationId, productId),

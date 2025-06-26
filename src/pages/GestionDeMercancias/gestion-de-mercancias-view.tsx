@@ -7,7 +7,10 @@ import { Button } from "@/components/ui/button";
 import type { ColumnDef } from "@tanstack/react-table";
 
 function gestionDeMercancias() {
-  const { data, isLoading, error } = useGetInspectionsByUser();
+
+
+  
+  const { data, isLoading, error } = useGetInspectionsByUser("",0,10);
   const inspections = (data as any)?.content || [];
   const generateMutation = useGenerateInspectionId();
   const columns = useMemo<ColumnDef<any, any>[]>(() => [

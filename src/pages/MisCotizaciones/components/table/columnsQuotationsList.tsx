@@ -10,11 +10,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-
+  
 interface ColumnsQuotationsListProps {
-  onViewDetails: (quotationId: string) => void;
-  onGenerateInspectionId?: (quotationId: string,estado:string ) => void;
+  onViewDetails: (quotationId: string,correlative:string) => void;
+  onGenerateInspectionId?: (quotationId: string,correlative:string ) => void;
 }
 
 export function columnsQuotationsList({
@@ -177,26 +176,22 @@ export function columnsQuotationsList({
                     variant="ghost"
                     className=" text-green-600 hover:text-green-800 hover:bg-green-50"
                     size="sm"
-                    onClick={() => onViewDetails(row.original.id)}
+                    onClick={() => onViewDetails(row.original.id,row.original.correlative)}
                   >
                     <Eye className="h-4 w-4 mr-2 text-green-500" />
                     Ver Detalles
                   </Button>
                 </DropdownMenuItem>
                 <DropdownMenuItem className=" text-blue-600 hover:text-blue-800 hover:bg-blue-50">
-                  <ConfirmDialog
-                    trigger={
-                      <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-800 hover:bg-blue-50">
-                        <Truck className="h-4 w-4 mr-2 text-blue-500" />
-                        Generar Id de Inspección
-                      </Button>
-                    }
-                    title="Confirmar generación de ID de inspección"
-                    description={`¿Generar ID de inspección para cotización ${row.original.correlative}?`}
-                    confirmText="Generar"
-                    cancelText="Cancelar"
-                    onConfirm={() => onGenerateInspectionId?.(row.original.id, "maritimo")}
-                  />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                    onClick={() => onGenerateInspectionId?.(row.original.id, row.original.correlative)}
+                  >
+                    <Truck className="h-4 w-4 mr-2 text-blue-500" />
+                    Generar Id de Inspección
+                  </Button>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -204,7 +199,7 @@ export function columnsQuotationsList({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => onViewDetails(row.original.id)}
+              onClick={() => onViewDetails(row.original.id,row.original.correlative)}
             >
               <Eye className="h-4 w-4 mr-2 text-green-500" />
               Ver Detalles

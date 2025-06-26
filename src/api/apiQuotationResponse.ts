@@ -16,6 +16,39 @@ export const getAllResponsesForSpecificQuotation = async (id: string) => {
   }
 };
 
+export interface getAllResponsesForSpecificProductoInQuotationResponse {
+    product: ProductBasicInfo;
+  responses: Responses[];
+}
+
+export interface ProductBasicInfo {
+  id: string;
+  name: string;
+  quantity: number;
+  size: string;
+  color: string;
+  url: string;
+  comment: string;
+  weight: string;
+  volume: string;
+  number_of_boxes: number;
+  attachments: string[];
+  statusResponseProduct: string;
+  sendResponse: boolean;
+}
+
+export interface Responses {
+  logistics_service: string;
+  unit_price: number;
+  incoterms: string;
+  total_price: number;
+  express_price: number;
+  service_fee: number;
+  taxes: number;
+  recommendations: string;
+  additional_comments: string;
+  files: string[];
+}
 /**
  * Obtiene todas las respuestas de un producto en una cotización por su ID
  * @param {string} id - El ID de la cotización
@@ -27,9 +60,10 @@ export const getAllResponsesForSpecificProductoInQuotation = async (
   productId: string
 ) => {
   try {
-    const response = await apiFetch(
-      `/quotation-responses/quotation/${id}/product/${productId}`
-    );
+    const response =
+      await apiFetch<getAllResponsesForSpecificProductoInQuotationResponse>(
+        `/quotation-responses/quotation/${id}/product/${productId}`
+      );
     return response;
   } catch (error) {
     console.error("Error al obtener la respuesta de la cotización:", error);
@@ -37,10 +71,9 @@ export const getAllResponsesForSpecificProductoInQuotation = async (
   }
 };
 
-
 /**
  * Crea una respuesta de una cotización (admin)
- * @param {any} data - Los datos a crear 
+ * @param {any} data - Los datos a crear
  * @returns {Promise<any>} - La respuesta de la cotización
  */
 export const createQuatitationResponse = async (data: any) => {
@@ -56,19 +89,25 @@ export const createQuatitationResponse = async (data: any) => {
   }
 };
 
-
 /**
  * Crea una varias de una cotización (admin)
- * @param {QuotationResponseRequest} data - Los datos a crear 
+ * @param {QuotationResponseRequest} data - Los datos a crear
  * @returns {Promise<any>} - La respuesta de la cotización
  */
-export const createQuatitationResponseMultiple = async (data: QuotationResponseRequest, quotationId: string, productId: string) => {
+export const createQuatitationResponseMultiple = async (
+  data: QuotationResponseRequest,
+  quotationId: string,
+  productId: string
+) => {
   try {
-    return await apiFetch(`/quotation-responses/multiple/quotation/${quotationId}/product/${productId}`, {
-      //TODO: Cambiar a la ruta correcta
-      method: "POST",
-      body: JSON.stringify(data),
-    });
+    return await apiFetch(
+      `/quotation-responses/multiple/quotation/${quotationId}/product/${productId}`,
+      {
+        //TODO: Cambiar a la ruta correcta
+        method: "POST",
+        body: JSON.stringify(data),
+      }
+    );
   } catch (error) {
     console.error("Error al crear la respuesta de la cotización:", error);
     throw error;
@@ -92,7 +131,6 @@ export const deleteQuatitationResponse = async (id: string) => {
   }
 };
 
-
 /**
  * Actualiza el estado de una respuesta de una cotización por su ID (admin)
  * @param {string} id - El ID de la respuesta
@@ -107,7 +145,7 @@ export const patchQuatitationResponse = async (id: string, data: any) => {
     });
     return response;
   } catch (error) {
-    console.error("Error al actualizar la respuesta de la cotización:", error);   
+    console.error("Error al actualizar la respuesta de la cotización:", error);
     throw error;
   }
 };

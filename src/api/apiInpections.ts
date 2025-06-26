@@ -4,9 +4,9 @@ import { apiFetch } from "./apiFetch";
  * Obtiene todas las inspecciones que ha realizado el usuario
  * @returns {Promise<>} - Las inspecciones
  */
-export const getInspectionsByUser = async () => {
+export const getInspectionsByUser = async (searchTerm:string,page:number,size:number) => {
     try {
-      return await apiFetch("/inspections", {
+      return await apiFetch(`/inspections?searchTerm=${searchTerm}&page=${page}&size=${size}`, {
         method: "GET",
       });
     } catch (error) {
@@ -24,6 +24,10 @@ export const getInspectionsByUser = async () => {
  * @returns {Promise<any>} - El ID de la inspección
  */
   export const generateInspectionId = async (quotation_id :string, shipping_service_type:string) => {
+    console.log("Esto se está enviando",JSON.stringify({
+        quotation_id,
+        shipping_service_type
+    }) )
     try {
         return await apiFetch(`/inspections`, {
             method: "POST",

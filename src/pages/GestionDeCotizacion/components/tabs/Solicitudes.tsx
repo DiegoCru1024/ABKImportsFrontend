@@ -2,14 +2,27 @@ import React, { useEffect, useState } from "react";
 import { DataTable } from "@/components/table/data-table";
 import { useGetQuotationsByUser } from "@/hooks/use-quation";
 import { columnsQuotationsList } from "../../../MisCotizaciones/components/table/columnsQuotationsList";
+
+import SendingModal from "@/components/sending-modal";
+
+import { useGenerateInspectionId } from "@/hooks/use-inspections";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface SolicitudesTabProps {
   onViewDetails: (quotationId: string) => void;
@@ -18,6 +31,11 @@ interface SolicitudesTabProps {
 const SolicitudesTab: React.FC<SolicitudesTabProps> = ({ onViewDetails }) => {
   const [data, setData] = useState<any[]>([]);
   const [open, setOpen] = useState(false);
+  const [sendId, setSendId] = useState(false);
+  const [shippingServiceType, setShippingServiceType] = useState("maritime");
+  const [selectedQuotation, setSelectedQuotation] = useState<string | null>(null);
+  const [selectedCorrelative, setSelectedCorrelative] = useState<string | null>(null);
+  const { mutate: generateInspectionId } = useGenerateInspectionId();
   // Estados para nueva creación y eliminación
   const [searchTerm, setSearchTerm] = useState("");
   const [pageInfo, setPageInfo] = useState({
@@ -84,9 +102,30 @@ const SolicitudesTab: React.FC<SolicitudesTabProps> = ({ onViewDetails }) => {
     );
   }
 
-  const handleGenerateInspectionId = (quotationId: string, estado: string) => {
-    console.log("Generar Id de Inspección", quotationId, estado);
+  const handleGenerateInspectionId = (quotationId: string, correlative: string) => {
+    setSelectedQuotation(quotationId);
+    setSelectedCorrelative(correlative);
     setOpen(true);
+  };
+
+  const handleSendId = (quotationId: string, shipping_service_type: string) => {
+
+    if(shipping_service_type === "aereo"){
+      shipping_service_type = "aerial";
+    }else if(shipping_service_type === "maritimo"){
+      shipping_service_type = "maritime";
+    }
+    try {
+      setSendId(true);
+      generateInspectionId({
+        quotation_id: quotationId,
+        shipping_service_type: shipping_service_type,
+      });
+    } catch (error) {
+      console.error("Error al generar el id de inspección", error);
+    } finally {
+      setSendId(false);
+    }
   };
 
   const columns = columnsQuotationsList({
@@ -95,7 +134,7 @@ const SolicitudesTab: React.FC<SolicitudesTabProps> = ({ onViewDetails }) => {
   });
 
   return (
-    <>
+    <div>
       <div className="space-y-4 p-6">
         <p className="text-black leading-relaxed">
           Aquí podrá ver todas las solicitudes de cotización recibidas.
@@ -116,33 +155,45 @@ const SolicitudesTab: React.FC<SolicitudesTabProps> = ({ onViewDetails }) => {
           }}
         />
       </div>
-
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogHeader>
-          <DialogTitle>Generar Id de Inspección</DialogTitle>
-        </DialogHeader>
         <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Generar Id de Inspección</DialogTitle>
+          </DialogHeader>
           <DialogDescription>
-            <p>
-              ¿Desea generar un id de inspección para la cotización{" "}
-              {data[0]?.correlative}?
-            </p>
-            <p>
-              Esta acción generará un id de inspección de mercancias para la
-              cotización <br />
-              <span className="text-red-500">
-                Esta acción no se puede deshacer.
-              </span>
-            </p>
-            <p>¿Desea continuar?</p>
-            <div className="flex justify-end gap-2">
-              <Button variant="outline">Cancelar</Button>
-              <Button variant="default">Generar Id de Inspección</Button>
-            </div>
+            <p>{`¿Desea generar un id de inspección para la cotización ${selectedCorrelative}?`}</p>
+            <p>Ingrese el tipo de envío</p>
+            <Select
+              value={shippingServiceType}
+              onValueChange={setShippingServiceType}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Seleccione el tipo de envío" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="aerial">aerial</SelectItem>
+                <SelectItem value="maritime">maritime</SelectItem>
+              </SelectContent>
+            </Select>
           </DialogDescription>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpen(false)}>
+              Cancelar
+            </Button>
+            <Button
+              variant="default"
+              onClick={() =>{
+                handleSendId(selectedQuotation as string, shippingServiceType)
+                console.log("Click")
+              }}
+            >
+              Generar Id de Inspección
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
-    </>
+      <SendingModal isOpen={sendId} onClose={() => setSendId(false)} />
+    </div>
   );
 };
 

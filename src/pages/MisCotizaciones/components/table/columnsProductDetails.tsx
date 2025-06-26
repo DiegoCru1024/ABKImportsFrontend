@@ -44,6 +44,15 @@ export function columnsProductDetails({
   const isAdmin = currentUser?.type === "admin";
 
   return [
+    /*{
+      id: "id",
+      accessorKey: "id",
+      header: "ID",
+      cell: ({ row }) => (
+        <div className="font-medium capitalize">{row.original.id}</div>
+      ),
+      minSize: 150,
+    },*/
     {
       id: "nombre",
       accessorKey: "name",

@@ -1,22 +1,31 @@
-import React from "react";
-import { Card, CardContent, CardTitle } from "@/components/ui/card";
+import React, { useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
+
 import {
-  Calendar,
   DollarSign,
-  File,
-  Hash,
-  Link,
-  MessageCircleMore,
+  ExternalLink,
+  FileText,
   MessageSquare,
   Package,
   Palette,
   Ruler,
+  Truck,
 } from "lucide-react";
-import { useGetAllQuatitationResponse } from "@/hooks/use-quatitation-response";
-import type { QuotationResponse } from "../../types/interfaces";
+import { useGetAllQuatitationResponseForSpecificProduct } from "@/hooks/use-quatitation-response";
+import type { ProductBasicInfo, Responses } from "@/api/apiQuotationResponse";
+import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { incotermsOptions } from "@/pages/GestionDeCotizacion/components/utils/static";
+import { servicios } from "@/pages/Cotizacion/components/data/static";
 
 interface TrackingTabProps {
   selectedProductId: string;
@@ -29,12 +38,21 @@ const TrackingTab: React.FC<TrackingTabProps> = ({
   selectedProductName,
   quotationId,
 }) => {
-  const { data: responses, isLoading, isError } = useGetAllQuatitationResponse(quotationId);
-
-  // Buscar la respuesta específica para el producto seleccionado
-  const productResponse = responses?.find(
-    (response: QuotationResponse) => response.product?.id === selectedProductId
+  const {
+    data: responses,
+    isLoading,
+    isError,
+  } = useGetAllQuatitationResponseForSpecificProduct(
+    quotationId,
+    selectedProductId
   );
+
+  const productResponse: ProductBasicInfo = responses?.product || ({} as ProductBasicInfo);
+  const responsesData: Responses[] = responses?.responses || [];
+
+  useEffect(() => {
+    console.log(responses);
+  }, [responses]);
 
   if (isLoading) {
     return (
@@ -52,7 +70,8 @@ const TrackingTab: React.FC<TrackingTabProps> = ({
     return (
       <div className="space-y-4 p-6">
         <div className="text-center text-red-600">
-          Error al cargar la información de seguimiento. Por favor, intente nuevamente.
+          Error al cargar la información de seguimiento. Por favor, intente
+          nuevamente.
         </div>
       </div>
     );
@@ -68,355 +87,436 @@ const TrackingTab: React.FC<TrackingTabProps> = ({
     );
   }
 
-  const product = productResponse.product || {};
-
   return (
-    <div className="space-y-4 p-6">
-      <Card className="py-4">
-        <CardTitle className="border-b border-gray-200 px-4">
-          <h3 className="flex items-center font-semibold text-gray-900">
+    <div className="space-y-2 p-4 ">
+      <Card>
+        <CardHeader className="border-b border-gray-200 px-4">
+          <CardTitle className="flex items-center font-semibold text-gray-900">
             <Package className="mr-2 h-6 w-6 text-orange-500" />
             Detalle de producto
-          </h3>
-        </CardTitle>
+          </CardTitle>
+        </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white py-4">
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <Package className="w-4 h-4 text-orange-500" />
-                  <label className="text-sm font-medium text-gray-700">
-                    Nombre del Producto
-                  </label>
-                </div>
-                <Input
-                  name="nombre"
-                  disabled={true}
-                  value={product.name || selectedProductName}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Hash className="w-4 h-4 text-orange-500" />
-                    <label className="text-sm font-medium text-gray-700">
-                      Cantidad
-                    </label>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 auto-rows-fr">
+            {/* Main Product Card - Spans 2 columns */}
+            <Card className="lg:col-span-2 bg-white border-2 hover:border-orange-100 hover:shadow-md">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 flex-col w-full">
+                  <div className="flex items-center  w-full justify-between">
+                    <div className="flex items-center justify-between gap-2">
+                      <Package className="h-6 w-6 text-orange-500" />
+                      <span className="text-sm font-semibold">
+                        Nombre del producto:
+                      </span>
+                    </div>
+                    <div className="text-sm flex items-center gap-2">
+                      <span className="hover:text-orange-800">
+                        Estado de respuesta:
+                      </span>
+                      <Badge
+                        variant="outline"
+                        className="bg-orange-500 text-white"
+                      >
+                        {productResponse?.statusResponseProduct ||
+                          "No respondido"}
+                      </Badge>
+                    </div>
                   </div>
-                  <Input
-                    name="cantidad"
-                    value={product.quantity || ""}
-                    disabled
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Ruler className="w-4 h-4 text-orange-500" />
-                    <label className="text-sm font-medium text-gray-700">
-                      Tamaño
-                    </label>
+                  <div className="text-orange-800 text-lg font-semibold w-full">
+                    {selectedProductName}
                   </div>
-                  <Input
-                    name="tamano"
-                    type="string"
-                    value={product.size || ""}
-                    disabled
-                  />
-                </div>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-2 md:grid-cols-3">
+                    <div className="text-sm  flex items-center gap-2">
+                      <Package className="h-4 w-4 text-orange-500 hover:text-orange-800" />{" "}
+                      Cantidad:{" "}
+                      <span className="hover:text-orange-500">
+                        {productResponse.quantity}
+                      </span>
+                    </div>
+                    <div className="text-sm  flex items-center gap-2">
+                      <Ruler className="h-4 w-4 text-orange-500 hover:text-orange-800" />{" "}
+                      Tamaño:{" "}
+                      <span className="hover:text-orange-500">
+                        {productResponse.size}
+                      </span>
+                    </div>
 
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Palette className="w-4 h-4 text-orange-500" />
-                    <label className="text-sm font-medium text-gray-700">
-                      Color
-                    </label>
+                    <div className="text-sm   flex items-center gap-2">
+                      <Palette className="h-4 w-4 text-orange-500 hover:text-orange-800 " />{" "}
+                      Color:{" "}
+                      <span className="hover:text-orange-500">
+                        {productResponse.color}
+                      </span>
+                    </div>
                   </div>
-                  <Input
-                    name="color"
-                    value={product.color || ""}
-                    disabled
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Link className="w-4 h-4 text-orange-500" />
-                    <label className="text-sm font-medium text-gray-700">
-                      URL
-                    </label>
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-2">
+                      <ExternalLink className="h-4 w-4 text-orange-500 hover:text-orange-800" />
+                      <span className="text-sm hover:text-orange-500">
+                        Fuente del producto:{" "}
+                      </span>
+                    </div>
+                    <div className="text-sm">
+                      <div className="hover:text-orange-500 truncate max-w-full">
+                        {productResponse.url}
+                      </div>
+                    </div>
                   </div>
-                  <Input
-                    name="url"
-                    value={product.url || ""}
-                    disabled
-                    className="border-gray-300 focus:border-orange-500 focus:ring-orange-500"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <MessageSquare className="w-4 h-4 text-orange-500" />
-                    <label className="text-sm font-medium text-gray-700">
-                      Estado
-                    </label>
+                  <div className=" flex flex-col text-sm gap-2">
+                    <div className="flex items-center gap-2">
+                      <MessageSquare className="h-4 w-4 text-orange-500 hover:text-orange-800" />
+                      <span className="hover:text-orange-500">Comentario:</span>
+                    </div>
+                    <Textarea
+                      className="w-full"
+                      value={productResponse.comment}
+                      placeholder="Comentario"
+                    />
                   </div>
-                  <Input
-                    name="status"
-                    value={productResponse.status || ""}
-                    disabled
-                    className="border-gray-300 focus:border-orange-500 focus:ring-orange-500"
-                  />
                 </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <MessageSquare className="w-4 h-4 text-orange-500" />
-                    <label className="text-sm font-medium text-gray-700">
-                      Peso (Kg)
-                    </label>
-                  </div>
-                  <Input
-                    name="peso"
-                    type="number"
-                    value={product.weight || ""}
-                    disabled
-                  />
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <MessageSquare className="w-4 h-4 text-orange-500" />
-                    <label className="text-sm font-medium text-gray-700">
-                      Volumen
-                    </label>
-                  </div>
-                  <Input
-                    name="volumen"
-                    type="number"
-                    value={product.volume || ""}
-                    disabled
-                  />
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <MessageSquare className="w-4 h-4 text-orange-500" />
-                    <label className="text-sm font-medium text-gray-700">
-                      Nro. cajas
-                    </label>
-                  </div>
-                  <Input
-                    name="nro_cajas"
-                    type="number"
-                    value={product.number_of_boxes || ""}
-                    disabled
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 gap-4">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <MessageSquare className="w-4 h-4 text-orange-500" />
-                    <label className="text-sm font-medium text-gray-700">
-                      Comentario
-                    </label>
-                  </div>
-                  <Textarea
-                    name="comentario"
-                    value={product.comment || ""}
-                    disabled
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <File className="w-4 h-4 text-orange-500" />
-                  <label className="text-sm font-medium text-gray-700">
-                    Archivos adjuntos
-                  </label>
-                </div>
-
-                <Button variant="outline" size="sm">
-                  Ver archivos adjuntos ({product.attachments?.length || 0})
-                </Button>
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-orange-500" />
-                  <label className="text-sm font-medium text-gray-700">
-                    Fecha de Respuesta
-                  </label>
-                </div>
-                <Input
-                  name="response_date"
-                  value={productResponse.response_date || ""}
-                  disabled
-                />
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           </div>
         </CardContent>
       </Card>
 
-      <Card className="py-4">
-        <CardTitle className="border-b border-gray-200 px-4">
-          <h3 className="flex items-center font-semibold text-gray-900">
-            <MessageCircleMore className="mr-2 h-6 w-6 text-orange-500" />
-            Detalle de respuesta
-          </h3>
-        </CardTitle>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white py-4">
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <DollarSign className="w-4 h-4 text-orange-500" />
-                  <label className="text-sm font-medium text-gray-700">
-                    Precio Unitario
-                  </label>
-                </div>
-                <p className="text-sm font-medium text-gray-700">
-                  ${productResponse.unit_price || 0}
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="w-4 h-4 text-orange-500" />
-                    <label className="text-sm font-medium text-gray-700">
-                      Precio Total
-                    </label>
-                  </div>
-                  <p className="font-medium">${productResponse.total_price || 0}</p>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="w-4 h-4 text-orange-500" />
-                    <label className="text-sm font-medium text-gray-700">
-                      Precio Express
-                    </label>
-                  </div>
-                  <p className="font-medium">${productResponse.express_price || 0}</p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <MessageSquare className="w-4 h-4 text-orange-500" />
-                    <label className="text-sm font-medium text-gray-700">
-                      Incoterms
-                    </label>
-                  </div>
-                  <Input
-                    name="incoterms"
-                    value={productResponse.incoterms || ""}
-                    disabled
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <MessageSquare className="w-4 h-4 text-orange-500" />
-                    <label className="text-sm font-medium text-gray-700">
-                      Servicio Logístico
-                    </label>
-                  </div>
-                  <Input
-                    name="logistics_service"
-                    value={productResponse.logistics_service || ""}
-                    disabled
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="w-4 h-4 text-orange-500" />
-                    <label className="text-sm font-medium text-gray-700">
-                      Tarifa de Servicio
-                    </label>
-                  </div>
-                  <Input
-                    name="service_fee"
-                    value={`$${productResponse.service_fee || 0}`}
-                    disabled
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="w-4 h-4 text-orange-500" />
-                    <label className="text-sm font-medium text-gray-700">
-                      Impuestos
-                    </label>
-                  </div>
-                  <Input
-                    name="taxes"
-                    value={`${productResponse.taxes || 0}%`}
-                    disabled
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <MessageSquare className="w-4 h-4 text-orange-500" />
-                  <label className="text-sm font-medium text-gray-700">
-                    Comentarios Adicionales
-                  </label>
-                </div>
-                <Textarea
-                  name="additional_comments"
-                  value={productResponse.additional_comments || ""}
-                  disabled
-                />
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <MessageSquare className="w-4 h-4 text-orange-500" />
-                  <label className="text-sm font-medium text-gray-700">
-                    Recomendaciones
-                  </label>
-                </div>
-                <Textarea
-                  name="recommendations"
-                  value={productResponse.recommendations || ""}
-                  disabled
-                />
-              </div>
-            </div>
+      {/* Header con estado y botón agregar */}
+      <div className="flex items-center justify-between mb-6 p-4">
+        <div className="flex items-center gap-2 flex-col">
+          <div className="flex items-center gap-2">
+            <FileText className="h-5 w-5 text-orange-500" />
+            <h3 className="text-lg font-semibold text-gray-900">
+              Detalle de Respuesta
+            </h3>
           </div>
-        </CardContent>
-      </Card>
+
+          <span className="text-sm text-gray-500">
+            Cantidad de Respuestas: {responsesData.length > 0 ? 1 : 0}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Label className="text-sm text-gray-600">
+              Estado de respuesta:
+            </Label>
+            <Select
+              value={productResponse.statusResponseProduct}
+              /*onValueChange={(value) => setStatusResponse(value)}*/
+              disabled
+            >
+              <SelectTrigger className="w-40">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="answered">Respondido</SelectItem>
+                <SelectItem value="not_answered">No respondido</SelectItem>
+                <SelectItem value="observed">Observado</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </div>
+
+      {/* Respuestas */}
+      <div className="space-y-2 p-4 shadow-md rounded-lg">
+        {responsesData.map((response, index) => (
+          <Card
+            key={index}
+            className="bg-white border-2 hover:border-orange-100 hover:shadow-md"
+          >
+            <CardHeader className="border-b border-gray-100 pb-4">
+              <div className="flex items-center justify-between">
+                <h4 className="font-medium text-gray-900">
+                  Respuesta #{index + 1}
+                </h4>
+                {/*{responsesData.length > 1 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeResponse(response.id)}
+                    className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}*/}
+              </div>
+            </CardHeader>
+
+            <CardContent>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-4">
+                {/* Información de Precios */}
+                <div className="space-y-4 bg-white border-2 p-4 rounded-lg hover:border-orange-100 hover:shadow-md">
+                  <div className="flex items-center gap-2 text-orange-500 mb-4">
+                    <DollarSign className="h-4 w-4" />
+                    <h5 className="font-medium text-gray-900">
+                      Información de Precios
+                    </h5>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    {/*Precio Unitario*/}
+                    <div>
+                      <Label className="text-sm text-gray-600">
+                        Precio Unitario ($)
+                      </Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={response.unit_price}
+                        /*onChange={(e) =>
+                          updateResponse(
+                            response.id,
+                            "pUnitario",
+                            e.target.value
+                          )
+                        }*/
+                        disabled
+                        placeholder="0.00"
+                        className="mt-1"
+                      />
+                    </div>
+                    {/*Precio Total*/}
+                    <div>
+                      <Label className="text-sm text-gray-600">
+                        Precio Total ($)
+                      </Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={response.total_price}
+                        /*onChange={(e) =>
+                          updateResponse(
+                            response.id,
+                            "precioTotal",
+                            e.target.value
+                          )
+                        }*/
+                        disabled
+                        placeholder="0.00"
+                        className="mt-1"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    {/*Precio Express*/}
+                    <div>
+                      <Label className="text-sm text-gray-600">
+                        Precio Express ($)
+                      </Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={response.express_price}
+                        /*onChange={(e) =>
+                          updateResponse(
+                            response.id,
+                            "precioExpress",
+                            e.target.value
+                          )
+                        }*/
+                        disabled
+                        placeholder="0.00"
+                        className="mt-1"
+                      />
+                    </div>
+                    {/*Tarifa Servicio*/}
+                    <div>
+                      <Label className="text-sm text-gray-600">
+                        Tarifa Servicio ($)
+                      </Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={response.service_fee}
+                        /*onChange={(e) =>
+                          updateResponse(
+                            response.id,
+                            "tarifaServicio",
+                            e.target.value
+                          )
+                        }*/
+                        disabled
+                        placeholder="0.00"
+                        className="mt-1"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label className="text-sm text-gray-600">
+                      Impuestos (%)
+                    </Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={response.taxes}
+                      /*onChange={(e) =>
+                        updateResponse(response.id, "impuestos", e.target.value)
+                      }*/
+                      disabled
+                      placeholder="0.00"
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
+
+                {/* Logística y Términos */}
+                <div className="space-y-4 bg-white border-2 p-4 rounded-lg hover:border-orange-100 hover:shadow-md">
+                  <div className="flex items-center gap-2 text-orange-500 mb-4">
+                    <Truck className="h-4 w-4" />
+                    <h5 className="font-medium text-gray-900">
+                      Logística y Términos
+                    </h5>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div>
+                      <Label className="text-sm text-gray-600">Incoterms</Label>
+                      <Select
+                        value={response.incoterms}
+                        /*onValueChange={(value) =>
+                          updateResponse(response.id, "incoterms", value)
+                        }*/
+                        disabled
+                      >
+                        <SelectTrigger className="mt-1">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {incotermsOptions.map((option: any) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label className="text-sm text-gray-600">
+                        Servicio Logístico
+                      </Label>
+                      <Select
+                        value={response.logistics_service}
+                        
+                        disabled
+                      >
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Seleccione" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {servicios.map((servicio: any) => (
+                            <SelectItem
+                              key={servicio.value}
+                              value={servicio.value}
+                            >
+                              {servicio.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Observaciones y Archivos */}
+                <div className="space-y-4 bg-white border-2 p-4 rounded-lg hover:border-orange-100 hover:shadow-md">
+                  <div className="flex items-center gap-2 text-orange-500 mb-4">
+                    <MessageSquare className="h-4 w-4" />
+                    <h5 className="font-medium text-gray-900">
+                      Observaciones y Archivos
+                    </h5>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div>
+                      <Label className="text-sm text-gray-600">
+                        Recomendaciones
+                      </Label>
+                      <Textarea
+                        value={response.recommendations}
+                        /*onChange={(e) =>
+                          updateResponse(
+                            response.id,
+                            "recomendaciones",
+                            e.target.value
+                          )
+                        }*/
+                        disabled
+                        placeholder="Embalaje adicional por fragilidad..."
+                        className="mt-1 min-h-[80px]"
+                      />
+                    </div>
+
+                    <div>
+                      <Label className="text-sm text-gray-600">
+                        Comentarios Adicionales
+                      </Label>
+                      <Textarea
+                        value={response.additional_comments}
+                        /*onChange={(e) =>
+                          updateResponse(
+                            response.id,
+                            "comentariosAdicionales",
+                            e.target.value
+                          )
+                        }*/
+                        disabled
+                        placeholder="Se puede reducir el precio por volumen..."
+                        className="mt-1 min-h-[80px]"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/*Archivos Adjuntos*/}
+              {/*<div className="rounded-lg w-full border-gray-200 border-2 p-4  hover:border-orange-100 hover:shadow-md">
+                <Label className="text-sm text-gray-600">
+                  Archivos Adjuntos
+                </Label>
+                <div className="mt-1">
+                  <FileUploadComponent
+                    onFilesChange={(files) =>
+                      updateResponse(response.id, "archivos", files)
+                    }
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Máx 20 archivos • Máx 10MB c/u
+                  </p>
+                </div>
+              </div>*/}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
       <div className="flex space-x-4 justify-end pt-6">
-        <Button
-          variant="outline"
-          onClick={() => window.open("https://wa.me/123456789")}
-        >
-          Solicitar cambios
-        </Button>
-        <Button onClick={() => window.open("https://wa.me/123456789")}>
-          Aceptar cotización
-        </Button>
+        {/*<ConfirmDialog
+          trigger={
+            <Button
+              disabled={isLoading}
+              className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-2 rounded-full text-lg shadow-md flex items-center gap-2"
+            >
+              {isLoading ? "Enviando..." : "Enviar Respuestas"}
+            </Button>
+          }
+          title="Confirmar envío de respuestas"
+          description={`¿Está seguro de enviar ${responses.length} respuesta${
+            responses.length !== 1 ? "s" : ""
+          } para el producto "${selectedProductName}"?`}
+          confirmText="Enviar"
+          cancelText="Cancelar"
+          onConfirm={handleEnviarRespuestas}
+        />
+        */}
       </div>
     </div>
   );
 };
 
-export default TrackingTab; 
+export default TrackingTab;

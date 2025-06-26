@@ -92,7 +92,7 @@ export default function LoginPage() {
                 alt="ABK Logistics"
                 width={200}
                 height={80}
-                className="h-16 w-auto"
+                className="h-40 w-auto"
               />
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">

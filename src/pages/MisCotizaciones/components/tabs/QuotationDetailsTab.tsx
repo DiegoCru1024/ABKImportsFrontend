@@ -9,6 +9,7 @@ import {
   FileText,
   Clock,
   Receipt,
+  Truck,
 } from "lucide-react";
 import { useGetQuotationById } from "@/hooks/use-quation";
 import { columnsProductDetails } from "../table/columnsProductDetails";
@@ -64,38 +65,39 @@ const QuotationDetailsTab: React.FC<QuotationDetailsTabProps> = ({
   const pricingData = [
     {
       id: "total",
-      title: "Precio Total de la cotización",
+      title: "Costo Total de Importación",
       amount: total_price,
-      description: "Suma total de todos los conceptos",
+      description: "Suma total de todos los conceptos de la cotización",
       icon: Calculator,
       isTotal: true,
     },
     {
       id: "quote",
-      title: "Precio de la cotización",
+      title: "Valor Comercial",
       amount: quotationDetail?.summationTotal || 0,
-      description: "Costo base del servicio cotizado",
+      description: "Costo base de los productos cotizados",
       icon: FileText,
     },
     {
       id: "express",
-      title: "Precio express",
+      title: "Express Local",
       amount: quotationDetail?.express_price || 0,
-      description: "Cargo adicional por servicio urgente",
-      icon: Clock,
+      description: "Servicio de transporte interno a almacen en origen",
+      icon: Truck,
     },
     {
       id: "taxes",
-      title: "Precio de los impuestos",
+      title: "Tributos Aduaneros",
       amount: quotationDetail?.summationTaxes || 0,
-      description: "Impuestos aplicables según legislación",
+      description:
+        "Impuestos aplicables según legislación y según el regímen de importación",
       icon: Receipt,
     },
     {
       id: "services",
-      title: "Precio de los servicios",
+      title: "Servicio Logístico",
       amount: quotationDetail?.summationServiceFee || 0,
-      description: "Servicios adicionales incluidos",
+      description: "Costo por el traslado y gestión del producto desde el proveedor hasta el cliente.",
       icon: Settings,
     },
   ];
@@ -276,7 +278,7 @@ const QuotationDetailsTab: React.FC<QuotationDetailsTabProps> = ({
                           {formatCurrency(item.amount)}
                         </div>
                         <div className="text-xs text-slate-400">
-                          {item.description}
+                        {formatCurrency(item.amount)}
                         </div>
                       </div>
                     </div>

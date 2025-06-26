@@ -5,8 +5,20 @@ import { apiFetch } from "./apiFetch";
  * @returns {Promise<>} - Las inspecciones
  */
 export const getInspectionsByUser = async (searchTerm:string,page:number,size:number) => {
+
+    const url = new URL(
+        "/inspections",
+        "https://abkimportsbackend-production.up.railway.app"
+      )
+      if (searchTerm) {
+        url.searchParams.append("searchTerm", searchTerm.toString());
+      }
+    
+      url.searchParams.append("page", page.toString());
+      url.searchParams.append("size", size.toString());
+    
     try {
-      return await apiFetch(`/inspections?searchTerm=${searchTerm}&page=${page}&size=${size}`, {
+      return await apiFetch<InspectionResponse>(url.pathname + url.search, {
         method: "GET",
       });
     } catch (error) {
@@ -15,6 +27,29 @@ export const getInspectionsByUser = async (searchTerm:string,page:number,size:nu
     }
   };
 
+
+  export interface Inspection {
+    id: string;
+    correlative: string;
+    quotation_id: string;
+    name: string;
+    shipping_service_type: string;
+    logistics_service: string;
+    status: string;
+    total_price: string;
+  }
+
+  export interface InspectionResponse {
+    content: Inspection[];
+    pageNumber: number;
+    pageSize: number;
+    totalElements: number;
+    totalPages: number;
+    last: boolean;
+  }
+
+
+  
 
 
 /**

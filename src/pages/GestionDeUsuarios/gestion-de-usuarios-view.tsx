@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { PlusIcon, UserIcon, Users, UserCheck, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,39 +12,49 @@ import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogFooter, Dialo
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import SendingModal from "@/components/sending-modal";
 import { useCreateUserProfile, useUpdateUserProfile, useDeleteUserProfile } from "@/hooks/useUserHook";
+import type   { UserProfile } from "@/api/apiUser";
 
-interface UserProfile {
-  id: number;
-  name: string;
-  email: string;
-  type: string;
-}
+
 
 function GestionDeUsuarios() {
+
+  const [users, setUsers] = useState<UserProfile[]>([]);
+  const [pageInfo, setPageInfo] = useState({
+    pageNumber: 1,
+    pageSize: 10,
+    totalElements: 0,
+    totalPages: 0,
+  });
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [sending, setSending] = useState(false);
 
   // Hook para obtener los usuarios con paginación
-  const { data, isLoading, error } = useGetAllUserProfileWithPagination(
+  const { data:userData, isLoading, error } = useGetAllUserProfileWithPagination(
     searchTerm,
     currentPage,
     pageSize
   );
 
+
+  useEffect(() => {
+    if (userData) {
+        setUsers(userData.content);
+        setPageInfo({
+            pageNumber: userData.pageNumber,
+            pageSize: userData.pageSize,
+            totalElements: userData.totalElements,
+            totalPages: userData.totalPages,
+        });
+    }
+  }, [userData]);
   // Datos de los usuarios y información de paginación
-  const users = data?.content || [];
-  const pageInfo = {
-    pageNumber: data?.number || 1,
-    pageSize: data?.size || 10,
-    totalElements: data?.totalElements || 0,
-    totalPages: data?.totalPages || 0,
-  };
+ 
 
   // Estadísticas calculadas
   const stats = useMemo(() => {
-    const totalUsers = data?.totalElements || 0;
+    const totalUsers = userData?.totalElements || 0;
     const activeUsers = users.filter((user: UserProfile) => user.type === "active").length;
     const adminUsers = users.filter((user: UserProfile) => user.type === "admin").length;
     
@@ -53,7 +63,7 @@ function GestionDeUsuarios() {
       active: activeUsers,
       admins: adminUsers,
     };
-  }, [users, data?.totalElements]);
+  }, [users, userData?.totalElements]);
 
   // Crear usuario dialog
   const CreateUserDialog: React.FC = () => {

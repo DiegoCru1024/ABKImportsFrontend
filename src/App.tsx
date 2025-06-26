@@ -1,6 +1,5 @@
 import "./App.css";
 import { Routes, Route, Navigate } from "react-router-dom";
-import Inspeccion from "./pages/Inspeccion";
 import Tracking from "./pages/Tracking";
 
 
@@ -33,7 +32,7 @@ function App() {
       {/* Dashboard con sidebar */}
       <Route element={<DashboardLayout />}>
         <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/dashboard/inspeccion-de-mercancias" element={<Inspeccion />} />
+        <Route path="/dashboard/inspeccion-de-mercancias" element={<GestionDeMercanciasView />} />
         <Route path="/dashboard/tracking-de-mercancias" element={<Tracking />} />
         <Route path="/dashboard/gestion-de-tracking" element={<GestionDeTracking />} />
         <Route path="/dashboard/gestion-de-mercancias" element={<GestionDeMercanciasView />} />

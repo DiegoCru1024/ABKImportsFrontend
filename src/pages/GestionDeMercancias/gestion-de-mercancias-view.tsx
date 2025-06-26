@@ -1,45 +1,64 @@
-import { PackageSearch } from 'lucide-react'
-import { useMemo } from "react";
-import { useGetInspectionsByUser, useGenerateInspectionId } from "@/hooks/use-inspections";
+import {
+  AlertTriangle,
+  CheckCircle,
+  FileText,
+  PackageSearch,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { useGetInspectionsByUser } from "@/hooks/use-inspections";
 import { DataTable } from "@/components/table/data-table";
-import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+
+import type { Inspection } from "@/api/apiInpections";
+import { columnasInspeccion } from "./components/table/columns";
 import { Button } from "@/components/ui/button";
-import type { ColumnDef } from "@tanstack/react-table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 function gestionDeMercancias() {
+  const [inspections, setInspections] = useState<Inspection[]>([]);
+  const [pageInfo, setPageInfo] = useState({
+    pageNumber: 1,
+    pageSize: 10,
+    totalElements: 0,
+    totalPages: 0,
+  });
 
+  const [searchTerm, setSearchTerm] = useState("");
 
-  
-  const { data, isLoading, error } = useGetInspectionsByUser("",0,10);
-  const inspections = (data as any)?.content || [];
-  const generateMutation = useGenerateInspectionId();
-  const columns = useMemo<ColumnDef<any, any>[]>(() => [
-    { accessorKey: "id", header: "ID Inspección" },
-    { accessorKey: "quotation_id", header: "ID Cotización" },
-    { accessorKey: "shipping_service_type", header: "Tipo de Servicio" },
-    { accessorKey: "status", header: "Estado" },
-    {
-      accessorKey: "createdAt",
-      header: "Fecha de creación",
-      cell: ({ row }) => <span>{new Date(row.original.createdAt).toLocaleString("es-ES")}</span>,
-    },
-    {
-      id: "actions",
-      header: "Acciones",
-      cell: ({ row }) => (
-        <ConfirmDialog
-          trigger={<Button variant="ghost" size="sm">Generar ID de Inspección</Button>}
-          title="Confirmar generación de ID"
-          description={`¿Generar ID de inspección para cotización ${row.original.quotation_id}?`}
-          confirmText="Generar"
-          cancelText="Cancelar"
-          onConfirm={() =>
-            generateMutation.mutate({ quotation_id: row.original.quotation_id, shipping_service_type: "maritimo" })
-          }
-        />
-      ),
-    },
-  ], [generateMutation]);
+  const handlePageChange = (page: number, size: number) => {
+    setPageInfo({
+      pageNumber: page,
+      pageSize: size,
+      totalElements: pageInfo.totalElements,
+      totalPages: pageInfo.totalPages,
+    });
+  };
+
+  const handleSearch = (searchTerm: string) => {
+    setSearchTerm(searchTerm);
+  };
+
+  const {
+    data: inspectionData,
+    isLoading,
+    error,
+  } = useGetInspectionsByUser(
+    searchTerm,
+    pageInfo.pageNumber,
+    pageInfo.pageSize
+  );
+  useEffect(() => {
+    if (inspectionData) {
+      setInspections(inspectionData.content);
+      setPageInfo({
+        pageNumber: inspectionData.pageNumber,
+        pageSize: inspectionData.pageSize,
+        totalElements: inspectionData.totalElements,
+        totalPages: inspectionData.totalPages,
+      });
+    }
+  }, [inspectionData]);
+
+  const columns = columnasInspeccion();
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-500/5 via-background to-blue-400/10">
       {/* Top Navigation Bar */}
@@ -57,30 +76,84 @@ function gestionDeMercancias() {
           </div>
         </div>
       </div>
+
       {/* Contenido principal */}
       <div className="p-6">
-        {error && (
-          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
-            <p className="text-red-800">Error al cargar las inspecciones: {error.message}</p>
-          </div>
-        )}
-        <DataTable
-          columns={columns}
-          data={inspections}
-          pageInfo={{
-            pageNumber: (data as any)?.number || 0,
-            pageSize: (data as any)?.size || inspections.length,
-            totalElements: (data as any)?.totalElements || inspections.length,
-            totalPages: (data as any)?.totalPages || 1,
-          }}
-          onPageChange={() => {}}
-          onSearch={() => {}}
-          searchTerm=""
-          isLoading={isLoading}
-        />
+        {/* Tarjetas de estadísticas */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Inspecciones Pendientes
+              </CardTitle>
+              <AlertTriangle className="h-4 w-4 text-yellow-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">12</div>
+              <p className="text-xs text-muted-foreground">
+                awaiting inspection
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Completadas Hoy
+              </CardTitle>
+              <CheckCircle className="h-4 w-4 text-green-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">8</div>
+              <p className="text-xs text-muted-foreground">
+                inspecciones completadas
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Total Este Mes
+              </CardTitle>
+              <PackageSearch className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">156</div>
+              <p className="text-xs text-muted-foreground">
+                inspecciones realizadas
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Contenido principal */}
+        <div className="p-6">
+          {error && (
+            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
+              <p className="text-red-800">
+                Error al cargar las inspecciones: {error.message}
+              </p>
+            </div>
+          )}
+          <DataTable
+            columns={columns}
+            data={inspections}
+            pageInfo={{
+              pageNumber: pageInfo.pageNumber,
+              pageSize: pageInfo.pageSize,
+              totalElements: pageInfo.totalElements,
+              totalPages: pageInfo.totalPages,
+            }}
+            onPageChange={handlePageChange}
+            onSearch={handleSearch}
+            searchTerm=""
+            isLoading={isLoading}
+          />
+        </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default gestionDeMercancias
+export default gestionDeMercancias;

@@ -46,6 +46,22 @@ export const getAllUserProfile = async () => {
   }
 };
 
+
+export interface UserProfileWithPagination {
+  content: UserProfile[];
+  pageNumber: number;
+  pageSize: number;
+  totalElements: number;
+  totalPages: number;
+}
+
+export interface UserProfile {
+  id: number;
+  name: string;
+  email: string;
+  type: string;
+}
+
 /**
  * Obtiene todos los usuarios con paginacion   (admin)
  * @returns {Promise<any>} - Los usuarios
@@ -64,12 +80,12 @@ export const getAllUserProfileWithPagination = async (searchTerm: string, page: 
   url.searchParams.append("size", size.toString());
 
   try {
-    return await apiFetch(url.pathname + url.search, {
+    return await apiFetch <UserProfileWithPagination>(url.pathname + url.search, {
       method: "GET",
     });
   } catch (error) {
     console.error("Error al obtener los usuarios:", error);
-    return { status: 500, message: "Error al obtener los usuarios" };
+    throw error; // Lanza en vez de retornar un objeto de error
   }
 };
 
@@ -85,7 +101,7 @@ export const getUserProfileById = async (id: number) => {
     });
   } catch (error) {
     console.error("Error al obtener el perfil del usuario:", error);
-    return { status: 500, message: "Error al obtener el perfil del usuario" };
+    throw error;
   }
 };
 
@@ -97,7 +113,7 @@ export const updateUserProfile = async (id: number, user: User) => {
     });
   } catch (error) {
     console.error("Error al actualizar el perfil del usuario:", error);
-    return { status: 500, message: "Error al actualizar el perfil del usuario" };
+    throw error;
   }
 };
 
@@ -108,7 +124,7 @@ export const deleteUserProfile = async (id: number) => {
     });
   } catch (error) {
     console.error("Error al eliminar el perfil del usuario:", error);
-    return { status: 500, message: "Error al eliminar el perfil del usuario" };
+    throw error;
   }
 };
 

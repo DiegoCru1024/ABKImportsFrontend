@@ -15,7 +15,7 @@ import DashboardLayout from "./layouts/DashboardLayout";
 import GestionDeUsuarios from "./pages/GestionDeUsuarios/gestion-de-usuarios-view";
 import GestionDeTracking from "./pages/GestionDeTracking";
 import GestionDeMercanciasView from "./pages/GestionDeMercancias/gestion-de-mercancias-view";
-import CotizacionViewNew from "./pages/Cotizacion/CotizacionView";
+import CotizacionViewNew from "./pages/Cotizacion/cotizacion-view";  
 import MisCotizacionesView from "./pages/MisCotizaciones/mis-cotizacion-view";
 
 

@@ -61,28 +61,52 @@ export default function GestionDeCotizacionesView() {
     setMainTab("respuesta");
   };
 
+  const [searchTerm, setSearchTerm] = useState("");
+  const [pageInfo, setPageInfo] = useState({
+    pageNumber: 1,
+    pageSize: 10,
+    totalElements: 0,
+    totalPages: 0,
+  });
+
+
   return (
-    <div className="min-h-screen overflow-x-hidden bg-gray-100 border-t-2 border-b-2 border-gray-200">
+    //*
+    //* Clase Tailwind	Significado
+    //* min-h-screen	Establece la altura mínima del div al 100% de la altura de la pantalla.
+    //* overflow-x-hidden	Oculta cualquier desbordamiento horizontal (evita el scroll lateral).
+    //* bg-gray-100	Fondo de color gris claro (gray-100).
+    //* border-t-2	Borde superior de 2 píxeles.
+    //* border-b-2	Borde inferior de 2 píxeles.
+    //* border-gray-200	Color del borde gris un poco más oscuro que el fondo.
+    //* supports-[backdrop-filter]:bg-background/60	Si el navegador soporta backdrop-filter, aplica un fondo semitransparente (60% de opacidad). bg-background debe estar definido como una clase personalizada o extendida en Tailwind.
+    //* supports-[backdrop-filter]:backdrop-blur-sm	Si se soporta backdrop-filter, aplica un pequeño desenfoque al fondo del elemento.
+    <div className="min-h-screen overflow-x-hidden bg-gray-100  border-gray-200 supports-[backdrop-filter]:bg-background/60 supports-[backdrop-filter]:backdrop-blur-sm">
       {/* Barra de navegación superior */}
-      <div className="border-b-2 px-4 py-4 backdrop-blur-sm sticky border-border/60 bg-background/80">
+      <div className="border-b-2 px-4 py-4 backdrop-blur-sm sticky border-border/60 bg-background/80 dark:bg-background/80 ">
         <div className="container flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-500 hover:bg-orange-600">
-                <FileText className="h-6 w-6 text-white" />
+                <FileText className="h-6 w-6 text-white :" />
               </div>
-              <h1 className="text-xl font-bold text-gray-900">
-                Gestión de cotizaciones
+              <div className="flex flex-col">
+              <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+                Panel de Administración de Cotizaciones
               </h1>
+                <span className="text-sm text-gray-500 dark:text-gray-400">
+                  Gestiona las cotizaciones de tus productos
+                </span>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       <div className="w-full p-2">
-        <div className="overflow-x-auto rounded-lg bg-white  shadow-sm">
+        <div className="overflow-x-auto rounded-md bg-white  shadow-sm">
           {/* Tabs Principales mejorados */}
-          <div className="relative flex bg-gray-50/50">
+          {/* <div className="relative flex bg-gray-50/50">
             {tabs.map((tabItem, index) => {
               const Icon = tabItem.icon;
               const isActive = mainTab === tabItem.id;
@@ -119,21 +143,21 @@ export default function GestionDeCotizacionesView() {
                 </button>
               );
             })}
-          </div>
+          </div> */}
 
           {/* Contenidos de las tabs */}
-          {mainTab === "solicitudes" && (
+          {/* {mainTab === "solicitudes" && (
             <SolicitudesTab onViewDetails={handleViewDetails} />
-          )}
+          )} */}
 
-          {mainTab === "detalles" && selectedQuotationId && (
+          {/* {mainTab === "detalles" && selectedQuotationId && (
             <DetallesTab
               selectedQuotationId={selectedQuotationId}
               onSelectProductForResponse={handleSelectProductForResponse}
             />
-          )}
+          )} */}
 
-          {mainTab === "respuesta" &&
+          {/* {mainTab === "respuesta" &&
             selectedProductId &&
             selectedQuotationId && (
               <RespuestaTab
@@ -141,7 +165,15 @@ export default function GestionDeCotizacionesView() {
                 selectedProductId={selectedProductId}
                 selectedProductName={selectedProductName}
               />
-            )}
+            )} */}
+
+            <span>
+              Buscador
+            </span>
+
+            <div className="space-y-4">
+
+            </div>
         </div>
       </div>
     </div>

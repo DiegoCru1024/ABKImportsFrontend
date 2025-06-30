@@ -179,7 +179,7 @@ export default function SocketNotification() {
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild>
                 <div className="ml-auto relative cursor-pointer">
-                    <Bell className="w-5 h-5 text-yellow-500 hover:text-yellow-600 transition-colors" />
+                    <Bell className="w-6 h-6 text-yellow-500 hover:text-yellow-600 transition-colors animate-pulse" />
                     {unreadCount > 0 && (
                         <Badge
                             variant="destructive"

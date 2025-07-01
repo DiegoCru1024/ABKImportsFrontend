@@ -8,7 +8,7 @@ export async function uploadMultipleFiles(files: File[]): Promise<{ urls: string
 
   const access_token = localStorage.getItem("access_token");
   const response = await fetch(
-    `https://abkimportsbackend-production.up.railway.app/file-upload/upload-multiple`,
+    `http://localhost:3000/file-upload/upload-multiple`,
     {
       method: "POST",
       headers: {
@@ -28,7 +28,7 @@ export async function uploadMultipleFiles(files: File[]): Promise<{ urls: string
 export async function deleteFile(fileUrl: string): Promise<{ message: string }> {
   const access_token = localStorage.getItem("access_token");
   const response = await fetch(
-    `https://abkimportsbackend-production.up.railway.app/file-upload/delete`,
+    `http://localhost:3000/file-upload/delete`,
     {
       method: "DELETE",
       headers: {

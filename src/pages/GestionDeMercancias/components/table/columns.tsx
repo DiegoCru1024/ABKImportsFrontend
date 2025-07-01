@@ -12,7 +12,12 @@ export interface Inspection {
   status: string;
   total_price: string;
 }
-export function columnasInspeccion(): ColumnDef<Inspection, any>[] {
+
+interface ColumnasInspeccionProps {
+  onInspectionClick: (inspectionId: string) => void;
+}
+
+export function columnasInspeccion(onInspectionClick?: (inspectionId: string) => void): ColumnDef<Inspection, any>[] {
   return [
     { accessorKey: "correlative", header: "Correlativo" },
     //  { accessorKey: "quotation_id", header: "Cotización" },
@@ -25,7 +30,11 @@ export function columnasInspeccion(): ColumnDef<Inspection, any>[] {
       accessorKey: "actions",
       header: "Acciones",
       cell: ({ row }) => (
-        <Button variant="ghost" size="sm">
+        <Button 
+          variant="ghost" 
+          size="sm"
+          onClick={() => onInspectionClick?.(row.original.id)}
+        >
           <EyeIcon className="h-4 w-4" />
           Ver Inspección
         </Button>

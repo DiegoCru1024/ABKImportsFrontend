@@ -70,7 +70,7 @@ export const getAllUserProfileWithPagination = async (searchTerm: string, page: 
   
   const url = new URL(
     "/users",
-    "https://abkimportsbackend-production.up.railway.app"
+    "http://localhost:3000"
   )
   if (searchTerm) {
     url.searchParams.append("searchTerm", searchTerm.toString());

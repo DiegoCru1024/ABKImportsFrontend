@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { deleteInspection, generateInspectionId, getInspectionById, getInspectionsByUser, updateInspection } from "@/api/apiInpections";
+import { deleteInspection, generateInspectionId, getInspectionById, getInspectionsByUser, updateInspection, updateInspectionProduct } from "@/api/apiInpections";
 
 /**
  * Hook para generar un ID de inspección
@@ -50,6 +50,7 @@ export function useGenerateInspectionId() {
     return useQuery({
       queryKey: ["Inspections", id],
       queryFn: () => getInspectionById(id),
+      enabled: !!id,
     });
   }
   
@@ -100,6 +101,34 @@ export function useGenerateInspectionId() {
           toast.error(`Error: ${error.message}`);
         } else {
           toast.error("Error desconocido al eliminar la inspección");
+        }
+      },
+    });
+  }
+
+/**
+ * Hook para actualizar un producto específico de una inspección
+ * @param {string} inspectionId - El ID de la inspección
+ * @param {string} productId - El ID del producto
+ * @returns {useMutation} - Mutación para actualizar un producto de inspección
+ */
+export function useUpdateInspectionProduct(inspectionId: string, productId: string) {
+    const queryClient = useQueryClient();
+    return useMutation({
+      mutationFn: (data: { status: string; files: string[] }) => 
+        updateInspectionProduct(inspectionId, productId, data),
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: ["Inspections", inspectionId],
+        });
+        toast.success("Producto actualizado exitosamente");
+      },
+      onError: (error: any) => {
+        console.error("Error al actualizar el producto:", error);
+        if (error instanceof Error) {
+          toast.error(`Error: ${error.message}`);
+        } else {
+          toast.error("Error desconocido al actualizar el producto");
         }
       },
     });

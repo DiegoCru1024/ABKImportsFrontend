@@ -12,6 +12,7 @@ import type { Inspection } from "@/api/apiInpections";
 import { columnasInspeccion } from "./components/table/columns";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useNavigate } from "react-router-dom";
 
 function gestionDeMercancias() {
   const [inspections, setInspections] = useState<Inspection[]>([]);
@@ -23,6 +24,7 @@ function gestionDeMercancias() {
   });
 
   const [searchTerm, setSearchTerm] = useState("");
+  const navigate = useNavigate();
 
   const handlePageChange = (page: number, size: number) => {
     setPageInfo({
@@ -35,6 +37,10 @@ function gestionDeMercancias() {
 
   const handleSearch = (searchTerm: string) => {
     setSearchTerm(searchTerm);
+  };
+
+  const handleInspectionClick = (inspectionId: string) => {
+    navigate(`/dashboard/gestion-de-mercancias/${inspectionId}`);
   };
 
   const {
@@ -58,7 +64,7 @@ function gestionDeMercancias() {
     }
   }, [inspectionData]);
 
-  const columns = columnasInspeccion();
+  const columns = columnasInspeccion(handleInspectionClick);
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-500/5 via-background to-blue-400/10">
       {/* Top Navigation Bar */}

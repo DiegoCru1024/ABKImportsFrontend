@@ -57,7 +57,7 @@ export default function SocketNotification() {
     useEffect(() => {
         if (!access_token) return;
 
-        socketRef.current = io("https://abkimportsbackend-production.up.railway.app", {
+        socketRef.current = io("http://localhost:3000", {
             auth: {
                 token: access_token,
             },

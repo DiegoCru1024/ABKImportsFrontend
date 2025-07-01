@@ -1,4 +1,4 @@
-const API_BASE_URL = "https://abkimportsbackend-production.up.railway.app";
+const API_BASE_URL = "http://localhost:3000";
 
 interface NotificationResponse {
     content: Array<{

@@ -1,6 +1,6 @@
 export const login = async (email: string, password: string) => {
   try {
-    const response = await fetch("https://abkimportsbackend-production.up.railway.app/users/login", {
+    const response = await fetch("http://localhost:3000/users/login", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

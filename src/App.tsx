@@ -15,6 +15,7 @@ import DashboardLayout from "./layouts/DashboardLayout";
 import GestionDeUsuarios from "./pages/GestionDeUsuarios/gestion-de-usuarios-view";
 import GestionDeTracking from "./pages/GestionDeTracking";
 import GestionDeMercanciasView from "./pages/GestionDeMercancias/gestion-de-mercancias-view";
+import InspectionDetailView from "./pages/GestionDeMercancias/inspection-detail-view";
 import CotizacionViewNew from "./pages/Cotizacion/CotizacionView";
 import MisCotizacionesView from "./pages/MisCotizaciones/mis-cotizacion-view";
 
@@ -36,6 +37,7 @@ function App() {
         <Route path="/dashboard/tracking-de-mercancias" element={<Tracking />} />
         <Route path="/dashboard/gestion-de-tracking" element={<GestionDeTracking />} />
         <Route path="/dashboard/gestion-de-mercancias" element={<GestionDeMercanciasView />} />
+        <Route path="/dashboard/gestion-de-mercancias/:id" element={<InspectionDetailView />} />
         <Route path="/dashboard/gestion-de-cotizacion" element={<GestionDeCotizacionesView />} />
         <Route path="/dashboard/gestion-de-usuarios" element={<GestionDeUsuarios />} />
 

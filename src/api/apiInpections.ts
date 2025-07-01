@@ -8,7 +8,7 @@ export const getInspectionsByUser = async (searchTerm:string,page:number,size:nu
 
     const url = new URL(
         "/inspections",
-        "http://localhost:3000"
+        "https://abkimportsbackend-production.up.railway.app"
       )
       if (searchTerm) {
         url.searchParams.append("searchTerm", searchTerm.toString());

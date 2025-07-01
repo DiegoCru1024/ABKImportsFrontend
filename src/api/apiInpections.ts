@@ -48,6 +48,24 @@ export const getInspectionsByUser = async (searchTerm:string,page:number,size:nu
     last: boolean;
   }
 
+  export interface InspectionProduct {
+    product_id: string;
+    name: string;
+    quantity: number;
+    express_price: string;
+    status: string;
+    files: string[];
+  }
+
+  export interface InspectionDetail {
+    id: string;
+    shipping_service_type: string;
+    logistics_service: string;
+    updated_at: string;
+    content: InspectionProduct[];
+    total_price: string;
+  }
+
 
   
 
@@ -80,11 +98,11 @@ export const getInspectionsByUser = async (searchTerm:string,page:number,size:nu
 /**
  * Obtiene una inspección por su ID
  * @param {string} id - El ID de la inspección
- * @returns {Promise<any>} - La inspección
+ * @returns {Promise<InspectionDetail>} - La inspección detallada
  */
-export const getInspectionById = async (id: string) => {
+export const getInspectionById = async (id: string): Promise<InspectionDetail> => {
     try {
-        return await apiFetch(`/inspections/${id}`, {
+        return await apiFetch<InspectionDetail>(`/inspections/${id}`, {
             method: "GET", 
         });
     } catch (error) {
@@ -127,7 +145,30 @@ export const deleteInspection = async (id: string) => {
         console.error("Error al eliminar la inspección:", error);
         throw error;
     }
-}   
+}
+
+/**
+ * Actualiza un producto específico de una inspección
+ * @param {string} inspectionId - El ID de la inspección
+ * @param {string} productId - El ID del producto
+ * @param {object} data - Los datos a actualizar (status y files)
+ * @returns {Promise<any>} - El producto actualizado
+ */
+export const updateInspectionProduct = async (
+    inspectionId: string, 
+    productId: string, 
+    data: { status: string; files: string[] }
+) => {
+    try {
+        return await apiFetch(`/inspections/${inspectionId}/products/${productId}`, {
+            method: "PUT",
+            body: JSON.stringify(data),
+        });
+    } catch (error) {
+        console.error("Error al actualizar el producto de la inspección:", error);
+        throw error;
+    }
+}
 
 
 

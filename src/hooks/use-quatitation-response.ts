@@ -5,7 +5,7 @@ import {
   getAllResponsesForSpecificProductoInQuotation,
   getAllResponsesForSpecificQuotation,
   patchQuatitationResponse,
-} from "@/api/apiQuotationResponse";
+} from "@/api/quotation-responses";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 

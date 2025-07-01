@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createQuotation, deleteQuotation, getQuotationById, getQuotationsByUser, updateQuotation } from "@/api/quotations";
 import { toast } from "sonner";
 
+
 /**
  * Hook para crear una cotización
  * @returns {useMutation} - Mutación para crear una cotización
@@ -62,19 +63,15 @@ export function useGetQuotationById(id: string) {
  * Hook para obtener todas las cotizaciones realizadas por el usuario
  * @returns {useQuery} - Consulta para obtener todas las cotizaciones
  */ 
-export function useGetQuotationsByUser() {
-  const { isLoading, isError, data, refetch, isSuccess } = useQuery({
-    queryKey: ["Quotations"],
-    queryFn: getQuotationsByUser,
-  });
+export function useGetQuotationsListWithPagination(  
+  searchTerm: string,
+  page: number,
+  size: number) {
 
-  return {
-    data,
-    isLoading,
-    isError,
-    refetch,
-    isSuccess,
-  };
+return useQuery({
+  queryKey: ["useGetQuotationsByUser", searchTerm, page, size],
+  queryFn: () => getQuotationsByUser(searchTerm, page, size),
+});
 }
 
 /**

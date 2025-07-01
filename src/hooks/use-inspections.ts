@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { deleteInspection, generateInspectionId, getInspectionById, getInspectionsByUser, updateInspection, updateInspectionProduct } from "@/api/apiInpections";
+import { deleteInspection, generateInspectionId, getInspectionById, getInspectionsByUser, updateInspection, updateInspectionProduct } from "@/api/inspection";
 
 /**
  * Hook para generar un ID de inspección

@@ -1,5 +1,5 @@
 import { apiFetch } from "./apiFetch";
-import type { QuotationResponseRequest } from "./interface/quotationResponseInterfaces";
+import type { getAllResponsesForSpecificProductoInQuotationResponse, QuotationResponseRequest } from "./interface/quotationResponseInterfaces";
 
 /**
  * Obtiene todas las respuestas de una cotización por su ID
@@ -16,39 +16,8 @@ export const getAllResponsesForSpecificQuotation = async (id: string) => {
   }
 };
 
-export interface getAllResponsesForSpecificProductoInQuotationResponse {
-    product: ProductBasicInfo;
-  responses: Responses[];
-}
 
-export interface ProductBasicInfo {
-  id: string;
-  name: string;
-  quantity: number;
-  size: string;
-  color: string;
-  url: string;
-  comment: string;
-  weight: string;
-  volume: string;
-  number_of_boxes: number;
-  attachments: string[];
-  statusResponseProduct: string;
-  sendResponse: boolean;
-}
 
-export interface Responses {
-  logistics_service: string;
-  unit_price: number;
-  incoterms: string;
-  total_price: number;
-  express_price: number;
-  service_fee: number;
-  taxes: number;
-  recommendations: string;
-  additional_comments: string;
-  files: string[];
-}
 /**
  * Obtiene todas las respuestas de un producto en una cotización por su ID
  * @param {string} id - El ID de la cotización
@@ -103,7 +72,7 @@ export const createQuatitationResponseMultiple = async (
     return await apiFetch(
       `/quotation-responses/multiple/quotation/${quotationId}/product/${productId}`,
       {
-        //TODO: Cambiar a la ruta correcta
+
         method: "POST",
         body: JSON.stringify(data),
       }

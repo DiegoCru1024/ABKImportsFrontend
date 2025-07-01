@@ -1,6 +1,9 @@
 import { apiFetch } from "./apiFetch";
 import type { Quotation } from "@/pages/Cotizacion/utils/interface";
-import type { QuotationResponseIdInterface, QuotationsByUserResponseInterface } from "./interface/quotationInterface";
+import type {
+  QuotationResponseIdInterface,
+  QuotationsByUserResponseInterface,
+} from "./interface/quotationInterface";
 
 /**
  * Crea una nueva cotización
@@ -36,14 +39,35 @@ export const getQuotationById = async (id: string) => {
   }
 };
 
-
 /**
  * Obtiene todas las cotizaciones que ha realizado el usuario
  * @returns {Promise<QuotationsByUserResponseInterface>} - Las cotizaciones
  */
-export const getQuotationsByUser = async () => {
+export const getQuotationsByUser = async (
+  searchTerm: string,
+  page: number,
+  size: number
+) => {
+  let endpoint = "/quotations";
+  
+  // Crear los parámetros de búsqueda y agregarlos a la URL si es necesario
+  const params: URLSearchParams = new URLSearchParams();
+  
+  if (searchTerm) {
+    params.append("searchTerm", searchTerm);
+  }
+
+  // Agregar los parámetros de paginación
+  params.append("page", page.toString());
+  params.append("size", size.toString());
+
+  // Si hay parámetros, los agregamos al endpoint
+  if (params.toString()) {
+    endpoint = `${endpoint}?${params.toString()}`;
+  }
+
   try {
-    return await apiFetch<QuotationsByUserResponseInterface>("/quotations", {
+    return await apiFetch<QuotationsByUserResponseInterface>(endpoint, {
       method: "GET",
     });
   } catch (error) {

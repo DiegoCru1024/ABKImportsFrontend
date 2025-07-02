@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import { useGetInspectionsByUser } from "@/hooks/use-inspections";
 import { DataTable } from "@/components/table/data-table";
 
-import type { Inspection } from "@/api/apiInpections";
+import type { Inspection } from "@/api/interface/inspectionInterface";
 import { columnasInspeccion } from "./components/table/columns";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

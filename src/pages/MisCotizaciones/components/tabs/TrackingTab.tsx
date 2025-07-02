@@ -14,7 +14,7 @@ import {
   Truck,
 } from "lucide-react";
 import { useGetAllQuatitationResponseForSpecificProduct } from "@/hooks/use-quatitation-response";
-import type { ProductBasicInfo, Responses } from "@/api/apiQuotationResponse";
+import type { ProductBasicInfo, Responses } from "@/api/interface/quotationResponseInterfaces";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import {

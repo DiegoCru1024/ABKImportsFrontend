@@ -901,15 +901,15 @@ const DetallesTab: React.FC<DetallesTabProps> = ({
                         Archivos Adjuntos
                       </Label>
                       <div className="mt-1">
-                        <FileUploadComponent
+                        {/*<FileUploadComponent
                           onFilesChange={(files) =>
                               updateResponse(
                                 response.id as unknown as number,
                               "archivos",
-                              files as unknown as File[]
+                              files as unknown as string[]
                             )
                           }
-                        />
+                        />*/}
                         <p className="text-xs text-gray-500 mt-1">
                           Máx 20 archivos • Máx 10MB c/u
                         </p>

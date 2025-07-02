@@ -11,7 +11,7 @@ import { DataTable } from "@/components/table/data-table";
 import { Button } from "@/components/ui/button";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { Inspection } from "@/api/apiInpections";
+import type { Inspection } from "@/api/interface/inspectionInterface";
 import { columnasInspeccion } from "../GestionDeMercancias/components/table/columns";
 
 function Inspeccion() {

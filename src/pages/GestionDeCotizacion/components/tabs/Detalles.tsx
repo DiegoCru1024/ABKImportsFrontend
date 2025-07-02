@@ -87,19 +87,23 @@ const DetallesTab: React.FC<DetallesTabProps> = ({
   selectedQuotationId,
   onSelectProductForResponse,
 }) => {
+  //* Hook para obtener los detalles de la cotización - DEBE IR PRIMERO
+  const {
+    data: quotationDetail,
+    isLoading,
+    isError,
+  } = useGetQuotationById(selectedQuotationId);
+
+  //* Hook para crear respuestas múltiples - DEBE IR DESPUÉS DE LOS HOOKS DE QUERY
+  const createResponseMutation = useCreateQuatitationResponseMultiple();
+
+  //* Estados - TODOS LOS USESTATE JUNTOS
   const [subTab, setSubTab] = useState<
     "Todos" | "No respondido" | "Respondido" | "Observado"
   >("Todos");
 
   //* Estado de apertura de modal de respuesta
   const [isResponseModalOpen, setIsResponseModalOpen] = useState(false);
-
-  //* Hook para obtener los detalles de la cotización
-  const {
-    data: quotationDetail,
-    isLoading,
-    isError,
-  } = useGetQuotationById(selectedQuotationId);
 
   const [isLoadingResponse, setIsLoadingResponse] = useState(false);
 
@@ -122,6 +126,24 @@ const DetallesTab: React.FC<DetallesTabProps> = ({
   const [respondedProducts, setRespondedProducts] = useState(0);
   const [progress, setProgress] = useState(0);
 
+  //* Estados para las respuestas
+  const [responses, setResponses] = useState<AdminQuotationResponse[]>([
+    {
+      id: Date.now().toString(),
+      pUnitario: "",
+      incoterms: "FOB",
+      precioTotal: "",
+      precioExpress: "",
+      servicioLogistico: "Consolidado Grupal Maritimo",
+      tarifaServicio: "",
+      impuestos: "",
+      recomendaciones: "",
+      comentariosAdicionales: "",
+      archivos: [],
+      status: "approved",
+    },
+  ]);
+
   //* Establecer el primer servicio como seleccionado cuando se cargan los datos
   useEffect(() => {
     if (
@@ -137,19 +159,23 @@ const DetallesTab: React.FC<DetallesTabProps> = ({
           .map((item) => item.statusResponseProduct)
           .filter(Boolean).length
       );
-      setProgress(
-        totalProducts > 0
-          ? Math.round((respondedProducts / totalProducts) * 100)
-          : 0
-      );
       setProduct(quotationDetail.products);
     }
   }, [quotationDetail, selectedServiceType]);
 
+  //* Calcular progreso cuando cambien los productos respondidos
+  useEffect(() => {
+    setProgress(
+      totalProducts > 0
+        ? Math.round((respondedProducts / totalProducts) * 100)
+        : 0
+    );
+  }, [totalProducts, respondedProducts]);
+
   const updateResponse = (
     index: number,
     field: keyof AdminQuotationResponse,
-    value: string
+    value: string | File[]
   ) => {
     setResponses((prev) =>
       prev.map((response, i) =>
@@ -242,25 +268,6 @@ const DetallesTab: React.FC<DetallesTabProps> = ({
       icon: Settings,
     },
   ];
-
-  const createResponseMutation = useCreateQuatitationResponseMultiple();
-
-  const [responses, setResponses] = useState<AdminQuotationResponse[]>([
-    {
-      id: Date.now().toString(),
-      pUnitario: "",
-      incoterms: "FOB",
-      precioTotal: "",
-      precioExpress: "",
-      servicioLogistico: "Consolidado Grupal Maritimo",
-      tarifaServicio: "",
-      impuestos: "",
-      recomendaciones: "",
-      comentariosAdicionales: "",
-      archivos: [],
-      status: "approved",
-    },
-  ]);
 
   const addResponse = () => {
     const newResponse: AdminQuotationResponse = {
@@ -544,7 +551,10 @@ const DetallesTab: React.FC<DetallesTabProps> = ({
                       {respondedProducts} respuestas
                     </Badge>
                     <Button
-                      onClick={() => setIsResponseModalOpen(true)}
+                      onClick={() => {
+                        setSelectedProduct(product);
+                        setIsResponseModalOpen(true);
+                      }}
                       size="sm"
                       className="ml-2  hover:animate-none bg-orange-500 hover:bg-orange-600"
                     >
@@ -901,15 +911,15 @@ const DetallesTab: React.FC<DetallesTabProps> = ({
                         Archivos Adjuntos
                       </Label>
                       <div className="mt-1">
-                        {/*<FileUploadComponent
+                        <FileUploadComponent
                           onFilesChange={(files) =>
-                              updateResponse(
-                                response.id as unknown as number,
+                            updateResponse(
+                              i,
                               "archivos",
-                              files as unknown as string[]
+                              files
                             )
                           }
-                        />*/}
+                        />
                         <p className="text-xs text-gray-500 mt-1">
                           Máx 20 archivos • Máx 10MB c/u
                         </p>
@@ -918,6 +928,27 @@ const DetallesTab: React.FC<DetallesTabProps> = ({
                   </CardContent>
                 </Card>
               ))}
+            </div>
+
+            {/* Botón de enviar respuestas */}
+            <div className="flex space-x-4 justify-end pt-6">
+              <ConfirmDialog
+                trigger={
+                  <Button
+                    disabled={isLoadingResponse}
+                    className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-2 rounded-full text-lg shadow-md flex items-center gap-2"
+                  >
+                    {isLoadingResponse ? "Enviando..." : "Enviar Respuestas"}
+                  </Button>
+                }
+                title="Confirmar envío de respuestas"
+                description={`¿Está seguro de enviar ${responses.length} respuesta${
+                  responses.length !== 1 ? "s" : ""
+                } para el producto "${selectedProduct?.name}"?`}
+                confirmText="Enviar"
+                cancelText="Cancelar"
+                onConfirm={handleEnviarRespuestas}
+              />
             </div>
           </div>
         </DialogContent>
@@ -1068,25 +1099,6 @@ const DetallesTab: React.FC<DetallesTabProps> = ({
             </div>
           </div>
         </div>
-      </div>
-      <div className="flex space-x-4 justify-end pt-6">
-        <ConfirmDialog
-          trigger={
-            <Button
-              disabled={isLoadingResponse}
-              className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-2 rounded-full text-lg shadow-md flex items-center gap-2"
-            >
-              {isLoadingResponse ? "Enviando..." : "Enviar Respuestas"}
-            </Button>
-          }
-          title="Confirmar envío de respuestas"
-          description={`¿Está seguro de enviar ${responses.length} respuesta${
-            responses.length !== 1 ? "s" : ""
-          } para el producto "${selectedProduct?.name}"?`}
-          confirmText="Enviar"
-          cancelText="Cancelar"
-          onConfirm={handleEnviarRespuestas}
-        />
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable } from "@/components/table/data-table";
-import { useGetQuotationsByUser } from "@/hooks/use-quation";
+import { useGetQuotationsListWithPagination } from "@/hooks/use-quation";
 import { columnsQuotationsList } from "../table/columnsQuotationsList";
 
 
@@ -20,7 +20,7 @@ const QuotationsListTab: React.FC<QuotationsListTabProps> = ({ onViewDetails }) 
     totalElements: 0,
     totalPages: 0,
   });
-  const { data: dataQuotations, isLoading, isError } = useGetQuotationsByUser();
+  const { data: dataQuotations, isLoading, isError } = useGetQuotationsListWithPagination( searchTerm,pageInfo.pageNumber,pageInfo.pageSize);
   useEffect(() => {
     if (dataQuotations) {
       console.log("data", dataQuotations);

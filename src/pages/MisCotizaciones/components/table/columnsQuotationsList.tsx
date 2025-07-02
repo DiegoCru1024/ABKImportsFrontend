@@ -78,13 +78,13 @@ export function columnsQuotationsList({
     }
   };
 
-  const userColumn: ColumnDef<QuotationListItem, any> = {
+  /*    const userColumn: ColumnDef<QuotationListItem, any> = {
     id: "user",
     accessorKey: "user",
     header: "Cliente",
     cell: ({ row }) => <div>{row.original.user.name}</div>,
     size: 120,
-  };
+  };*/
 
   return [
     /*{
@@ -109,7 +109,7 @@ export function columnsQuotationsList({
       ),
       size: 120,
     },
-    ...(isAdmin ? [userColumn] : []),
+    /*...(isAdmin ? [userColumn] : []),*/
     {
       id: "status",
       accessorKey: "status",

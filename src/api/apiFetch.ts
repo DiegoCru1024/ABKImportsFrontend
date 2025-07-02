@@ -8,11 +8,8 @@ export async function apiFetch<T>(endpoint: string, options: RequestInit = {}): 
   };
 
   try {
-    //console.log("Request URL: ", `https://abkimportsbackend-production.up.railway.app${endpoint}`);
     console.log("Request URL: ", `https://abkimportsbackend-production.up.railway.app${endpoint}`);
-    //console.log("Request Body: ", options.body);
     const response = await fetch(
-      //`https://abkimportsbackend-production.up.railway.app${endpoint}`, // 🔹 Base URL + endpoint
       `https://abkimportsbackend-production.up.railway.app${endpoint}`, // 🔹 Base URL + endpoint
       {
         ...options,

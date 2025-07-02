@@ -52,7 +52,6 @@ export interface ProductoResponseIdInterface {
  */
 export interface QuotationsByUserResponseInterface {
   content: QuotationsByUserResponseInterfaceContent[];
-
   pageNumber: number;
   pageSize: number;
   totalElements: number;

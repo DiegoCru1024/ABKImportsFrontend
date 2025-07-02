@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { useUpdateInspectionProduct } from "@/hooks/use-inspections";
 import { uploadMultipleFiles } from "@/api/fileUpload";
-import { updateInspectionProduct } from "@/api/apiInpections";
+import { updateInspectionProduct } from "@/api/inspection";
 import { useQueryClient } from "@tanstack/react-query";
 import FileUploadComponent from "@/components/comp-552";
 import { ViewFilesModal } from "./components/ViewFilesModal";

@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useGetQuotationById } from "@/hooks/use-quation";
-import { columnsProductDetails } from "@/pages/MisCotizaciones/components/table/columnsProductDetails";
+import { columnsProductDetails } from "@/pages/mis-cotizaciones/components/table/columnsProductDetails";
 import {
   Card,
   CardContent,
@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/functions";
 import type { ProductoResponseIdInterface } from "@/api/interface/quotationInterface";
-import { statusColorsQuotation, statusResponseQuotation } from "@/pages/GestionDeCotizacion/components/utils/static";
+import { statusColorsQuotation, statusResponseQuotation } from "@/pages/gestion-de-cotizacion/components/utils/static";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface DetallesTabProps {

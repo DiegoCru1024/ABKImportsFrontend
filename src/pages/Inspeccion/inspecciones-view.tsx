@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Inspection } from "@/api/interface/inspectionInterface";
-import { columnasInspeccion } from "../GestionDeMercancias/components/table/columns";
+import { columnasInspeccion } from "../gestion-de-mercancia/components/table/columns";
 
 function Inspeccion() {
   const [inspections, setInspections] = useState<Inspection[]>([]);

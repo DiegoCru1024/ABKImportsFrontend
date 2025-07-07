@@ -1,8 +1,9 @@
-import type { Quotation } from "@/pages/Cotizacion/utils/interface";
+import type { Quotation } from "@/pages/cotizacion/utils/interface";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createQuotation, deleteQuotation, getQuotationById, getQuotationsByUser, updateQuotation } from "@/api/quotations";
 import { toast } from "sonner";
+import { Check, X } from "lucide-react";
 
 
 /**
@@ -19,14 +20,34 @@ export function useCreateQuotation() {
       queryClient.invalidateQueries({
         queryKey: ["Quotations"],
       });
-      toast.success("Cotización creada exitosamente");
+      toast.success("Éxito", {
+        description: "Cotización creada exitosamente, puede ver su cotización en la sección de mis cotizaciones",
+        className: "bg-green-50 border-green-500",
+        duration: 3000, // 3 segundos
+        descriptionClassName: "text-green-600",
+        icon: <Check className="text-green-500" />,
+        style: { border: "1px solid #22c55e" },
+      });
     },
     onError: (error: any) => {
       console.error("Error al crear la cotización:", error);
       if (error instanceof Error) {
-        toast.error(`Error: ${error.message}`);
+        toast.error("Error", {
+          description: `Error: ${error.message}`,
+          className: "bg-red-50 border-red-500",
+          duration: 3000, // 3 segundos
+          descriptionClassName: "text-red-600",
+          icon: <X className="text-red-500" />,
+          style: { border: "1px solid #ef4444" },
+        });
       } else {
-        toast.error("Error desconocido al crear la cotización");
+        toast.error("Error desconocido al crear la cotización", {
+          className: "bg-red-50 border-red-500",
+          duration: 3000, // 3 segundos
+          descriptionClassName: "text-red-600",
+          icon: <X className="text-red-500" />,
+          style: { border: "1px solid #ef4444" },
+        });
       }
     },
   });

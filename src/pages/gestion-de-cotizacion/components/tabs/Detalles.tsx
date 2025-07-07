@@ -54,7 +54,7 @@ import {
 } from "../utils/static";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { incotermsOptions } from "../utils/static";
-import { servicios } from "../../../Cotizacion/components/data/static";
+import { servicios } from "../../../cotizacion/components/data/static";
 import FileUploadComponent from "@/components/comp-552";
 import { uploadMultipleFiles } from "@/api/fileUpload";
 import type { QuotationResponseRequest } from "@/api/interface/quotationResponseInterfaces";
@@ -62,30 +62,13 @@ import type { AdminQuotationResponse } from "../utils/interface";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useCreateQuatitationResponseMultiple } from "@/hooks/use-quatitation-response";
 import type { ProductoResponseIdInterface } from "@/api/interface/quotationInterface";
+import type { DetallesTabProps } from "../utils/interface";
+import { formatDate, formatDateTime } from "@/lib/format-time";
 
-interface DetallesTabProps {
-  selectedQuotationId: string;
-  onSelectProductForResponse: (productId: string, productName: string) => void;
-}
 
-interface ProductResponse {
-  id: string;
-  supplier: string;
-  unitPrice: string;
-  totalPrice: string;
-  expressPrice: string;
-  servicePrice: string;
-  taxes: string;
-  incoterms: string;
-  logisticsService: string;
-  deliveryTime: string;
-  recommendations: string;
-  notes: string;
-}
 
 const DetallesTab: React.FC<DetallesTabProps> = ({
-  selectedQuotationId,
-  onSelectProductForResponse,
+  selectedQuotationId
 }) => {
   //* Hook para obtener los detalles de la cotización - DEBE IR PRIMERO
   const {
@@ -413,9 +396,7 @@ const DetallesTab: React.FC<DetallesTabProps> = ({
                     <div className="flex items-center gap-2 mt-1">
                       <Calendar className="w-4 h-4 text-gray-400" />
                       <span className="text-sm text-gray-500">
-                        {new Date(
-                          quotationDetail.createdAt
-                        ).toLocaleDateString()}
+                        {formatDate(quotationDetail.createdAt)} - {formatDateTime(quotationDetail.createdAt)}
                       </span>
                     </div>
                   </div>

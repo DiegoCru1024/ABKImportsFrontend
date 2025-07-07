@@ -174,7 +174,7 @@ export default function FileUploadComponent({ onFilesChange, resetCounter }: Fil
         onDrop={handleDrop}
         data-dragging={isDragging || undefined}
         data-files={files.length > 0 || undefined}
-        className="border-input data-[dragging=true]:bg-accent/50 has-[input:focus]:border-ring has-[input:focus]:ring-ring/50 relative flex min-h-52 flex-col items-center overflow-hidden rounded-xl border border-dashed p-4 transition-colors not-data-[files]:justify-center has-[input:focus]:ring-[3px]"
+        className="border-input data-[dragging=true]:bg-accent/50 has-[input:focus]:border-ring has-[input:focus]:ring-ring/50 relative flex min-h-52 flex-col items-center overflow-hidden rounded-xl border border-dashed p-4 transition-colors not-data-[files]:justify-center has-[input:focus]:ring-[3px] bg-background dark:bg-background"
       >
         <input
           {...getInputProps()}
@@ -184,18 +184,18 @@ export default function FileUploadComponent({ onFilesChange, resetCounter }: Fil
         {files.length > 0 ? (
           <div className="flex w-full flex-col gap-3">
             <div className="flex items-center justify-between gap-2">
-              <h3 className="truncate text-sm font-medium">
+              <h3 className="truncate text-sm font-medium dark:text-gray-200">
                 Archivos ({files.length})
               </h3>
               <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={openFileDialog} >
+                <Button variant="outline" size="sm" type="button" onClick={openFileDialog} >
                   <UploadIcon
                     className="-ms-0.5 size-3.5 opacity-60 text-orange-500"
                     aria-hidden="true"
                   />
                   Agregar archivos
                 </Button>
-                <Button variant="outline" size="sm" onClick={clearFiles}>
+                <Button variant="outline" size="sm" type="button" onClick={clearFiles}>
                   <Trash2Icon
                     className="-ms-0.5 size-3.5 opacity-60 text-orange-500"
                     aria-hidden="true"
@@ -209,19 +209,20 @@ export default function FileUploadComponent({ onFilesChange, resetCounter }: Fil
               {files.map((file) => (
                 <div
                   key={file.id}
-                  className="bg-background relative flex flex-col rounded-md border"
+                  className="bg-background dark:bg-gray-800 relative flex flex-col rounded-md border dark:border-gray-700"
                 >
                   {getFilePreview(file)}
                   <Button
                     onClick={() => removeFile(file.id)}
                     size="icon"
+                    type="button"
                     className="border-background focus-visible:border-background absolute -top-2 -right-2 size-6 rounded-full border-2 shadow-none"
                     aria-label="Remove image"
                   >
                     <XIcon className="size-3.5" />
                   </Button>
-                  <div className="flex min-w-0 flex-col gap-0.5 border-t p-3">
-                    <p className="truncate text-[13px] font-medium">
+                  <div className="flex min-w-0 flex-col gap-0.5 border-t dark:border-gray-700 p-3">
+                    <p className="truncate text-[13px] font-medium dark:text-gray-200">
                       {file.file.name}
                     </p>
                     <p className="text-muted-foreground truncate text-xs">
@@ -235,16 +236,16 @@ export default function FileUploadComponent({ onFilesChange, resetCounter }: Fil
         ) : (
           <div className="flex flex-col items-center justify-center px-4 py-3 text-center">
             <div
-              className="bg-background mb-2 flex size-11 shrink-0 items-center justify-center rounded-full border"
+              className="bg-background dark:bg-gray-800 mb-2 flex size-11 shrink-0 items-center justify-center rounded-full border dark:border-gray-700"
               aria-hidden="true"
             >
               <ImageIcon className="size-4 opacity-60" />
             </div>
-            <p className="mb-1.5 text-sm font-medium">Arrastre sus archivos aquí</p>
+            <p className="mb-1.5 text-sm font-medium dark:text-gray-200">Arrastre sus archivos aquí</p>
             <p className="text-muted-foreground text-xs">
               Max {maxFiles} archivos ∙ Max {maxSizeMB}MB c/u
             </p>
-            <Button variant="outline" className="mt-4 text-orange-500" onClick={openFileDialog}>
+            <Button variant="outline" type="button" className="mt-4 text-orange-500" onClick={openFileDialog}>
               <UploadIcon className="-ms-1 opacity-60" aria-hidden="true" />
               Seleccionar archivos
             </Button>

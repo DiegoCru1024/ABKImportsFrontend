@@ -29,7 +29,7 @@ import { useGetQuotationById } from "@/hooks/use-quation";
 import { useCreateQuatitationResponseMultiple } from "@/hooks/use-quatitation-response";
 import { uploadMultipleFiles } from "@/api/fileUpload";
 import { incotermsOptions } from "../utils/static";
-import { servicios } from "../../../Cotizacion/components/data/static";
+import { servicios } from "../../../cotizacion/components/data/static";
 import type { AdminQuotationResponse } from "../utils/interface";
 import { Badge } from "@/components/ui/badge";
 import type { QuotationResponseRequest } from "@/api/interface/quotationResponseInterfaces";

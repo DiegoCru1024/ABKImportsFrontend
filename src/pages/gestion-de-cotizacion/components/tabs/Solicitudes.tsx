@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { DataTable } from "@/components/table/data-table";
 
-import { columnsQuotationsList } from "../../../MisCotizaciones/components/table/columnsQuotationsList";
+import { columnsQuotationsList } from "../../../mis-cotizaciones/components/table/columnsQuotationsList";
 
 import SendingModal from "@/components/sending-modal";
 

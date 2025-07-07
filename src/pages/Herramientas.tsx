@@ -61,7 +61,7 @@ function Herramientas() {
                 <BsTools className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">
+                <h1 className="text-xl font-bold text-gray-900 dark:text-white">
                   Herramientas Logísticas
                 </h1>
                 <p className="text-sm text-muted-foreground">

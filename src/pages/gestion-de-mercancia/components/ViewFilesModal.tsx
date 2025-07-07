@@ -1,4 +1,4 @@
-import UrlImageViewerModal from "@/pages/MisCotizaciones/components/UrlImageViewerModal";
+import UrlImageViewerModal from "@/pages/mis-cotizaciones/components/UrlImageViewerModal";
 
 interface ViewFilesModalProps {
   isOpen: boolean;

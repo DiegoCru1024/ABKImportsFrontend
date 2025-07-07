@@ -24,8 +24,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { incotermsOptions } from "@/pages/GestionDeCotizacion/components/utils/static";
-import { servicios } from "@/pages/Cotizacion/components/data/static";
+import { incotermsOptions } from "@/pages/gestion-de-cotizacion/components/utils/static";
+import { servicios } from "@/pages/cotizacion/components/data/static";
 
 interface TrackingTabProps {
   selectedProductId: string;

@@ -109,3 +109,22 @@ export interface QuotationById {
   createdAt: string; // Fecha ISO
   updatedAt: string; // Fecha ISO
 }
+
+export interface DetallesTabProps {
+  selectedQuotationId: string;
+}
+
+export interface ProductResponse {
+  id: string;
+  supplier: string;
+  unitPrice: string;
+  totalPrice: string;
+  expressPrice: string;
+  servicePrice: string;
+  taxes: string;
+  incoterms: string;
+  logisticsService: string;
+  deliveryTime: string;
+  recommendations: string;
+  notes: string;
+}

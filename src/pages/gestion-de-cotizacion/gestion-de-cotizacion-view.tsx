@@ -26,59 +26,10 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { statusFilterOptions, statusMap, type TabId } from "../cotizacion/components/static";
+import { formatDate, formatDateTime } from "@/lib/format-time";
 
-// Definir las tabs
-const tabs = [
-  {
-    id: "solicitudes",
-    label: "Solicitudes",
-    icon: FileText,
-    description: "Ver todas las solicitudes de cotización",
-    disabled: false,
-  },
-  {
-    id: "detalles",
-    label: "Detalles de la cotización",
-    icon: FileText,
-    description: "Ver detalles de la cotización seleccionada",
-    disabled: false,
-  },
-  {
-    id: "respuesta",
-    label: "Respuesta",
-    icon: FileText,
-    description: "Responder cotización",
-    disabled: false,
-  },
-] as const;
 
-type TabId = (typeof tabs)[number]["id"];
-
-// Configuraciones de estado
-const statusMap = {
-  pending: { 
-    color: "bg-yellow-100 text-yellow-800 border-yellow-200", 
-    label: "Pendiente",
-    dotColor: "bg-yellow-500"
-  },
-  partial: { 
-    color: "bg-blue-100 text-blue-800 border-blue-200", 
-    label: "Parcial",
-    dotColor: "bg-blue-500"
-  },
-  answered: { 
-    color: "bg-green-100 text-green-800 border-green-200", 
-    label: "Respondida",
-    dotColor: "bg-green-500"
-  },
-};
-
-const statusFilterOptions = [
-  { key: "all", label: "Todas", count: 0 },
-  { key: "pending", label: "Pendientes", count: 0 },
-  { key: "partial", label: "Parciales", count: 0 },
-  { key: "answered", label: "Respondidas", count: 0 },
-];
 
 export default function GestionDeCotizacionesView() {
   // ********Tabs**** */
@@ -210,19 +161,7 @@ export default function GestionDeCotizacionesView() {
     }));
   };
 
-  // Función para formatear fecha
-  const formatDate = (dateString: string) => {
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString('es-ES', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-      });
-    } catch {
-      return dateString;
-    }
-  };
+
 
   // ********Funciones del modal de imágenes**** */
   
@@ -285,7 +224,7 @@ export default function GestionDeCotizacionesView() {
         </div>
         <DetallesTab
           selectedQuotationId={selectedQuotationId}
-          onSelectProductForResponse={handleSelectProductForResponse}
+          //onSelectProductForResponse={handleSelectProductForResponse}
         />
       </div>
     );
@@ -470,7 +409,7 @@ export default function GestionDeCotizacionesView() {
                           <div className="text-center">
                             <div className="flex items-center gap-1 text-gray-600">
                               <Calendar className="w-4 h-4" />
-                              <span className="text-sm">{formatDate(quote.createdAt)}</span>
+                              <span className="text-sm">{formatDate(quote.createdAt)} {formatDateTime(quote.createdAt)}</span>
                             </div>
                           </div>
                         </div>
@@ -554,7 +493,7 @@ export default function GestionDeCotizacionesView() {
                       <div className="flex justify-end">
                         <Button
                           onClick={() => handleViewDetails(quote.id)}
-                          className="flex items-center gap-2 bg-gray-900 hover:bg-gray-800 text-white"
+                          className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white"
                         >
                           <Eye className="w-4 h-4" />
                           Ver Detalles y Responder
@@ -641,7 +580,7 @@ export default function GestionDeCotizacionesView() {
 
       {/* Modal de carrusel de imágenes */}
       <Dialog open={imageModalOpen} onOpenChange={closeImageModal}>
-        <DialogContent className="max-w-4xl w-full max-h-[90vh] p-0 overflow-hidden">
+        <DialogContent className="max-w-4xl w-full max-h-[90vh] p-0 overflow-hidden" showCloseButton={false}>
           <div className="relative bg-white">
             {/* Header del modal */}
             <div className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-white/90 to-transparent p-4">

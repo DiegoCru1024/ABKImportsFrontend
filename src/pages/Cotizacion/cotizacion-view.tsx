@@ -27,9 +27,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { Producto } from "./utils/interface";
-import { columnasCotizacion } from "./components/table/columnasCotizacion";
-import { servicios } from "./components/data/static";
+import type { Producto } from "@/pages/cotizacion/utils/interface";
+import { columnasCotizacion } from "@/pages/cotizacion/components/table/columnasCotizacion";
+import { servicios } from "@/pages/cotizacion/components/data/static";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -44,20 +44,9 @@ import { useCreateQuotation } from "@/hooks/use-quation";
 import { uploadMultipleFiles } from "@/api/fileUpload";
 import { toast } from "sonner";
 import SendingModal from "@/components/sending-modal";
-  import { useNavigate } from "react-router-dom";
-
-const productoSchema = z.object({
-  name: z.string().min(1, { message: "El nombre es requerido" }),
-  quantity: z.number().min(1, { message: "La cantidad es requerida" }),
-  size: z.string().min(1, { message: "El tamaño es requerido" }),
-  color: z.string().min(1, { message: "El color es requerido" }),
-  url: z.string().optional(),
-  comment: z.string().optional(),
-  weight: z.number().optional(),
-  volume: z.number().optional(),
-  number_of_boxes: z.number().optional(),
-  attachments: z.array(z.string()).optional(),
-});
+import { useNavigate } from "react-router-dom";
+import { productoSchema } from "./utils/schema";
+import { Label } from "@/components/ui/label";
 
 export default function CotizacionViewNew() {
   const navigate = useNavigate();
@@ -66,6 +55,9 @@ export default function CotizacionViewNew() {
   const [resetCounter, setResetCounter] = useState(0);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  //* Hook para enviar cotización
+  const createQuotationMut = useCreateQuotation();
 
   const form = useForm<z.infer<typeof productoSchema>>({
     resolver: zodResolver(productoSchema),
@@ -83,28 +75,26 @@ export default function CotizacionViewNew() {
     },
   });
 
-  // Eliminar producto
+  //* Función para eliminar producto
   const handleEliminar = (index: number) => {
     setProductos((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const columns = columnasCotizacion({ handleEliminar });
-
-  // Agregar producto SIN subir archivos (nueva lógica)
+  //* Función para agregar producto
   const handleAgregar = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    // Validar formulario antes de proceder
+    const isValid = await form.trigger();
+    if (!isValid) {
+      return;
+    }
 
     // Validar que haya al menos un archivo antes de proceder
     if (selectedFiles.length === 0) {
       toast.error(
         "Por favor, adjunte al menos un archivo antes de agregar el producto."
       );
-      return;
-    }
-
-    // Validar formulario antes de proceder
-    const isValid = await form.trigger();
-    if (!isValid) {
       return;
     }
 
@@ -135,9 +125,7 @@ export default function CotizacionViewNew() {
     toast.success("Producto agregado correctamente");
   };
 
-  // Enviar cotización completa (nueva lógica)
-  const createQuotationMut = useCreateQuotation();
-
+  //* Función para enviar cotización
   const handleEnviar = async () => {
     if (productos.length === 0) {
       toast.error("No hay productos para enviar");
@@ -199,9 +187,12 @@ export default function CotizacionViewNew() {
         {
           onSuccess: () => {
             setIsLoading(false);
-            // Limpiar productos después del envío exitoso
+            //*Limpiar productos después del envío exitoso
             setProductos([]);
-            navigate("/dashboard/mis-cotizaciones");
+            //*Esperar 3 segundos y luego redirigir
+            setTimeout(() => {
+              navigate("/dashboard/mis-cotizaciones");
+            }, 3000);
           },
           onError: (error) => {
             setIsLoading(false);
@@ -220,6 +211,9 @@ export default function CotizacionViewNew() {
     console.log("Productos actuales:", productos);
   }, [productos]);
 
+  //* Columnas de la tabla
+  const columns = columnasCotizacion({ handleEliminar });
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-500/5 via-background to-orange-400/10">
       {/* Top Navigation Bar */}
@@ -230,13 +224,16 @@ export default function CotizacionViewNew() {
               <FileText className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">
+              <h1 className="text-xl font-bold text-gray-900 dark:text-white">
                 Cotización de productos
               </h1>
+              <p className="text-sm font-normal text-gray-500 dark:text-gray-400"> 
+                Cotiza los productos que deseas enviar, y envíalos para que los revisemos y te ofrezcamos el mejor precio.
+              </p>
             </div>
           </div>
           <div className="rounded-md flex items-center gap-2 ">
-            <h3 className="text-sm font-normal text-gray-900">
+            <h3 className="text-sm font-semibold dark:text-white">
               Tipo de servicio :
             </h3>
             <Select
@@ -258,19 +255,13 @@ export default function CotizacionViewNew() {
         </div>
       </div>
 
-      <div className="w-full  px-4 p-2">
+      <div className="w-full  p-2">
         <div className="grid grid-cols-1  gap-6">
-          <div className="overflow-hidden rounded-md border bg-gradient-to-r from-gray-900 to-gray-800 shadow-sm">
-            <div className="px-4 py-3 flex items-center justify-between">
-              <h3 className="flex items-center font-semibold text-white">
-                <Package className="mr-2 h-6 w-6 text-orange-500" />
-                Detalle de producto
-              </h3>
-            </div>
+          <div className="overflow-hidden rounded-sm ">
             {/* Formulario */}
             <Form {...form}>
               <form onSubmit={handleAgregar}>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6   p-6">
                   {/* Primera Columna */}
                   <div className="space-y-4">
                     {/* Nombre del producto */}
@@ -380,7 +371,7 @@ export default function CotizacionViewNew() {
                               <FormItem>
                                 <div className="flex items-center gap-2">
                                   <MessageSquare className="w-4 h-4 text-orange-500" />
-                                  <FormLabel className="text-sm font-medium text-gray-700">
+                                  <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-200">
                                     Peso (Kg)
                                   </FormLabel>
                                 </div>
@@ -400,7 +391,7 @@ export default function CotizacionViewNew() {
                               <FormItem>
                                 <div className="flex items-center gap-2">
                                   <MessageSquare className="w-4 h-4 text-orange-500" />
-                                  <FormLabel className="text-sm font-medium text-gray-700">
+                                  <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-200">
                                     Volumen
                                   </FormLabel>
                                 </div>
@@ -420,7 +411,7 @@ export default function CotizacionViewNew() {
                               <FormItem>
                                 <div className="flex items-center gap-2">
                                   <MessageSquare className="w-4 h-4 text-orange-500" />
-                                  <FormLabel className="text-sm font-medium text-gray-700">
+                                  <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-200">
                                     Nro. cajas
                                   </FormLabel>
                                 </div>
@@ -446,7 +437,7 @@ export default function CotizacionViewNew() {
                             <FormItem>
                               <div className="flex items-center gap-2">
                                 <Hash className="w-4 h-4 text-orange-500" />
-                                <FormLabel className="text-sm font-medium text-gray-700">
+                                <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-200">
                                   Cantidad
                                 </FormLabel>
                               </div>
@@ -482,7 +473,7 @@ export default function CotizacionViewNew() {
                             <FormItem>
                               <div className="flex items-center gap-2">
                                 <Ruler className="w-4 h-4 text-orange-500" />
-                                <FormLabel className="text-sm font-medium text-gray-700">
+                                <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-200">
                                   Tamaño
                                 </FormLabel>
                               </div>
@@ -506,7 +497,7 @@ export default function CotizacionViewNew() {
                             <FormItem>
                               <div className="flex items-center gap-2">
                                 <Palette className="w-4 h-4 text-orange-500" />
-                                <FormLabel className="text-sm font-medium text-gray-700">
+                                <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-200">
                                   Color
                                 </FormLabel>
                               </div>
@@ -532,7 +523,7 @@ export default function CotizacionViewNew() {
                             <FormItem>
                               <div className="flex items-center gap-2">
                                 <MessageSquare className="w-4 h-4 text-orange-500" />
-                                <FormLabel className="text-sm font-medium text-gray-700">
+                                <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-200">
                                   Comentario
                                 </FormLabel>
                               </div>
@@ -551,15 +542,15 @@ export default function CotizacionViewNew() {
                   </div>
                 </div>
 
-                <div className="space-y-4 bg-white p-6">
+                <div className="space-y-4 bg-white dark:bg-gray-900 p-6">
                   <div className="flex items-center gap-2">
                     <File className="w-4 h-4 text-orange-500" />
-                    <FormLabel className="text-sm font-medium text-gray-700">
+                    <Label className="text-sm font-medium text-gray-700 dark:text-white">
                       Archivos
-                    </FormLabel>
+                    </Label>
                   </div>
 
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 bg-white">
+                  <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 bg-white dark:bg-gray-800">
                     <FileUploadComponent
                       onFilesChange={setSelectedFiles}
                       resetCounter={resetCounter}
@@ -568,8 +559,10 @@ export default function CotizacionViewNew() {
 
                   <div className="mt-6 flex justify-end">
                     <Button
-                      className="bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-full px-8 py-2 shadow-md transition-all duration-200 transform hover:scale-105"
+                      className="bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-full px-8 
+                       py-2 shadow-md transition-all duration-200 transform hover:scale-105 animate-in fade-in-0 zoom-in-95"
                       type="submit"
+                      title="Agregar Producto"
                     >
                       <Plus className="w-5 h-5 mr-2" />
                       Agregar Producto
@@ -582,14 +575,14 @@ export default function CotizacionViewNew() {
 
           {/* Tabla de productos */}
           <div className="w-full p-1 pt-6">
-            <div className="overflow-hidden rounded-xl border bg-gradient-to-r from-gray-900 to-gray-800 shadow-sm">
-              <div className="border-b border-gray-200 px-4 py-3">
-                <h3 className="flex items-center font-semibold text-white">
+            <div className="overflow-hidden rounded-sm bg-white dark:bg-gray-900">
+              <div className="border-b border-gray-200 dark:border-gray-700 px-4 py-3">
+                <h3 className="flex items-center font-semibold text-gray-900 dark:text-white">
                   <PackageOpen className="mr-2 h-5 w-5 text-orange-500" />
-                  Productos Cotizados ({productos.length})
+                  <span className="text-gray-900 dark:text-white">Productos Cotizados ({productos.length})</span>
                 </h3>
               </div>
-              <div className="w-full overflow-x-auto border-b border-gray-200 px-4 py-3 bg-white">
+              <div className="w-full overflow-x-auto border-b border-gray-200 dark:border-gray-700 px-4 py-3 bg-white dark:bg-gray-900">
                 <DataTable
                   columns={columns}
                   data={productos}
@@ -620,7 +613,7 @@ export default function CotizacionViewNew() {
               trigger={
                 <Button
                   disabled={isLoading || productos.length === 0}
-                  className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-2 rounded-full text-lg shadow-md flex items-center gap-2 disabled:opacity-50"
+                  className="bg-orange-500 hover:bg-orange-600 animate-pulse text-white px-8 py-2 rounded-full  shadow-md flex items-center gap-2 disabled:opacity-50"
                 >
                   {isLoading ? (
                     <Loader2 className="w-5 h-5 animate-spin" />

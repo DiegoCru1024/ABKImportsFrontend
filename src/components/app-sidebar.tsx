@@ -2,8 +2,10 @@ import * as React from "react";
 import {
   BookMarked,
   Calculator,
+  ClipboardList,
   Handshake,
   MapPinned,
+  Package,
   PackageSearch,
   SquareTerminal,
   User,
@@ -52,21 +54,21 @@ const data = {
       rolesPermitidos: ["admin"],
     },
     {
-      title: "Cotización de productos",
+      title: "Cotizar Productos",
       url: "/dashboard/cotizacion-de-productos",
-      icon: IoMdPricetags,
+      icon: ClipboardList,
       rolesPermitidos: ["temporal","guest","final"],
     },
     {
       title: "Mis cotizaciones",
       url: "/dashboard/mis-cotizaciones",
-      icon: IoMdPricetags,
+      icon: Package,
       rolesPermitidos: ["temporal","guest","final"],
     },
     {
       title: "Gestión de cotizaciones",
       url: "/dashboard/gestion-de-cotizacion",
-      icon: IoMdPricetags,
+      icon: Package,
       rolesPermitidos: ["admin"],
     },
     {

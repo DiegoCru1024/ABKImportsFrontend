@@ -1,3 +1,4 @@
+//! Incoterms
 export const incotermsOptions = [
     { value: "EXW", label: "EXW - Ex Works" },
     { value: "FCA", label: "FCA - Free Carrier" },
@@ -9,15 +10,18 @@ export const incotermsOptions = [
     { value: "DAT", label: "DAT - Delivered At Terminal" },
     { value: "DDU", label: "DDU - Delivered Duty Unpaid" },
   ];
+
+  //! Servicios logisticos
   export const serviciosLogisticos = [
-    { value: "Terrestre", label: "Terrestre" },
-    { value: "Marítimo", label: "Marítimo" },
-    { value: "Aéreo", label: "Aéreo" },
-    { value: "Multimodal", label: "Multimodal" },
-    { value: "Express", label: "Express" },
+    { value: "Pendiente", label: "Pendiente" },
+    { value: "Consolidado Express", label: "Consolidado Express" },
+    { value: "Consolidado Grupal Express", label: "Consolidado Grupal Express" },
+    { value: "Consolidado Maritimo", label: "Consolidado Maritimo" },
+    { value: "Consolidado Grupal Maritimo", label: "Consolidado Grupal Maritimo" },
+    { value: "Almacenaje de mercancias", label: "Almacenaje de mercancias" },
   ];
 
-
+//! Estado de la respuesta de la cotización
   export const statusResponseQuotation = {
     pending: "Pendiente",
     answered: "Respondido",
@@ -26,6 +30,7 @@ export const incotermsOptions = [
     cancelled: "Cancelado",
   };
 
+  //! Colores de los estados de la respuesta de la cotización
   export const statusColorsQuotation: Record<keyof typeof statusResponseQuotation, string> = {
     pending: "bg-yellow-100 text-yellow-800",
     answered: "bg-green-100  text-green-800",
@@ -33,3 +38,4 @@ export const incotermsOptions = [
     completed: "bg-green-100   text-green-800",
     cancelled: "bg-gray-100   text-gray-800",
   };
+

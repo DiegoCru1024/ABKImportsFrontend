@@ -7,6 +7,7 @@ import {
   patchQuatitationResponse,
 } from "@/api/quotation-responses";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Check } from "lucide-react";
 import { toast } from "sonner";
 
 
@@ -27,21 +28,6 @@ import { toast } from "sonner";
  * @property {string} additional_comments - Los comentarios adicionales
  * @property {string[]} files - Los archivos
  */
-export interface QuotationResponse {
-  quotation_id: string;
-  product_id: string;
-  status: string;
-  unit_price: number;
-  incoterms: string;
-  total_price: number;
-  express_price: number;
-  logistics_service: string;
-  service_fee: number;
-  taxes: number;
-  recommendations: string;
-  additional_comments: string;
-  files: string[];
-}
 
 /**
  * Hook para crear una respuesta de una cotización
@@ -51,7 +37,7 @@ export function useCreateQuatitationResponse() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ data }: { data: QuotationResponse }) =>
+    mutationFn: ({ data }: { data:any}) =>
       createQuatitationResponse(data),
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -91,7 +77,14 @@ export function useCreateQuatitationResponseMultiple() {
       queryClient.invalidateQueries({
         queryKey: ["allQuatitationResponse"],
       });
-      toast.success("Respuestas de cotización creadas exitosamente");
+      toast.success("Éxito", {
+        description: "Respuestas de cotización enviadas correctamente",
+        className: "bg-green-50 border-green-500",
+        duration: 3500,
+        descriptionClassName: "text-green-600",
+        icon: <Check className="text-green-500" />,
+        style: { border: "1px solid #22c55e" },
+      });
     },
     onError: (error: any) => {
       console.error("Error al crear las respuestas de la cotización:", error);
@@ -171,8 +164,8 @@ export function useDeleteQuatitationResponse(id: string) {
  */
 export function usePatchQuatitationResponse(id: string) {
   return useMutation({
-    mutationFn: ({ data }: { data: QuotationResponse }) =>
-      patchQuatitationResponse(id, data),
+    mutationFn: (response:string) =>
+      patchQuatitationResponse(id,response),
     onSuccess: () => {
       toast.success("Respuesta de cotización actualizada exitosamente");
     },

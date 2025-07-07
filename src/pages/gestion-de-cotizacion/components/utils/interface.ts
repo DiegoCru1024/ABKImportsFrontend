@@ -57,17 +57,23 @@ export interface QuotationResponse {
 
 export interface AdminQuotationResponse {
   id: string;
-  pUnitario: string;
+  logistics_service: string;
+  unit_price: number;
   incoterms: string;
-  precioTotal: string;
-  precioExpress: string;
-  servicioLogistico: string;
-  tarifaServicio: string;
-  impuestos: string;
-  recomendaciones: string;
-  comentariosAdicionales: string;
-  archivos: File[];
-  status: string;
+  total_price: number;
+  express_price: number;
+  service_fee: number;
+  taxes: number;
+  recommendations: string;
+  additional_comments: string;
+  weight: number | null;
+  volume: number | null;
+  number_of_boxes: number | null;
+  international_freight: number| null;
+  customs_clearance: number | null;
+  delivery: number | null;
+  other_expenses: number | null;
+  files: File[];
 }
 
 export interface User {

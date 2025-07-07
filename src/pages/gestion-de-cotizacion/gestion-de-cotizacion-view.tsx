@@ -14,9 +14,8 @@ import {
 } from "lucide-react";
 
 // Importar componentes modulares
-import SolicitudesTab from "./components/tabs/Solicitudes";
-import DetallesTab from "./components/tabs/Detalles";
-import RespuestaTab from "./components/tabs/Respuesta";
+import DetallesTab from "./components/views/details";
+
 import { useGetQuotationsListWithPagination } from "@/hooks/use-quation";
 import type { QuotationsByUserResponseInterfaceContent } from "@/api/interface/quotationInterface";
 
@@ -224,35 +223,11 @@ export default function GestionDeCotizacionesView() {
         </div>
         <DetallesTab
           selectedQuotationId={selectedQuotationId}
-          //onSelectProductForResponse={handleSelectProductForResponse}
         />
       </div>
     );
   }
 
-  if (mainTab === "respuesta" && selectedProductId && selectedQuotationId) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="border-b bg-white shadow-sm">
-          <div className="container flex items-center justify-between px-4 py-4">
-            <Button
-              variant="ghost"
-              onClick={() => setMainTab("detalles")}
-              className="flex items-center gap-2"
-            >
-              <ChevronLeft className="h-4 w-4" />
-              Volver a Detalles
-            </Button>
-          </div>
-        </div>
-        <RespuestaTab
-          selectedQuotationId={selectedQuotationId}
-          selectedProductId={selectedProductId}
-          selectedProductName={selectedProductName}
-        />
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-gray-50">

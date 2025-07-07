@@ -4,14 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/table/data-table";
-import { useGetAllUserProfileWithPagination } from "@/hooks/useUserHook";
+import { useGetAllUserProfileWithPagination } from "@/hooks/use-user-hook";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogClose } from "@/components/ui/dialog";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import SendingModal from "@/components/sending-modal";
-import { useCreateUserProfile, useUpdateUserProfile, useDeleteUserProfile } from "@/hooks/useUserHook";
+import { useCreateUserProfile, useUpdateUserProfile, useDeleteUserProfile } from "@/hooks/use-user-hook";
 import type   { UserProfile } from "@/api/apiUser";
 
 

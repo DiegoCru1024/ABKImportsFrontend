@@ -14,6 +14,13 @@ export interface QuotationResponse {
   taxes: number;
   recommendations: string;
   additional_comments: string;
+  weight: number | null;
+  volume: number | null;
+  number_of_boxes: number | null;
+  international_freight: number | null;
+  customs_clearance: number | null;
+  delivery: number | null;
+  other_expenses: number | null;
   files: string[]; // URLs de AWS
 }
 

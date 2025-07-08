@@ -183,7 +183,7 @@ export default function InspectionDetailView() {
   };
 
   // Verificar si todos los productos están en tránsito para habilitar crear envío
-  const canCreateShipment = inspection?.content.every(product => product.status === "in_transit");
+  const canCreateShipment = inspection?.content.every((product: any) => product.status === "in_transit");
 
   const handleCreateShipment = () => {
     setCreateShipmentModalOpen(true);
@@ -408,7 +408,7 @@ export default function InspectionDetailView() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {inspection.content.map((product) => (
+                    {inspection.content.map((product: any) => (
                       <TableRow key={product.product_id}>
                         <TableCell>
                           <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">

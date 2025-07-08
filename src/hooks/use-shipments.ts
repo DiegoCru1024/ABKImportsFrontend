@@ -77,11 +77,11 @@ export function useUpdateShipmentStatus() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateShipmentStatusRequest }) =>
-      updateShipmentStatus(id, data),
-    onSuccess: (_, { id }) => {
+    mutationFn: (variables: { id: string; data: UpdateShipmentStatusRequest }) =>
+      updateShipmentStatus(variables.id, variables.data),
+    onSuccess: (_: any, variables: { id: string; data: UpdateShipmentStatusRequest }) => {
       // Invalidar queries relacionadas con el envío específico
-      queryClient.invalidateQueries({ queryKey: ["Shipments", id] });
+      queryClient.invalidateQueries({ queryKey: ["Shipments", variables.id] });
       queryClient.invalidateQueries({ queryKey: ["Shipments"] });
     },
   });

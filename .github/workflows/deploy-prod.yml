@@ -19,6 +19,8 @@ jobs:
           node-version: "20"
 
       - name: Install dependencies and build
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
         run: |
           npm install -g bun
           bun install

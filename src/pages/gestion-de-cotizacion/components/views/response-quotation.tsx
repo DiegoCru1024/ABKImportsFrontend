@@ -591,7 +591,7 @@ const ResponseQuotation = ({
                                 <SelectValue placeholder="Seleccione" />
                               </SelectTrigger>
                               <SelectContent>
-                                {servicios.map((servicio) => (
+                                {servicios.map((servicio: { id: number; value: string; label: string }) => (
                                   <SelectItem
                                     key={servicio.value}
                                     value={servicio.value}

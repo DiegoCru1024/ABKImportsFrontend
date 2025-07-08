@@ -270,7 +270,7 @@ export default function GestionDeCotizacionesView() {
         {/* Filtros de estado */}
         <div className="mb-6">
           <div className="flex flex-wrap gap-2">
-            {statusFilterOptions.map((opt) => (
+            {statusFilterOptions.map((opt: { key: string; label: string }) => (
               <button
                 key={opt.key}
                 onClick={() => setStatusFilter(opt.key)}
@@ -504,7 +504,7 @@ export default function GestionDeCotizacionesView() {
                       page === pageInfo.totalPages || 
                       Math.abs(page - pageInfo.pageNumber) <= 1
                     )
-                    .map((page, index, array) => (
+                    .map((page: number, index: number, array: number[]) => (
                       <div key={page} className="flex items-center">
                         {index > 0 && array[index - 1] !== page - 1 && (
                           <span className="px-2 text-gray-400">...</span>

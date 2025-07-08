@@ -244,7 +244,7 @@ export default function CotizacionViewNew() {
                 <SelectValue placeholder="Seleccione" />
               </SelectTrigger>
               <SelectContent>
-                {servicios.map((servicio) => (
+                {servicios.map((servicio: { id: number; value: string; label: string }) => (
                   <SelectItem key={servicio.id} value={servicio.value}>
                     {servicio.label}
                   </SelectItem>

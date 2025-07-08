@@ -3,7 +3,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { EyeIcon, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import ImageViewerModal from "../ImageViewerModal";
+import ImageViewerModal from "@/pages/cotizacion/components/ImageViewerModal";
 
 interface ColumnasCotizacionProps {
   handleEliminar: (index: number) => void;

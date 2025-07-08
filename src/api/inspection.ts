@@ -1,37 +1,38 @@
-    import { apiFetch } from "./apiFetch";
+import { API_URL } from "../../config";
+import { apiFetch } from "./apiFetch";
 import type { InspectionResponse, InspectionDetail } from "./interface/inspectionInterface";
 
 /**
  * Obtiene todas las inspecciones que ha realizado el usuario
  * @returns {Promise<>} - Las inspecciones
  */
-export const getInspectionsByUser = async (searchTerm:string,page:number,size:number) => {
+export const getInspectionsByUser = async (searchTerm: string, page: number, size: number) => {
 
     const url = new URL(
         "/inspections",
-        "https://abkimportsbackend-production.up.railway.app"
-      )
-      if (searchTerm) {
+        API_URL
+    )
+    if (searchTerm) {
         url.searchParams.append("searchTerm", searchTerm.toString());
-      }
-    
-      url.searchParams.append("page", page.toString());
-      url.searchParams.append("size", size.toString());
-    
-    try {
-      return await apiFetch<InspectionResponse>(url.pathname + url.search, {
-        method: "GET",
-      });
-    } catch (error) {
-      console.error("Error al obtener las inspecciones:", error);
-      throw error;
     }
-  };
+
+    url.searchParams.append("page", page.toString());
+    url.searchParams.append("size", size.toString());
+
+    try {
+        return await apiFetch<InspectionResponse>(url.pathname + url.search, {
+            method: "GET",
+        });
+    } catch (error) {
+        console.error("Error al obtener las inspecciones:", error);
+        throw error;
+    }
+};
 
 
 
 
-  
+
 
 
 /**
@@ -40,11 +41,11 @@ export const getInspectionsByUser = async (searchTerm:string,page:number,size:nu
  * @param {string} shipping_service_type - El tipo de servicio de envío
  * @returns {Promise<any>} - El ID de la inspección
  */
-  export const generateInspectionId = async (quotation_id :string, shipping_service_type:string) => {
-    console.log("Esto se está enviando",JSON.stringify({
+export const generateInspectionId = async (quotation_id: string, shipping_service_type: string) => {
+    console.log("Esto se está enviando", JSON.stringify({
         quotation_id,
         shipping_service_type
-    }) )
+    }))
     try {
         return await apiFetch(`/inspections`, {
             method: "POST",
@@ -67,7 +68,7 @@ export const getInspectionsByUser = async (searchTerm:string,page:number,size:nu
 export const getInspectionById = async (id: string): Promise<InspectionDetail> => {
     try {
         return await apiFetch<InspectionDetail>(`/inspections/${id}`, {
-            method: "GET", 
+            method: "GET",
         });
     } catch (error) {
         console.error("Error al obtener la inspección:", error);
@@ -119,8 +120,8 @@ export const deleteInspection = async (id: string) => {
  * @returns {Promise<any>} - El producto actualizado
  */
 export const updateInspectionProduct = async (
-    inspectionId: string, 
-    productId: string, 
+    inspectionId: string,
+    productId: string,
     data: { status: string; files: string[] }
 ) => {
     try {

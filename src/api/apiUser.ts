@@ -1,3 +1,4 @@
+import { API_URL } from "../../config";
 import { apiFetch } from "./apiFetch";
 
 export interface User {
@@ -67,10 +68,10 @@ export interface UserProfile {
  * @returns {Promise<any>} - Los usuarios
  */
 export const getAllUserProfileWithPagination = async (searchTerm: string, page: number, size: number) => {
-  
+
   const url = new URL(
     "/users",
-    "https://abkimportsbackend-production.up.railway.app"
+    API_URL
   )
   if (searchTerm) {
     url.searchParams.append("searchTerm", searchTerm.toString());
@@ -80,7 +81,7 @@ export const getAllUserProfileWithPagination = async (searchTerm: string, page: 
   url.searchParams.append("size", size.toString());
 
   try {
-    return await apiFetch <UserProfileWithPagination>(url.pathname + url.search, {
+    return await apiFetch<UserProfileWithPagination>(url.pathname + url.search, {
       method: "GET",
     });
   } catch (error) {

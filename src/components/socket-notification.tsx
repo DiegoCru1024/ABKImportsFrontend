@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { notificationsAPI } from "@/api/notifications";
+import { API_URL } from "../../config";
 
 interface Notification {
     id: string;
@@ -57,7 +58,7 @@ export default function SocketNotification() {
     useEffect(() => {
         if (!access_token) return;
 
-        socketRef.current = io("https://abkimportsbackend-production.up.railway.app", {
+        socketRef.current = io(API_URL, {
             auth: {
                 token: access_token,
             },

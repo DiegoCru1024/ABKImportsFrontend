@@ -1,4 +1,4 @@
-const API_BASE_URL = "https://abkimportsbackend-production.up.railway.app";
+import { API_URL } from "../../config";
 
 interface NotificationResponse {
     content: Array<{
@@ -39,7 +39,7 @@ export const notificationsAPI = {
             }
         });
 
-        const response = await fetch(`${API_BASE_URL}/notifications?${params}`, {
+        const response = await fetch(`${API_URL}/notifications?${params}`, {
             method: "GET",
             headers: {
                 "Authorization": `Bearer ${token}`,
@@ -57,7 +57,7 @@ export const notificationsAPI = {
     markAsRead: async (notificationId: string) => {
         const token = localStorage.getItem("access_token");
 
-        const response = await fetch(`${API_BASE_URL}/notifications/${notificationId}/mark-read`, {
+        const response = await fetch(`${API_URL}/notifications/${notificationId}/mark-read`, {
             method: "PATCH",
             headers: {
                 "Authorization": `Bearer ${token}`,
@@ -75,7 +75,7 @@ export const notificationsAPI = {
     markAllAsRead: async () => {
         const token = localStorage.getItem("access_token");
 
-        const response = await fetch(`${API_BASE_URL}/notifications/mark-all-read`, {
+        const response = await fetch(`${API_URL}/notifications/mark-all-read`, {
             method: "PATCH",
             headers: {
                 "Authorization": `Bearer ${token}`,
@@ -93,7 +93,7 @@ export const notificationsAPI = {
     deleteNotification: async (notificationId: string) => {
         const token = localStorage.getItem("access_token");
 
-        const response = await fetch(`${API_BASE_URL}/notifications/${notificationId}`, {
+        const response = await fetch(`${API_URL}/notifications/${notificationId}`, {
             method: "DELETE",
             headers: {
                 "Authorization": `Bearer ${token}`,

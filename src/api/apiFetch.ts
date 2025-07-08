@@ -1,3 +1,5 @@
+import { API_URL } from "../../config";
+
 export async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const access_token = localStorage.getItem("access_token"); // 🔹 Obtener el token del localStorage
 
@@ -8,9 +10,9 @@ export async function apiFetch<T>(endpoint: string, options: RequestInit = {}): 
   };
 
   try {
-    console.log("Request URL: ", `https://abkimportsbackend-production.up.railway.app${endpoint}`);
+    console.log("Request URL: ", `${API_URL}${endpoint}`);
     const response = await fetch(
-      `https://abkimportsbackend-production.up.railway.app${endpoint}`, // 🔹 Base URL + endpoint
+      `${API_URL}${endpoint}`, // 🔹 Base URL + endpoint
       {
         ...options,
         headers,

@@ -1,6 +1,8 @@
+import { API_URL } from "../../config";
+
 export const login = async (email: string, password: string) => {
   try {
-    const response = await fetch("https://abkimportsbackend-production.up.railway.app/users/login", {
+    const response = await fetch(`${API_URL}/users/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -9,7 +11,7 @@ export const login = async (email: string, password: string) => {
     });
 
     if (!response.ok) {
-      return { status: response.status }; 
+      return { status: response.status };
     }
 
     const data = await response.json();

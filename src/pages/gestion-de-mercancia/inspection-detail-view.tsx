@@ -14,6 +14,7 @@ import { updateInspectionProduct } from "@/api/inspection";
 import { useQueryClient } from "@tanstack/react-query";
 import FileUploadComponent from "@/components/comp-552";
 import { ViewFilesModal } from "./components/ViewFilesModal";
+import CreateShipmentModal from "@/components/CreateShipmentModal";
 import {
   Package,
   Calendar,
@@ -51,6 +52,9 @@ export default function InspectionDetailView() {
   // Estados para el modal de visualización
   const [viewFilesModalOpen, setViewFilesModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
+
+  // Estados para el modal de crear envío
+  const [createShipmentModalOpen, setCreateShipmentModalOpen] = useState(false);
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -178,6 +182,13 @@ export default function InspectionDetailView() {
     setExistingFiles(prev => prev.filter((_, i) => i !== index));
   };
 
+  // Verificar si todos los productos están en tránsito para habilitar crear envío
+  const canCreateShipment = inspection?.content.every(product => product.status === "in_transit");
+
+  const handleCreateShipment = () => {
+    setCreateShipmentModalOpen(true);
+  };
+
   const getFileType = (url: string) => {
     if (url.includes('.jpg') || url.includes('.jpeg') || url.includes('.png') || url.includes('.gif') || url.includes('.webp')) return 'image';
     if (url.includes('.pdf')) return 'pdf';
@@ -299,6 +310,21 @@ export default function InspectionDetailView() {
                   ID: {inspection.id}
                 </p>
               </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={handleCreateShipment}
+                disabled={!canCreateShipment}
+                className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-full shadow-md flex items-center gap-2"
+              >
+                <Package className="h-4 w-4" />
+                Crear Envío
+              </Button>
+              {!canCreateShipment && (
+                <p className="text-xs text-muted-foreground">
+                  Todos los productos deben estar en tránsito
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -560,6 +586,14 @@ export default function InspectionDetailView() {
           product={selectedProduct}
         />
       )}
+
+      {/* Modal de crear envío */}
+      <CreateShipmentModal
+        isOpen={createShipmentModalOpen}
+        onClose={() => setCreateShipmentModalOpen(false)}
+        inspectionId={id || ""}
+        inspectionData={inspection}
+      />
     </div>
   );
 } 

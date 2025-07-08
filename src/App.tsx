@@ -18,6 +18,7 @@ import GestionDeMercanciasView from "./pages/gestion-de-mercancia/gestion-de-mer
 import InspectionDetailView from "./pages/gestion-de-mercancia/inspection-detail-view";
 import CotizacionViewNew from "./pages/cotizacion/cotizacion-view";
 import MisCotizacionesView from "./pages/mis-cotizaciones/mis-cotizacion-view";
+import ShipmentDetailView from "./pages/shipment-detail-view";
 
 
 
@@ -35,6 +36,7 @@ function App() {
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/dashboard/inspeccion-de-mercancias" element={<GestionDeMercanciasView />} />
         <Route path="/dashboard/tracking-de-mercancias" element={<Tracking />} />
+        <Route path="/dashboard/tracking-de-mercancias/:id" element={<ShipmentDetailView />} />
         <Route path="/dashboard/gestion-de-tracking" element={<GestionDeTracking />} />
         <Route path="/dashboard/gestion-de-mercancias" element={<GestionDeMercanciasView />} />
         <Route path="/dashboard/gestion-de-mercancias/:id" element={<InspectionDetailView />} />

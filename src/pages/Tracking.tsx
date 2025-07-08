@@ -1,10 +1,72 @@
-import React from "react";
-import { MapPinned, Truck, Package, Clock } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { MapPinned, Truck, Package, Clock, Eye } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { DataTable } from "@/components/table/data-table";
+import { useGetShipments } from "@/hooks/use-shipments";
+import { getShipmentColumns } from "@/components/table/columns-shipments";
+import type { Shipment } from "@/api/interface/shipmentInterface";
 
 function Tracking() {
+  const navigate = useNavigate();
+  const [shipments, setShipments] = useState<Shipment[]>([]);
+  const [pageInfo, setPageInfo] = useState({
+    pageNumber: 1,
+    pageSize: 10,
+    totalElements: 0,
+    totalPages: 0,
+  });
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const handlePageChange = (page: number, size: number) => {
+    setPageInfo({
+      pageNumber: page,
+      pageSize: size,
+      totalElements: pageInfo.totalElements,
+      totalPages: pageInfo.totalPages,
+    });
+  };
+
+  const handleSearch = (searchTerm: string) => {
+    setSearchTerm(searchTerm);
+  };
+
+  const handleViewDetails = (shipmentId: string) => {
+    navigate(`/dashboard/tracking-de-mercancias/${shipmentId}`);
+  };
+
+  const {
+    data: shipmentData,
+    isLoading,
+    error,
+  } = useGetShipments(searchTerm, pageInfo.pageNumber, pageInfo.pageSize);
+
+  useEffect(() => {
+    if (shipmentData) {
+      setShipments(shipmentData.content);
+      setPageInfo({
+        pageNumber: shipmentData.pageNumber,
+        pageSize: shipmentData.pageSize,
+        totalElements: shipmentData.totalElements,
+        totalPages: shipmentData.totalPages,
+      });
+    }
+  }, [shipmentData]);
+
+  const columns = getShipmentColumns({ onViewDetails: handleViewDetails });
+
+  // Calcular estadísticas
+  const inTransitCount = shipments.filter(s => 
+    s.status === "in_transit" || s.status === "on_vessel"
+  ).length;
+  const deliveredCount = shipments.filter(s => s.status === "delivered").length;
+  const pendingCount = shipments.filter(s => 
+    s.status === "pending_product_arrival" || s.status === "awaiting_pickup"
+  ).length;
+  const totalActiveCount = shipments.filter(s => s.status !== "delivered").length;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-500/5 via-background to-green-400/10">
       {/* Header */}
@@ -42,7 +104,7 @@ function Tracking() {
               <Truck className="h-4 w-4 text-blue-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">23</div>
+              <div className="text-2xl font-bold">{inTransitCount}</div>
               <p className="text-xs text-muted-foreground">envíos en camino</p>
             </CardContent>
           </Card>
@@ -53,8 +115,8 @@ function Tracking() {
               <Package className="h-4 w-4 text-green-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">156</div>
-              <p className="text-xs text-muted-foreground">este mes</p>
+              <div className="text-2xl font-bold">{deliveredCount}</div>
+              <p className="text-xs text-muted-foreground">entregados</p>
             </CardContent>
           </Card>
 
@@ -64,7 +126,7 @@ function Tracking() {
               <Clock className="h-4 w-4 text-yellow-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">8</div>
+              <div className="text-2xl font-bold">{pendingCount}</div>
               <p className="text-xs text-muted-foreground">por procesar</p>
             </CardContent>
           </Card>
@@ -75,46 +137,41 @@ function Tracking() {
               <MapPinned className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">31</div>
+              <div className="text-2xl font-bold">{totalActiveCount}</div>
               <p className="text-xs text-muted-foreground">envíos activos</p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Lista de envíos recientes */}
+        {/* Tabla de envíos */}
         <Card>
           <CardHeader>
-            <CardTitle>Envíos Recientes</CardTitle>
+            <CardTitle>Envíos</CardTitle>
             <p className="text-sm text-muted-foreground">
-              Últimos envíos registrados en el sistema
+              Lista de todos los envíos registrados en el sistema
             </p>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {[
-                { id: "ENV-001", status: "En tránsito", destination: "Lima, Perú", eta: "2 días" },
-                { id: "ENV-002", status: "Entregado", destination: "Callao, Perú", eta: "Completado" },
-                { id: "ENV-003", status: "Pendiente", destination: "Arequipa, Perú", eta: "3 días" },
-              ].map((envio) => (
-                <div key={envio.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center space-x-4">
-                    <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
-                      <Package className="h-5 w-5 text-green-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium">{envio.id}</p>
-                      <p className="text-sm text-muted-foreground">{envio.destination}</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <Badge variant={envio.status === "Entregado" ? "default" : envio.status === "En tránsito" ? "secondary" : "outline"}>
-                      {envio.status}
-                    </Badge>
-                    <p className="text-sm text-muted-foreground mt-1">{envio.eta}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+            {isLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+                <span className="ml-2">Cargando envíos...</span>
+              </div>
+            ) : error ? (
+              <div className="text-center py-8 text-red-500">
+                Error al cargar los envíos
+              </div>
+            ) : (
+              <DataTable
+                columns={columns}
+                data={shipments}
+                searchTerm={searchTerm}
+                onSearch={handleSearch}
+                pageInfo={pageInfo}
+                onPageChange={handlePageChange}
+                isLoading={isLoading}
+              />
+            )}
           </CardContent>
         </Card>
       </div>

@@ -1,24 +1,24 @@
 import "./App.css";
 import { Routes, Route, Navigate } from "react-router-dom";
-import Tracking from "./pages/Tracking";
+import Tracking from "@/pages/Tracking";
 
 
-import Calculador from "./pages/Calculador";
-import Educacion from "./pages/Educacion";
-import Herramientas from "./pages/Herramientas";
-import Tarifas from "./pages/Tarifas";
-import GestionDeCotizacionesView from "./pages/gestion-de-cotizacion/gestion-de-cotizacion-view";
-import LoginPage from "./pages/login";
-import DashboardPage from "./pages/dashboard";
-import BasicLayout from "./layouts/BasicLayout";
-import DashboardLayout from "./layouts/DashboardLayout";
-import GestionDeUsuarios from "./pages/gestion-de-usuarios/gestion-de-usuarios-view";
-import GestionDeTracking from "./pages/GestionDeTracking";
-import GestionDeMercanciasView from "./pages/gestion-de-mercancia/gestion-de-mercancias-view";
-import InspectionDetailView from "./pages/gestion-de-mercancia/inspection-detail-view";
-import CotizacionViewNew from "./pages/cotizacion/cotizacion-view";
-import MisCotizacionesView from "./pages/mis-cotizaciones/mis-cotizacion-view";
-import ShipmentDetailView from "./pages/shipment-detail-view";
+import Calculador from "@/pages/Calculador";
+import Educacion from "@/pages/Educacion";
+import Herramientas from "@/pages/Herramientas";
+import Tarifas from "@/pages/Tarifas";
+import GestionDeCotizacionesView from "@/pages/gestion-de-cotizacion/gestion-de-cotizacion-view";
+import LoginPage from "@/pages/login";
+import DashboardPage from "@/pages/dashboard";
+import BasicLayout from "@/layouts/BasicLayout";
+import DashboardLayout from "@/layouts/DashboardLayout";
+import GestionDeUsuarios from "@/pages/gestion-de-usuarios/gestion-de-usuarios-view";
+import GestionDeTracking from "@/pages/GestionDeTracking";
+import GestionDeMercanciasView from "@/pages/gestion-de-mercancia/gestion-de-mercancias-view";
+import InspectionDetailView from "@/pages/gestion-de-mercancia/inspection-detail-view";
+import CotizacionViewNew from "@/pages/cotizacion/cotizacion-view";
+import MisCotizacionesView from "@/pages/mis-cotizaciones/mis-cotizacion-view";
+import ShipmentDetailView from "@/pages/shipment-detail-view";
 
 
 

@@ -16,7 +16,7 @@ import GestionDeUsuarios from "./pages/gestion-de-usuarios/gestion-de-usuarios-v
 import GestionDeTracking from "./pages/GestionDeTracking";
 import GestionDeMercanciasView from "./pages/gestion-de-mercancia/gestion-de-mercancias-view";
 import InspectionDetailView from "./pages/gestion-de-mercancia/inspection-detail-view";
-import CotizacionViewNew from "./pages/cotizacion/cotizacion-view";
+import CotizacionViewNew from "./pages/Cotizacion/cotizacion-view";
 import MisCotizacionesView from "./pages/mis-cotizaciones/mis-cotizacion-view";
 import ShipmentDetailView from "./pages/shipment-detail-view";
 

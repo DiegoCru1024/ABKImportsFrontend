@@ -4,8 +4,8 @@ import { useGetShipmentById, useUpdateShipmentStatus, useGetShipmentInfo } from 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
+import DynamicMap from "@/components/DynamicMap";
 import {
   Dialog,
   DialogContent,
@@ -38,7 +38,7 @@ import {
   ExternalLink,
   Navigation,
 } from "lucide-react";
-import type { UpdateShipmentStatusRequest, ShipmentStatus, CurrentLocation } from "@/api/interface/shipmentInterface";
+import type { UpdateShipmentStatusRequest, ShipmentStatus, CurrentLocation, StatusHistoryEntry } from "@/api/interface/shipmentInterface";
 
 export default function ShipmentDetailView() {
   const { id } = useParams<{ id: string }>();
@@ -160,11 +160,11 @@ export default function ShipmentDetailView() {
 
   const getAvailableStatuses = () => {
     if (!shipmentInfo || !shipment) return [];
-    
+
     const type = shipment.shipping_type;
     const statuses = type === 'aerial' ? shipmentInfo.aerial_statuses : shipmentInfo.maritime_statuses;
-    
-    return statuses.map(status => ({
+
+    return statuses.map((status: string) => ({
       name: status,
       description: getStatusText(status)
     }));
@@ -172,10 +172,10 @@ export default function ShipmentDetailView() {
 
   const getAvailableLocations = () => {
     if (!shipmentInfo || !shipment) return [];
-    
+
     const type = shipment.shipping_type;
     const locations = type === 'aerial' ? shipmentInfo.aerial_locations : shipmentInfo.maritime_locations;
-    
+
     return Object.entries(locations).map(([name, progress]) => ({
       name,
       progress
@@ -358,30 +358,8 @@ export default function ShipmentDetailView() {
                 </div>
               </div>
 
-              {/* Mapa simplificado */}
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h4 className="font-medium mb-3">Ruta del Envío</h4>
-                <div className="flex items-center justify-between text-sm">
-                  <div className="text-center">
-                    <div className="w-3 h-3 bg-green-500 rounded-full mx-auto mb-1"></div>
-                    <span className="text-xs">{shipment.origin}</span>
-                  </div>
-                  <div className="flex-1 h-0.5 bg-gray-300 mx-4 relative">
-                    <div 
-                      className="h-0.5 bg-green-500 transition-all duration-500"
-                      style={{ width: `${shipment.progress}%` }}
-                    ></div>
-                    <div 
-                      className="absolute top-0 w-2 h-2 bg-green-500 rounded-full transform -translate-y-0.5 transition-all duration-500"
-                      style={{ left: `${shipment.progress}%` }}
-                    ></div>
-                  </div>
-                  <div className="text-center">
-                    <div className="w-3 h-3 bg-blue-500 rounded-full mx-auto mb-1"></div>
-                    <span className="text-xs">{shipment.destination}</span>
-                  </div>
-                </div>
-              </div>
+              {/* Mapa de ruta */}
+              <DynamicMap shipment={shipment} shipmentInfo={shipmentInfo} />
             </div>
           </CardContent>
         </Card>
@@ -396,7 +374,7 @@ export default function ShipmentDetailView() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {shipment.status_history.map((entry, index) => (
+              {shipment.status_history.map((entry: StatusHistoryEntry, index: number) => (
                 <div key={index} className="flex items-start gap-4 p-4 border rounded-lg">
                   <div className="flex-shrink-0">
                     <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
@@ -440,7 +418,7 @@ export default function ShipmentDetailView() {
                   <SelectValue placeholder="Seleccionar estado" />
                 </SelectTrigger>
                 <SelectContent>
-                  {getAvailableStatuses().map((status) => (
+                  {getAvailableStatuses().map((status: { name: string; description: string }) => (
                     <SelectItem key={status.name} value={status.name}>
                       {status.description}
                     </SelectItem>
@@ -459,7 +437,7 @@ export default function ShipmentDetailView() {
                   <SelectValue placeholder="Seleccionar ubicación" />
                 </SelectTrigger>
                 <SelectContent>
-                  {getAvailableLocations().map((location) => (
+                  {getAvailableLocations().map((location: { name: string; progress: any }) => (
                     <SelectItem key={location.name} value={location.name}>
                       {location.name} ({location.progress}%)
                     </SelectItem>

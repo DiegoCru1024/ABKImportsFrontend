@@ -26,6 +26,8 @@ jobs:
           bun install
           echo "Checking file structure..."
           find src/pages -name "*.tsx" -o -name "*.ts" | head -20
+          echo "Checking if cotizacion-view.tsx exists..."
+          ls -la src/pages/cotizacion/
           echo "Checking TypeScript configuration..."
           cat tsconfig.json
           cat tsconfig.app.json

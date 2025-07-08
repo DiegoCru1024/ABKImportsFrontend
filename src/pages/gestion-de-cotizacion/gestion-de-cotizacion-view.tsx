@@ -25,7 +25,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { statusFilterOptions, statusMap, type TabId } from "../cotizacion/components/static";
+import { statusFilterOptions, statusMap, type TabId } from "@/pages/cotizacion/components/static";
 import { formatDate, formatDateTime } from "@/lib/format-time";
 
 
@@ -542,7 +542,7 @@ export default function GestionDeCotizacionesView() {
                   </h3>
                   <p className="text-gray-500">
                     {statusFilter !== "all" 
-                      ? `No hay cotizaciones con estado "${statusFilterOptions.find(opt => opt.key === statusFilter)?.label}"`
+                      ? `No hay cotizaciones con estado "${statusFilterOptions.find((opt: any) => opt.key === statusFilter)?.label}"`
                       : "Intente ajustar los filtros de búsqueda"
                     }
                   </p>

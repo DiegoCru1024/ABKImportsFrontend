@@ -38,6 +38,14 @@ import {
   DialogOverlay,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { useGetQuotationById } from "@/hooks/use-quation";
 import {
   Card,
@@ -54,25 +62,19 @@ import {
 } from "../utils/static";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-import { useCreateQuatitationResponseMultiple } from "@/hooks/use-quatitation-response";
 import type { ProductoResponseIdInterface } from "@/api/interface/quotationInterface";
 import type { DetallesTabProps } from "../utils/interface";
 import { formatDate, formatDateTime } from "@/lib/format-time";
 import ResponseQuotation from "./response-quotation";
+import { servicios } from "@/pages/cotizacion/components/data/static";
 
-
-
-const DetallesTab: React.FC<DetallesTabProps> = ({
-  selectedQuotationId
-}) => {
+const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
   //* Hook para obtener los detalles de la cotización - DEBE IR PRIMERO
   const {
     data: quotationDetail,
     isLoading,
     isError,
   } = useGetQuotationById(selectedQuotationId);
-
-
 
   //* Estados - TODOS LOS USESTATE JUNTOS
   const [subTab, setSubTab] = useState<
@@ -84,8 +86,6 @@ const DetallesTab: React.FC<DetallesTabProps> = ({
 
   //* Estado para el servicio seleccionado
   const [selectedServiceType, setSelectedServiceType] = useState<string>("");
-
-
 
   //* Estados para el sistema de respuestas
   const [selectedProduct, setSelectedProduct] =
@@ -100,8 +100,6 @@ const DetallesTab: React.FC<DetallesTabProps> = ({
   //*Estado para obtener cantidad de productos respondidos
   const [respondedProducts, setRespondedProducts] = useState(0);
   const [progress, setProgress] = useState(0);
-
-
 
   //* Establecer el primer servicio como seleccionado cuando se cargan los datos
   useEffect(() => {
@@ -130,9 +128,6 @@ const DetallesTab: React.FC<DetallesTabProps> = ({
         : 0
     );
   }, [totalProducts, respondedProducts]);
-
-
-
 
   if (isLoading) {
     return (
@@ -206,10 +201,6 @@ const DetallesTab: React.FC<DetallesTabProps> = ({
     },
   ];
 
-
-
-
-
   return (
     <div className="space-y-4 p-6">
       {/* Header Bento Grid */}
@@ -235,39 +226,28 @@ const DetallesTab: React.FC<DetallesTabProps> = ({
                   </div>
                   <div>
                     <h3 className="font-semibold text-lg">
-                      {quotationDetail.user.name}
+                      Cliente: {quotationDetail.user.name}
                     </h3>
                     <p className="text-gray-600">
-                      {quotationDetail.user.email}
+                      Correo: {quotationDetail.user.email}
                     </p>
                     <div className="flex items-center gap-2 mt-1">
                       <Calendar className="w-4 h-4 text-gray-400" />
                       <span className="text-sm text-gray-500">
-                        {formatDate(quotationDetail.createdAt)} - {formatDateTime(quotationDetail.createdAt)}
+                        Fecha de registro:{" "}
+                        {formatDate(quotationDetail.createdAt)} -{" "}
+                        {formatDateTime(quotationDetail.createdAt)}
                       </span>
                     </div>
                   </div>
                 </div>
 
-                {/* Tipo de servicio */}
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
-                    <Boxes className="w-6 h-6 text-orange-600" />
-                  </div>
-
-                  <div>
-                    <p className="text-lg text-orange-900">Tipo de servicio:</p>
-                    <p className="text-orange-700 text-sm">
-                      {quotationDetail.summaryByServiceType?.[0]?.service_type}
-                    </p>
-                  </div>
-                </div>
-
                 <div className="flex items-center gap-4">
                   <p className="text-gray-800 text-sm font-semibold">
-                    Estado de la cotización:
+                    Respuesta de la cotización:
                   </p>
                   <Badge
+                    title={quotationDetail.statusResponseQuotation}
                     className={`${
                       statusColorsQuotation[
                         quotationDetail.statusResponseQuotation as keyof typeof statusResponseQuotation
@@ -285,7 +265,7 @@ const DetallesTab: React.FC<DetallesTabProps> = ({
             </Card>
 
             {/* Progress */}
-            <div className="bg-gray-50 p-4 rounded-lg">
+            {/*<div className="bg-gray-50 p-4 rounded-lg">
               <div className="flex justify-between items-center mb-2">
                 <span className="text-sm font-medium text-gray-700">
                   Progreso de Respuestas
@@ -302,102 +282,258 @@ const DetallesTab: React.FC<DetallesTabProps> = ({
                   }}
                 ></div>
               </div>
-            </div>
+            </div>*/}
           </div>
         </div>
       </div>
+      <Card>
+        <CardContent>
+          <div className="flex items-center justify-left gap-4 mb-4">
+          <Label className="text-xl font-bold align-middle text-center text-orange-500" title="Seleccione el tipo servicio que desea cotizar">
+              Seleccione el tipo servicio que desea cotizar: 
+            </Label>
+            <Select
+                              value={selectedServiceType}
+                              
+                            onValueChange={(value) => {
+                                setSelectedServiceType(value);
+                                if (value !== "Almacenaje de Mercancia") {
+                                  setSelectedServiceType(value);
+   
+                                }
 
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Productos Cotizados</h3>
+                                if (value === "Consolidado Express" || value === "Consolidado Grupal Express") {
+                                  setSelectedServiceType(value);
+    
+                                }
+                              }}
+                            >
+                              <SelectTrigger className="mt-1">
+                                <SelectValue placeholder="Seleccione" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {servicios.map((servicio: { id: number; value: string; label: string }) => (
+                                  <SelectItem
+                                    key={servicio.value}
+                                    value={servicio.value}
+                                  >
+                                    {servicio.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+        
+          </div>
+          {/* Linea de borde */}
+          <div className="w-full h-1 bg-gray-200"></div>
+       
+          <div className="flex items-center align-middle gap-4">
 
-        {quotationDetail.products.map((product) => (
-          <>
-            <Card key={product.id} className="p-4">
-              <div className="space-y-4">
-                {/* Product Header */}
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <div className="flex gap-4">
-                      {/* Product Images */}
-                      {product.attachments &&
-                        product.attachments.length > 0 && (
-                          <div className="flex-shrink-0">
-                            {/*Imagen Principal*/}
-                            <div className="w-24 h-24 bg-gray-100 rounded-lg overflow-hidden">
-                              <img
-                                src={product.attachments[0]}
-                                alt={product.name}
-                                className="w-full h-full object-cover"
-                              />
-                            </div>
-                            {/* Miniaturas de las imágenes */}
-                            {product.attachments.length > 1 && (
-                              <div className="mt-2 flex gap-1">
-                                {product.attachments
-                                  .slice(1, 4)
-                                  .map((image, index) => (
-                                    <div
-                                      key={index}
-                                      className="w-6 h-6 bg-gray-100 rounded overflow-hidden"
-                                    >
-                                      <img
-                                        src={image}
-                                        alt={`${product.name} ${index + 2}`}
-                                        className="w-full h-full object-cover"
-                                      />
-                                    </div>
-                                  ))}
-                                {/* Si hay más de 4 imágenes, se muestra el número de imágenes restantes */}
-                                {product.attachments.length > 4 && (
-                                  <div className="w-6 h-6 bg-gray-200 rounded flex items-center justify-center">
-                                    <span className="text-xs text-gray-600">
-                                      +{product.attachments.length - 4}
-                                    </span>
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                      {/* Product Info */}
-                      <div className="flex-1 w-full">
-                        <h4 className="font-semibold  text-lg text-ellipsis overflow-hidden whitespace-nowrap">
-                          {product.name}
-                        </h4>
-                        <p className="text-gray-600">{product.comment}</p>
-                        <div className="flex items-center gap-4 mt-2">
-                          <span className="text-sm">
-                            <strong>Cantidad:</strong> {product.quantity}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
+            <div className="grid grid-cols-1  md:grid-cols-3 gap-4  p-4">
+              {/*Primera columna*/}
+              <div className="grid grid-cols-1  gap-4">
+                <div className="flex items-center justify-center">
+                  <Label className="text-xl font-bold align-middle text-center">
+                    Información de logística
+                  </Label>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 rounded-lg border-2 p-4">
+                  {/*Primera Fila*/}
+                  <div className=" items-center gap-4 ">
+                    <Label className="text-lg font-semibold py-2">
+                      Tipo de carga
+                    </Label>
+                    <Input type="text" placeholder="Electrónicos" />
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary">
-                      {respondedProducts} respuestas
-                    </Badge>
-                    <Button
-                      onClick={() => {
-                        setSelectedProduct(product);
-                        setIsResponseModalOpen(true);
-                      }}
-                      size="sm"
-                      className="ml-2  hover:animate-none bg-orange-500 hover:bg-orange-600"
-                    >
-                      <Plus className="w-4 h-4 mr-1" />
-                      Agregar Respuesta
-                    </Button>
+                  <div className=" items-center gap-4 ">
+                    <Label className="text-lg  font-semibold py-2">
+                      Cantidad de cajas
+                    </Label>
+                    <Input type="number" placeholder="100" />
+                  </div>
+                  <div className=" items-center gap-4 ">
+                    <Label className="text-lg font-semibold py-2">
+                      Incoterms
+                    </Label>
+                    <Input type="text" placeholder="CIF" />
+                  </div>
+                  {/*Segunda Fila*/}
+                  <div className="items-center gap-4">
+                    <Label className="text-lg font-semibold py-2">
+                      Volumen
+                    </Label>
+                    <Input type="text" placeholder="100m3" />
+                  </div>
+
+                  <div className=" items-center gap-4 ">
+                    <Label className="text-lg font-semibold py-2">Peso</Label>
+                    <Input type="text" placeholder="100kg" />
+                  </div>
+
+                  <div className=" items-center gap-4 ">
+                    <Label className="text-lg font-semibold py-2">
+                      Naviera
+                    </Label>
+                    <Input type="text" placeholder="Logistics" />
+                  </div>
+
+                  {/*Tercera Fila*/}
+
+                  <div className=" items-center gap-4 ">
+                    <Label className="text-lg font-semibold py-2">
+                      Courier{" "}
+                    </Label>
+                    <Input type="text" placeholder="DHL" />
                   </div>
                 </div>
               </div>
-            </Card>
-          </>
-        ))}
-      </div>
 
+              {/*Segunda columna*/}
+              <div className="grid grid-cols-1  gap-4 ">
+                <div className="flex items-center justify-center">
+                  <Label className="text-xl font-bold align-middle text-center">
+                    Detalles de precios
+                  </Label>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 rounded-lg border-2 p-4">
+                  {/*Primera Fila*/}
+                  <div className=" items-center gap-4 ">
+                    <Label className="text-lg font-semibold py-2">
+                      Flete internacional
+                    </Label>
+                    <Input type="text" placeholder="Electrónicos" />
+                  </div>
+                  <div className=" items-center gap-4 ">
+                    <Label className="text-lg  font-semibold py-2">
+                      Desaduanaje
+                    </Label>
+                    <Input type="number" placeholder="100" />
+                  </div>
+                  <div className=" items-center gap-4 ">
+                    <Label className="text-lg font-semibold py-2">
+                      Delivery
+                    </Label>
+                    <Input type="number" placeholder="100" />
+                  </div>
+                  <div className=" items-center gap-4 ">
+                    <Label className="text-lg font-semibold py-2">
+                      Otros gastos
+                    </Label>
+                    <Input type="number" placeholder="100" />
+                  </div>
+                </div>
+              </div>
 
+              {/*Tercera columna*/}
+              <div className="grid grid-cols-1  gap-4">
+                <div className="flex items-center justify-center">
+                  <Label className="text-xl font-bold align-middle text-center">
+                    Notas
+                  </Label>
+                </div>
+                <div className="grid grid-cols-1  gap-4 rounded-lg border-2 p-4">
+                  <div className="items-center gap-4">
+                    <Label className="text-lg font-semibold py-2">
+                      Recomendaciones
+                    </Label>
+                    <Textarea placeholder="Recomendaciones" />
+                  </div>
+                  <div className=" items-center gap-4">
+                    <Label className="text-lg font-semibold py-2">
+                      Observaciones
+                    </Label>
+                    <Textarea placeholder="Observaciones" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/*Tabla de cotizacion*/}
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-xl font-bold">Productos de la Cotización</CardTitle>
+          <CardDescription>
+            Detalles de los productos incluidos en esta cotización
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>IMAGEN</TableHead>
+                <TableHead>PRODUCTO</TableHead>
+                <TableHead>PRECIO</TableHead>
+                <TableHead>CANTIDAD</TableHead>
+                <TableHead>PRECIO TOTAL</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {quotationDetail?.products?.map((product, index) => (
+                <TableRow key={index}>
+                  <TableCell>
+                    <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
+                      {product.url ? (
+                        <img
+                          src={product.url}
+                          alt={product.name}
+                          className="w-full h-full object-cover rounded-lg"
+                        />
+                      ) : (
+                        <Package className="w-8 h-8 text-gray-400" />
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="font-medium">{product.name}</div>
+                    {product.comment && (
+                      <div className="text-sm text-gray-500 mt-1">
+                        {product.comment}
+                      </div>
+                    )}
+                    <div className="text-xs text-gray-400 mt-1">
+                      {product.size} • {product.color}
+                    </div>
+                    <div className="text-xs text-gray-400 mt-1">
+                      Vol: {product.volume} • Cajas: {product.number_of_boxes}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="font-medium">{product.weight}</div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="font-medium">{product.quantity}</div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      variant={product.statusResponseProduct ? "default" : "secondary"}
+                      className={`${
+                        product.statusResponseProduct
+                          ? "bg-green-100 text-green-800"
+                          : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      {product.statusResponseProduct || "Pendiente"}
+                    </Badge>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {(!quotationDetail?.products || quotationDetail.products.length === 0) && (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-8">
+                    <div className="text-gray-500">
+                      No hay productos disponibles
+                    </div>
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
 
       <div className="bg-white rounded-lg border">
         <div className=" pt-4 px-4 bg-white rounded-lg border">

@@ -26,8 +26,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import { incotermsOptions } from "../utils/static";
-import { servicios } from "@/pages/cotizacion/components/data/static";
+  import { incotermsOptions } from "../utils/static";
+  import { servicios } from "@/pages/Cotizacion/components/data/static";
 import type { AdminQuotationResponse } from "../utils/interface";
 import FileUploadComponent from "@/components/comp-552";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";

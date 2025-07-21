@@ -25,7 +25,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { statusFilterOptions, statusMap, type TabId } from "@/pages/cotizacion/components/static";
+import { statusFilterOptions, statusMap, type TabId } from "@/pages/Cotizacion/components/static";
 import { formatDate, formatDateTime } from "@/lib/format-time";
 
 

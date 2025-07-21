@@ -21,6 +21,21 @@ export const incotermsOptions = [
     { value: "Almacenaje de mercancias", label: "Almacenaje de mercancias" },
   ];
 
+  //!Tipo de carga
+  export const typeLoad = [
+    { value: "general", label: "GENERAL" },
+    { value: "imo", label: "IMO" },
+    { value: "mixto", label: "MIXTO" },
+  ];
+
+  //!Courier
+  export const courier = [
+    { value: "dhl", label: "DHL" },
+    { value: "fedex", label: "FEDEX" },
+    { value: "ups", label: "UPS" },
+    { value: "ems", label: "EMS" },
+    { value: "other", label: "OTROS" },
+  ];
 //! Estado de la respuesta de la cotización
   export const statusResponseQuotation = {
     pending: "Pendiente",

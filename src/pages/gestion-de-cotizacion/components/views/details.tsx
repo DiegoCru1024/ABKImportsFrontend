@@ -252,14 +252,14 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                 {/* Información del Cliente */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <div className="space-y-4">
-                    <Card className="overflow-hidden">
+                    <div className="overflow-hidden">
                       <div className="bg-black text-white text-center py-2 font-semibold">
                         CLIENTE
                       </div>
                       <div className="bg-yellow-300 text-black text-center py-2 font-semibold text-lg">
                         PAULO
                       </div>
-                    </Card>
+                    </div>
 
                     <Card className="overflow-hidden">
                       <div className="grid grid-cols-3">

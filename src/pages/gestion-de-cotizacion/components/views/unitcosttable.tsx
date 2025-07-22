@@ -1,6 +1,9 @@
 import { Card } from '@/components/ui/card'
 import React from 'react'
+import type { ProductoResponseIdInterface } from "@/api/interface/quotationInterface"
+
 export interface ProductRow {
+  id: string
   name: string
   price: number
   quantity: number
@@ -10,12 +13,46 @@ export interface ProductRow {
   totalCost: number
   unitCost: number
 }
-const UnitCostTable = () => {
- 
+
+interface UnitCostTableProps {
+  products?: ProductoResponseIdInterface[]
+  totalImportCosts?: number
+}
+
+const UnitCostTable: React.FC<UnitCostTableProps> = ({ products = [], totalImportCosts = 998.94 }) => {
   const factorM = 1.91
 
-  const products: ProductRow[] = [
+  // Convertir los productos del endpoint a ProductRow
+  const productRows: ProductRow[] = products.map((product, index) => {
+    const price = 0 // Este valor deberá ser ingresado por el usuario
+    const total = price * product.quantity
+    
+    // Calcular equivalencia como porcentaje del total comercial
+    const totalCommercialValue = products.reduce((sum, p) => sum + (0 * p.quantity), 0) || 1
+    const equivalence = totalCommercialValue > 0 ? (total / totalCommercialValue) * 100 : 0
+    
+    // Calcular gastos de importación proporcionales
+    const importCosts = (equivalence / 100) * totalImportCosts
+    const totalCost = total + importCosts
+    const unitCost = product.quantity > 0 ? totalCost / product.quantity : 0
+
+    return {
+      id: product.id,
+      name: product.name,
+      price,
+      quantity: product.quantity,
+      total,
+      equivalence: Math.round(equivalence),
+      importCosts,
+      totalCost,
+      unitCost,
+    }
+  })
+
+  // Si no hay productos del endpoint, usar productos de ejemplo
+  const defaultProducts: ProductRow[] = [
     {
+      id: "1",
       name: "A",
       price: 100.0,
       quantity: 5,
@@ -26,6 +63,7 @@ const UnitCostTable = () => {
       unitCost: 190.81,
     },
     {
+      id: "2", 
       name: "B",
       price: 50.0,
       quantity: 10,
@@ -36,6 +74,7 @@ const UnitCostTable = () => {
       unitCost: 95.41,
     },
     {
+      id: "3",
       name: "C",
       price: 0.1,
       quantity: 1000,
@@ -47,14 +86,17 @@ const UnitCostTable = () => {
     },
   ]
 
+  const displayProducts = productRows.length > 0 ? productRows : defaultProducts
+
   // Crear filas vacías para completar la tabla
-  const emptyRows = Array(12).fill(null)
+  const emptyRowsCount = Math.max(0, 12 - displayProducts.length)
+  const emptyRows = Array(emptyRowsCount).fill(null)
 
   // Calcular totales
-  const totalQuantity = products.reduce((sum, product) => sum + product.quantity, 0)
-  const totalAmount = products.reduce((sum, product) => sum + product.total, 0)
-  const totalImportCosts = products.reduce((sum, product) => sum + product.importCosts, 0)
-  const grandTotal = products.reduce((sum, product) => sum + product.totalCost, 0)
+  const totalQuantity = displayProducts.reduce((sum, product) => sum + product.quantity, 0)
+  const totalAmount = displayProducts.reduce((sum, product) => sum + product.total, 0)
+  const totalImportCostsSum = displayProducts.reduce((sum, product) => sum + product.importCosts, 0)
+  const grandTotal = displayProducts.reduce((sum, product) => sum + product.totalCost, 0)
 
   return (
     <div className="p-6 bg-gray-50">
@@ -81,8 +123,8 @@ const UnitCostTable = () => {
       </div>
 
       {/* Product Rows */}
-      {products.map((product, index) => (
-        <div key={index} className="grid grid-cols-8 text-center text-sm border-b border-gray-300">
+      {displayProducts.map((product) => (
+        <div key={product.id} className="grid grid-cols-8 text-center text-sm border-b border-gray-300">
           <div className="p-2 border-r border-gray-300 bg-gray-100 font-semibold">{product.name}</div>
           <div className="p-2 border-r border-gray-300">
             <span className="text-xs mr-1">USD</span>
@@ -133,6 +175,7 @@ const UnitCostTable = () => {
 
       {/* Totals Row */}
       <div className="bg-orange-500 text-white grid grid-cols-8 text-center text-sm font-bold">
+        <div className="p-3 border-r border-orange-400">TOTALES</div>
         <div className="p-3 border-r border-orange-400"></div>
         <div className="p-3 border-r border-orange-400">{totalQuantity}</div>
         <div className="p-3 border-r border-orange-400">
@@ -142,7 +185,7 @@ const UnitCostTable = () => {
         <div className="p-3 border-r border-orange-400">100%</div>
         <div className="p-3 border-r border-orange-400">
           <span className="text-xs mr-1">USD</span>
-          {totalImportCosts.toFixed(2)}
+          {totalImportCostsSum.toFixed(2)}
         </div>
         <div className="p-3 border-r border-orange-400">
           <span className="text-xs mr-1">USD</span>
@@ -154,6 +197,5 @@ const UnitCostTable = () => {
   </div>
   )
 }
-
 
 export default UnitCostTable

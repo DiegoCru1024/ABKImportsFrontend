@@ -45,7 +45,7 @@ import { uploadMultipleFiles } from "@/api/fileUpload";
 import { toast } from "sonner";
 import SendingModal from "@/components/sending-modal";
 import { useNavigate } from "react-router-dom";
-import { productoSchema } from "./utils/schema";
+import { productoSchema } from "@/pages/cotizacion/utils/schema";
 import { Label } from "@/components/ui/label";
 
 export default function CotizacionViewNew() {

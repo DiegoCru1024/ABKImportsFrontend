@@ -1,7 +1,7 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { EllipsisVerticalIcon, Eye, Truck } from "lucide-react";
+import { EllipsisVerticalIcon, Eye, Trash, Truck } from "lucide-react";
 import type { QuotationListItem } from "../../types/interfaces";
 import { obtenerUser } from "@/lib/functions";
 import {
@@ -14,11 +14,13 @@ import {
 interface ColumnsQuotationsListProps {
   onViewDetails: (quotationId: string,correlative:string) => void;
   onGenerateInspectionId?: (quotationId: string,correlative:string ) => void;
+  onDelete?: (quotationId: string) => void;
 }
 
 export function columnsQuotationsList({
   onViewDetails,
   onGenerateInspectionId,
+  onDelete,
 }: ColumnsQuotationsListProps): ColumnDef<QuotationListItem, any>[] {
   const currentUser = obtenerUser();
   const isAdmin = currentUser?.type === "admin";
@@ -78,13 +80,6 @@ export function columnsQuotationsList({
     }
   };
 
-  /*    const userColumn: ColumnDef<QuotationListItem, any> = {
-    id: "user",
-    accessorKey: "user",
-    header: "Cliente",
-    cell: ({ row }) => <div>{row.original.user.name}</div>,
-    size: 120,
-  };*/
 
   return [
     /*{
@@ -193,17 +188,35 @@ export function columnsQuotationsList({
                     Generar Id de Inspección
                   </Button>
                 </DropdownMenuItem>
+                
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onViewDetails(row.original.id,row.original.correlative)}
-            >
-              <Eye className="h-4 w-4 mr-2 text-green-500" />
-              Ver Detalles
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm">
+                  <EllipsisVerticalIcon className="w-4 h-4 text-blue-500" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem className=" text-green-600 hover:text-green-800 hover:bg-green-50">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-green-600 hover:text-green-800 hover:bg-green-50"
+                    onClick={() => onViewDetails(row.original.id,row.original.correlative)}
+                  >
+                    <Eye className="h-4 w-4 mr-2 text-green-500" />
+                    Ver Detalles
+                  </Button>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem className=" text-red-600 hover:text-red-800 hover:bg-red-50" onClick={() => onDelete?.(row.original.id)}>
+                  <Trash className="h-4 w-4 mr-2 text-red-500" />
+                  Eliminar
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )
         );
       },

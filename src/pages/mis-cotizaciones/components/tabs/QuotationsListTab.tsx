@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable } from "@/components/table/data-table";
-import { useGetQuotationsListWithPagination } from "@/hooks/use-quation";
+import { useDeleteQuotation, useGetQuotationsListWithPagination } from "@/hooks/use-quation";
 import { columnsQuotationsList } from "../table/columnsQuotationsList";
+import { toast } from "sonner";
 
 
 interface QuotationsListTabProps {
@@ -53,7 +54,17 @@ const QuotationsListTab: React.FC<QuotationsListTabProps> = ({ onViewDetails }) 
     }));
   };
 
-  const columns = columnsQuotationsList({ onViewDetails });
+  const { mutate: deleteQuotation } = useDeleteQuotation("");
+
+  const onDelete = async (id: string) => {
+    console.log("eliminarCotizacion", id);    
+    deleteQuotation(id);
+
+  };
+
+
+
+  const columns = columnsQuotationsList({ onViewDetails, onDelete });
 
   if (isError) {
     return (
@@ -74,11 +85,7 @@ const QuotationsListTab: React.FC<QuotationsListTabProps> = ({ onViewDetails }) 
           Solicitudes de Cotización
         </CardTitle>
         <p className="text-muted-foreground text-sm leading-relaxed">
-          En este apartado se especifican las solicitudes de cotización
-          que han sido registrados en el sistema. Puede verificar su
-          estado, la respuesta del administrador y los documentos
-          asociados a su cotización; seleccionando el botón que indica
-          "Ver Detalles".
+
         </p>
       </CardHeader>
       <CardContent>

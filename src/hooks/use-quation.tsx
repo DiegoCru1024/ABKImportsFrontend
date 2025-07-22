@@ -128,13 +128,18 @@ export function useDeleteQuotation(id: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: () =>
-      deleteQuotation(id),
+    mutationFn: (id: string) => id ? deleteQuotation(id) : Promise.resolve(null),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["Quotations"],
       });
-      toast.success("Cotización eliminada exitosamente");
+      toast.success("Cotización eliminada exitosamente", {
+        className: "bg-green-50 border-green-500",
+        duration: 3000, // 3 segundos
+        descriptionClassName: "text-green-600",
+        icon: <Check className="text-green-500" />,
+        style: { border: "1px solid #22c55e" },
+      });
     },
     onError: (error) => {
       console.error("Error al eliminar la cotización:", error);

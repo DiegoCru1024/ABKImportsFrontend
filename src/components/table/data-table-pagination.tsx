@@ -70,7 +70,7 @@ export function DataTablePagination<TData>({
           </Select>
           </div>
           <div className="flex w-[100px] items-center justify-center text-sm font-medium">
-          Página {pageInfo.pageNumber + 1} de {pageInfo.totalPages}
+          Página {pageInfo.pageNumber } de {pageInfo.totalPages}
           </div>
           {showNavigation && (
             <div className="flex items-center space-x-2">

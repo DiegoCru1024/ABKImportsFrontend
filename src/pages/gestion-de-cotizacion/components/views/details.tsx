@@ -58,6 +58,8 @@ import ResponseQuotation from "./response-quotation";
 import EditableUnitCostTable from "./editableunitcosttable";
 import type { ProductRow } from "./editableunitcosttable";
 import { EditableNumericField } from "@/components/ui/editableNumberFieldProps";
+import { Checkbox } from "@/components/ui/checkbox";
+import { formatDate } from "@/lib/format-time";
 
 const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
   //* Hook para obtener los detalles de la cotización - DEBE IR PRIMERO
@@ -66,6 +68,9 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
     isLoading,
     isError,
   } = useGetQuotationById(selectedQuotationId);
+
+  //* Estado para la fecha de la cotización
+  const [quotationDate, setQuotationDate] = useState<string>("");
 
   //* Estado de apertura de modal de respuesta
   const [isResponseModalOpen, setIsResponseModalOpen] = useState(false);
@@ -134,7 +139,9 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
   const [isFirstPurchase, setIsFirstPurchase] = useState(false);
 
   //* Estado para productos editables de la tabla de costeo unitario
-  const [editableUnitCostProducts, setEditableUnitCostProducts] = useState<ProductRow[]>([]);
+  const [editableUnitCostProducts, setEditableUnitCostProducts] = useState<
+    ProductRow[]
+  >([]);
 
   //* Calcular CIF dinámicamente
   const cif = dynamicValues.fob + dynamicValues.flete + dynamicValues.seguro;
@@ -210,15 +217,23 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
   const totalDerechosSoles = totalDerechosDolares * dynamicValues.tipoCambio;
 
   //* Cálculos de gastos de importación con lógica de primera compra
-  const servicioConsolidadoFinal = isFirstPurchase ? 0 : dynamicValues.servicioConsolidado * 1.18;
-  const separacionCargaFinal = isFirstPurchase ? 0 : dynamicValues.separacionCarga * 1.18;
-  const inspeccionProductosFinal = isFirstPurchase ? 0 : dynamicValues.inspeccionProductos * 1.18;
+  const servicioConsolidadoFinal = isFirstPurchase
+    ? 0
+    : dynamicValues.servicioConsolidado * 1.18;
+  const separacionCargaFinal = isFirstPurchase
+    ? 0
+    : dynamicValues.separacionCarga * 1.18;
+  const inspeccionProductosFinal = isFirstPurchase
+    ? 0
+    : dynamicValues.inspeccionProductos * 1.18;
   const desaduanajeFleteSaguro =
     dynamicValues.desaduanaje + dynamicValues.flete + dynamicValues.seguro;
-  
+
   // Aplicar 50% de descuento a impuestos si es primera compra
-  const totalDerechosDolaresFinal = isFirstPurchase ? totalDerechosDolares * 0.5 : totalDerechosDolares;
-  
+  const totalDerechosDolaresFinal = isFirstPurchase
+    ? totalDerechosDolares * 0.5
+    : totalDerechosDolares;
+
   const totalGastosImportacion =
     servicioConsolidadoFinal +
     separacionCargaFinal +
@@ -244,14 +259,20 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
   };
 
   //* Función para manejar cambios de primera compra
-  const handleFirstPurchaseChange = (value: boolean) => {
-    setIsFirstPurchase(value);
+  const handleFirstPurchaseChange = (checked: boolean) => {
+    setIsFirstPurchase(checked);
   };
 
   //* Función para manejar cambios en los productos de la tabla de costeo unitario
   const handleUnitCostProductsChange = (products: ProductRow[]) => {
     setEditableUnitCostProducts(products);
   };
+
+  //* Obtener fecha actual de hoy
+  useEffect(() => {
+    const today = new Date();
+    setQuotationDate(formatDate(today.toISOString()));
+  }, []);
 
   //* Establecer el primer servicio como seleccionado cuando se cargan los datos
   useEffect(() => {
@@ -317,7 +338,7 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
     step: number = 0.01
   ) => (
     <Input
-      type="number" 
+      type="number"
       value={value}
       onChange={(e) => onChange(Number(e.target.value) || 0)}
       className="text-center font-semibold border-none bg-transparent h-auto p-1 text-sm"
@@ -475,12 +496,12 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                           KG
                         </div>
                         <div className="bg-white border text-black text-center py-2 font-semibold">
-                        <EditableNumericField
-                              value={dynamicValues.kg}
-                              onChange={(value) =>
-                                updateDynamicValue("kg", value)
-                              }
-                            />
+                          <EditableNumericField
+                            value={dynamicValues.kg}
+                            onChange={(value) =>
+                              updateDynamicValue("kg", value)
+                            }
+                          />
                         </div>
                         <div className="bg-black text-white text-center py-2 font-semibold">
                           TON
@@ -506,15 +527,37 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                         </div>
                       </div>
                     </div>
+
+                    {/* Checkbox de Primera Compra */}
+                    <div className="bg-gray-100 p-4 border-b">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="firstPurchase"
+                          checked={isFirstPurchase}
+                          onCheckedChange={handleFirstPurchaseChange}
+                        />
+                        <label
+                          htmlFor="firstPurchase"
+                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
+                          Es Primera Compra
+                        </label>
+                        {isFirstPurchase && (
+                          <span className="text-xs text-green-600 font-semibold ml-2">
+                            (Servicios exonerados y 50% descuento en impuestos)
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   </div>
 
                   {/* Información de Proforma */}
                   <div className="overflow-hidden">
                     <div className="p-4 space-y-3">
                       <div className="grid grid-cols-3 gap-2 text-sm border-b pb-2">
-                        <div className="font-semibold">FECHA</div>
+                        <div className="font-semibold">FECHA DE COTIZACIÓN</div>
                         <div className="text-center">:</div>
-                        <div className="text-right">7/21/2025</div>
+                        <div className="text-center">{quotationDate}</div>
                       </div>
                       <div className="grid grid-cols-3 gap-2 text-sm border-b pb-2">
                         <div className="font-semibold">ASESOR(A)</div>
@@ -804,37 +847,59 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                       <div className="grid grid-cols-3 gap-2 text-sm border-b pb-1">
                         <div className="font-semibold">
                           SERVICIO CONSOLIDADO AEREO
-                          {isFirstPurchase && <span className="text-green-600 text-xs ml-1">(EXONERADO)</span>}
+                          {isFirstPurchase && (
+                            <span className="text-green-600 text-xs ml-1">
+                              (EXONERADO)
+                            </span>
+                          )}
                         </div>
                         <div className="text-right">USD</div>
                         <div className="text-right">
-                          {isFirstPurchase ? "0.00" : servicioConsolidadoFinal.toFixed(2)}
+                          {isFirstPurchase
+                            ? "0.00"
+                            : servicioConsolidadoFinal.toFixed(2)}
                         </div>
                       </div>
                       <div className="grid grid-cols-3 gap-2 text-sm border-b pb-1">
                         <div className="font-semibold">
                           SEPARACION DE CARGA
-                          {isFirstPurchase && <span className="text-green-600 text-xs ml-1">(EXONERADO)</span>}
+                          {isFirstPurchase && (
+                            <span className="text-green-600 text-xs ml-1">
+                              (EXONERADO)
+                            </span>
+                          )}
                         </div>
                         <div className="text-right">USD</div>
                         <div className="text-right">
-                          {isFirstPurchase ? "0.00" : separacionCargaFinal.toFixed(2)}
+                          {isFirstPurchase
+                            ? "0.00"
+                            : separacionCargaFinal.toFixed(2)}
                         </div>
                       </div>
                       <div className="grid grid-cols-3 gap-2 text-sm border-b pb-1">
                         <div className="font-semibold">
                           INSPECCION DE PRODUCTOS
-                          {isFirstPurchase && <span className="text-green-600 text-xs ml-1">(EXONERADO)</span>}
+                          {isFirstPurchase && (
+                            <span className="text-green-600 text-xs ml-1">
+                              (EXONERADO)
+                            </span>
+                          )}
                         </div>
                         <div className="text-right">USD</div>
                         <div className="text-right">
-                          {isFirstPurchase ? "0.00" : inspeccionProductosFinal.toFixed(2)}
+                          {isFirstPurchase
+                            ? "0.00"
+                            : inspeccionProductosFinal.toFixed(2)}
                         </div>
                       </div>
                       <div className="grid grid-cols-3 gap-2 text-sm border-b pb-1">
                         <div className="font-semibold">
                           AD/VALOREM+IGV+IPM
-                          {isFirstPurchase && <span className="text-green-600 text-xs ml-1">(-50%)</span>}
+                          {isFirstPurchase && (
+                            <span className="text-green-600 text-xs ml-1">
+                              (-50%)
+                            </span>
+                          )}
                         </div>
                         <div className="text-right">USD</div>
                         <div className="text-right">
@@ -905,12 +970,12 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
               <div className="min-h-screen ">
                 <div className="grid grid-cols-1  gap-6 ">
                   <EditableUnitCostTable
-                    products={quotationDetail?.products || []}
+                    //products={quotationDetail?.products || []}
+                    initialProducts={editableUnitCostProducts}
                     totalImportCosts={totalGastosImportacion}
                     onCommercialValueChange={handleCommercialValueChange}
                     isFirstPurchase={isFirstPurchase}
                     onFirstPurchaseChange={handleFirstPurchaseChange}
-                    initialProducts={editableUnitCostProducts}
                     onProductsChange={handleUnitCostProductsChange}
                   />
 

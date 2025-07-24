@@ -41,28 +41,22 @@ const EditableUnitCostTable: React.FC<EditableUnitCostTableProps> = ({
   // Estado para primera compra
   const [firstPurchase, setFirstPurchase] = useState(isFirstPurchase);
 
-  // Estado inicial basado en los productos del endpoint
-  const getInitialProducts = (): ProductRow[] => {
-    return products.map((product) => ({
-      id: product.id,
-      name: product.name,
-      price: 0, // El usuario debe ingresar este valor
-      quantity: product.quantity,
-      total: 0,
-      equivalence: 0,
-      importCosts: 0,
-      totalCost: 0,
-      unitCost: 0,
-    }));
-  };
-
   const [productsList, setProductsList] = useState<ProductRow[]>(
-    initialProducts.length > 0 ? initialProducts : getInitialProducts() || []
+    initialProducts.length > 0 ? initialProducts : []
   );
+
+  useEffect(() => {
+    const recalculated = recalculateProducts(initialProducts);
+    setProductsList(recalculated);
+  }, [initialProducts, totalImportCosts]); // Depende de los datos del padre y los costos
 
   // Función para calcular el factor M
   const calculateFactorM = (products: ProductRow[]): number => {
-    if (products.length === 0 || products[0].price === 0 || products[0].unitCost === 0) {
+    if (
+      products.length === 0 ||
+      products[0].price === 0 ||
+      products[0].unitCost === 0
+    ) {
       return 0;
     }
     return products[0].price / products[0].unitCost;
@@ -122,7 +116,8 @@ const EditableUnitCostTable: React.FC<EditableUnitCostTableProps> = ({
 
           // Recalcular total cuando cambie precio o cantidad
           if (field === "price" || field === "quantity") {
-            updatedProduct.total = updatedProduct.price * updatedProduct.quantity;
+            updatedProduct.total =
+              updatedProduct.price * updatedProduct.quantity;
           }
 
           return updatedProduct;
@@ -131,7 +126,7 @@ const EditableUnitCostTable: React.FC<EditableUnitCostTableProps> = ({
       });
 
       const recalculated = recalculateProducts(updated);
-      
+
       // Notificar cambios al componente padre
       if (onProductsChange) {
         onProductsChange(recalculated);
@@ -151,20 +146,6 @@ const EditableUnitCostTable: React.FC<EditableUnitCostTableProps> = ({
 
   // Generar columnas con la lógica de actualización
   const columns = columnsEditableUnitcost(updateProduct);
-
-  // Actualizar productos cuando cambien los props
-  useEffect(() => {
-    if (products.length > 0) {
-      const initialProducts = getInitialProducts();
-      const recalculated = recalculateProducts(initialProducts);
-      setProductsList(recalculated);
-      
-      // Notificar cambios al componente padre
-      if (onProductsChange) {
-        onProductsChange(recalculated);
-      }
-    }
-  }, [products, totalImportCosts]);
 
   // Actualizar estado de primera compra cuando cambie el prop
   useEffect(() => {
@@ -206,27 +187,7 @@ const EditableUnitCostTable: React.FC<EditableUnitCostTableProps> = ({
           </div>
         </div>
 
-        {/* Checkbox de Primera Compra */}
-        <div className="bg-gray-100 p-4 border-b">
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="firstPurchase"
-              checked={firstPurchase}
-              onCheckedChange={handleFirstPurchaseChange}
-            />
-            <label
-              htmlFor="firstPurchase"
-              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-            >
-              Es Primera Compra
-            </label>
-            {firstPurchase && (
-              <span className="text-xs text-green-600 font-semibold ml-2">
-                (Servicios exonerados y 50% descuento en impuestos)
-              </span>
-            )}
-          </div>
-        </div>
+
 
         <DataTable
           columns={columns}

@@ -20,6 +20,7 @@ import {
   Edit3,
   Check,
   X,
+  Plane,
 } from "lucide-react";
 
 import { useGetQuotationById } from "@/hooks/use-quation";
@@ -60,6 +61,9 @@ import type { ProductRow } from "./editableunitcosttable";
 import { EditableNumericField } from "@/components/ui/editableNumberFieldProps";
 import { Checkbox } from "@/components/ui/checkbox";
 import { formatDate } from "@/lib/format-time";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 
 const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
   //* Hook para obtener los detalles de la cotización - DEBE IR PRIMERO
@@ -155,14 +159,14 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
       "Almacenaje de mercancías",
     ];
     if (aereoServices.includes(serviceType)) {
-      return "SERVICIO DE CARGA CONSOLIDADA AÉREA";
+      return "Servicio de Carga Consolidada Aérea";
     } else if (
       serviceType === "Consolidado Maritimo" ||
       serviceType === "Consolidado Grupal Maritimo"
     ) {
-      return "SERVICIO DE CARGA CONSOLIDADA (CARGA- ADUANA)";
+      return "Servicio de Carga Consolidada (CARGA- ADUANA)";
     }
-    return "SERVICIO DE CARGA CONSOLIDADA AÉREA"; // Por defecto
+    return "Servicio de Carga Consolidada Aérea"; // Por defecto
   };
 
   //* Función para obtener los campos del servicio según el tipo
@@ -329,24 +333,6 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
     console.log("Mostrando productos de ejemplo");
   }
 
-  //!Importante:
-  //! Función para renderizar campo editable
-  const renderEditableField = (
-    value: number,
-    onChange: (value: number) => void,
-    currency: string = "USD",
-    step: number = 0.01
-  ) => (
-    <Input
-      type="number"
-      value={value}
-      onChange={(e) => onChange(Number(e.target.value) || 0)}
-      className="text-center font-semibold border-none bg-transparent h-auto p-1 text-sm"
-      step={step}
-      onFocus={(e) => e.target.select()}
-    />
-  );
-
   return (
     <div className="space-y-6 p-4 min-h-screen ">
       {/* Header Bento Grid */}
@@ -369,476 +355,531 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                 {/* Información del Cliente */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <div className="space-y-4">
-                    <div className="overflow-hidden rounded-lg ">
-                      <div className="bg-black text-white text-center py-2 font-semibold">
-                        CLIENTE
-                      </div>
-                      <div className=" text-black bg-white text-center py-2 font-semibold text-lg">
-                        PAULO
-                      </div>
-                    </div>
+                    {/* Client Information */}
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="flex items-center gap-2 text-lg">
+                          <FileText className="h-5 w-5 text-blue-600" />
+                          Información del Cliente
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="grid gap-4 md:grid-cols-2">
+                          <div>
+                            <Label htmlFor="client">Cliente</Label>
+                            {/* <Input id="client" value={formData.client} className="font-medium" /> */}
+                          </div>
+                          <div>
+                            <Label htmlFor="date">Fecha de respuesta:</Label>
+                            <Input id="date" value={quotationDate} />
+                          </div>
+                        </div>
+                        <div className="grid gap-4 md:grid-cols-2">
+                          <div>
+                            <Label htmlFor="advisor">Asesor(a)</Label>
+                            <Input id="advisor" value="PAULO" />
+                          </div>
+                          <div>
+                            <Label htmlFor="service">Tipo de Servicio</Label>
+                            <Select
+                              value={selectedServiceLogistic}
+                              onValueChange={setSelectedServiceLogistic}
+                            >
+                              <SelectTrigger className="w-full">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {serviciosLogisticos.map((servicio) => (
+                                  <SelectItem
+                                    key={servicio.value}
+                                    value={servicio.value}
+                                  >
+                                    {servicio.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
 
-                    <div className="overflow-hidden rounded-lg">
-                      <div className="grid grid-cols-3">
-                        <div className="bg-black text-white text-center py-2 font-semibold">
-                          TIPO DE CARGA
+                    {/* Cargo Details */}
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="flex items-center gap-2 text-lg">
+                          <Package className="h-5 w-5 text-green-600" />
+                          Detalles de Carga
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="grid gap-4 md:grid-cols-3">
+                          <div>
+                            <Label htmlFor="cargoType">Tipo de Carga</Label>
+                            <Select
+                              value={selectedTypeLoad}
+                              onValueChange={setSelectedTypeLoad}
+                            >
+                              <SelectTrigger className=" w-full">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="bg-white w-full h-full">
+                                {typeLoad.map((type) => (
+                                  <SelectItem
+                                    key={type.value}
+                                    value={type.value}
+                                  >
+                                    {type.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <Label htmlFor="commercialValue">
+                              Valor Comercial
+                            </Label>
+                            <div className="relative">
+                              <EditableNumericField
+                                value={dynamicValues.comercialValue}
+                                onChange={(value) =>
+                                  updateDynamicValue("comercialValue", value)
+                                }
+                              />
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
+                                USD
+                              </span>
+                            </div>
+                          </div>
+                          <div>
+                            <Label htmlFor="boxes">Cajas</Label>
+                            <EditableNumericField
+                              value={dynamicValues.cajas}
+                              onChange={(value) =>
+                                updateDynamicValue("cajas", value)
+                              }
+                            />
+                          </div>
                         </div>
-                        <div className="bg-black text-white text-center py-2 font-semibold">
-                          VALOR COMERCIAL
+
+                        <div className="grid gap-4 md:grid-cols-3">
+                          <div>
+                            <Label htmlFor="kg">Peso (KG)</Label>
+                            <EditableNumericField
+                              value={dynamicValues.kg}
+                              onChange={(value) =>
+                                updateDynamicValue("kg", value)
+                              }
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="ton">Peso (TON)</Label>
+                            <EditableNumericField
+                              value={dynamicValues.ton}
+                              onChange={(value) =>
+                                updateDynamicValue("ton", value)
+                              }
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="kv">K/V</Label>
+                            <EditableNumericField
+                              value={dynamicValues.kv}
+                              onChange={(value) =>
+                                updateDynamicValue("kv", value)
+                              }
+                            />
+                          </div>
                         </div>
-                        <div className="bg-black text-white text-center py-2 font-semibold">
-                          CAJAS
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-3">
-                        {/* Tipo de carga */}
-                        <div className=" text-center py-3 bg-white font-semibold w-full  h-full border ">
-                          <Select
-                            value={selectedTypeLoad}
-                            onValueChange={setSelectedTypeLoad}
-                          >
-                            <SelectTrigger className=" border-none font-semibold w-full h-full">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent className="bg-white w-full h-full">
-                              {typeLoad.map((type) => (
-                                <SelectItem key={type.value} value={type.value}>
-                                  {type.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        {/* Valor comercial */}
-                        <div className="bg-white border text-black text-center py-3 font-semibold">
-                          <div className="flex items-center justify-center">
-                            <span className="mr-1">USD</span>
-                            {renderEditableField(
-                              dynamicValues.comercialValue,
-                              (value) =>
-                                updateDynamicValue("comercialValue", value)
+
+                        {/* Primera Compra */}
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center space-x-2">
+                            <Checkbox
+                              id="firstPurchase"
+                              checked={isFirstPurchase}
+                              onCheckedChange={handleFirstPurchaseChange}
+                            />
+                            <Badge
+                              variant="secondary"
+                              className="bg-blue-50 text-blue-700"
+                            >
+                              Es Primera Compra
+                            </Badge>
+                            {isFirstPurchase && (
+                              <span className="text-xs text-green-600 font-semibold ml-2">
+                                (Servicios exonerados y 50% descuento en
+                                impuestos)
+                              </span>
                             )}
                           </div>
                         </div>
-                        {/* Cajas */}
-                        <div className="bg-white text-black text-center py-3 font-semibold border">
-                          {renderEditableField(dynamicValues.cajas, (value) =>
-                            updateDynamicValue("cajas", value)
-                          )}
-                        </div>
-                      </div>
-                    </div>
+                      </CardContent>
+                    </Card>
 
-                    <div className="overflow-hidden">
-                      <div className="grid grid-cols-3 w-full  h-full border">
-                        <div className="bg-black text-white text-center py-2 font-semibold">
-                          COURIER
+                    {/* Shipping Details */}
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="flex items-center gap-2 text-lg">
+                          <Truck className="h-5 w-5 text-purple-600" />
+                          Detalles de Envío
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="grid gap-4 md:grid-cols-2">
+                          {/* Courier */}
+                          <div>
+                            <Label htmlFor="courier">Courier</Label>
+                            <Select
+                              value={selectedCourier}
+                              onValueChange={setSelectedCourier}
+                            >
+                              <SelectTrigger className="w-full">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="bg-white w-full h-full">
+                                {courier.map((courierOption) => (
+                                  <SelectItem
+                                    key={courierOption.value}
+                                    value={courierOption.value}
+                                  >
+                                    {courierOption.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          {/* Incoterm */}
+                          <div>
+                            <Label htmlFor="incoterm">Incoterm</Label>
+                            <Select
+                              value={selectedIncoterm}
+                              onValueChange={setSelectedIncoterm}
+                            >
+                              <SelectTrigger className="w-full">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {incotermsOptions.map((incoterm) => (
+                                  <SelectItem
+                                    key={incoterm.value}
+                                    value={incoterm.value}
+                                  >
+                                    {incoterm.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
                         </div>
-                        <div className="bg-black text-white text-center py-2 font-semibold">
-                          FLETE
+
+                        <div className="grid gap-4 md:grid-cols-2">
+                          {/* Flete */}
+                          <div>
+                            <Label htmlFor="freight">Flete</Label>
+                            <div className="relative">
+                              <EditableNumericField
+                                value={dynamicValues.flete}
+                                onChange={(value) =>
+                                  updateDynamicValue("flete", value)
+                                }
+                              />
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
+                                USD
+                              </span>
+                            </div>
+                          </div>
+                          {/* Desaduanaje */}
+                          <div>
+                            <Label htmlFor="customs">Desaduanaje</Label>
+                            <div className="relative">
+                              <EditableNumericField
+                                value={dynamicValues.desaduanaje}
+                                onChange={(value) =>
+                                  updateDynamicValue("desaduanaje", value)
+                                }
+                              />
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
+                                USD
+                              </span>
+                            </div>
+                          </div>
                         </div>
-                        <div className="bg-black text-white text-center py-2 font-semibold">
-                          DESADUANAJE
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-3">
-                        {/* Courier */}
-                        <div className="  text-center font-semibold w-full h-full border">
-                          <Select
-                            value={selectedCourier}
-                            onValueChange={setSelectedCourier}
-                          >
-                            <SelectTrigger className="  border-none font-semibold w-full h-full">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent className="bg-white w-full h-full">
-                              {courier.map((courierOption) => (
-                                <SelectItem
-                                  key={courierOption.value}
-                                  value={courierOption.value}
-                                >
-                                  {courierOption.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        {/* Flete */}
-                        <div className="bg-white border text-black text-center py-3 font-semibold">
-                          <div className="flex items-center justify-center">
-                            <span className="mr-1">USD</span>
+
+                        <div className="grid gap-4 md:grid-cols-2">
+                          {/* Moneda */}
+                          <div>
+                            <Label htmlFor="currency">Moneda</Label>
+                            <Select defaultValue="usd">
+                              <SelectTrigger className="w-full">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="usd">DÓLARES</SelectItem>
+                                <SelectItem value="pen">SOLES</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          {/* Tipo de Cambio */}
+                          <div>
+                            <Label htmlFor="exchangeRate">Tipo de Cambio</Label>
                             <EditableNumericField
-                              value={dynamicValues.flete}
+                              value={dynamicValues.tipoCambio}
                               onChange={(value) =>
-                                updateDynamicValue("flete", value)
+                                updateDynamicValue("tipoCambio", value)
                               }
                             />
                           </div>
                         </div>
-                        {/* Desaduanaje */}
-                        <div className="bg-white border text-black text-center py-3 font-semibold">
-                          <div className="flex items-center justify-center">
-                            <span className="mr-1">USD</span>
-                            <EditableNumericField
-                              value={dynamicValues.desaduanaje}
-                              onChange={(value) =>
-                                updateDynamicValue("desaduanaje", value)
-                              }
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="overflow-hidden rounded-lg">
-                      <div className="grid grid-cols-6 w-full  h-full border">
-                        <div className="bg-black text-white text-center py-2 font-semibold">
-                          KG
-                        </div>
-                        <div className="bg-white border text-black text-center py-2 font-semibold">
-                          <EditableNumericField
-                            value={dynamicValues.kg}
-                            onChange={(value) =>
-                              updateDynamicValue("kg", value)
-                            }
-                          />
-                        </div>
-                        <div className="bg-black text-white text-center py-2 font-semibold">
-                          TON
-                        </div>
-                        <div className="bg-white border text-black text-center py-2 font-semibold">
-                          <EditableNumericField
-                            value={dynamicValues.ton}
-                            onChange={(value) =>
-                              updateDynamicValue("ton", value)
-                            }
-                          />
-                        </div>
-                        <div className="bg-black text-white text-center py-2 font-semibold">
-                          K/V
-                        </div>
-                        <div className="bg-white border text-black text-center py-2 font-semibold">
-                          <EditableNumericField
-                            value={dynamicValues.kv}
-                            onChange={(value) =>
-                              updateDynamicValue("kv", value)
-                            }
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Checkbox de Primera Compra */}
-                    <div className="bg-gray-100 p-4 border-b">
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          id="firstPurchase"
-                          checked={isFirstPurchase}
-                          onCheckedChange={handleFirstPurchaseChange}
-                        />
-                        <label
-                          htmlFor="firstPurchase"
-                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                        >
-                          Es Primera Compra
-                        </label>
-                        {isFirstPurchase && (
-                          <span className="text-xs text-green-600 font-semibold ml-2">
-                            (Servicios exonerados y 50% descuento en impuestos)
-                          </span>
-                        )}
-                      </div>
-                    </div>
+                      </CardContent>
+                    </Card>
                   </div>
 
                   {/* Información de Proforma */}
-                  <div className="overflow-hidden">
-                    <div className="p-4 space-y-3">
-                      <div className="grid grid-cols-3 gap-2 text-sm border-b pb-2">
-                        <div className="font-semibold">FECHA DE COTIZACIÓN</div>
-                        <div className="text-center">:</div>
-                        <div className="text-center">{quotationDate}</div>
-                      </div>
-                      <div className="grid grid-cols-3 gap-2 text-sm border-b pb-2">
-                        <div className="font-semibold">ASESOR(A)</div>
-                        <div className="text-center">:</div>
-                        <div className="text-center">PAULO</div>
-                      </div>
-                      <div className="grid grid-cols-3 gap-2 text-sm border-b pb-2">
-                        <div className="font-semibold">T. SERVICIO</div>
-                        <div className="text-center">:</div>
-                        <div className="text-right">
-                          <Select
-                            value={selectedServiceLogistic}
-                            onValueChange={setSelectedServiceLogistic}
-                          >
-                            <SelectTrigger className="border-none p-0 h-auto bg-transparent text-sm">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {serviciosLogisticos.map((servicio) => (
-                                <SelectItem
-                                  key={servicio.value}
-                                  value={servicio.value}
-                                >
-                                  {servicio.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-3 gap-2 text-sm border-b pb-2">
-                        <div className="font-semibold">INCOTERM</div>
-                        <div className="text-center">:</div>
-                        <div className="text-right">
-                          <Select
-                            value={selectedIncoterm}
-                            onValueChange={setSelectedIncoterm}
-                          >
-                            <SelectTrigger className="border-none p-0 h-auto bg-transparent text-sm">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {incotermsOptions.map((incoterm) => (
-                                <SelectItem
-                                  key={incoterm.value}
-                                  value={incoterm.value}
-                                >
-                                  {incoterm.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-3 gap-2 text-sm border-b pb-2">
-                        <div className="font-semibold">TIPO DE CAMBIO</div>
-                        <div className="text-center"></div>
-                        <div className="text-right">
-                          <EditableNumericField
-                            value={dynamicValues.tipoCambio}
-                            onChange={(value) =>
-                              updateDynamicValue("tipoCambio", value)
-                            }
-                          />
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-3 gap-2 text-sm border-b pb-2">
-                        <div className="font-semibold">MONEDA</div>
-                        <div className="text-center">:</div>
-                        <div className="text-center">DOLARES</div>
-                      </div>
-                      <div className="grid grid-cols-3 gap-2 text-sm border-b pb-2  p-2">
-                        <div className="font-semibold">FOB</div>
-                        <div className="text-center">:</div>
-                        <div className="text-right font-semibold">
-                          <div className="flex items-center justify-end">
-                            <span className="mr-1">USD</span>
-                            <EditableNumericField
-                              value={dynamicValues.fob}
-                              onChange={(value) =>
-                                updateDynamicValue("fob", value)
-                              }
-                            />
+                  <div className="space-y-6">
+                    {/* Servicio de Carga Consolidada */}
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="flex items-center gap-2 text-lg">
+                          <Plane className="h-5 w-5 text-blue-600" />
+                          {getServiceName(selectedServiceLogistic)}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="space-y-2">
+                          <div className="font-semibold text-sm mb-3">
+                            AFECTO A IGV
+                          </div>
+                          {/* Campos dinámicos según el tipo de servicio */}
+                          {Object.entries(
+                            getServiceFields(selectedServiceLogistic)
+                          ).map(([key, value]) => {
+                            const fieldNames: { [key: string]: string } = {
+                              servicioConsolidado: "SERVICIO CONSOLIDADO",
+                              separacionCarga: "SEPARACION DE CARGA",
+                              inspeccionProductos: "INSPECCION DE PRODUCTOS",
+                              gestionCertificado:
+                                "GESTION DE CERTIFICADO DE ORIGEN",
+                              inspeccionProducto: "INSPECCION DE PRODUCTO",
+                              inspeccionFabrica: "INSPECCION DE FABRICA",
+                              transporteLocal: "TRANSPORTE A LOCAL",
+                              otrosServicios: "OTROS SERVICIOS",
+                            };
+
+                            return (
+                              <div
+                                key={key}
+                                className="grid grid-cols-2 gap-2 text-sm justify-between items-center py-2"
+                              >
+                                <div>{fieldNames[key]}</div>
+
+                                <div>
+                                  <span className="relative">
+                                    <EditableNumericField
+                                      value={value}
+                                      onChange={(newValue) =>
+                                        updateDynamicValue(
+                                          key as keyof typeof dynamicValues,
+                                          newValue
+                                        )
+                                      }
+                                    />
+                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
+                                      USD
+                                    </span>
+                                  </span>
+                                </div>
+                              </div>
+                            );
+                          })}
+                          <Separator />
+                          <div className="flex justify-between items-center py-2">
+                            <span className="text-sm text-gray-600">
+                              IGV (18%)
+                            </span>
+                            <span className="font-medium">
+                              {igvServices.toFixed(2)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center py-2 bg-blue-50 px-3 rounded-lg">
+                            <span className="font-medium text-blue-900">
+                              Total del Servicio de Consolidación
+                            </span>
+                            <span className="font-bold text-blue-900">
+                              USD {totalServices.toFixed(2)}
+                            </span>
                           </div>
                         </div>
-                      </div>
-                      <div className="grid grid-cols-3 gap-2 text-sm border-b pb-2  p-2">
-                        <div className="font-semibold">FLETE</div>
-                        <div className="text-center">:</div>
-                        <div className="text-right font-semibold">
-                          <div className="flex items-center justify-center">
-                            <span className="mr-1">USD</span>
-                            <EditableNumericField
-                              value={dynamicValues.flete}
-                              onChange={(value) =>
-                                updateDynamicValue("flete", value)
-                              }
-                            />
+                      </CardContent>
+                    </Card>
+
+                    {/* Tax Obligations */}
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="flex items-center gap-2 text-lg">
+                          <Calculator className="h-5 w-5 text-green-600" />
+                          Obligaciones Fiscales
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="space-y-3">
+                          <div className="grid grid-cols-2 gap-2 text-sm justify-between items-center py-2">
+                            <div>FOB</div>
+                            <div>
+                              <span className="relative">
+                                <EditableNumericField
+                                  value={dynamicValues.fob}
+                                  onChange={(newValue) =>
+                                    updateDynamicValue(
+                                      "fob" as keyof typeof dynamicValues,
+                                      newValue
+                                    )
+                                  }
+                                />
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
+                                  USD
+                                </span>
+                              </span>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2 text-sm justify-between items-center py-2">
+                            <div>FLETE</div>
+                            <div>
+                              <span className="relative">
+                                <EditableNumericField
+                                  value={dynamicValues.flete}
+                                  onChange={(newValue) =>
+                                    updateDynamicValue(
+                                      "flete" as keyof typeof dynamicValues,
+                                      newValue
+                                    )
+                                  }
+                                />
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
+                                  USD
+                                </span>
+                              </span>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2 text-sm justify-between items-center py-2">
+                            <div>SEGURO</div>
+                            <div>
+                              <span className="relative">
+                                <EditableNumericField
+                                  value={dynamicValues.seguro}
+                                  onChange={(newValue) =>
+                                    updateDynamicValue(
+                                      "seguro" as keyof typeof dynamicValues,
+                                      newValue
+                                    )
+                                  }
+                                />
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
+                                  USD
+                                </span>
+                              </span>
+                            </div>
+                          </div>
+
+                          <Separator />
+
+                          <div className="grid grid-cols-2 gap-2 text-sm bg-green-200 p-2">
+                            <div className="font-semibold">CIF</div>
+                            <div className="text-center font-semibold">
+                              USD {cif.toFixed(2)}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      <div className="grid grid-cols-3 gap-2 text-sm border-b pb-2">
-                        <div className="font-semibold text-blue-600">
-                          SEGURO
-                        </div>
-                        <div className="text-center">:</div>
-                        <div className="text-right text-blue-600 font-semibold">
-                          <div className="flex items-center justify-end">
-                            <span className="mr-1">USD</span>
-                            <EditableNumericField
-                              value={dynamicValues.seguro}
-                              onChange={(value) =>
-                                updateDynamicValue("seguro", value)
-                              }
-                            />
+
+                        <div className="grid gap-3">
+                          <div className="p-4 space-y-2">
+                            <div className="font-semibold text-sm mb-3">
+                              IMPUESTOS
+                            </div>
+                            {/* AD/VALOREM */}
+                            <div className="grid grid-cols-4 gap-2 text-sm">
+                              <div>AD/VALOREM</div>
+                              <div className="text-right">
+                                <div className="flex items-center justify-end">
+                                  <EditableNumericField
+                                    value={dynamicValues.adValoremRate}
+                                    onChange={(value) =>
+                                      updateDynamicValue("adValoremRate", value)
+                                    }
+                                  />
+                                  <span className="ml-1">%</span>
+                                </div>
+                              </div>
+                              <div className="text-right">USD</div>
+                              <div className="text-right">
+                                {adValorem.toFixed(2)}
+                              </div>
+                            </div>
+                            {/* I.G.V */}
+                            <div className="grid grid-cols-4 gap-2 text-sm">
+                              <div>I.G.V</div>
+                              <div className="text-right">
+                                <div className="flex items-center justify-end">
+                                  <EditableNumericField
+                                    value={dynamicValues.igvRate}
+                                    onChange={(value) =>
+                                      updateDynamicValue("igvRate", value)
+                                    }
+                                  />
+                                  <span className="ml-1">%</span>
+                                </div>
+                              </div>
+                              <div className="text-right">USD</div>
+                              <div className="text-right">
+                                {igvFiscal.toFixed(2)}
+                              </div>
+                            </div>
+                            {/* I.P.M */}
+                            <div className="grid grid-cols-4 gap-2 text-sm">
+                              <div>I.P.M</div>
+                              <div className="text-right">
+                                <div className="flex items-center justify-end">
+                                  <EditableNumericField
+                                    value={dynamicValues.ipmRate}
+                                    onChange={(value) =>
+                                      updateDynamicValue("ipmRate", value)
+                                    }
+                                  />
+                                  <span className="ml-1">%</span>
+                                </div>
+                              </div>
+                              <div className="text-right">USD</div>
+                              <div className="text-right">{ipm.toFixed(2)}</div>
+                            </div>
+                          </div>
+                          <Separator />
+                          <div className="flex justify-between items-center py-2 bg-green-50 px-3 rounded-lg">
+                            <span className="font-medium text-green-900">
+                              Total de Derechos - Dólares
+                            </span>
+                            <span className="font-bold text-green-900">
+                              USD {totalDerechosDolares.toFixed(2)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center py-2 bg-green-50 px-3 rounded-lg">
+                            <span className="font-medium text-green-900">
+                              Total de Derechos - Soles
+                            </span>
+                            <span className="font-bold text-green-900">
+                              S/. {totalDerechosSoles.toFixed(2)}
+                            </span>
                           </div>
                         </div>
-                      </div>
-                      <div className="grid grid-cols-3 gap-2 text-sm bg-green-200 p-2">
-                        <div className="font-semibold">CIF</div>
-                        <div className="text-center">:</div>
-                        <div className="text-center font-semibold">
-                          USD {cif.toFixed(2)}
-                        </div>
-                      </div>
-                    </div>
+                      </CardContent>
+                    </Card>
                   </div>
                 </div>
               </div>
 
               <div className="space-y-6 p-6 bg-white">
-                {/* Primera sección - Servicio de Carga Consolidada */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <div className="overflow-hidden rounded-sm">
-                    <div className="bg-orange-500 text-white text-center py-2 font-semibold">
-                      {getServiceName(selectedServiceLogistic)}
-                    </div>
-                    <div className="p-4 space-y-2">
-                      <div className="font-semibold text-sm mb-3">
-                        AFECTO A IGV
-                      </div>
-
-                      {/* Campos dinámicos según el tipo de servicio */}
-                      {Object.entries(
-                        getServiceFields(selectedServiceLogistic)
-                      ).map(([key, value]) => {
-                        const fieldNames: { [key: string]: string } = {
-                          servicioConsolidado: "SERVICIO CONSOLIDADO",
-                          separacionCarga: "SEPARACION DE CARGA",
-                          inspeccionProductos: "INSPECCION DE PRODUCTOS",
-                          gestionCertificado:
-                            "GESTION DE CERTIFICADO DE ORIGEN",
-                          inspeccionProducto: "INSPECCION DE PRODUCTO",
-                          inspeccionFabrica: "INSPECCION DE FABRICA",
-                          transporteLocal: "TRANSPORTE A LOCAL",
-                          otrosServicios: "OTROS SERVICIOS",
-                        };
-
-                        return (
-                          <div
-                            key={key}
-                            className="grid grid-cols-3 gap-2 text-sm"
-                          >
-                            <div>{fieldNames[key]}</div>
-                            <div className="text-right">USD</div>
-                            <div className="text-right">
-                              <EditableNumericField
-                                value={value}
-                                onChange={(newValue) =>
-                                  updateDynamicValue(
-                                    key as keyof typeof dynamicValues,
-                                    newValue
-                                  )
-                                }
-                              />
-                            </div>
-                          </div>
-                        );
-                      })}
-
-                      <hr className="my-3" />
-                      <div className="grid grid-cols-3 gap-2 text-sm font-semibold">
-                        <div>IGV (18%)</div>
-                        <div></div>
-                        <div className="text-right">
-                          {igvServices.toFixed(2)}
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-3 gap-2 text-sm font-semibold">
-                        <div>
-                          {selectedServiceLogistic === "Consolidado Maritimo" ||
-                          selectedServiceLogistic ===
-                            "Consolidado Grupal Maritimo"
-                            ? "TOTAL DE SERVICIO DE CARGA Y DESADUANAJE"
-                            : "TOTAL DEL SERVICIO DE CONSOLIDACION"}
-                        </div>
-                        <div className="text-right">USD</div>
-                        <div className="text-right">
-                          {totalServices.toFixed(2)}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="overflow-hidden rounded-sm">
-                    <div className="bg-orange-500 text-white text-center py-2 font-semibold">
-                      OBLIGACIONES FISCALES
-                    </div>
-                    <div className="p-4 space-y-2">
-                      <div className="font-semibold text-sm mb-3">
-                        IMPUESTOS
-                      </div>
-                      <div className="grid grid-cols-4 gap-2 text-sm">
-                        <div>AD/VALOREM</div>
-                        <div className="text-right">
-                          <div className="flex items-center justify-end">
-                            <EditableNumericField
-                              value={dynamicValues.adValoremRate}
-                              onChange={(value) =>
-                                updateDynamicValue("adValoremRate", value)
-                              }
-                            />
-                            <span className="ml-1">%</span>
-                          </div>
-                        </div>
-                        <div className="text-right">USD</div>
-                        <div className="text-right">{adValorem.toFixed(2)}</div>
-                      </div>
-                      <div className="grid grid-cols-4 gap-2 text-sm">
-                        <div>I.G.V</div>
-                        <div className="text-right">
-                          <div className="flex items-center justify-end">
-                            <EditableNumericField
-                              value={dynamicValues.igvRate}
-                              onChange={(value) =>
-                                updateDynamicValue("igvRate", value)
-                              }
-                            />
-                            <span className="ml-1">%</span>
-                          </div>
-                        </div>
-                        <div className="text-right">USD</div>
-                        <div className="text-right">{igvFiscal.toFixed(2)}</div>
-                      </div>
-                      <div className="grid grid-cols-4 gap-2 text-sm">
-                        <div>I.P.M</div>
-                        <div className="text-right">
-                          <div className="flex items-center justify-end">
-                            <EditableNumericField
-                              value={dynamicValues.ipmRate}
-                              onChange={(value) =>
-                                updateDynamicValue("ipmRate", value)
-                              }
-                            />
-                            <span className="ml-1">%</span>
-                          </div>
-                        </div>
-                        <div className="text-right">USD</div>
-                        <div className="text-right">{ipm.toFixed(2)}</div>
-                      </div>
-                      <hr className="my-3" />
-                      <div className="grid grid-cols-3 gap-2 text-sm font-semibold p-2">
-                        <div>TOTAL DE DERECHOS - DÓLARES</div>
-                        <div className="text-right">USD</div>
-                        <div className="text-right">
-                          {totalDerechosDolares.toFixed(2)}
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-3 gap-2 text-sm font-semibold">
-                        <div>TOTAL DE DERECHOS - SOLES</div>
-                        <div className="text-right">S/.</div>
-                        <div className="text-right">
-                          {totalDerechosSoles.toFixed(2)}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
                 {/* Segunda sección - Gastos de Importación */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Gastos de Importación */}
                   <div className="overflow-hidden rounded-sm">
                     <div className="bg-orange-500 text-white text-center py-2 font-semibold">
                       GASTOS DE IMPORTACION
@@ -925,6 +966,7 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                     </div>
                   </div>
 
+                  {/* Incoterm de Exportación */}
                   <div className="space-y-4">
                     <div className="overflow-hidden rounded-sm">
                       <div className="bg-orange-500 text-white text-center py-2 font-semibold">

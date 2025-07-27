@@ -52,7 +52,7 @@ export const EditableNumericField: React.FC<EditableNumericFieldProps> = ({
       value={inputValue} // ✅ Usa el estado local (string) como valor
       onChange={handleInputChange} // ✅ Actualiza el estado local
       onBlur={handleBlur} // ✅ Procesa el número al perder el foco
-      className="text-center font-semibold border-none bg-transparent h-auto p-1 text-sm no-arrows"
+      className="text-center font-semibold px-3 py-1 w-full h-9 text-sm"
       onFocus={(e) => e.target.select()}
       placeholder="0"
       // Si quieres el teclado numérico en móviles, puedes añadir type="number"

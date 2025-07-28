@@ -354,6 +354,7 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
               <div className="space-y-6 p-6 bg-white">
                 {/* Información del Cliente */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Primera columna */}
                   <div className="space-y-4">
                     {/* Client Information */}
                     <Card>
@@ -403,7 +404,10 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                         </div>
                       </CardContent>
                     </Card>
+                  </div>
 
+                  {/* Segunda columna */}
+                  <div className="space-y-6">
                     {/* Cargo Details */}
                     <Card>
                       <CardHeader className="pb-3">
@@ -441,7 +445,9 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                             </Label>
                             <div className="relative">
                               <EditableNumericField
-                                value={dynamicValues.comercialValue}
+                                value={Number(
+                                  dynamicValues.comercialValue.toFixed(2)
+                                )}
                                 onChange={(value) =>
                                   updateDynamicValue("comercialValue", value)
                                 }
@@ -634,9 +640,12 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                       </CardContent>
                     </Card>
                   </div>
+                </div>
+              </div>
 
-                  {/* Información de Proforma */}
-                  <div className="space-y-6">
+              <div className="space-y-6 p-6 bg-white">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="space-y-4">
                     {/* Servicio de Carga Consolidada */}
                     <Card>
                       <CardHeader className="pb-3">
@@ -712,9 +721,10 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                         </div>
                       </CardContent>
                     </Card>
-
-                    {/* Tax Obligations */}
-                    <Card>
+                  </div>
+                  <div className="space-y-4">
+                     {/* Tax Obligations */}
+                     <Card>
                       <CardHeader className="pb-3">
                         <CardTitle className="flex items-center gap-2 text-lg">
                           <Calculator className="h-5 w-5 text-green-600" />
@@ -783,7 +793,7 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
 
                           <Separator />
 
-                          <div className="grid grid-cols-2 gap-2 text-sm bg-green-200 p-2">
+                          <div className="grid grid-cols-2 gap-2 text-sm rounded-lg bg-green-200 p-2">
                             <div className="font-semibold">CIF</div>
                             <div className="text-center font-semibold">
                               USD {cif.toFixed(2)}
@@ -879,127 +889,123 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
               <div className="space-y-6 p-6 bg-white">
                 {/* Segunda sección - Gastos de Importación */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Gastos de Importación */}
-                  <div className="overflow-hidden rounded-sm">
-                    <div className="bg-orange-500 text-white text-center py-2 font-semibold">
-                      GASTOS DE IMPORTACION
-                    </div>
-                    <div className="p-4 space-y-2">
-                      <div className="grid grid-cols-3 gap-2 text-sm border-b pb-1">
-                        <div className="font-semibold">
-                          SERVICIO CONSOLIDADO AEREO
-                          {isFirstPurchase && (
+                  {/* Import Expenses */}
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="flex items-center gap-2 text-lg">
+                        <DollarSign className="h-5 w-5 text-orange-600" />
+                        Gastos de Importación
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center py-2">
+                          <span className="text-sm text-gray-600">
+                            Servicio Consolidado Aéreo
+                            {isFirstPurchase && (
                             <span className="text-green-600 text-xs ml-1">
                               (EXONERADO)
                             </span>
                           )}
+                          </span>
+                          <span className="font-medium">
+                            USD {servicioConsolidadoFinal.toFixed(2)}
+                          </span>
                         </div>
-                        <div className="text-right">USD</div>
-                        <div className="text-right">
-                          {isFirstPurchase
-                            ? "0.00"
-                            : servicioConsolidadoFinal.toFixed(2)}
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-3 gap-2 text-sm border-b pb-1">
-                        <div className="font-semibold">
-                          SEPARACION DE CARGA
-                          {isFirstPurchase && (
+                        <div className="flex justify-between items-center py-2">
+                          <span className="text-sm text-gray-600">
+                            Separación de Carga
+                            {isFirstPurchase && (
                             <span className="text-green-600 text-xs ml-1">
                               (EXONERADO)
                             </span>
                           )}
+                          </span>
+                          <span className="font-medium">
+                            USD {separacionCargaFinal.toFixed(2)}
+                          </span>
                         </div>
-                        <div className="text-right">USD</div>
-                        <div className="text-right">
-                          {isFirstPurchase
-                            ? "0.00"
-                            : separacionCargaFinal.toFixed(2)}
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-3 gap-2 text-sm border-b pb-1">
-                        <div className="font-semibold">
-                          INSPECCION DE PRODUCTOS
-                          {isFirstPurchase && (
+                        <div className="flex justify-between items-center py-2">
+                          <span className="text-sm text-gray-600">
+                            Inspección de Productos
+                            {isFirstPurchase && (
                             <span className="text-green-600 text-xs ml-1">
                               (EXONERADO)
                             </span>
                           )}
+                          </span>
+                          <span className="font-medium">
+                            USD {inspeccionProductosFinal.toFixed(2)}
+                          </span>
                         </div>
-                        <div className="text-right">USD</div>
-                        <div className="text-right">
-                          {isFirstPurchase
-                            ? "0.00"
-                            : inspeccionProductosFinal.toFixed(2)}
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-3 gap-2 text-sm border-b pb-1">
-                        <div className="font-semibold">
-                          AD/VALOREM+IGV+IPM
-                          {isFirstPurchase && (
+                        <div className="flex justify-between items-center py-2">
+                          <span className="text-sm text-gray-600">
+                            AD/VALOREM + IGV + IPM
+                            {isFirstPurchase && (
                             <span className="text-green-600 text-xs ml-1">
                               (-50%)
                             </span>
                           )}
+                          </span>
+                          <span className="font-medium">
+                            USD {totalDerechosDolaresFinal.toFixed(2)}
+                          </span>
                         </div>
-                        <div className="text-right">USD</div>
-                        <div className="text-right">
-                          {totalDerechosDolaresFinal.toFixed(2)}
+                        <div className="flex justify-between items-center py-2">
+                          <span className="text-sm text-gray-600">
+                            Desaduanaje + Flete + Seguro
+                          </span>
+                          <span className="font-medium">
+                            USD {desaduanajeFleteSaguro.toFixed(2)}
+                          </span>
+                        </div>
+                        <Separator />
+                        <div className="flex justify-between items-center py-2 bg-orange-50 px-3 rounded-lg">
+                          <span className="font-medium text-orange-900">
+                            Total Gastos de Importación
+                          </span>
+                          <span className="font-bold text-orange-900">
+                            USD {totalGastosImportacion.toFixed(2)}
+                          </span>
                         </div>
                       </div>
-                      <div className="grid grid-cols-3 gap-2 text-sm border-b pb-1">
-                        <div className="font-semibold">
-                          DESADUANAJE + FLETE+SEGURO
-                        </div>
-                        <div className="text-right">USD</div>
-                        <div className="text-right">
-                          {desaduanajeFleteSaguro.toFixed(2)}
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-3 gap-2 text-sm font-semibold bg-purple-200 p-2">
-                        <div>TOTAL GASTOS DE IMPORTACION</div>
-                        <div className="text-right">USD</div>
-                        <div className="text-right">
-                          {totalGastosImportacion.toFixed(2)}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                    </CardContent>
+                  </Card>
 
-                  {/* Incoterm de Exportación */}
+                  {/* Incoterm de Expdortación */}
                   <div className="space-y-4">
-                    <div className="overflow-hidden rounded-sm">
+                    <div className="overflow-hidden border-1 rounded-sm">
                       <div className="bg-orange-500 text-white text-center py-2 font-semibold">
                         INCOTERM DE EXPORTACION
                       </div>
-                      <div className="bg-gray-800 text-white text-center py-1 font-semibold">
+                      <div className=" text-center py-1 font-semibold">
                         {selectedIncoterm}
                       </div>
                     </div>
 
-                    <div className="overflow-hidden rounded-sm">
+                    <div className="overflow-hidden border-1 rounded-sm">
                       <div className="bg-orange-500 text-white text-center py-2 font-semibold">
                         VALOR DE COMPRA FACTURA COMERCIAL
                       </div>
-                      <div className="bg-yellow-400 text-black text-center py-2 font-semibold">
+                      <div className="text-center py-2 font-semibold">
                         USD {dynamicValues.comercialValue.toFixed(2)}
                       </div>
                     </div>
 
-                    <div className="overflow-hidden rounded-sm">
+                    <div className="overflow-hidden border-1 rounded-sm">
                       <div className="bg-orange-500 text-white text-center py-2 font-semibold">
                         TOTAL GASTOS DE IMPORTACION
                       </div>
-                      <div className="bg-purple-200 text-black text-center py-2 font-semibold">
+                      <div className=" text-center py-2 font-semibold">
                         USD {totalGastosImportacion.toFixed(2)}
                       </div>
                     </div>
 
-                    <div className="overflow-hidden rounded-sm">
+                    <div className="overflow-hidden border-1 rounded-sm">
                       <div className="bg-orange-500 text-white text-center py-2 font-semibold">
                         INVERSION TOTAL DE IMPORTACION
                       </div>
-                      <div className="bg-green-200 text-black text-center py-2 font-semibold">
+                      <div className=" text-center py-2 font-semibold bg-yellow-200">
                         USD {inversionTotal.toFixed(2)}
                       </div>
                     </div>
@@ -1012,7 +1018,6 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
               <div className="min-h-screen ">
                 <div className="grid grid-cols-1  gap-6 ">
                   <EditableUnitCostTable
-                    //products={quotationDetail?.products || []}
                     initialProducts={editableUnitCostProducts}
                     totalImportCosts={totalGastosImportacion}
                     onCommercialValueChange={handleCommercialValueChange}
@@ -1020,24 +1025,6 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                     onFirstPurchaseChange={handleFirstPurchaseChange}
                     onProductsChange={handleUnitCostProductsChange}
                   />
-
-                  {/*<Tabs defaultValue="static" className="w-full">
-                    <TabsList className="grid w-full grid-cols-2 mb-6">
-                      <TabsTrigger value="static">Vista Estática</TabsTrigger>
-                      <TabsTrigger value="editable">Vista Editable</TabsTrigger>
-                    </TabsList>
-
-                    <TabsContent value="static">
-                      <UnitCostTable 
-                        products={quotationDetail?.products || productosEjemplo}
-                        totalImportCosts={totalGastosImportacion}
-                      />
-                    </TabsContent>
-
-                    <TabsContent value="editable">
-                      
-                    </TabsContent>
-                  </Tabs>*/}
                 </div>
               </div>
             </TabsContent>

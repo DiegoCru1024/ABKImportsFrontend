@@ -20,7 +20,6 @@ export interface ProductRow {
 }
 
 interface EditableUnitCostTableProps {
-  products?: ProductoResponseIdInterface[];
   totalImportCosts?: number;
   onCommercialValueChange?: (value: number) => void;
   isFirstPurchase?: boolean;
@@ -30,7 +29,6 @@ interface EditableUnitCostTableProps {
 }
 
 const EditableUnitCostTable: React.FC<EditableUnitCostTableProps> = ({
-  products = [],
   totalImportCosts = 0,
   onCommercialValueChange,
   isFirstPurchase = false,
@@ -136,13 +134,7 @@ const EditableUnitCostTable: React.FC<EditableUnitCostTableProps> = ({
     });
   };
 
-  // Manejar cambio de primera compra
-  const handleFirstPurchaseChange = (checked: boolean) => {
-    setFirstPurchase(checked);
-    if (onFirstPurchaseChange) {
-      onFirstPurchaseChange(checked);
-    }
-  };
+
 
   // Generar columnas con la lógica de actualización
   const columns = columnsEditableUnitcost(updateProduct);

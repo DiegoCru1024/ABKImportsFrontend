@@ -576,7 +576,6 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                                 </SelectContent>
                               </Select>
                             </div>
-
                             {/* Aduana */}
                             <div>
                               <Label htmlFor="freight">Aduana</Label>
@@ -592,6 +591,7 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                                 </span>
                               </div>
                             </div>
+
                           </div>
                           <div className="space-y-2">
                             {/* Puerto de salida */}

@@ -58,6 +58,9 @@ import {
   tipoServicio,
   proformaVigencia,
   courier,
+  paisesOrigen,
+  paisesDestino,
+  aduana,
 } from "../utils/static";
 
 import ResponseQuotation from "./response-quotation";
@@ -117,9 +120,10 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
   const [selectedRegimen, setSelectedRegimen] = useState<string>(
     "importacion_consumo"
   );
-  const [paisOrigen, setPaisOrigen] = useState<string>("");
-  const [paisDestino, setPaisDestino] = useState<string>("");
-  const [aduana, setAduana] = useState<string>("");
+  const [selectedPaisOrigen, setSelectedPaisOrigen] = useState<string>("china");
+  const [selectedPaisDestino, setSelectedPaisDestino] =
+    useState<string>("peru");
+  const [selectedAduana, setSelectedAduana] = useState<string>("tacna");
   const [selectedPuertoSalida, setSelectedPuertoSalida] =
     useState<string>("shanghai");
   const [selectedPuertoDestino, setSelectedPuertoDestino] =
@@ -686,14 +690,24 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                                 <Label htmlFor="paisOrigen">
                                   País de Origen
                                 </Label>
-                                <Input
-                                  id="paisOrigen"
-                                  value={paisOrigen}
-                                  onChange={(e) =>
-                                    setPaisOrigen(e.target.value)
-                                  }
-                                  placeholder="Ingrese país de origen"
-                                />
+                                <Select
+                                  value={selectedPaisOrigen}
+                                  onValueChange={setSelectedPaisOrigen}
+                                >
+                                  <SelectTrigger className="w-full">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent className="bg-white w-full h-full">
+                                    {paisesOrigen.map((pais) => (
+                                      <SelectItem
+                                        key={pais.value}
+                                        value={pais.value}
+                                      >
+                                        {pais.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
                               </div>
                             )}
                             {/* Pais de Destino */}
@@ -702,26 +716,48 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                                 <Label htmlFor="paisDestino">
                                   País de Destino
                                 </Label>
-                                <Input
-                                  id="paisDestino"
-                                  value={paisDestino}
-                                  onChange={(e) =>
-                                    setPaisDestino(e.target.value)
-                                  }
-                                  placeholder="Ingrese país de destino"
-                                />
+                                <Select
+                                  value={selectedPaisDestino}
+                                  onValueChange={setSelectedPaisDestino}
+                                >
+                                  <SelectTrigger className="w-full">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent className="bg-white w-full h-full">
+                                    {paisesDestino.map((pais) => (
+                                      <SelectItem
+                                        key={pais.value}
+                                        value={pais.value}
+                                      >
+                                        {pais.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
                               </div>
                             )}
                             {/* Aduana */}
                             {isMaritimeService(selectedServiceLogistic) && (
                               <div>
                                 <Label htmlFor="aduana">Aduana</Label>
-                                <Input
-                                  id="aduana"
-                                  value={aduana}
-                                  onChange={(e) => setAduana(e.target.value)}
-                                  placeholder="Ingrese aduana"
-                                />
+                                <Select
+                                  value={selectedAduana}
+                                  onValueChange={setSelectedAduana}
+                                >
+                                  <SelectTrigger className="w-full">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent className="bg-white w-full h-full">
+                                    {aduana.map((aduan) => (
+                                      <SelectItem
+                                        key={aduan.value}
+                                        value={aduan.value}
+                                      >
+                                        {aduan.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
                               </div>
                             )}
                           </div>
@@ -1030,7 +1066,7 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                                   <EditableNumericField
                                     value={
                                       isMaritimeService(selectedServiceLogistic)
-                                        ? dynamicValues.calculoFlete
+                                        ? maritimeFlete
                                         : dynamicValues.flete
                                     }
                                     onChange={(value) =>
@@ -1386,6 +1422,7 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                                 USD {gestionCertificadoFinal.toFixed(2)}
                               </span>
                             </div>
+                            {/* Servicio de Inspección */}
                             <div className="flex justify-between items-center py-2">
                               <span className="text-sm text-gray-600">
                                 Servicio de Inspección
@@ -1399,6 +1436,7 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                                 USD {servicioInspeccionFinal.toFixed(2)}
                               </span>
                             </div>
+                            {/* Transporte Local */}
                             <div className="flex justify-between items-center py-2">
                               <span className="text-sm text-gray-600">
                                 Transporte Local
@@ -1412,6 +1450,7 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                                 USD {transporteLocalFinal.toFixed(2)}
                               </span>
                             </div>
+                            {/* Total de Derechos */}
                             <div className="flex justify-between items-center py-2">
                               <span className="text-sm text-gray-600">
                                 Total de Derechos
@@ -1442,6 +1481,7 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                                 USD {servicioConsolidadoFinal.toFixed(2)}
                               </span>
                             </div>
+                            {/* Separación de Carga */}
                             <div className="flex justify-between items-center py-2">
                               <span className="text-sm text-gray-600">
                                 Separación de Carga
@@ -1455,6 +1495,7 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                                 USD {separacionCargaFinal.toFixed(2)}
                               </span>
                             </div>
+                            {/* Inspección de Productos */}
                             <div className="flex justify-between items-center py-2">
                               <span className="text-sm text-gray-600">
                                 Inspección de Productos
@@ -1468,9 +1509,9 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                                 USD {inspeccionProductosFinal.toFixed(2)}
                               </span>
                             </div>
+                            {/* AD/VALOREM + IGV + IPM */}
                             <div className="flex justify-between items-center py-2">
                               <span className="text-sm text-gray-600">
-                                AD/VALOREM + IGV + IPM
                                 {isFirstPurchase && (
                                   <span className="text-green-600 text-xs ml-1">
                                     (-50%)
@@ -1481,6 +1522,7 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                                 USD {totalDerechosDolaresFinal.toFixed(2)}
                               </span>
                             </div>
+                            {/* Desaduanaje + Flete + Seguro */}
                             <div className="flex justify-between items-center py-2">
                               <span className="text-sm text-gray-600">
                                 Desaduanaje + Flete + Seguro
@@ -1503,6 +1545,41 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                       </div>
                     </CardContent>
                   </Card>
+
+                  <div className="grid grid-cols-1 gap-4 ">
+                    <Card className="h-20 w-full bg-gradient-to-r from-red-400 to-red-600 rounded-lg text-white">
+                      <CardContent className="p-4 h-full flex flex-col justify-center">
+                        <div className="text-3xl font-bold">
+                          {selectedIncoterm}
+                        </div>
+                        <div className="text-sm opacity-90">INCOTERM DE EXPORTACION</div>
+                      </CardContent>
+                    </Card>
+                    <Card className="h-20 w-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-lg text-white">
+                      <CardContent className="p-4 h-full flex flex-col justify-center">
+                        <div className="text-3xl font-bold">
+                          {dynamicValues.comercialValue.toFixed(2)}
+                        </div>
+                        <div className="text-sm opacity-90">Valor de compra factura comercial</div>
+                      </CardContent>
+                    </Card>
+                    <Card className="h-20 w-full bg-gradient-to-r from-green-400 to-green-600 rounded-lg text-white">
+                      <CardContent className="p-4 h-full flex flex-col justify-center">
+                        <div className="text-3xl font-bold">
+                          {totalGastosImportacion.toFixed(2)}
+                        </div>
+                        <div className="text-sm opacity-90">Total gastos de importacion</div>
+                      </CardContent>
+                    </Card>
+                    <Card className="h-20 w-full bg-gradient-to-r from-orange-400 to-orange-600 rounded-lg text-white">
+                      <CardContent className="p-4 h-full flex flex-col justify-center">
+                        <div className="text-3xl font-bold">
+                          {inversionTotal.toFixed(2)}
+                        </div>
+                        <div className="text-sm opacity-90">Inversion total de importacion</div>
+                      </CardContent>
+                    </Card>
+                  </div>
 
                   {/* Incoterm de Expdortación */}
                   <div className="space-y-4">

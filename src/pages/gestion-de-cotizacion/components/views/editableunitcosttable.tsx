@@ -1,4 +1,10 @@
-import { Card } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -134,8 +140,6 @@ const EditableUnitCostTable: React.FC<EditableUnitCostTableProps> = ({
     });
   };
 
-
-
   // Generar columnas con la lógica de actualización
   const columns = columnsEditableUnitcost(updateProduct);
 
@@ -168,63 +172,77 @@ const EditableUnitCostTable: React.FC<EditableUnitCostTableProps> = ({
   return (
     <div className="p-6 bg-gray-50">
       <Card className="overflow-hidden">
-        {/* Header */}
-        <div className="bg-black text-white flex justify-between items-center px-4 py-3">
-          <h2 className="text-lg font-bold text-center flex-1">
-            COSTEO UNITARIO DE IMPORTACIÓN
-          </h2>
-          <div className="bg-white text-black px-3 py-1 text-sm font-bold">
-            <div className="text-xs">FACTOR M.</div>
-            <div>{factorM.toFixed(2)}</div>
-          </div>
-        </div>
+        <CardHeader>
+          <CardTitle className="text-lg font-bold text-center flex-1">
+            <div className="relative">
+              COSTEO UNITARIO DE IMPORTACIÓN
+              <div className="absolute top-0 right-0  text-black px-3 py-1 text-sm font-bold">
+                <div className="text-xs">FACTOR M.</div>
+                <div>{factorM.toFixed(2)}</div>
+              </div>
+            </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <DataTable
+            columns={columns}
+            data={productsList}
+            pageInfo={{
+              pageNumber: 1,
+              pageSize: 10,
+              totalElements: productsList.length,
+              totalPages: 1,
+            }}
+            onPageChange={() => {}}
+            onSearch={() => {}}
+            searchTerm={""}
+            isLoading={false}
+            paginationOptions={{
+              showSelectedCount: false,
+              showPagination: false,
+              showNavigation: false,
+            }}
+            toolbarOptions={{
+              showSearch: false,
+              showViewOptions: false,
+            }}
+          />
 
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4">
+            <Card className="h-20 w-full bg-gradient-to-r from-red-400 to-red-600 rounded-lg text-white">
+              <CardContent className="p-4 h-full flex flex-col justify-center">
+                <div className="text-3xl font-bold">{totalQuantity}</div>
+                <div className="text-sm opacity-90">Total Unidades</div>
+              </CardContent>
+            </Card>
+            <Card className="h-20 w-full bg-gradient-to-r from-blue-400 to-blue-600  rounded-lg text-white">
+              <CardContent className="p-4 h-full flex flex-col justify-center">
+                <div className="text-3xl font-bold">
+                  {totalAmount.toFixed(2)}
+                </div>
+                <div className="text-sm opacity-90">Precio Total USD</div>
+              </CardContent>
+            </Card>
 
+            <Card className="h-20 w-full bg-gradient-to-r from-green-400 to-green-600 rounded-lg text-white">
+              <CardContent className="p-4 h-full flex flex-col justify-center">
+                <div className="text-3xl font-bold">
+                  {totalImportCostsSum.toFixed(2)}
+                </div>
+                <div className="text-sm opacity-90">Total Importación</div>
+              </CardContent>
+            </Card>
 
-        <DataTable
-          columns={columns}
-          data={productsList}
-          pageInfo={{
-            pageNumber: 1,
-            pageSize: 10,
-            totalElements: productsList.length,
-            totalPages: 1,
-          }}
-          onPageChange={() => {}}
-          onSearch={() => {}}
-          searchTerm={""}
-          isLoading={false}
-          paginationOptions={{
-            showSelectedCount: false,
-            showPagination: false,
-            showNavigation: false,
-          }}
-          toolbarOptions={{
-            showSearch: false,
-            showViewOptions: false,
-          }}
-        />
-
-        {/* Totals Row */}
-        <div className="bg-orange-500 text-white grid grid-cols-8 text-center text-sm font-bold">
-          <div className="p-3 border-r border-orange-400">TOTALES</div>
-          <div className="p-3 border-r border-orange-400"></div>
-          <div className="p-3 border-r border-orange-400">{totalQuantity}</div>
-          <div className="p-3 border-r border-orange-400">
-            <span className="text-xs mr-1">USD</span>
-            {totalAmount.toFixed(2)}
+            <Card className="h-20 w-full bg-gradient-to-r from-orange-400 to-orange-600 rounded-lg text-white">
+              <CardContent className="p-4 h-full flex flex-col justify-center">
+                <div className="text-3xl font-bold">{grandTotal.toFixed(2)}</div>
+                <div className="text-sm opacity-90">Total Costo</div>
+              </CardContent>
+            </Card>
           </div>
-          <div className="p-3 border-r border-orange-400">100%</div>
-          <div className="p-3 border-r border-orange-400">
-            <span className="text-xs mr-1">USD</span>
-            {totalImportCostsSum.toFixed(2)}
-          </div>
-          <div className="p-3 border-r border-orange-400">
-            <span className="text-xs mr-1">USD</span>
-            {grandTotal.toFixed(2)}
-          </div>
-          <div className="p-3"></div>
-        </div>
+         
+        </CardContent>
+    
       </Card>
     </div>
   );

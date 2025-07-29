@@ -21,11 +21,86 @@ export const incotermsOptions = [
     { value: "Almacenaje de mercancias", label: "Almacenaje de mercancias" },
   ];
 
-  //!Tipo de carga
+  //!Tipo de carga - Aéreo
   export const typeLoad = [
     { value: "general", label: "GENERAL" },
     { value: "imo", label: "IMO" },
     { value: "mixto", label: "MIXTO" },
+  ];
+
+  //!Tipo de carga - Marítimo
+  export const typeLoadMaritime = [
+    { value: "carga_general", label: "CARGA GENERAL" },
+    { value: "carga_imo", label: "CARGA IMO" },
+    { value: "carga_pesada", label: "CARGA PESADA" },
+    { value: "carga_suelta", label: "CARGA SUELTA" },
+    { value: "carga_seca", label: "CARGA SECA" },
+  ];
+
+  //!Régimen
+  export const regimenOptions = [
+    { value: "importacion_consumo", label: "Importación para el consumo" },
+    { value: "despacho_simplificado", label: "Despacho Simplificado" },
+  ];
+
+  //!Puertos de salida
+  export const puertosSalida = [
+    { value: "shanghai", label: "SHANGHÁI" },
+    { value: "shenzhen", label: "SHENZHEN" },
+    { value: "ningbo_zhoushan", label: "NINGBO-ZHOUSHAN" },
+    { value: "guangzhou", label: "GUANGZHOU" },
+    { value: "hong_kong", label: "HONG KONG" },
+    { value: "tianjin", label: "TIANJIN" },
+    { value: "xiamen", label: "XIAMEN" },
+    { value: "qingdao", label: "QINGDAO" },
+    { value: "dalian", label: "DALIAN" },
+    { value: "lianyungang", label: "LIANYUNGANG" },
+    { value: "fuzhou", label: "FUZHOU" },
+    { value: "yingkou", label: "YINGKOU" },
+    { value: "zhuhai", label: "ZHUHAI" },
+    { value: "jinan", label: "JINAN" },
+    { value: "hainan", label: "HAINAN" },
+    { value: "qinzhou", label: "QINZHOU" },
+    { value: "beihai", label: "BEIHAI" },
+    { value: "fangchenggang", label: "FANGCHENGGANG" },
+  ];
+
+  //!Puertos de destino
+  export const puertosDestino = [
+    { value: "callao", label: "CALLAO" },
+    { value: "ilo", label: "ILO" },
+    { value: "arica", label: "ARICA" },
+    { value: "chancay", label: "CHANCAY" },
+  ];
+
+  //!Tipo de servicio
+  export const tipoServicio = [
+    { value: "directo", label: "DIRECTO" },
+    { value: "transbordo", label: "TRANSBORDO" },
+  ];
+
+  //!Proforma vigencia
+  export const proformaVigencia = [
+    { value: "1", label: "1 DÍA" },
+    { value: "2", label: "2 DÍAS" },
+    { value: "3", label: "3 DÍAS" },
+    { value: "4", label: "4 DÍAS" },
+    { value: "5", label: "5 DÍAS" },
+    { value: "6", label: "6 DÍAS" },
+    { value: "7", label: "7 DÍAS" },
+    { value: "8", label: "8 DÍAS" },
+    { value: "9", label: "9 DÍAS" },
+    { value: "10", label: "10 DÍAS" },
+    { value: "11", label: "11 DÍAS" },
+    { value: "12", label: "12 DÍAS" },
+    { value: "13", label: "13 DÍAS" },
+    { value: "14", label: "14 DÍAS" },
+    { value: "15", label: "15 DÍAS" },
+    { value: "16", label: "16 DÍAS" },
+    { value: "17", label: "17 DÍAS" },
+    { value: "18", label: "18 DÍAS" },
+    { value: "19", label: "19 DÍAS" },
+    { value: "20", label: "20 DÍAS" },
   ];
 
   //!Courier

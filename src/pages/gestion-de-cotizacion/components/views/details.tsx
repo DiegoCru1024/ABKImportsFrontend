@@ -51,6 +51,12 @@ import {
   incotermsOptions,
   serviciosLogisticos,
   typeLoad,
+  typeLoadMaritime,
+  regimenOptions,
+  puertosSalida,
+  puertosDestino,
+  tipoServicio,
+  proformaVigencia,
   courier,
 } from "../utils/static";
 
@@ -107,6 +113,23 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
   const [selectedServiceLogistic, setSelectedServiceLogistic] =
     useState<string>("Consolidado Express");
 
+  //* Estados específicos para servicios marítimos
+  const [selectedRegimen, setSelectedRegimen] = useState<string>(
+    "importacion_consumo"
+  );
+  const [paisOrigen, setPaisOrigen] = useState<string>("");
+  const [paisDestino, setPaisDestino] = useState<string>("");
+  const [aduana, setAduana] = useState<string>("");
+  const [selectedPuertoSalida, setSelectedPuertoSalida] =
+    useState<string>("shanghai");
+  const [selectedPuertoDestino, setSelectedPuertoDestino] =
+    useState<string>("callao");
+  const [selectedTipoServicio, setSelectedTipoServicio] =
+    useState<string>("directo");
+  const [tiempoTransito, setTiempoTransito] = useState<number>(0);
+  const [selectedProformaVigencia, setSelectedProformaVigencia] =
+    useState<string>("5");
+
   //* Estados para valores dinámicos editables
   const [dynamicValues, setDynamicValues] = useState({
     // Valores principales
@@ -121,6 +144,11 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
     seguro: 0.0,
     tipoCambio: 3.7,
 
+    // Campos específicos marítimos
+    nroBultos: 0.0,
+    volumenCBM: 0.0,
+    calculoFlete: 0.0,
+
     // Servicios de consolidación aérea
     servicioConsolidado: 0.0,
     separacionCarga: 0.0,
@@ -133,10 +161,14 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
     transporteLocal: 0.0,
     otrosServicios: 0.0,
 
-    // Porcentajes de impuestos
+    // Porcentajes de impuestos (actualizados para marítimo)
     adValoremRate: 4.0,
+    antidumpingGobierno: 0.0,
+    antidumpingCantidad: 0.0,
+    iscRate: 0.0,
     igvRate: 16.0,
     ipmRate: 2.0,
+    percepcionRate: 5.0,
   });
 
   //* Estado para primera compra
@@ -147,8 +179,33 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
     ProductRow[]
   >([]);
 
+  //* Función para detectar si es servicio marítimo
+  const isMaritimeService = (serviceType: string) => {
+    return (
+      serviceType === "Consolidado Maritimo" ||
+      serviceType === "Consolidado Grupal Maritimo"
+    );
+  };
+
+  //* Calcular flete dinámicamente para servicios marítimos
+  const calculateMaritimeFlete = () => {
+    if (isMaritimeService(selectedServiceLogistic)) {
+      const maxValue = Math.max(dynamicValues.ton, dynamicValues.volumenCBM);
+      return maxValue * dynamicValues.calculoFlete;
+    }
+    return dynamicValues.flete;
+  };
+
+  //* Lógica automática para conversión KG a TON
+  const handleKgChange = (value: number) => {
+    updateDynamicValue("kg", value);
+    // Convertir automáticamente KG a TON
+    updateDynamicValue("ton", value / 1000);
+  };
+
   //* Calcular CIF dinámicamente
-  const cif = dynamicValues.fob + dynamicValues.flete + dynamicValues.seguro;
+  const maritimeFlete = calculateMaritimeFlete();
+  const cif = dynamicValues.fob + maritimeFlete + dynamicValues.seguro;
 
   //* Función para obtener el nombre del servicio según el tipo
   const getServiceName = (serviceType: string) => {
@@ -215,9 +272,32 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
 
   //* Cálculos de obligaciones fiscales
   const adValorem = cif * (dynamicValues.adValoremRate / 100);
-  const igvFiscal = (cif + adValorem) * (dynamicValues.igvRate / 100);
-  const ipm = (cif + adValorem) * (dynamicValues.ipmRate / 100);
-  const totalDerechosDolares = adValorem + igvFiscal + ipm;
+
+  // Para servicios marítimos
+  const antidumping = isMaritimeService(selectedServiceLogistic)
+    ? dynamicValues.antidumpingGobierno * dynamicValues.antidumpingCantidad
+    : 0;
+
+  const isc = isMaritimeService(selectedServiceLogistic)
+    ? (cif + adValorem) * (dynamicValues.iscRate / 100)
+    : 0;
+
+  const baseIgvIpm = isMaritimeService(selectedServiceLogistic)
+    ? cif + adValorem + antidumping + isc
+    : cif + adValorem;
+
+  const igvFiscal = baseIgvIpm * (dynamicValues.igvRate / 100);
+  const ipm = baseIgvIpm * (dynamicValues.ipmRate / 100);
+
+  const percepcion = isMaritimeService(selectedServiceLogistic)
+    ? (cif + adValorem + antidumping + isc + igvFiscal + ipm) *
+      (dynamicValues.percepcionRate / 100)
+    : 0;
+
+  const totalDerechosDolares = isMaritimeService(selectedServiceLogistic)
+    ? adValorem + antidumping + isc + igvFiscal + ipm + percepcion
+    : adValorem + igvFiscal + ipm;
+
   const totalDerechosSoles = totalDerechosDolares * dynamicValues.tipoCambio;
 
   //* Cálculos de gastos de importación con lógica de primera compra
@@ -231,19 +311,52 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
     ? 0
     : dynamicValues.inspeccionProductos * 1.18;
   const desaduanajeFleteSaguro =
-    dynamicValues.desaduanaje + dynamicValues.flete + dynamicValues.seguro;
+    dynamicValues.desaduanaje + maritimeFlete + dynamicValues.seguro;
 
   // Aplicar 50% de descuento a impuestos si es primera compra
   const totalDerechosDolaresFinal = isFirstPurchase
     ? totalDerechosDolares * 0.5
     : totalDerechosDolares;
 
-  const totalGastosImportacion =
-    servicioConsolidadoFinal +
-    separacionCargaFinal +
-    inspeccionProductosFinal +
-    totalDerechosDolaresFinal +
-    desaduanajeFleteSaguro;
+  // Cálculos específicos para servicios marítimos
+  const servicioConsolidadoMaritimoFinal = isMaritimeService(
+    selectedServiceLogistic
+  )
+    ? isFirstPurchase
+      ? 0
+      : dynamicValues.servicioConsolidado * 1.18
+    : 0;
+
+  const gestionCertificadoFinal = isMaritimeService(selectedServiceLogistic)
+    ? isFirstPurchase
+      ? 0
+      : dynamicValues.gestionCertificado * 1.18
+    : 0;
+
+  const servicioInspeccionFinal = isMaritimeService(selectedServiceLogistic)
+    ? isFirstPurchase
+      ? 0
+      : (dynamicValues.inspeccionProducto + dynamicValues.inspeccionFabrica) *
+        1.18
+    : 0;
+
+  const transporteLocalFinal = isMaritimeService(selectedServiceLogistic)
+    ? isFirstPurchase
+      ? 0
+      : dynamicValues.transporteLocal * 1.18
+    : 0;
+
+  const totalGastosImportacion = isMaritimeService(selectedServiceLogistic)
+    ? servicioConsolidadoMaritimoFinal +
+      gestionCertificadoFinal +
+      servicioInspeccionFinal +
+      transporteLocalFinal +
+      totalDerechosDolaresFinal
+    : servicioConsolidadoFinal +
+      separacionCargaFinal +
+      inspeccionProductosFinal +
+      totalDerechosDolaresFinal +
+      desaduanajeFleteSaguro;
 
   //* Inversión total
   const inversionTotal = dynamicValues.comercialValue + totalGastosImportacion;
@@ -438,7 +551,10 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent className="bg-white w-full h-full">
-                                {typeLoad.map((type) => (
+                                {(isMaritimeService(selectedServiceLogistic)
+                                  ? typeLoadMaritime
+                                  : typeLoad
+                                ).map((type) => (
                                   <SelectItem
                                     key={type.value}
                                     value={type.value}
@@ -468,11 +584,24 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                             </div>
                           </div>
                           <div>
-                            <Label htmlFor="boxes">Cajas</Label>
+                            <Label htmlFor="boxes">
+                              {isMaritimeService(selectedServiceLogistic)
+                                ? "Nro Bultos"
+                                : "Cajas"}
+                            </Label>
                             <EditableNumericField
-                              value={dynamicValues.cajas}
+                              value={
+                                isMaritimeService(selectedServiceLogistic)
+                                  ? dynamicValues.nroBultos
+                                  : dynamicValues.cajas
+                              }
                               onChange={(value) =>
-                                updateDynamicValue("cajas", value)
+                                updateDynamicValue(
+                                  isMaritimeService(selectedServiceLogistic)
+                                    ? "nroBultos"
+                                    : "cajas",
+                                  value
+                                )
                               }
                             />
                           </div>
@@ -483,8 +612,10 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                             <Label htmlFor="kg">Peso (KG)</Label>
                             <EditableNumericField
                               value={dynamicValues.kg}
-                              onChange={(value) =>
-                                updateDynamicValue("kg", value)
+                              onChange={
+                                isMaritimeService(selectedServiceLogistic)
+                                  ? handleKgChange
+                                  : (value) => updateDynamicValue("kg", value)
                               }
                             />
                           </div>
@@ -492,201 +623,228 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                             <Label htmlFor="ton">Peso (TON)</Label>
                             <EditableNumericField
                               value={dynamicValues.ton}
-                              onChange={(value) =>
-                                updateDynamicValue("ton", value)
+                              onChange={
+                                isMaritimeService(selectedServiceLogistic)
+                                  ? () => {}
+                                  : (value) => updateDynamicValue("ton", value)
                               }
                             />
                           </div>
-                          <div>
-                            <Label htmlFor="kv">K/V</Label>
-                            <EditableNumericField
-                              value={dynamicValues.kv}
-                              onChange={(value) =>
-                                updateDynamicValue("kv", value)
-                              }
-                            />
-                          </div>
+                          {!isMaritimeService(selectedServiceLogistic) && (
+                            <div>
+                              <Label htmlFor="kv">K/V</Label>
+                              <EditableNumericField
+                                value={dynamicValues.kv}
+                                onChange={(value) =>
+                                  updateDynamicValue("kv", value)
+                                }
+                              />
+                            </div>
+                          )}
+                          {isMaritimeService(selectedServiceLogistic) && (
+                            <div>
+                              <Label htmlFor="volumenCBM">Volumen (CBM)</Label>
+                              <EditableNumericField
+                                value={dynamicValues.volumenCBM}
+                                onChange={(value) =>
+                                  updateDynamicValue("volumenCBM", value)
+                                }
+                              />
+                            </div>
+                          )}
                         </div>
 
                         <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
                           <div className="space-y-2">
                             {/* Regimen */}
-                            <div>
-                              <Label htmlFor="courier">Regimen</Label>
-                              <Select
-                                value={selectedCourier}
-                                onValueChange={setSelectedCourier}
-                              >
-                                <SelectTrigger className="w-full">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent className="bg-white w-full h-full">
-                                  {courier.map((courierOption) => (
-                                    <SelectItem
-                                      key={courierOption.value}
-                                      value={courierOption.value}
-                                    >
-                                      {courierOption.label}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            {/* Pais de Origen */}
-                            <div>
-                              <Label htmlFor="incoterm">Pais de Origen</Label>
-                              <Select
-                                value={selectedIncoterm}
-                                onValueChange={setSelectedIncoterm}
-                              >
-                                <SelectTrigger className="w-full">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {incotermsOptions.map((incoterm) => (
-                                    <SelectItem
-                                      key={incoterm.value}
-                                      value={incoterm.value}
-                                    >
-                                      {incoterm.label}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            {/* Pais de Destino */}
-                            <div>
-                              <Label htmlFor="incoterm">Pais de Destino</Label>
-                              <Select
-                                value={selectedIncoterm}
-                                onValueChange={setSelectedIncoterm}
-                              >
-                                <SelectTrigger className="w-full">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {incotermsOptions.map((incoterm) => (
-                                    <SelectItem
-                                      key={incoterm.value}
-                                      value={incoterm.value}
-                                    >
-                                      {incoterm.label}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            {/* Aduana */}
-                            <div>
-                              <Label htmlFor="freight">Aduana</Label>
-                              <div className="relative">
-                                <EditableNumericField
-                                  value={dynamicValues.flete}
-                                  onChange={(value) =>
-                                    updateDynamicValue("flete", value)
-                                  }
-                                />
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
-                                  USD
-                                </span>
+                            {isMaritimeService(selectedServiceLogistic) && (
+                              <div>
+                                <Label htmlFor="regimen">Régimen</Label>
+                                <Select
+                                  value={selectedRegimen}
+                                  onValueChange={setSelectedRegimen}
+                                >
+                                  <SelectTrigger className="w-full">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent className="bg-white w-full h-full">
+                                    {regimenOptions.map((regimen) => (
+                                      <SelectItem
+                                        key={regimen.value}
+                                        value={regimen.value}
+                                      >
+                                        {regimen.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
                               </div>
-                            </div>
+                            )}
+                            {/* Pais de Origen */}
+                            {isMaritimeService(selectedServiceLogistic) && (
+                              <div>
+                                <Label htmlFor="paisOrigen">
+                                  País de Origen
+                                </Label>
+                                <Input
+                                  id="paisOrigen"
+                                  value={paisOrigen}
+                                  onChange={(e) =>
+                                    setPaisOrigen(e.target.value)
+                                  }
+                                  placeholder="Ingrese país de origen"
+                                />
+                              </div>
+                            )}
+                            {/* Pais de Destino */}
+                            {isMaritimeService(selectedServiceLogistic) && (
+                              <div>
+                                <Label htmlFor="paisDestino">
+                                  País de Destino
+                                </Label>
+                                <Input
+                                  id="paisDestino"
+                                  value={paisDestino}
+                                  onChange={(e) =>
+                                    setPaisDestino(e.target.value)
+                                  }
+                                  placeholder="Ingrese país de destino"
+                                />
+                              </div>
+                            )}
+                            {/* Aduana */}
+                            {isMaritimeService(selectedServiceLogistic) && (
+                              <div>
+                                <Label htmlFor="aduana">Aduana</Label>
+                                <Input
+                                  id="aduana"
+                                  value={aduana}
+                                  onChange={(e) => setAduana(e.target.value)}
+                                  placeholder="Ingrese aduana"
+                                />
+                              </div>
+                            )}
 
                           </div>
                           <div className="space-y-2">
                             {/* Puerto de salida */}
-                            <div>
-                              <Label htmlFor="courier">Puerto de Salida</Label>
-                              <Select
-                                value={selectedCourier}
-                                onValueChange={setSelectedCourier}
-                              >
-                                <SelectTrigger className="w-full">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent className="bg-white w-full h-full">
-                                  {courier.map((courierOption) => (
-                                    <SelectItem
-                                      key={courierOption.value}
-                                      value={courierOption.value}
-                                    >
-                                      {courierOption.label}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
+                            {isMaritimeService(selectedServiceLogistic) && (
+                              <div>
+                                <Label htmlFor="puertoSalida">
+                                  Puerto de Salida
+                                </Label>
+                                <Select
+                                  value={selectedPuertoSalida}
+                                  onValueChange={setSelectedPuertoSalida}
+                                >
+                                  <SelectTrigger className="w-full">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent className="bg-white w-full h-full">
+                                    {puertosSalida.map((puerto) => (
+                                      <SelectItem
+                                        key={puerto.value}
+                                        value={puerto.value}
+                                      >
+                                        {puerto.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            )}
                             {/* Puerto de destino */}
-                            <div>
-                              <Label htmlFor="incoterm">
-                                Puerto de destino
-                              </Label>
-                              <Select
-                                value={selectedIncoterm}
-                                onValueChange={setSelectedIncoterm}
-                              >
-                                <SelectTrigger className="w-full">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {incotermsOptions.map((incoterm) => (
-                                    <SelectItem
-                                      key={incoterm.value}
-                                      value={incoterm.value}
-                                    >
-                                      {incoterm.label}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
+                            {isMaritimeService(selectedServiceLogistic) && (
+                              <div>
+                                <Label htmlFor="puertoDestino">
+                                  Puerto de Destino
+                                </Label>
+                                <Select
+                                  value={selectedPuertoDestino}
+                                  onValueChange={setSelectedPuertoDestino}
+                                >
+                                  <SelectTrigger className="w-full">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {puertosDestino.map((puerto) => (
+                                      <SelectItem
+                                        key={puerto.value}
+                                        value={puerto.value}
+                                      >
+                                        {puerto.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            )}
 
                             {/* T. Servicio */}
-                            <div>
-                              <Label htmlFor="freight">T. Servicio</Label>
-                              <div className="relative">
-                                <EditableNumericField
-                                  value={dynamicValues.flete}
-                                  onChange={(value) =>
-                                    updateDynamicValue("flete", value)
-                                  }
-                                />
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
-                                  USD
-                                </span>
+                            {isMaritimeService(selectedServiceLogistic) && (
+                              <div>
+                                <Label htmlFor="tipoServicio">
+                                  T. Servicio
+                                </Label>
+                                <Select
+                                  value={selectedTipoServicio}
+                                  onValueChange={setSelectedTipoServicio}
+                                >
+                                  <SelectTrigger className="w-full">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {tipoServicio.map((tipo) => (
+                                      <SelectItem
+                                        key={tipo.value}
+                                        value={tipo.value}
+                                      >
+                                        {tipo.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
                               </div>
-                            </div>
+                            )}
                             {/* Tiempo Transito */}
-                            <div>
-                              <Label htmlFor="customs">Tiempo Transito</Label>
-                              <div className="relative">
+                            {isMaritimeService(selectedServiceLogistic) && (
+                              <div>
+                                <Label htmlFor="tiempoTransito">
+                                  T. Tránsito
+                                </Label>
                                 <EditableNumericField
-                                  value={dynamicValues.desaduanaje}
-                                  onChange={(value) =>
-                                    updateDynamicValue("desaduanaje", value)
-                                  }
+                                  value={tiempoTransito}
+                                  onChange={(value) => setTiempoTransito(value)}
                                 />
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
-                                  USD
-                                </span>
                               </div>
-                            </div>
+                            )}
 
-                            {/* Moneda */}
-                            <div>
-                              <Label htmlFor="currency">
-                                Proforma Vigencia
-                              </Label>
-                              <Select defaultValue="usd">
-                                <SelectTrigger className="w-full">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="usd">DÓLARES</SelectItem>
-                                  <SelectItem value="pen">SOLES</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
+                            {/* Proforma Vigencia */}
+                            {isMaritimeService(selectedServiceLogistic) && (
+                              <div>
+                                <Label htmlFor="proformaVigencia">
+                                  Proforma Vigencia
+                                </Label>
+                                <Select
+                                  value={selectedProformaVigencia}
+                                  onValueChange={setSelectedProformaVigencia}
+                                >
+                                  <SelectTrigger className="w-full">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {proformaVigencia.map((vigencia) => (
+                                      <SelectItem
+                                        key={vigencia.value}
+                                        value={vigencia.value}
+                                      >
+                                        {vigencia.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            )}
                           </div>
                         </div>
 
@@ -774,14 +932,27 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                             </Select>
                           </div>
 
-                          {/* Flete */}
+                          {/* Flete / Cálculo Flete */}
                           <div>
-                            <Label htmlFor="freight">Flete</Label>
+                            <Label htmlFor="freight">
+                              {isMaritimeService(selectedServiceLogistic)
+                                ? "Cálculo Flete"
+                                : "Flete"}
+                            </Label>
                             <div className="relative">
                               <EditableNumericField
-                                value={dynamicValues.flete}
+                                value={
+                                  isMaritimeService(selectedServiceLogistic)
+                                    ? dynamicValues.calculoFlete
+                                    : dynamicValues.flete
+                                }
                                 onChange={(value) =>
-                                  updateDynamicValue("flete", value)
+                                  updateDynamicValue(
+                                    isMaritimeService(selectedServiceLogistic)
+                                      ? "calculoFlete"
+                                      : "flete",
+                                    value
+                                  )
                                 }
                               />
                               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
@@ -1021,9 +1192,66 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                                 {adValorem.toFixed(2)}
                               </div>
                             </div>
+
+                            {/* ANTIDUMPING - Solo para marítimo */}
+                            {isMaritimeService(selectedServiceLogistic) && (
+                              <div className="grid grid-cols-4 gap-2 text-sm">
+                                <div>ANTIDUMPING</div>
+                                <div className="text-right">
+                                  <div className="flex items-center justify-end gap-1">
+                                    <EditableNumericField
+                                      value={dynamicValues.antidumpingGobierno}
+                                      onChange={(value) =>
+                                        updateDynamicValue(
+                                          "antidumpingGobierno",
+                                          value
+                                        )
+                                      }
+                                    />
+                                    <span className="text-xs">x</span>
+                                    <EditableNumericField
+                                      value={dynamicValues.antidumpingCantidad}
+                                      onChange={(value) =>
+                                        updateDynamicValue(
+                                          "antidumpingCantidad",
+                                          value
+                                        )
+                                      }
+                                    />
+                                  </div>
+                                </div>
+                                <div className="text-right">USD</div>
+                                <div className="text-right">
+                                  {antidumping.toFixed(2)}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* ISC - Solo para marítimo */}
+                            {isMaritimeService(selectedServiceLogistic) && (
+                              <div className="grid grid-cols-4 gap-2 text-sm">
+                                <div>ISC</div>
+                                <div className="text-right">
+                                  <div className="flex items-center justify-end">
+                                    <EditableNumericField
+                                      value={dynamicValues.iscRate}
+                                      onChange={(value) =>
+                                        updateDynamicValue("iscRate", value)
+                                      }
+                                    />
+                                    <span className="ml-1">%</span>
+                                  </div>
+                                </div>
+                                <div className="text-right">USD</div>
+                                <div className="text-right">
+                                  {isc.toFixed(2)}
+                                </div>
+                              </div>
+                            )}
+
                             {/* I.G.V */}
                             <div className="grid grid-cols-4 gap-2 text-sm">
-                              <div>I.G.V</div>
+                              <div>IGV</div>
                               <div className="text-right">
                                 <div className="flex items-center justify-end">
                                   <EditableNumericField
@@ -1040,9 +1268,10 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                                 {igvFiscal.toFixed(2)}
                               </div>
                             </div>
+
                             {/* I.P.M */}
                             <div className="grid grid-cols-4 gap-2 text-sm">
-                              <div>I.P.M</div>
+                              <div>IPM</div>
                               <div className="text-right">
                                 <div className="flex items-center justify-end">
                                   <EditableNumericField
@@ -1057,6 +1286,31 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                               <div className="text-right">USD</div>
                               <div className="text-right">{ipm.toFixed(2)}</div>
                             </div>
+
+                            {/* PERCEPCION - Solo para marítimo */}
+                            {isMaritimeService(selectedServiceLogistic) && (
+                              <div className="grid grid-cols-4 gap-2 text-sm">
+                                <div>PERCEPCION</div>
+                                <div className="text-right">
+                                  <div className="flex items-center justify-end">
+                                    <EditableNumericField
+                                      value={dynamicValues.percepcionRate}
+                                      onChange={(value) =>
+                                        updateDynamicValue(
+                                          "percepcionRate",
+                                          value
+                                        )
+                                      }
+                                    />
+                                    <span className="ml-1">%</span>
+                                  </div>
+                                </div>
+                                <div className="text-right">USD</div>
+                                <div className="text-right">
+                                  {percepcion.toFixed(2)}
+                                </div>
+                              </div>
+                            )}
                           </div>
                           <Separator />
                           <div className="flex justify-between items-center py-2 bg-green-50 px-3 rounded-lg">
@@ -1095,66 +1349,141 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                     </CardHeader>
                     <CardContent className="space-y-3">
                       <div className="space-y-2">
-                        <div className="flex justify-between items-center py-2">
-                          <span className="text-sm text-gray-600">
-                            Servicio Consolidado Aéreo
-                            {isFirstPurchase && (
-                              <span className="text-green-600 text-xs ml-1">
-                                (EXONERADO)
+                        {isMaritimeService(selectedServiceLogistic) ? (
+                          // Gastos para servicios marítimos
+                          <>
+                            <div className="flex justify-between items-center py-2">
+                              <span className="text-sm text-gray-600">
+                                Servicio Consolidado Marítimo
+                                {isFirstPurchase && (
+                                  <span className="text-green-600 text-xs ml-1">
+                                    (EXONERADO)
+                                  </span>
+                                )}
                               </span>
-                            )}
-                          </span>
-                          <span className="font-medium">
-                            USD {servicioConsolidadoFinal.toFixed(2)}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center py-2">
-                          <span className="text-sm text-gray-600">
-                            Separación de Carga
-                            {isFirstPurchase && (
-                              <span className="text-green-600 text-xs ml-1">
-                                (EXONERADO)
+                              <span className="font-medium">
+                                USD{" "}
+                                {servicioConsolidadoMaritimoFinal.toFixed(2)}
                               </span>
-                            )}
-                          </span>
-                          <span className="font-medium">
-                            USD {separacionCargaFinal.toFixed(2)}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center py-2">
-                          <span className="text-sm text-gray-600">
-                            Inspección de Productos
-                            {isFirstPurchase && (
-                              <span className="text-green-600 text-xs ml-1">
-                                (EXONERADO)
+                            </div>
+                            <div className="flex justify-between items-center py-2">
+                              <span className="text-sm text-gray-600">
+                                Gestión de Certificado de Origen
+                                {isFirstPurchase && (
+                                  <span className="text-green-600 text-xs ml-1">
+                                    (EXONERADO)
+                                  </span>
+                                )}
                               </span>
-                            )}
-                          </span>
-                          <span className="font-medium">
-                            USD {inspeccionProductosFinal.toFixed(2)}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center py-2">
-                          <span className="text-sm text-gray-600">
-                            AD/VALOREM + IGV + IPM
-                            {isFirstPurchase && (
-                              <span className="text-green-600 text-xs ml-1">
-                                (-50%)
+                              <span className="font-medium">
+                                USD {gestionCertificadoFinal.toFixed(2)}
                               </span>
-                            )}
-                          </span>
-                          <span className="font-medium">
-                            USD {totalDerechosDolaresFinal.toFixed(2)}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center py-2">
-                          <span className="text-sm text-gray-600">
-                            Desaduanaje + Flete + Seguro
-                          </span>
-                          <span className="font-medium">
-                            USD {desaduanajeFleteSaguro.toFixed(2)}
-                          </span>
-                        </div>
+                            </div>
+                            <div className="flex justify-between items-center py-2">
+                              <span className="text-sm text-gray-600">
+                                Servicio de Inspección
+                                {isFirstPurchase && (
+                                  <span className="text-green-600 text-xs ml-1">
+                                    (EXONERADO)
+                                  </span>
+                                )}
+                              </span>
+                              <span className="font-medium">
+                                USD {servicioInspeccionFinal.toFixed(2)}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center py-2">
+                              <span className="text-sm text-gray-600">
+                                Transporte Local
+                                {isFirstPurchase && (
+                                  <span className="text-green-600 text-xs ml-1">
+                                    (EXONERADO)
+                                  </span>
+                                )}
+                              </span>
+                              <span className="font-medium">
+                                USD {transporteLocalFinal.toFixed(2)}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center py-2">
+                              <span className="text-sm text-gray-600">
+                                Total de Derechos
+                                {isFirstPurchase && (
+                                  <span className="text-green-600 text-xs ml-1">
+                                    (-50%)
+                                  </span>
+                                )}
+                              </span>
+                              <span className="font-medium">
+                                USD {totalDerechosDolaresFinal.toFixed(2)}
+                              </span>
+                            </div>
+                          </>
+                        ) : (
+                          // Gastos para servicios aéreos
+                          <>
+                            <div className="flex justify-between items-center py-2">
+                              <span className="text-sm text-gray-600">
+                                Servicio Consolidado Aéreo
+                                {isFirstPurchase && (
+                                  <span className="text-green-600 text-xs ml-1">
+                                    (EXONERADO)
+                                  </span>
+                                )}
+                              </span>
+                              <span className="font-medium">
+                                USD {servicioConsolidadoFinal.toFixed(2)}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center py-2">
+                              <span className="text-sm text-gray-600">
+                                Separación de Carga
+                                {isFirstPurchase && (
+                                  <span className="text-green-600 text-xs ml-1">
+                                    (EXONERADO)
+                                  </span>
+                                )}
+                              </span>
+                              <span className="font-medium">
+                                USD {separacionCargaFinal.toFixed(2)}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center py-2">
+                              <span className="text-sm text-gray-600">
+                                Inspección de Productos
+                                {isFirstPurchase && (
+                                  <span className="text-green-600 text-xs ml-1">
+                                    (EXONERADO)
+                                  </span>
+                                )}
+                              </span>
+                              <span className="font-medium">
+                                USD {inspeccionProductosFinal.toFixed(2)}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center py-2">
+                              <span className="text-sm text-gray-600">
+                                AD/VALOREM + IGV + IPM
+                                {isFirstPurchase && (
+                                  <span className="text-green-600 text-xs ml-1">
+                                    (-50%)
+                                  </span>
+                                )}
+                              </span>
+                              <span className="font-medium">
+                                USD {totalDerechosDolaresFinal.toFixed(2)}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center py-2">
+                              <span className="text-sm text-gray-600">
+                                Desaduanaje + Flete + Seguro
+                              </span>
+                              <span className="font-medium">
+                                USD {desaduanajeFleteSaguro.toFixed(2)}
+                              </span>
+                            </div>
+                          </>
+                        )}
                         <Separator />
                         <div className="flex justify-between items-center py-2 bg-orange-50 px-3 rounded-lg">
                           <span className="font-medium text-orange-900">

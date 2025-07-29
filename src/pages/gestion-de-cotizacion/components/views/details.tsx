@@ -365,43 +365,53 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-4">
-                        <div className="grid gap-4 md:grid-cols-2">
-                          <div>
-                            <Label htmlFor="client">Cliente</Label>
-                            {/* <Input id="client" value={formData.client} className="font-medium" /> */}
+                        <div className="grid gap-4 grid-cols-1 md:grid-cols-2 ">
+                          <div className="space-y-2">
+                            <Label htmlFor="client">Nombres: </Label>
+                            <Input id="client" className="font-medium" />
+                            <Label htmlFor="client">Apellidos: </Label>
+                            <Input id="client" className="font-medium" />
+                            <Label htmlFor="client">DNI: </Label>
+                            <Input id="client" className="font-medium" />
+                            <Label htmlFor="client">RAZON SOCIAL: </Label>
+                            <Input id="client" className="font-medium" />
+                            <Label htmlFor="client">RUC: </Label>
+                            <Input id="client" className="font-medium" />
+                            <Label htmlFor="client">CONTACTO:</Label>
+                            <Input id="client" className="font-medium" />
                           </div>
-                          <div>
+
+                          <div className="space-y-2">
+                            <div>
+                              <Label htmlFor="advisor">Asesor(a) : </Label>
+                              <Input id="advisor" value="PAULO" />
+                            </div>
                             <Label htmlFor="date">Fecha de respuesta:</Label>
                             <Input id="date" value={quotationDate} />
+                            <div>
+                              <Label htmlFor="service">Tipo de Servicio</Label>
+                              <Select
+                                value={selectedServiceLogistic}
+                                onValueChange={setSelectedServiceLogistic}
+                              >
+                                <SelectTrigger className="w-full">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {serviciosLogisticos.map((servicio) => (
+                                    <SelectItem
+                                      key={servicio.value}
+                                      value={servicio.value}
+                                    >
+                                      {servicio.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
                           </div>
                         </div>
-                        <div className="grid gap-4 md:grid-cols-2">
-                          <div>
-                            <Label htmlFor="advisor">Asesor(a)</Label>
-                            <Input id="advisor" value="PAULO" />
-                          </div>
-                          <div>
-                            <Label htmlFor="service">Tipo de Servicio</Label>
-                            <Select
-                              value={selectedServiceLogistic}
-                              onValueChange={setSelectedServiceLogistic}
-                            >
-                              <SelectTrigger className="w-full">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {serviciosLogisticos.map((servicio) => (
-                                  <SelectItem
-                                    key={servicio.value}
-                                    value={servicio.value}
-                                  >
-                                    {servicio.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
+                        <div className="grid gap-4 md:grid-cols-2"></div>
                       </CardContent>
                     </Card>
                   </div>
@@ -417,7 +427,7 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-4">
-                        <div className="grid gap-4 md:grid-cols-3">
+                        <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
                           <div>
                             <Label htmlFor="cargoType">Tipo de Carga</Label>
                             <Select
@@ -468,7 +478,7 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                           </div>
                         </div>
 
-                        <div className="grid gap-4 md:grid-cols-3">
+                        <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
                           <div>
                             <Label htmlFor="kg">Peso (KG)</Label>
                             <EditableNumericField
@@ -498,6 +508,188 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                           </div>
                         </div>
 
+                        <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
+                          <div className="space-y-2">
+                            {/* Regimen */}
+                            <div>
+                              <Label htmlFor="courier">Regimen</Label>
+                              <Select
+                                value={selectedCourier}
+                                onValueChange={setSelectedCourier}
+                              >
+                                <SelectTrigger className="w-full">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="bg-white w-full h-full">
+                                  {courier.map((courierOption) => (
+                                    <SelectItem
+                                      key={courierOption.value}
+                                      value={courierOption.value}
+                                    >
+                                      {courierOption.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            {/* Pais de Origen */}
+                            <div>
+                              <Label htmlFor="incoterm">Pais de Origen</Label>
+                              <Select
+                                value={selectedIncoterm}
+                                onValueChange={setSelectedIncoterm}
+                              >
+                                <SelectTrigger className="w-full">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {incotermsOptions.map((incoterm) => (
+                                    <SelectItem
+                                      key={incoterm.value}
+                                      value={incoterm.value}
+                                    >
+                                      {incoterm.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            {/* Pais de Destino */}
+                            <div>
+                              <Label htmlFor="incoterm">Pais de Destino</Label>
+                              <Select
+                                value={selectedIncoterm}
+                                onValueChange={setSelectedIncoterm}
+                              >
+                                <SelectTrigger className="w-full">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {incotermsOptions.map((incoterm) => (
+                                    <SelectItem
+                                      key={incoterm.value}
+                                      value={incoterm.value}
+                                    >
+                                      {incoterm.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            {/* Aduana */}
+                            <div>
+                              <Label htmlFor="freight">Aduana</Label>
+                              <div className="relative">
+                                <EditableNumericField
+                                  value={dynamicValues.flete}
+                                  onChange={(value) =>
+                                    updateDynamicValue("flete", value)
+                                  }
+                                />
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
+                                  USD
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            {/* Puerto de salida */}
+                            <div>
+                              <Label htmlFor="courier">Puerto de Salida</Label>
+                              <Select
+                                value={selectedCourier}
+                                onValueChange={setSelectedCourier}
+                              >
+                                <SelectTrigger className="w-full">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="bg-white w-full h-full">
+                                  {courier.map((courierOption) => (
+                                    <SelectItem
+                                      key={courierOption.value}
+                                      value={courierOption.value}
+                                    >
+                                      {courierOption.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            {/* Puerto de destino */}
+                            <div>
+                              <Label htmlFor="incoterm">
+                                Puerto de destino
+                              </Label>
+                              <Select
+                                value={selectedIncoterm}
+                                onValueChange={setSelectedIncoterm}
+                              >
+                                <SelectTrigger className="w-full">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {incotermsOptions.map((incoterm) => (
+                                    <SelectItem
+                                      key={incoterm.value}
+                                      value={incoterm.value}
+                                    >
+                                      {incoterm.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            {/* T. Servicio */}
+                            <div>
+                              <Label htmlFor="freight">T. Servicio</Label>
+                              <div className="relative">
+                                <EditableNumericField
+                                  value={dynamicValues.flete}
+                                  onChange={(value) =>
+                                    updateDynamicValue("flete", value)
+                                  }
+                                />
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
+                                  USD
+                                </span>
+                              </div>
+                            </div>
+                            {/* Tiempo Transito */}
+                            <div>
+                              <Label htmlFor="customs">Tiempo Transito</Label>
+                              <div className="relative">
+                                <EditableNumericField
+                                  value={dynamicValues.desaduanaje}
+                                  onChange={(value) =>
+                                    updateDynamicValue("desaduanaje", value)
+                                  }
+                                />
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
+                                  USD
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Moneda */}
+                            <div>
+                              <Label htmlFor="currency">
+                                Proforma Vigencia
+                              </Label>
+                              <Select defaultValue="usd">
+                                <SelectTrigger className="w-full">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="usd">DÓLARES</SelectItem>
+                                  <SelectItem value="pen">SOLES</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                        </div>
+
                         {/* Primera Compra */}
                         <div className="flex items-center gap-2">
                           <div className="flex items-center space-x-2">
@@ -522,17 +714,21 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                         </div>
                       </CardContent>
                     </Card>
-
-                    {/* Shipping Details */}
-                    <Card>
-                      <CardHeader className="pb-3">
-                        <CardTitle className="flex items-center gap-2 text-lg">
-                          <Truck className="h-5 w-5 text-purple-600" />
-                          Detalles de Envío
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div className="grid gap-4 md:grid-cols-2">
+                  </div>
+                </div>
+                <div>
+                  {/* Shipping Details */}
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="flex items-center gap-2 text-lg">
+                        <Truck className="h-5 w-5 text-purple-600" />
+                        Detalles de Envío
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
+                        {/* Primera columna */}
+                        <div className="space-y-2">
                           {/* Courier */}
                           <div>
                             <Label htmlFor="courier">Courier</Label>
@@ -577,9 +773,7 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                               </SelectContent>
                             </Select>
                           </div>
-                        </div>
 
-                        <div className="grid gap-4 md:grid-cols-2">
                           {/* Flete */}
                           <div>
                             <Label htmlFor="freight">Flete</Label>
@@ -610,9 +804,7 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                               </span>
                             </div>
                           </div>
-                        </div>
 
-                        <div className="grid gap-4 md:grid-cols-2">
                           {/* Moneda */}
                           <div>
                             <Label htmlFor="currency">Moneda</Label>
@@ -637,16 +829,89 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                             />
                           </div>
                         </div>
-                      </CardContent>
-                    </Card>
-                  </div>
+
+                        {/* Tercera columna */}
+                        <div className="space-y-2">
+                          {/* Servicio de Carga Consolidada */}
+                          <div className="space-y-3">
+                            <div className="grid grid-cols-2 gap-2 text-sm justify-between items-center py-2">
+                              <div>FOB</div>
+                              <div>
+                                <span className="relative">
+                                  <EditableNumericField
+                                    value={dynamicValues.fob}
+                                    onChange={(newValue) =>
+                                      updateDynamicValue(
+                                        "fob" as keyof typeof dynamicValues,
+                                        newValue
+                                      )
+                                    }
+                                  />
+                                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
+                                    USD
+                                  </span>
+                                </span>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2 text-sm justify-between items-center py-2">
+                              <div>FLETE</div>
+                              <div>
+                                <span className="relative">
+                                  <EditableNumericField
+                                    value={dynamicValues.flete}
+                                    onChange={(newValue) =>
+                                      updateDynamicValue(
+                                        "flete" as keyof typeof dynamicValues,
+                                        newValue
+                                      )
+                                    }
+                                  />
+                                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
+                                    USD
+                                  </span>
+                                </span>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2 text-sm justify-between items-center py-2">
+                              <div>SEGURO</div>
+                              <div>
+                                <span className="relative">
+                                  <EditableNumericField
+                                    value={dynamicValues.seguro}
+                                    onChange={(newValue) =>
+                                      updateDynamicValue(
+                                        "seguro" as keyof typeof dynamicValues,
+                                        newValue
+                                      )
+                                    }
+                                  />
+                                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
+                                    USD
+                                  </span>
+                                </span>
+                              </div>
+                            </div>
+
+                            <Separator />
+
+                            <div className="grid grid-cols-2 gap-2 text-sm rounded-lg bg-green-200 p-2">
+                              <div className="font-semibold">CIF</div>
+                              <div className="text-center font-semibold">
+                                USD {cif.toFixed(2)}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
               </div>
 
               <div className="space-y-6 p-6 bg-white">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Servicio de Carga Consolidada */}
                   <div className="space-y-4">
-                    {/* Servicio de Carga Consolidada */}
                     <Card>
                       <CardHeader className="pb-3">
                         <CardTitle className="flex items-center gap-2 text-lg">
@@ -723,8 +988,8 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                     </Card>
                   </div>
                   <div className="space-y-4">
-                     {/* Tax Obligations */}
-                     <Card>
+                    {/* Tax Obligations */}
+                    <Card>
                       <CardHeader className="pb-3">
                         <CardTitle className="flex items-center gap-2 text-lg">
                           <Calculator className="h-5 w-5 text-green-600" />
@@ -732,75 +997,6 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-3">
-                        <div className="space-y-3">
-                          <div className="grid grid-cols-2 gap-2 text-sm justify-between items-center py-2">
-                            <div>FOB</div>
-                            <div>
-                              <span className="relative">
-                                <EditableNumericField
-                                  value={dynamicValues.fob}
-                                  onChange={(newValue) =>
-                                    updateDynamicValue(
-                                      "fob" as keyof typeof dynamicValues,
-                                      newValue
-                                    )
-                                  }
-                                />
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
-                                  USD
-                                </span>
-                              </span>
-                            </div>
-                          </div>
-                          <div className="grid grid-cols-2 gap-2 text-sm justify-between items-center py-2">
-                            <div>FLETE</div>
-                            <div>
-                              <span className="relative">
-                                <EditableNumericField
-                                  value={dynamicValues.flete}
-                                  onChange={(newValue) =>
-                                    updateDynamicValue(
-                                      "flete" as keyof typeof dynamicValues,
-                                      newValue
-                                    )
-                                  }
-                                />
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
-                                  USD
-                                </span>
-                              </span>
-                            </div>
-                          </div>
-                          <div className="grid grid-cols-2 gap-2 text-sm justify-between items-center py-2">
-                            <div>SEGURO</div>
-                            <div>
-                              <span className="relative">
-                                <EditableNumericField
-                                  value={dynamicValues.seguro}
-                                  onChange={(newValue) =>
-                                    updateDynamicValue(
-                                      "seguro" as keyof typeof dynamicValues,
-                                      newValue
-                                    )
-                                  }
-                                />
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
-                                  USD
-                                </span>
-                              </span>
-                            </div>
-                          </div>
-
-                          <Separator />
-
-                          <div className="grid grid-cols-2 gap-2 text-sm rounded-lg bg-green-200 p-2">
-                            <div className="font-semibold">CIF</div>
-                            <div className="text-center font-semibold">
-                              USD {cif.toFixed(2)}
-                            </div>
-                          </div>
-                        </div>
-
                         <div className="grid gap-3">
                           <div className="p-4 space-y-2">
                             <div className="font-semibold text-sm mb-3">
@@ -903,10 +1099,10 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                           <span className="text-sm text-gray-600">
                             Servicio Consolidado Aéreo
                             {isFirstPurchase && (
-                            <span className="text-green-600 text-xs ml-1">
-                              (EXONERADO)
-                            </span>
-                          )}
+                              <span className="text-green-600 text-xs ml-1">
+                                (EXONERADO)
+                              </span>
+                            )}
                           </span>
                           <span className="font-medium">
                             USD {servicioConsolidadoFinal.toFixed(2)}
@@ -916,10 +1112,10 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                           <span className="text-sm text-gray-600">
                             Separación de Carga
                             {isFirstPurchase && (
-                            <span className="text-green-600 text-xs ml-1">
-                              (EXONERADO)
-                            </span>
-                          )}
+                              <span className="text-green-600 text-xs ml-1">
+                                (EXONERADO)
+                              </span>
+                            )}
                           </span>
                           <span className="font-medium">
                             USD {separacionCargaFinal.toFixed(2)}
@@ -929,10 +1125,10 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                           <span className="text-sm text-gray-600">
                             Inspección de Productos
                             {isFirstPurchase && (
-                            <span className="text-green-600 text-xs ml-1">
-                              (EXONERADO)
-                            </span>
-                          )}
+                              <span className="text-green-600 text-xs ml-1">
+                                (EXONERADO)
+                              </span>
+                            )}
                           </span>
                           <span className="font-medium">
                             USD {inspeccionProductosFinal.toFixed(2)}
@@ -942,10 +1138,10 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                           <span className="text-sm text-gray-600">
                             AD/VALOREM + IGV + IPM
                             {isFirstPurchase && (
-                            <span className="text-green-600 text-xs ml-1">
-                              (-50%)
-                            </span>
-                          )}
+                              <span className="text-green-600 text-xs ml-1">
+                                (-50%)
+                              </span>
+                            )}
                           </span>
                           <span className="font-medium">
                             USD {totalDerechosDolaresFinal.toFixed(2)}

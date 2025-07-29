@@ -724,7 +724,6 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                                 />
                               </div>
                             )}
-
                           </div>
                           <div className="space-y-2">
                             {/* Puerto de salida */}
@@ -884,7 +883,7 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
+                      <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
                         {/* Primera columna */}
                         <div className="space-y-2">
                           {/* Courier */}
@@ -1029,11 +1028,19 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                               <div>
                                 <span className="relative">
                                   <EditableNumericField
-                                    value={dynamicValues.flete}
-                                    onChange={(newValue) =>
+                                    value={
+                                      isMaritimeService(selectedServiceLogistic)
+                                        ? dynamicValues.calculoFlete
+                                        : dynamicValues.flete
+                                    }
+                                    onChange={(value) =>
                                       updateDynamicValue(
-                                        "flete" as keyof typeof dynamicValues,
-                                        newValue
+                                        isMaritimeService(
+                                          selectedServiceLogistic
+                                        )
+                                          ? "calculoFlete"
+                                          : "flete",
+                                        value
                                       )
                                     }
                                   />

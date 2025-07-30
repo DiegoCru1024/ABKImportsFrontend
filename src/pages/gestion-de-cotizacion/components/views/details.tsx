@@ -21,6 +21,7 @@ import {
   Check,
   X,
   Plane,
+  ChartBar,
 } from "lucide-react";
 
 import { useGetQuotationById } from "@/hooks/use-quation";
@@ -1395,6 +1396,7 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                         {isMaritimeService(selectedServiceLogistic) ? (
                           // Gastos para servicios marítimos
                           <>
+                          {/* Servicio Consolidado Marítimo */}
                             <div className="flex justify-between items-center py-2">
                               <span className="text-sm text-gray-600">
                                 Servicio Consolidado Marítimo
@@ -1512,6 +1514,7 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                             {/* AD/VALOREM + IGV + IPM */}
                             <div className="flex justify-between items-center py-2">
                               <span className="text-sm text-gray-600">
+                                AD/VALOREM + IGV + IPM
                                 {isFirstPurchase && (
                                   <span className="text-green-600 text-xs ml-1">
                                     (-50%)
@@ -1546,79 +1549,58 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                     </CardContent>
                   </Card>
 
-                  <div className="grid grid-cols-1 gap-4 ">
-                    <Card className="h-20 w-full bg-gradient-to-r from-red-400 to-red-600 rounded-lg text-white">
-                      <CardContent className="p-4 h-full flex flex-col justify-center">
-                        <div className="text-3xl font-bold">
-                          {selectedIncoterm}
+                  {/* Resumen de Gastos de Importación */}
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="flex items-center gap-2 text-lg">
+                        <ChartBar className="h-5 w-5 text-orange-600" />
+                        Resumen de Gastos de Importación
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      <div className="space-y-2">
+                        {/* Incoterm de Importacion */}
+                        <div className="flex justify-between items-center py-2">
+                          <span className="text-lg text-gray-600">
+                            INCOTERM DE IMPORTACION
+                          </span>
+                          <span className="font-medium">
+                            {selectedIncoterm}
+                          </span>
                         </div>
-                        <div className="text-sm opacity-90">INCOTERM DE EXPORTACION</div>
-                      </CardContent>
-                    </Card>
-                    <Card className="h-20 w-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-lg text-white">
-                      <CardContent className="p-4 h-full flex flex-col justify-center">
-                        <div className="text-3xl font-bold">
-                          {dynamicValues.comercialValue.toFixed(2)}
+                        {/* Valor de Compra Factura Comercial */}
+                        <div className="flex justify-between items-center py-2">
+                          <span className="text-lg text-gray-600">
+                            VALOR DE COMPRA FACTURA COMERCIAL
+                          </span>
+                          <span className="font-medium">
+                            USD {dynamicValues.comercialValue.toFixed(2)}
+                          </span>
                         </div>
-                        <div className="text-sm opacity-90">Valor de compra factura comercial</div>
-                      </CardContent>
-                    </Card>
-                    <Card className="h-20 w-full bg-gradient-to-r from-green-400 to-green-600 rounded-lg text-white">
-                      <CardContent className="p-4 h-full flex flex-col justify-center">
-                        <div className="text-3xl font-bold">
-                          {totalGastosImportacion.toFixed(2)}
+                        {/* Total Gastos de Importacion */}
+                        <div className="flex justify-between items-center py-2">
+                          <span className="text-lg text-gray-600">
+                            TOTAL GASTOS DE IMPORTACION
+                          </span>
+                          <span className="font-medium">
+                            USD {totalGastosImportacion.toFixed(2)}
+                          </span>
                         </div>
-                        <div className="text-sm opacity-90">Total gastos de importacion</div>
-                      </CardContent>
-                    </Card>
-                    <Card className="h-20 w-full bg-gradient-to-r from-orange-400 to-orange-600 rounded-lg text-white">
-                      <CardContent className="p-4 h-full flex flex-col justify-center">
-                        <div className="text-3xl font-bold">
-                          {inversionTotal.toFixed(2)}
+                        <Separator />
+                        {/* Inversion Total de Importacion */}
+                        <div className="flex justify-between items-center py-2 bg-green-50 px-3 rounded-lg">
+                          <span className="text-lg text-green-900">
+                            INVERSION TOTAL DE IMPORTACION
+                          </span>
+                          <span className="font-medium text-green-900">
+                            USD {inversionTotal.toFixed(2)}
+                          </span>
                         </div>
-                        <div className="text-sm opacity-90">Inversion total de importacion</div>
-                      </CardContent>
-                    </Card>
-                  </div>
+                      </div>
+                    </CardContent>
+                  </Card>
 
-                  {/* Incoterm de Expdortación */}
-                  <div className="space-y-4">
-                    <div className="overflow-hidden border-1 rounded-sm">
-                      <div className="bg-orange-500 text-white text-center py-2 font-semibold">
-                        INCOTERM DE EXPORTACION
-                      </div>
-                      <div className=" text-center py-1 font-semibold">
-                        {selectedIncoterm}
-                      </div>
-                    </div>
 
-                    <div className="overflow-hidden border-1 rounded-sm">
-                      <div className="bg-orange-500 text-white text-center py-2 font-semibold">
-                        VALOR DE COMPRA FACTURA COMERCIAL
-                      </div>
-                      <div className="text-center py-2 font-semibold">
-                        USD {dynamicValues.comercialValue.toFixed(2)}
-                      </div>
-                    </div>
-
-                    <div className="overflow-hidden border-1 rounded-sm">
-                      <div className="bg-orange-500 text-white text-center py-2 font-semibold">
-                        TOTAL GASTOS DE IMPORTACION
-                      </div>
-                      <div className=" text-center py-2 font-semibold">
-                        USD {totalGastosImportacion.toFixed(2)}
-                      </div>
-                    </div>
-
-                    <div className="overflow-hidden border-1 rounded-sm">
-                      <div className="bg-orange-500 text-white text-center py-2 font-semibold">
-                        INVERSION TOTAL DE IMPORTACION
-                      </div>
-                      <div className=" text-center py-2 font-semibold bg-yellow-200">
-                        USD {inversionTotal.toFixed(2)}
-                      </div>
-                    </div>
-                  </div>
                 </div>
               </div>
             </TabsContent>

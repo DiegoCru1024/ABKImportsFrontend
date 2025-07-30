@@ -19,19 +19,13 @@ const tabs = [
     disabled: false,
   },
   {
-    id: "detalles",
-    label: "Detalles de la cotización",
+    id: "respuesta",
+    label: "Respuesta",
     icon: FileText,
-    description: "Ver detalles de la cotización seleccionada",
+    description: "Ver respuesta de la cotización seleccionada",
     disabled: false,
   },
-  {
-    id: "seguimiento",
-    label: "Seguimiento",
-    icon: FileText,
-    description: "Ver el seguimiento de la cotización",
-    disabled: false,
-  },
+
 ] as const;
 
   type TabId = (typeof tabs)[number]["id"];
@@ -49,7 +43,7 @@ export default function MisCotizacionesView() {
   // Función para manejar la vista de detalles
   const handleViewDetails = (quotationId: string) => {
     setSelectedQuotationId(quotationId);
-    setMainTab("detalles");
+    setMainTab("respuesta");
   };
 
   // Función para manejar la selección de producto para respuesta
@@ -59,7 +53,7 @@ export default function MisCotizacionesView() {
   ) => {
     setSelectedProductId(productId);
     setSelectedProductName(productName);
-    setMainTab("seguimiento");
+    setMainTab("respuesta");
   };
   return (
     <div className="min-h-screen overflow-x-hidden bg-gray-100 border-t-2 border-b-2 border-gray-200">
@@ -88,8 +82,7 @@ export default function MisCotizacionesView() {
               const isActive = mainTab === tabItem.id;
               // Lógica de habilitación de tabs
               const isDisabled =
-                (tabItem.id === "detalles" && !selectedQuotationId) ||
-                (tabItem.id === "seguimiento" && (!selectedProductId || !selectedQuotationId));
+                (tabItem.id === "respuesta" && !selectedQuotationId) 
               return (
                 <button
                   key={tabItem.id}
@@ -126,22 +119,13 @@ export default function MisCotizacionesView() {
             <QuotationsListTab onViewDetails={handleViewDetails} />
           )}
 
-          {mainTab === "detalles" && selectedQuotationId && (
+          {mainTab === "respuesta" && selectedQuotationId && (
             <QuotationDetailsTab
               selectedQuotationId={selectedQuotationId}
               onSelectProductForResponse={handleSelectProductForResponse}
             />
           )}
 
-          {mainTab === "seguimiento" &&
-            selectedProductId &&
-            selectedQuotationId && (
-              <TrackingTab
-              selectedProductId={selectedProductId}
-              selectedProductName={selectedProductName}
-              quotationId={selectedQuotationId}
-              />
-            )}
         </div>
       </div>
     </div>

@@ -209,13 +209,13 @@ const EditableUnitCostTable: React.FC<EditableUnitCostTableProps> = ({
           />
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4">
-            <Card className="h-20 w-full bg-gradient-to-r from-red-400 to-red-600 rounded-lg text-white">
+            <Card className="h-20 w-full bg-gradient-to-r from-red-400 to-red-300 rounded-lg text-white">
               <CardContent className="p-4 h-full flex flex-col justify-center">
                 <div className="text-3xl font-bold">{totalQuantity}</div>
                 <div className="text-sm opacity-90">Total Unidades</div>
               </CardContent>
             </Card>
-            <Card className="h-20 w-full bg-gradient-to-r from-blue-400 to-blue-600  rounded-lg text-white">
+            <Card className="h-20 w-full bg-gradient-to-r from-blue-400 to-blue-300  rounded-lg text-white">
               <CardContent className="p-4 h-full flex flex-col justify-center">
                 <div className="text-3xl font-bold">
                   {totalAmount.toFixed(2)}
@@ -224,7 +224,7 @@ const EditableUnitCostTable: React.FC<EditableUnitCostTableProps> = ({
               </CardContent>
             </Card>
 
-            <Card className="h-20 w-full bg-gradient-to-r from-green-400 to-green-600 rounded-lg text-white">
+            <Card className="h-20 w-full bg-gradient-to-r from-green-400 to-green-300 rounded-lg text-white">
               <CardContent className="p-4 h-full flex flex-col justify-center">
                 <div className="text-3xl font-bold">
                   {totalImportCostsSum.toFixed(2)}
@@ -233,7 +233,7 @@ const EditableUnitCostTable: React.FC<EditableUnitCostTableProps> = ({
               </CardContent>
             </Card>
 
-            <Card className="h-20 w-full bg-gradient-to-r from-orange-400 to-orange-600 rounded-lg text-white">
+            <Card className="h-20 w-full bg-gradient-to-r from-orange-400 to-orange-300 rounded-lg text-white">
               <CardContent className="p-4 h-full flex flex-col justify-center">
                 <div className="text-3xl font-bold">{grandTotal.toFixed(2)}</div>
                 <div className="text-sm opacity-90">Total Costo</div>

@@ -22,6 +22,7 @@ import {
   X,
   Plane,
   ChartBar,
+  Download,
 } from "lucide-react";
 
 import { useGetQuotationById } from "@/hooks/use-quation";
@@ -74,6 +75,7 @@ import { formatDate } from "@/lib/format-time";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
 
 const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
   //* Hook para obtener los detalles de la cotización - DEBE IR PRIMERO
@@ -134,6 +136,7 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
   const [tiempoTransito, setTiempoTransito] = useState<number>(0);
   const [selectedProformaVigencia, setSelectedProformaVigencia] =
     useState<string>("5");
+  const [naviera, setNaviera] = useState<string>("");
 
   //* Estados para valores dinámicos editables
   const [dynamicValues, setDynamicValues] = useState({
@@ -174,10 +177,32 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
     igvRate: 16.0,
     ipmRate: 2.0,
     percepcionRate: 5.0,
+
+    // Campos específicos para transporte local china
+    transporteLocalChinaEnvio: 0.0,
+    transporteLocalClienteEnvio: 0.0,
   });
 
   //* Estado para primera compra
   const [isFirstPurchase, setIsFirstPurchase] = useState(false);
+
+  //* Estados para exoneración de conceptos de gastos de importación
+  const [exemptionState, setExemptionState] = useState({
+    // Servicios Aéreos
+    servicioConsolidadoAereo: false,
+    separacionCarga: false,
+    inspeccionProductos: false,
+    obligacionesFiscales: false,
+    desaduanajeFleteSaguro: false,
+    transporteLocalChina: false,
+    transporteLocalCliente: false,
+    // Servicios Marítimos
+    servicioConsolidadoMaritimo: false,
+    gestionCertificado: false,
+    servicioInspeccion: false,
+    transporteLocal: false,
+    totalDerechos: false,
+  });
 
   //* Estado para productos editables de la tabla de costeo unitario
   const [editableUnitCostProducts, setEditableUnitCostProducts] = useState<
@@ -275,6 +300,25 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
   const igvServices = subtotalServices * 0.18;
   const totalServices = subtotalServices + igvServices;
 
+  //* Función para verificar si se deben exonerar impuestos automáticamente
+  const shouldExemptTaxes = dynamicValues.comercialValue < 200;
+
+  //* Función para manejar cambios en el estado de exoneración
+  const handleExemptionChange = (
+    field: keyof typeof exemptionState,
+    checked: boolean
+  ) => {
+    setExemptionState((prev) => ({
+      ...prev,
+      [field]: checked,
+    }));
+  };
+
+  //* Función para aplicar exoneración a un valor
+  const applyExemption = (value: number, isExempted: boolean) => {
+    return isExempted ? 0 : value;
+  };
+
   //* Cálculos de obligaciones fiscales
   const adValorem = cif * (dynamicValues.adValoremRate / 100);
 
@@ -319,9 +363,15 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
     dynamicValues.desaduanaje + maritimeFlete + dynamicValues.seguro;
 
   // Aplicar 50% de descuento a impuestos si es primera compra
-  const totalDerechosDolaresFinal = isFirstPurchase
-    ? totalDerechosDolares * 0.5
-    : totalDerechosDolares;
+  // Aplicar exoneración total si valor comercial < $200 o si está marcado para exoneración
+  const totalDerechosDolaresFinal =
+    shouldExemptTaxes ||
+    exemptionState.obligacionesFiscales ||
+    exemptionState.totalDerechos
+      ? 0
+      : isFirstPurchase
+      ? totalDerechosDolares * 0.5
+      : totalDerechosDolares;
 
   // Cálculos específicos para servicios marítimos
   const servicioConsolidadoMaritimoFinal = isMaritimeService(
@@ -352,16 +402,50 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
     : 0;
 
   const totalGastosImportacion = isMaritimeService(selectedServiceLogistic)
-    ? servicioConsolidadoMaritimoFinal +
-      gestionCertificadoFinal +
-      servicioInspeccionFinal +
-      transporteLocalFinal +
-      totalDerechosDolaresFinal
-    : servicioConsolidadoFinal +
-      separacionCargaFinal +
-      inspeccionProductosFinal +
+    ? applyExemption(
+        servicioConsolidadoMaritimoFinal,
+        exemptionState.servicioConsolidadoMaritimo
+      ) +
+      applyExemption(
+        gestionCertificadoFinal,
+        exemptionState.gestionCertificado
+      ) +
+      applyExemption(
+        servicioInspeccionFinal,
+        exemptionState.servicioInspeccion
+      ) +
+      applyExemption(transporteLocalFinal, exemptionState.transporteLocal) +
       totalDerechosDolaresFinal +
-      desaduanajeFleteSaguro;
+      applyExemption(
+        dynamicValues.transporteLocalChinaEnvio,
+        exemptionState.transporteLocalChina
+      ) +
+      applyExemption(
+        dynamicValues.transporteLocalClienteEnvio,
+        exemptionState.transporteLocalCliente
+      )
+    : applyExemption(
+        servicioConsolidadoFinal,
+        exemptionState.servicioConsolidadoAereo
+      ) +
+      applyExemption(separacionCargaFinal, exemptionState.separacionCarga) +
+      applyExemption(
+        inspeccionProductosFinal,
+        exemptionState.inspeccionProductos
+      ) +
+      totalDerechosDolaresFinal +
+      applyExemption(
+        desaduanajeFleteSaguro,
+        exemptionState.desaduanajeFleteSaguro
+      ) +
+      applyExemption(
+        dynamicValues.transporteLocalChinaEnvio,
+        exemptionState.transporteLocalChina
+      ) +
+      applyExemption(
+        dynamicValues.transporteLocalClienteEnvio,
+        exemptionState.transporteLocalCliente
+      );
 
   //* Inversión total
   const inversionTotal = dynamicValues.comercialValue + totalGastosImportacion;
@@ -388,6 +472,205 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
   //* Función para manejar cambios en los productos de la tabla de costeo unitario
   const handleUnitCostProductsChange = (products: ProductRow[]) => {
     setEditableUnitCostProducts(products);
+  };
+
+  //* Función para generar el DTO con toda la información de la respuesta
+  const generateQuotationResponseDTO = () => {
+    return {
+      // Información de la cotización
+      quotationInfo: {
+        id: selectedQuotationId,
+        correlative: quotationDetail?.correlative || "",
+        date: quotationDate,
+        advisor: "PAULO",
+        serviceType: selectedServiceLogistic,
+        cargoType: selectedTypeLoad,
+        naviera: naviera,
+        courier: selectedCourier,
+        incoterm: selectedIncoterm,
+        isFirstPurchase: isFirstPurchase,
+        regime: selectedRegimen,
+        originCountry: selectedPaisOrigen,
+        destinationCountry: selectedPaisDestino,
+        customs: selectedAduana,
+        originPort: selectedPuertoSalida,
+        destinationPort: selectedPuertoDestino,
+        serviceTypeDetail: selectedTipoServicio,
+        transitTime: tiempoTransito,
+        proformaValidity: selectedProformaVigencia,
+      },
+
+      // Información del cliente (datos que se pueden obtener del quotationDetail)
+      clientInfo: {
+        name: quotationDetail?.user?.name || "",
+        email: quotationDetail?.user?.email || "",
+        // Campos adicionales que se completarían desde el formulario
+        firstName: "",
+        lastName: "",
+        dni: "",
+        companyName: "",
+        ruc: "",
+        contact: "",
+      },
+
+      // Valores dinámicos
+      dynamicValues: {
+        ...dynamicValues,
+        cif: cif,
+        shouldExemptTaxes: shouldExemptTaxes,
+      },
+
+      // Estados de exoneración
+      exemptions: exemptionState,
+
+      // Cálculos de servicios
+      serviceCalculations: {
+        // Servicios de consolidación
+        serviceFields: serviceFields,
+        subtotalServices: subtotalServices,
+        igvServices: igvServices,
+        totalServices: totalServices,
+
+        // Obligaciones fiscales
+        fiscalObligations: {
+          adValorem: adValorem,
+          antidumping: antidumping,
+          isc: isc,
+          baseIgvIpm: baseIgvIpm,
+          igvFiscal: igvFiscal,
+          ipm: ipm,
+          percepcion: percepcion,
+          totalDerechosDolares: totalDerechosDolares,
+          totalDerechosSoles: totalDerechosSoles,
+          totalDerechosDolaresFinal: totalDerechosDolaresFinal,
+        },
+
+        // Gastos de importación
+        importExpenses: {
+          // Servicios Aéreos
+          servicioConsolidadoFinal: servicioConsolidadoFinal,
+          separacionCargaFinal: separacionCargaFinal,
+          inspeccionProductosFinal: inspeccionProductosFinal,
+
+          // Servicios Marítimos
+          servicioConsolidadoMaritimoFinal: servicioConsolidadoMaritimoFinal,
+          gestionCertificadoFinal: gestionCertificadoFinal,
+          servicioInspeccionFinal: servicioInspeccionFinal,
+          transporteLocalFinal: transporteLocalFinal,
+
+          // Comunes
+          desaduanajeFleteSaguro: desaduanajeFleteSaguro,
+
+          // Totales aplicando exoneraciones
+          finalValues: {
+            servicioConsolidado: isMaritimeService(selectedServiceLogistic)
+              ? applyExemption(
+                  servicioConsolidadoMaritimoFinal,
+                  exemptionState.servicioConsolidadoMaritimo
+                )
+              : applyExemption(
+                  servicioConsolidadoFinal,
+                  exemptionState.servicioConsolidadoAereo
+                ),
+
+            gestionCertificado: applyExemption(
+              gestionCertificadoFinal,
+              exemptionState.gestionCertificado
+            ),
+            servicioInspeccion: applyExemption(
+              servicioInspeccionFinal,
+              exemptionState.servicioInspeccion
+            ),
+            transporteLocal: applyExemption(
+              transporteLocalFinal,
+              exemptionState.transporteLocal
+            ),
+            separacionCarga: applyExemption(
+              separacionCargaFinal,
+              exemptionState.separacionCarga
+            ),
+            inspeccionProductos: applyExemption(
+              inspeccionProductosFinal,
+              exemptionState.inspeccionProductos
+            ),
+            desaduanajeFleteSaguro: applyExemption(
+              desaduanajeFleteSaguro,
+              exemptionState.desaduanajeFleteSaguro
+            ),
+            transporteLocalChina: applyExemption(
+              dynamicValues.transporteLocalChinaEnvio,
+              exemptionState.transporteLocalChina
+            ),
+            transporteLocalCliente: applyExemption(
+              dynamicValues.transporteLocalClienteEnvio,
+              exemptionState.transporteLocalCliente
+            ),
+          },
+
+          totalGastosImportacion: totalGastosImportacion,
+        },
+
+        // Totales finales
+        totals: {
+          inversionTotal: inversionTotal,
+        },
+      },
+
+      // Productos del costeo unitario
+      unitCostProducts: editableUnitCostProducts,
+
+      // Información de productos de la cotización original
+      originalProducts: quotationDetail?.products || [],
+
+      // Metadatos
+      metadata: {
+        isMaritimeService: isMaritimeService(selectedServiceLogistic),
+        createdAt: new Date().toISOString(),
+        lastModified: new Date().toISOString(),
+      },
+    };
+  };
+
+  //* Función para generar y mostrar el DTO (para desarrollo/testing)
+  const handleGenerateDTO = () => {
+    const dto = generateQuotationResponseDTO();
+    console.log("DTO Generado:", dto);
+
+    // Crear un objeto con formato legible
+    const formattedDTO = JSON.stringify(dto, null, 2);
+
+    // Crear un blob para descargar el archivo
+    const blob = new Blob([formattedDTO], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `cotizacion-response-${dto.quotationInfo.correlative}-${
+      new Date().toISOString().split("T")[0]
+    }.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    // También mostrar en consola
+    alert("DTO generado y descargado. Ver consola para más detalles.");
+  };
+
+  //* Función para enviar la respuesta al backend (placeholder)
+  const handleSaveResponse = async () => {
+    try {
+      const dto = generateQuotationResponseDTO();
+
+      console.log("Enviando respuesta al backend:", dto);
+
+      // Aquí iría la llamada real al backend
+      // const response = await saveQuotationResponse(dto);
+
+      alert("Respuesta guardada exitosamente (simulado)");
+    } catch (error) {
+      console.error("Error al guardar la respuesta:", error);
+      alert("Error al guardar la respuesta");
+    }
   };
 
   //* Obtener fecha actual de hoy
@@ -761,6 +1044,17 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                                 </Select>
                               </div>
                             )}
+                            {/* Naviera */}
+                            {isMaritimeService(selectedServiceLogistic) && (
+                              <div>
+                                <Label htmlFor="naviera">Naviera</Label>
+                                <Input
+                                  id="naviera"
+                                  value={naviera}
+                                  onChange={(e) => setNaviera(e.target.value)}
+                                />
+                              </div>
+                            )}
                           </div>
                           <div className="space-y-2">
                             {/* Puerto de salida */}
@@ -997,20 +1291,23 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                             </div>
                           </div>
                           {/* Desaduanaje */}
-                          <div>
-                            <Label htmlFor="customs">Desaduanaje</Label>
-                            <div className="relative">
-                              <EditableNumericField
-                                value={dynamicValues.desaduanaje}
-                                onChange={(value) =>
-                                  updateDynamicValue("desaduanaje", value)
-                                }
-                              />
-                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
-                                USD
-                              </span>
+
+                          {!isMaritimeService(selectedServiceLogistic) && (
+                            <div>
+                              <Label htmlFor="customs">Desaduanaje</Label>
+                              <div className="relative">
+                                <EditableNumericField
+                                  value={dynamicValues.desaduanaje}
+                                  onChange={(value) =>
+                                    updateDynamicValue("desaduanaje", value)
+                                  }
+                                />
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
+                                  USD
+                                </span>
+                              </div>
                             </div>
-                          </div>
+                          )}
 
                           {/* Moneda */}
                           <div>
@@ -1040,7 +1337,42 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                         {/* Tercera columna */}
                         <div className="space-y-2">
                           {/* Servicio de Carga Consolidada */}
+
+                          <div className="grid grid-cols-2 gap-2 text-sm justify-between items-center py-2 ">
+                            <div className="flex flex-col gap-2">
+                              <Label htmlFor="exchangeRate">
+                                Transporte Local China
+                              </Label>
+                              <EditableNumericField
+                                value={dynamicValues.transporteLocalChinaEnvio}
+                                onChange={(value) =>
+                                  updateDynamicValue(
+                                    "transporteLocalChinaEnvio",
+                                    value
+                                  )
+                                }
+                              />
+                            </div>
+                            <div className="flex flex-col gap-2">
+                              <Label htmlFor="exchangeRate">
+                                Transporte Local Cliente
+                              </Label>
+                              <EditableNumericField
+                                value={
+                                  dynamicValues.transporteLocalClienteEnvio
+                                }
+                                onChange={(value) =>
+                                  updateDynamicValue(
+                                    "transporteLocalClienteEnvio",
+                                    value
+                                  )
+                                }
+                              />
+                            </div>
+                          </div>
+                          <Separator />
                           <div className="space-y-3">
+                            {/* FOB */}
                             <div className="grid grid-cols-2 gap-2 text-sm justify-between items-center py-2">
                               <div>FOB</div>
                               <div>
@@ -1060,6 +1392,7 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                                 </span>
                               </div>
                             </div>
+                            {/* Flete */}
                             <div className="grid grid-cols-2 gap-2 text-sm justify-between items-center py-2">
                               <div>FLETE</div>
                               <div>
@@ -1087,6 +1420,7 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                                 </span>
                               </div>
                             </div>
+                            {/* Seguro */}
                             <div className="grid grid-cols-2 gap-2 text-sm justify-between items-center py-2">
                               <div>SEGURO</div>
                               <div>
@@ -1396,72 +1730,175 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                         {isMaritimeService(selectedServiceLogistic) ? (
                           // Gastos para servicios marítimos
                           <>
-                          {/* Servicio Consolidado Marítimo */}
+                            {/* Servicio Consolidado Marítimo */}
+
                             <div className="flex justify-between items-center py-2">
-                              <span className="text-sm text-gray-600">
-                                Servicio Consolidado Marítimo
-                                {isFirstPurchase && (
-                                  <span className="text-green-600 text-xs ml-1">
-                                    (EXONERADO)
-                                  </span>
-                                )}
-                              </span>
+                              <div className="flex items-center gap-2">
+                                <Checkbox
+                                  id="servicioConsolidadoMaritimo"
+                                  className="border-red-500 border-2"
+                                  checked={
+                                    exemptionState.servicioConsolidadoMaritimo
+                                  }
+                                  onCheckedChange={(checked) =>
+                                    handleExemptionChange(
+                                      "servicioConsolidadoMaritimo",
+                                      checked as boolean
+                                    )
+                                  }
+                                />
+                                <span className="text-sm text-gray-600">
+                                  Servicio Consolidado Marítimo
+                                  {(isFirstPurchase ||
+                                    exemptionState.servicioConsolidadoMaritimo) && (
+                                    <span className="text-green-600 text-xs ml-1">
+                                      (EXONERADO)
+                                    </span>
+                                  )}
+                                </span>
+                              </div>
+
                               <span className="font-medium">
                                 USD{" "}
-                                {servicioConsolidadoMaritimoFinal.toFixed(2)}
+                                {applyExemption(
+                                  servicioConsolidadoMaritimoFinal,
+                                  exemptionState.servicioConsolidadoMaritimo
+                                ).toFixed(2)}
                               </span>
                             </div>
                             <div className="flex justify-between items-center py-2">
-                              <span className="text-sm text-gray-600">
-                                Gestión de Certificado de Origen
-                                {isFirstPurchase && (
-                                  <span className="text-green-600 text-xs ml-1">
-                                    (EXONERADO)
-                                  </span>
-                                )}
-                              </span>
+                              <div className="flex items-center gap-2">
+                                <Checkbox
+                                  id="gestionCertificado"
+                                  className="border-red-500 border-2"
+                                  checked={exemptionState.gestionCertificado}
+                                  onCheckedChange={(checked) =>
+                                    handleExemptionChange(
+                                      "gestionCertificado",
+                                      checked as boolean
+                                    )
+                                  }
+                                />
+
+                                <span className="text-sm text-gray-600">
+                                  Gestión de Certificado de Origen
+                                  {(isFirstPurchase ||
+                                    exemptionState.gestionCertificado) && (
+                                    <span className="text-green-600 text-xs ml-1">
+                                      (EXONERADO)
+                                    </span>
+                                  )}
+                                </span>
+                              </div>
                               <span className="font-medium">
-                                USD {gestionCertificadoFinal.toFixed(2)}
+                                USD{" "}
+                                {applyExemption(
+                                  gestionCertificadoFinal,
+                                  exemptionState.gestionCertificado
+                                ).toFixed(2)}
                               </span>
                             </div>
                             {/* Servicio de Inspección */}
                             <div className="flex justify-between items-center py-2">
-                              <span className="text-sm text-gray-600">
-                                Servicio de Inspección
-                                {isFirstPurchase && (
-                                  <span className="text-green-600 text-xs ml-1">
-                                    (EXONERADO)
-                                  </span>
-                                )}
-                              </span>
+                              <div className="flex items-center gap-2">
+                                <Checkbox
+                                  id="servicioInspeccion"
+                                  className="border-red-500 border-2"
+                                  checked={exemptionState.servicioInspeccion}
+                                  onCheckedChange={(checked) =>
+                                    handleExemptionChange(
+                                      "servicioInspeccion",
+                                      checked as boolean
+                                    )
+                                  }
+                                />
+
+                                <span className="text-sm text-gray-600">
+                                  Servicio de Inspección
+                                  {(isFirstPurchase ||
+                                    exemptionState.servicioInspeccion) && (
+                                    <span className="text-green-600 text-xs ml-1">
+                                      (EXONERADO)
+                                    </span>
+                                  )}
+                                </span>
+                              </div>
                               <span className="font-medium">
-                                USD {servicioInspeccionFinal.toFixed(2)}
+                                USD{" "}
+                                {applyExemption(
+                                  servicioInspeccionFinal,
+                                  exemptionState.servicioInspeccion
+                                ).toFixed(2)}
                               </span>
                             </div>
                             {/* Transporte Local */}
                             <div className="flex justify-between items-center py-2">
-                              <span className="text-sm text-gray-600">
-                                Transporte Local
-                                {isFirstPurchase && (
-                                  <span className="text-green-600 text-xs ml-1">
-                                    (EXONERADO)
-                                  </span>
-                                )}
-                              </span>
+                              <div className="flex items-center gap-2">
+                                <Checkbox
+                                  id="transporteLocal"
+                                  className="border-red-500 border-2"
+                                  checked={exemptionState.transporteLocal}
+                                  onCheckedChange={(checked) =>
+                                    handleExemptionChange(
+                                      "transporteLocal",
+                                      checked as boolean
+                                    )
+                                  }
+                                />
+                                <span className="text-sm text-gray-600">
+                                  Transporte Local
+                                  {(isFirstPurchase ||
+                                    exemptionState.transporteLocal) && (
+                                    <span className="text-green-600 text-xs ml-1">
+                                      (EXONERADO)
+                                    </span>
+                                  )}
+                                </span>
+                              </div>
                               <span className="font-medium">
-                                USD {transporteLocalFinal.toFixed(2)}
+                                USD{" "}
+                                {applyExemption(
+                                  transporteLocalFinal,
+                                  exemptionState.transporteLocal
+                                ).toFixed(2)}
                               </span>
                             </div>
                             {/* Total de Derechos */}
                             <div className="flex justify-between items-center py-2">
-                              <span className="text-sm text-gray-600">
-                                Total de Derechos
-                                {isFirstPurchase && (
-                                  <span className="text-green-600 text-xs ml-1">
-                                    (-50%)
-                                  </span>
-                                )}
-                              </span>
+                              <div className="flex items-center gap-2">
+                                <Checkbox
+                                  id="totalDerechos"
+                                  className="border-red-500 border-2"
+                                  checked={exemptionState.totalDerechos}
+                                  onCheckedChange={(checked) =>
+                                    handleExemptionChange(
+                                      "totalDerechos",
+                                      checked as boolean
+                                    )
+                                  }
+                                />
+                                <span className="text-sm text-gray-600">
+                                  Total de Derechos
+                                  {shouldExemptTaxes && (
+                                    <span className="text-orange-600 text-xs ml-1">
+                                      (AUTO-EXONERADO: Valor &lt; $200)
+                                    </span>
+                                  )}
+                                  {!shouldExemptTaxes &&
+                                    exemptionState.totalDerechos && (
+                                      <span className="text-green-600 text-xs ml-1">
+                                        (EXONERADO)
+                                      </span>
+                                    )}
+                                  {!shouldExemptTaxes &&
+                                    !exemptionState.totalDerechos &&
+                                    isFirstPurchase && (
+                                      <span className="text-green-600 text-xs ml-1">
+                                        (-50%)
+                                      </span>
+                                    )}
+                                </span>
+                              </div>
                               <span className="font-medium">
                                 USD {totalDerechosDolaresFinal.toFixed(2)}
                               </span>
@@ -1471,67 +1908,237 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                           // Gastos para servicios aéreos
                           <>
                             <div className="flex justify-between items-center py-2">
-                              <span className="text-sm text-gray-600">
-                                Servicio Consolidado Aéreo
-                                {isFirstPurchase && (
-                                  <span className="text-green-600 text-xs ml-1">
-                                    (EXONERADO)
-                                  </span>
-                                )}
-                              </span>
+                              <div className="flex items-center gap-2">
+                                <Checkbox
+                                  id="servicioConsolidadoAereo"
+                                  className="border-red-500 border-2"
+                                  checked={
+                                    exemptionState.servicioConsolidadoAereo
+                                  }
+                                  onCheckedChange={(checked) =>
+                                    handleExemptionChange(
+                                      "servicioConsolidadoAereo",
+                                      checked as boolean
+                                    )
+                                  }
+                                />
+                                <span className="text-sm text-gray-600">
+                                  Servicio Consolidado Aéreo
+                                  {(isFirstPurchase ||
+                                    exemptionState.servicioConsolidadoAereo) && (
+                                    <span className="text-green-600 text-xs ml-1">
+                                      (EXONERADO)
+                                    </span>
+                                  )}
+                                </span>
+                              </div>
                               <span className="font-medium">
-                                USD {servicioConsolidadoFinal.toFixed(2)}
+                                USD{" "}
+                                {applyExemption(
+                                  servicioConsolidadoFinal,
+                                  exemptionState.servicioConsolidadoAereo
+                                ).toFixed(2)}
                               </span>
                             </div>
                             {/* Separación de Carga */}
                             <div className="flex justify-between items-center py-2">
-                              <span className="text-sm text-gray-600">
-                                Separación de Carga
-                                {isFirstPurchase && (
-                                  <span className="text-green-600 text-xs ml-1">
-                                    (EXONERADO)
-                                  </span>
-                                )}
-                              </span>
+                              <div className="flex items-center gap-2">
+                                <Checkbox
+                                  id="separacionCarga"
+                                  className="border-red-500 border-2"
+                                  checked={exemptionState.separacionCarga}
+                                  onCheckedChange={(checked) =>
+                                    handleExemptionChange(
+                                      "separacionCarga",
+                                      checked as boolean
+                                    )
+                                  }
+                                />
+                                <span className="text-sm text-gray-600">
+                                  Separación de Carga
+                                  {(isFirstPurchase ||
+                                    exemptionState.separacionCarga) && (
+                                    <span className="text-green-600 text-xs ml-1">
+                                      (EXONERADO)
+                                    </span>
+                                  )}
+                                </span>
+                              </div>
                               <span className="font-medium">
-                                USD {separacionCargaFinal.toFixed(2)}
+                                USD{" "}
+                                {applyExemption(
+                                  separacionCargaFinal,
+                                  exemptionState.separacionCarga
+                                ).toFixed(2)}
                               </span>
                             </div>
                             {/* Inspección de Productos */}
                             <div className="flex justify-between items-center py-2">
-                              <span className="text-sm text-gray-600">
-                                Inspección de Productos
-                                {isFirstPurchase && (
-                                  <span className="text-green-600 text-xs ml-1">
-                                    (EXONERADO)
-                                  </span>
-                                )}
-                              </span>
+                              <div className="flex items-center gap-2">
+                                <Checkbox
+                                  id="inspeccionProductos"
+                                  className="border-red-500 border-2"
+                                  checked={exemptionState.inspeccionProductos}
+                                  onCheckedChange={(checked) =>
+                                    handleExemptionChange(
+                                      "inspeccionProductos",
+                                      checked as boolean
+                                    )
+                                  }
+                                />
+                                <span className="text-sm text-gray-600">
+                                  Inspección de Productos
+                                  {(isFirstPurchase ||
+                                    exemptionState.inspeccionProductos) && (
+                                    <span className="text-green-600 text-xs ml-1">
+                                      (EXONERADO)
+                                    </span>
+                                  )}
+                                </span>
+                              </div>
                               <span className="font-medium">
-                                USD {inspeccionProductosFinal.toFixed(2)}
+                                USD{" "}
+                                {applyExemption(
+                                  inspeccionProductosFinal,
+                                  exemptionState.inspeccionProductos
+                                ).toFixed(2)}
                               </span>
                             </div>
                             {/* AD/VALOREM + IGV + IPM */}
                             <div className="flex justify-between items-center py-2">
-                              <span className="text-sm text-gray-600">
-                                AD/VALOREM + IGV + IPM
-                                {isFirstPurchase && (
-                                  <span className="text-green-600 text-xs ml-1">
-                                    (-50%)
-                                  </span>
-                                )}
-                              </span>
+                              <div className="flex items-center gap-2">
+                                <Checkbox
+                                  id="obligacionesFiscales"
+                                  className="border-red-500 border-2"
+                                  checked={exemptionState.obligacionesFiscales}
+                                  onCheckedChange={(checked) =>
+                                    handleExemptionChange(
+                                      "obligacionesFiscales",
+                                      checked as boolean
+                                    )
+                                  }
+                                />
+                                <span className="text-sm text-gray-600">
+                                  AD/VALOREM + IGV + IPM
+                                  {shouldExemptTaxes && (
+                                    <span className="text-orange-600 text-xs ml-1">
+                                      (AUTO-EXONERADO: Valor &lt; $200)
+                                    </span>
+                                  )}
+                                  {!shouldExemptTaxes &&
+                                    exemptionState.obligacionesFiscales && (
+                                      <span className="text-green-600 text-xs ml-1">
+                                        (EXONERADO)
+                                      </span>
+                                    )}
+                                  {!shouldExemptTaxes &&
+                                    !exemptionState.obligacionesFiscales &&
+                                    isFirstPurchase && (
+                                      <span className="text-green-600 text-xs ml-1">
+                                        (-50%)
+                                      </span>
+                                    )}
+                                </span>
+                              </div>
                               <span className="font-medium">
                                 USD {totalDerechosDolaresFinal.toFixed(2)}
                               </span>
                             </div>
                             {/* Desaduanaje + Flete + Seguro */}
                             <div className="flex justify-between items-center py-2">
-                              <span className="text-sm text-gray-600">
-                                Desaduanaje + Flete + Seguro
-                              </span>
+                              <div className="flex items-center gap-2">
+                                <Checkbox
+                                  id="desaduanajeFleteSaguro"
+                                  className="border-red-500 border-2"
+                                  checked={
+                                    exemptionState.desaduanajeFleteSaguro
+                                  }
+                                  onCheckedChange={(checked) =>
+                                    handleExemptionChange(
+                                      "desaduanajeFleteSaguro",
+                                      checked as boolean
+                                    )
+                                  }
+                                />
+                                <span className="text-sm text-gray-600">
+                                  Desaduanaje + Flete + Seguro
+                                  {exemptionState.desaduanajeFleteSaguro && (
+                                    <span className="text-green-600 text-xs ml-1">
+                                      (EXONERADO)
+                                    </span>
+                                  )}
+                                </span>
+                              </div>
                               <span className="font-medium">
-                                USD {desaduanajeFleteSaguro.toFixed(2)}
+                                USD{" "}
+                                {applyExemption(
+                                  desaduanajeFleteSaguro,
+                                  exemptionState.desaduanajeFleteSaguro
+                                ).toFixed(2)}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center py-2">
+                              <div className="flex items-center gap-2">
+                                <Checkbox
+                                  id="transporteLocalChina"
+                                  className="border-red-500 border-2"
+                                  checked={exemptionState.transporteLocalChina}
+                                  onCheckedChange={(checked) =>
+                                    handleExemptionChange(
+                                      "transporteLocalChina",
+                                      checked as boolean
+                                    )
+                                  }
+                                />
+                                <span className="text-sm text-gray-600">
+                                  Transporte Local China
+                                  {(isFirstPurchase ||
+                                    exemptionState.transporteLocalChina) && (
+                                    <span className="text-green-600 text-xs ml-1">
+                                      (EXONERADO)
+                                    </span>
+                                  )}
+                                </span>
+                              </div>
+                              <span className="font-medium">
+                                USD{" "}
+                                {applyExemption(
+                                  dynamicValues.transporteLocalChinaEnvio,
+                                  exemptionState.transporteLocalChina
+                                ).toFixed(2)}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center py-2">
+                              <div className="flex items-center gap-2">
+                                <Checkbox
+                                  id="transporteLocalCliente"
+                                  className="border-red-500 border-2"
+                                  checked={
+                                    exemptionState.transporteLocalCliente
+                                  }
+                                  onCheckedChange={(checked) =>
+                                    handleExemptionChange(
+                                      "transporteLocalCliente",
+                                      checked as boolean
+                                    )
+                                  }
+                                />
+                                <span className="text-sm text-gray-600">
+                                  Transporte Local Cliente
+                                  {(isFirstPurchase ||
+                                    exemptionState.transporteLocalCliente) && (
+                                    <span className="text-green-600 text-xs ml-1">
+                                      (EXONERADO)
+                                    </span>
+                                  )}
+                                </span>
+                              </div>
+                              <span className="font-medium">
+                                USD{" "}
+                                {applyExemption(
+                                  dynamicValues.transporteLocalClienteEnvio,
+                                  exemptionState.transporteLocalCliente
+                                ).toFixed(2)}
                               </span>
                             </div>
                           </>
@@ -1596,11 +2203,48 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                             USD {inversionTotal.toFixed(2)}
                           </span>
                         </div>
+
+                        {/* Botones de acción para DTO */}
+                        <Separator className="my-4" />
+                        <div className="flex flex-col gap-3">
+                          <div className="text-sm font-medium text-gray-700 mb-2">
+                            Acciones de Respuesta:
+                          </div>
+                          <div className="flex gap-3">
+                            <Button
+                              onClick={handleGenerateDTO}
+                              variant="outline"
+                              className="flex-1 flex items-center gap-2"
+                            >
+                              <Download className="w-4 h-4" />
+                              Generar DTO (Testing)
+                            </Button>
+                            <Button
+                              onClick={handleSaveResponse}
+                              className="flex-1 flex items-center gap-2 bg-green-600 hover:bg-green-700"
+                            >
+                              <Save className="w-4 h-4" />
+                              Guardar Respuesta
+                            </Button>
+                          </div>
+                          {shouldExemptTaxes && (
+                            <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+                              <div className="flex items-center gap-2 text-orange-800">
+                                <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                                <span className="text-sm font-medium">
+                                  Exoneración Automática Activa
+                                </span>
+                              </div>
+                              <p className="text-xs text-orange-700 mt-1">
+                                Los impuestos están exonerados automáticamente
+                                porque el valor comercial es menor a $200.00
+                              </p>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
-
-
                 </div>
               </div>
             </TabsContent>

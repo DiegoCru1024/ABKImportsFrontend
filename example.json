@@ -1,0 +1,159 @@
+{
+  "quotationInfo": {
+    "quotationId": "12345-abcd-6789-efgh",
+    "correlative": "COT-2024-001",
+    "date": "2024-01-15",
+    "advisor": "PAULO",
+    "serviceType": "Consolidado Express",
+    "cargoType": "mixto",
+    "courier": "ups",
+    "incoterm": "DDP",
+    "isFirstPurchase": false,
+    "regime": "importacion_consumo",
+    "originCountry": "china",
+    "destinationCountry": "peru",
+    "customs": "tacna",
+    "originPort": "shanghai",
+    "destinationPort": "callao",
+    "serviceTypeDetail": "directo",
+    "transitTime": 15,
+    "naviera": "naviera1",
+    "proformaValidity": "5",
+    "idAsesor": "13213"
+  },
+  "clientInfo": {
+    "idCliente": "1123123",
+    "name": "Juan Carlos Pérez",
+    "email": "juan.perez@empresa.com",
+    "firstName": "Juan Carlos",
+    "lastName": "Pérez García",
+    "dni": "12345678",
+    "companyName": "Importaciones Pérez SAC",
+    "ruc": "20123456789",
+    "contact": "+51 987654321"
+  },
+  "dynamicValues": {
+    "comercialValue": 1500.0,
+    "flete": 350.0,
+    "cajas": 12.0,
+    "desaduanaje": 180.0,
+    "kg": 250.0,
+    "ton": 0.25,
+    "kv": 1.2,
+    "fob": 1500.0,
+    "seguro": 75.0,
+    "tipoCambio": 3.7,
+    "nroBultos": 12.0,
+    "volumenCBM": 2.5,
+    "calculoFlete": 140.0,
+    "servicioConsolidado": 120.0,
+    "separacionCarga": 80.0,
+    "inspeccionProductos": 150.0,
+    "gestionCertificado": 100.0,
+    "inspeccionProducto": 120.0,
+    "inspeccionFabrica": 200.0,
+    "transporteLocal": 95.0,
+    "otrosServicios": 50.0,
+    "adValoremRate": 4.0,
+    "antidumpingGobierno": 0.0,
+    "antidumpingCantidad": 0.0,
+    "iscRate": 0.0,
+    "igvRate": 16.0,
+    "ipmRate": 2.0,
+    "percepcionRate": 5.0,
+    "transporteLocalChinaEnvio": 85.0,
+    "transporteLocalClienteEnvio": 120.0,
+    "cif": 1925.0,
+    "shouldExemptTaxes": false
+  },
+  "exemptions": {
+    "servicioConsolidadoAereo": false,
+    "separacionCarga": true,
+    "inspeccionProductos": false,
+    "obligacionesFiscales": false,
+    "desaduanajeFleteSaguro": false,
+    "transporteLocalChina": true,
+    "transporteLocalCliente": false,
+    "servicioConsolidadoMaritimo": false,
+    "gestionCertificado": false,
+    "servicioInspeccion": false,
+    "transporteLocal": false,
+    "totalDerechos": false
+  },
+  "serviceCalculations": {
+    "serviceFields": {
+      "servicioConsolidado": 120.0,
+      "separacionCarga": 80.0,
+      "inspeccionProductos": 150.0
+    },
+    "subtotalServices": 350.0,
+    "igvServices": 63.0,
+    "totalServices": 413.0,
+    "fiscalObligations": {
+      "adValorem": 77.0,
+      "antidumping": 0.0,
+      "isc": 0.0,
+      "baseIgvIpm": 2002.0,
+      "igvFiscal": 320.32,
+      "ipm": 40.04,
+      "percepcion": 0.0,
+      "totalDerechosDolares": 437.36,
+      "totalDerechosSoles": 1618.23,
+      "totalDerechosDolaresFinal": 437.36
+    },
+    "importExpenses": {
+      "servicioConsolidadoFinal": 141.6,
+      "separacionCargaFinal": 94.4,
+      "inspeccionProductosFinal": 177.0,
+      "servicioConsolidadoMaritimoFinal": 0.0,
+      "gestionCertificadoFinal": 0.0,
+      "servicioInspeccionFinal": 0.0,
+      "transporteLocalFinal": 0.0,
+      "desaduanajeFleteSaguro": 605.0,
+      "finalValues": {
+        "servicioConsolidado": 141.6,
+        "gestionCertificado": 0.0,
+        "servicioInspeccion": 0.0,
+        "transporteLocal": 0.0,
+        "separacionCarga": 0.0,
+        "inspeccionProductos": 177.0,
+        "desaduanajeFleteSaguro": 605.0,
+        "transporteLocalChina": 0.0,
+        "transporteLocalCliente": 120.0
+      },
+      "totalGastosImportacion": 1481.0
+    },
+    "totals": {
+      "inversionTotal": 2981.0
+    }
+  },
+  "unitCostProducts": [
+    {
+      "id": "prod-001",
+      "name": "Producto de Prueba 1",
+      "price": 25.50,
+      "quantity": 100,
+      "total": 2550.0,
+      "equivalence": 60.0,
+      "importCosts": 888.6,
+      "totalCost": 3438.6,
+      "unitCost": 34.39
+    },
+    {
+      "id": "prod-002",
+      "name": "Producto de Prueba 2",
+      "price": 15.75,
+      "quantity": 200,
+      "total": 3150.0,
+      "equivalence": 40.0,
+      "importCosts": 592.4,
+      "totalCost": 3742.4,
+      "unitCost": 18.71
+    }
+  ],
+  "metadata": {
+    "isMaritimeService": false,
+    "createdAt": "2024-01-15T10:30:00.000Z",
+    "lastModified": "2024-01-15T14:45:00.000Z"
+  }
+}

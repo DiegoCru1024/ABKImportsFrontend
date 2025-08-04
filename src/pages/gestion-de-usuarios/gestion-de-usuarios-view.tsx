@@ -55,13 +55,13 @@ function GestionDeUsuarios() {
   // Estadísticas calculadas
   const stats = useMemo(() => {
     const totalUsers = userData?.totalElements || 0;
-    const activeUsers = users.filter((user: UserProfile) => user.type === "active").length;
-    const adminUsers = users.filter((user: UserProfile) => user.type === "admin").length;
+    //const activeUsers = users.filter((user: UserProfile) => user.type === "active").length;
+    //const adminUsers = users.filter((user: UserProfile) => user.type === "admin").length;
     
     return {
       total: totalUsers,
-      active: activeUsers,
-      admins: adminUsers,
+      //active: activeUsers,
+      //admins: adminUsers,
     };
   }, [users, userData?.totalElements]);
 
@@ -269,7 +269,7 @@ function GestionDeUsuarios() {
               <UserCheck className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.active}</div>
+              <div className="text-2xl font-bold">{stats.total}</div>
               <p className="text-xs text-muted-foreground">usuarios activos</p>
             </CardContent>
           </Card>
@@ -280,7 +280,7 @@ function GestionDeUsuarios() {
               <Shield className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.admins}</div>
+              <div className="text-2xl font-bold">{stats.total}</div>
               <p className="text-xs text-muted-foreground">con permisos de admin</p>
             </CardContent>
           </Card>

@@ -75,28 +75,28 @@ const data = {
       title: "Calculador de impuestos",
       url: "/dashboard/calculador-de-impuestos",
       icon: Calculator,
-      rolesPermitidos: ["temporal","guest","final","admin"],
+      rolesPermitidos: ["temporal","guest","final","admin","final"],
     },
 
     {
       title: "Educación",
       url: "/dashboard/educacion",
       icon: BookMarked,
-      rolesPermitidos: ["temporal","guest","final","admin"],
+      rolesPermitidos: ["temporal","guest","final","admin","final"],
     },
 
     {
       title: "Herramientas Logísticas",
       url: "/dashboard/herramientas-logisticas",
       icon: BsTools,
-      rolesPermitidos: ["temporal","guest","final","admin"],
+      rolesPermitidos: ["temporal","guest","final","admin","final"],
     },
 
     {
       title: "Tarifas & Servicios",
       url: "/dashboard/tarifas-servicios",
       icon: Handshake,
-      rolesPermitidos: ["temporal","guest","final","admin"],
+      rolesPermitidos: ["temporal","guest","final","admin","final"],
     },
     {
       title: "Gestión de usuarios",
@@ -112,7 +112,7 @@ const data = {
       url: "/dashboard",
       icon: SquareTerminal,
       isActive: true,
-      rolesPermitidos: ["temporal","guest","final"],
+      rolesPermitidos: ["temporal","guest","final","final"],
     },
     {
       title: "Dashboard Admin",

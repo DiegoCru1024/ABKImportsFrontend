@@ -110,7 +110,7 @@ export default function SocketNotification() {
         };
     }, [access_token]);
 
-    const unreadCount = notifications.filter(n => !n.isRead).length;
+    const unreadCount = notifications.filter(n => !n.isRead).length ?? 0;
 
     const markAsRead = async (isRead: boolean, notificationId: string) => {
         try {

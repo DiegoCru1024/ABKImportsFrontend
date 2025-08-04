@@ -179,7 +179,10 @@ export default function CotizacionViewNew() {
         };
       });
 
-      console.log("Productos con URLs:", productosConUrls);
+      //console.log("Productos con URLs:", productosConUrls);
+      console.log(
+        JSON.stringify({ products: productosConUrls, service_type: service })
+      );
 
       // 4. Enviar al hook de cotización
       createQuotationMut.mutate(
@@ -227,8 +230,9 @@ export default function CotizacionViewNew() {
               <h1 className="text-xl font-bold text-gray-900 dark:text-white">
                 Cotización de productos
               </h1>
-              <p className="text-sm font-normal text-gray-500 dark:text-gray-400"> 
-                Cotiza los productos que deseas enviar, y envíalos para que los revisemos y te ofrezcamos el mejor precio.
+              <p className="text-sm font-normal text-gray-500 dark:text-gray-400">
+                Cotiza los productos que deseas enviar, y envíalos para que los
+                revisemos y te ofrezcamos el mejor precio.
               </p>
             </div>
           </div>
@@ -244,11 +248,13 @@ export default function CotizacionViewNew() {
                 <SelectValue placeholder="Seleccione" />
               </SelectTrigger>
               <SelectContent>
-                {servicios.map((servicio: { id: number; value: string; label: string }) => (
-                  <SelectItem key={servicio.id} value={servicio.value}>
-                    {servicio.label}
-                  </SelectItem>
-                ))}
+                {servicios.map(
+                  (servicio: { id: number; value: string; label: string }) => (
+                    <SelectItem key={servicio.id} value={servicio.value}>
+                      {servicio.label}
+                    </SelectItem>
+                  )
+                )}
               </SelectContent>
             </Select>
           </div>
@@ -579,7 +585,9 @@ export default function CotizacionViewNew() {
               <div className="border-b border-gray-200 dark:border-gray-700 px-4 py-3">
                 <h3 className="flex items-center font-semibold text-gray-900 dark:text-white">
                   <PackageOpen className="mr-2 h-5 w-5 text-orange-500" />
-                  <span className="text-gray-900 dark:text-white">Productos Cotizados ({productos.length})</span>
+                  <span className="text-gray-900 dark:text-white">
+                    Productos Cotizados ({productos.length})
+                  </span>
                 </h3>
               </div>
               <div className="w-full overflow-x-auto border-b border-gray-200 dark:border-gray-700 px-4 py-3 bg-white dark:bg-gray-900">

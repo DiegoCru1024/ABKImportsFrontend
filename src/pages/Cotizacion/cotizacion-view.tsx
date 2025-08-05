@@ -317,54 +317,6 @@ export default function CotizacionViewNew() {
                         />
                       </div>
 
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          {/*<FormField
-                            control={form.control}
-                            name="service_type"
-                            render={({ field }) => (
-                              <FormItem>
-                                <div className="flex items-center gap-2">
-                                  <MessageSquare className="w-4 h-4 text-orange-500" />
-                                  <FormLabel className="text-sm font-medium text-gray-700">
-                                    Tipo servicio
-                                  </FormLabel>
-                                </div>
-                                <FormControl>
-                                  <div>
-                                    <Select
-                                      {...field}
-                                      defaultValue={field.value}
-                                      onValueChange={(value) => {
-                                        field.onChange(value);
-                                        setService(value);
-                                      }}
-                                    >
-                                      <SelectTrigger className="w-60">
-                                        <SelectValue placeholder="Seleccione" />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        <SelectGroup>
-                                          <SelectLabel>Servicios</SelectLabel>
-                                          {servicios.map((servicio) => (
-                                            <SelectItem
-                                              key={servicio.id}
-                                              value={servicio.value}
-                                            >
-                                              {servicio.label}
-                                            </SelectItem>
-                                          ))}
-                                        </SelectGroup>
-                                      </SelectContent>
-                                    </Select>
-                                  </div>
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />*/}
-                        </div>
-                      </div>
                     </div>
 
                     {service === "Almacenaje de Mercancia" && (

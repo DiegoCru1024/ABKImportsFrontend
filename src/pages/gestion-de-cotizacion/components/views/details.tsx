@@ -23,6 +23,8 @@ import {
   Plane,
   ChartBar,
   Download,
+  Send,
+  Loader2,
 } from "lucide-react";
 
 import { useGetQuotationById } from "@/hooks/use-quation";
@@ -65,7 +67,7 @@ import {
   aduana,
 } from "../utils/static";
 
-import ResponseQuotation from "./response-quotation";
+
 
 import EditableUnitCostTable from "./editableunitcosttable";
 import type { ProductRow } from "./editableunitcosttable";
@@ -76,6 +78,9 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
+import { useCreateQuatitationResponse } from "@/hooks/use-quatitation-response";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import SendingModal from "@/components/sending-modal";
 
 const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
   //* Hook para obtener los detalles de la cotización - DEBE IR PRIMERO
@@ -85,11 +90,17 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
     isError,
   } = useGetQuotationById(selectedQuotationId);
 
+  //* Hook para crear respuesta de cotización
+  const createQuotationResponseMutation = useCreateQuatitationResponse();
+
   //* Estado para la fecha de la cotización
   const [quotationDate, setQuotationDate] = useState<string>("");
 
   //* Estado de apertura de modal de respuesta
   const [isResponseModalOpen, setIsResponseModalOpen] = useState(false);
+
+  //* Estado para el modal de envío
+  const [isSendingModalOpen, setIsSendingModalOpen] = useState(false);
 
   //* Estado para el servicio seleccionado
   const [selectedServiceType, setSelectedServiceType] = useState<string>("");
@@ -479,13 +490,11 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
     return {
       // Información de la cotización
       quotationInfo: {
-        id: selectedQuotationId,
+        quotationId: selectedQuotationId,
         correlative: quotationDetail?.correlative || "",
         date: quotationDate,
-        advisor: "PAULO",
         serviceType: selectedServiceLogistic,
         cargoType: selectedTypeLoad,
-        naviera: naviera,
         courier: selectedCourier,
         incoterm: selectedIncoterm,
         isFirstPurchase: isFirstPurchase,
@@ -497,20 +506,9 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
         destinationPort: selectedPuertoDestino,
         serviceTypeDetail: selectedTipoServicio,
         transitTime: tiempoTransito,
+        naviera: naviera,
         proformaValidity: selectedProformaVigencia,
-      },
-
-      // Información del cliente (datos que se pueden obtener del quotationDetail)
-      clientInfo: {
-        name: quotationDetail?.user?.name || "",
-        email: quotationDetail?.user?.email || "",
-        // Campos adicionales que se completarían desde el formulario
-        firstName: "",
-        lastName: "",
-        dni: "",
-        companyName: "",
-        ruc: "",
-        contact: "",
+        id_asesor: "PAULO",
       },
 
       // Valores dinámicos
@@ -526,7 +524,11 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
       // Cálculos de servicios
       serviceCalculations: {
         // Servicios de consolidación
-        serviceFields: serviceFields,
+        serviceFields: {
+          servicioConsolidado: serviceFields.servicioConsolidado || 0,
+          separacionCarga: serviceFields.separacionCarga || 0,
+          inspeccionProductos: serviceFields.inspeccionProductos || 0,
+        },
         subtotalServices: subtotalServices,
         igvServices: igvServices,
         totalServices: totalServices,
@@ -619,57 +621,32 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
       // Productos del costeo unitario
       unitCostProducts: editableUnitCostProducts,
 
-      // Información de productos de la cotización original
-      originalProducts: quotationDetail?.products || [],
 
-      // Metadatos
-      metadata: {
-        isMaritimeService: isMaritimeService(selectedServiceLogistic),
-        createdAt: new Date().toISOString(),
-        lastModified: new Date().toISOString(),
-      },
     };
   };
 
-  //* Función para generar y mostrar el DTO (para desarrollo/testing)
-  const handleGenerateDTO = () => {
-    const dto = generateQuotationResponseDTO();
-    console.log("DTO Generado:", dto);
 
-    // Crear un objeto con formato legible
-    const formattedDTO = JSON.stringify(dto, null, 2);
-
-    // Crear un blob para descargar el archivo
-    const blob = new Blob([formattedDTO], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `cotizacion-response-${dto.quotationInfo.correlative}-${
-      new Date().toISOString().split("T")[0]
-    }.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-
-    // También mostrar en consola
-    alert("DTO generado y descargado. Ver consola para más detalles.");
-  };
-
-  //* Función para enviar la respuesta al backend (placeholder)
+  //* Función para enviar la respuesta al backend usando el hook
   const handleSaveResponse = async () => {
     try {
+      // Mostrar modal de envío
+      setIsSendingModalOpen(true);
+
       const dto = generateQuotationResponseDTO();
 
-      console.log("Enviando respuesta al backend:", dto);
+      console.log("Enviando respuesta al backend:", JSON.stringify(dto, null, 2));
 
-      // Aquí iría la llamada real al backend
-      // const response = await saveQuotationResponse(dto);
-
-      alert("Respuesta guardada exitosamente (simulado)");
+      // Llamada al backend usando el hook
+      /*await createQuotationResponseMutation.mutateAsync({
+        data: dto,
+        quotationId: selectedQuotationId,
+      });*/
+      
     } catch (error) {
       console.error("Error al guardar la respuesta:", error);
-      alert("Error al guardar la respuesta");
+    } finally {
+      // El modal se cerrará automáticamente después del progreso
+      // setIsSendingModalOpen(false); - Se maneja automáticamente por el componente SendingModal
     }
   };
 
@@ -2207,26 +2184,6 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                         {/* Botones de acción para DTO */}
                         <Separator className="my-4" />
                         <div className="flex flex-col gap-3">
-                          <div className="text-sm font-medium text-gray-700 mb-2">
-                            Acciones de Respuesta:
-                          </div>
-                          <div className="flex gap-3">
-                            <Button
-                              onClick={handleGenerateDTO}
-                              variant="outline"
-                              className="flex-1 flex items-center gap-2"
-                            >
-                              <Download className="w-4 h-4" />
-                              Generar DTO (Testing)
-                            </Button>
-                            <Button
-                              onClick={handleSaveResponse}
-                              className="flex-1 flex items-center gap-2 bg-green-600 hover:bg-green-700"
-                            >
-                              <Save className="w-4 h-4" />
-                              Guardar Respuesta
-                            </Button>
-                          </div>
                           {shouldExemptTaxes && (
                             <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
                               <div className="flex items-center gap-2 text-orange-800">
@@ -2264,15 +2221,50 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
               </div>
             </TabsContent>
           </Tabs>
+          <div className="flex justify-end mt-4">
+            <div className="flex gap-3">
+              <Button
+                //onClick={handleGenerateDTO}
+                variant="destructive"
+                className="flex-1 flex items-center gap-2"
+              >
+                <X className="w-4 h-4" />
+                Cancelar
+              </Button>
+             {/* Botón Enviar */}
+          <div className="flex justify-end mt-8">
+            <ConfirmDialog
+              trigger={
+                <Button
+                  disabled={isLoading}
+                  className="bg-orange-500 hover:bg-orange-600 animate-pulse text-white px-8 py-2 rounded-full  shadow-md flex items-center gap-2 disabled:opacity-50"
+                >
+                  {isLoading ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <Send className="w-5 h-5" />
+                  )}
+                  Enviar
+                </Button>
+              }
+              title="Confirmar envío de cotización"
+              description={`¿Está seguro de enviar la cotización?`}
+              confirmText="Enviar"
+              cancelText="Cancelar"
+              onConfirm={handleSaveResponse}
+            />
+          </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <ResponseQuotation
-        selectedProduct={selectedProduct}
-        selectedQuotationId={selectedQuotationId}
-        isResponseModalOpen={isResponseModalOpen}
-        setIsResponseModalOpen={setIsResponseModalOpen}
-      />
+
+       {/* Modal de carga */}
+       <SendingModal 
+         isOpen={isSendingModalOpen} 
+         onClose={() => setIsSendingModalOpen(false)} 
+       />
     </div>
   );
 };

@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useGetQuotationById } from "@/hooks/use-quation";
+import { useGetQuatitationResponse } from "@/hooks/use-quatitation-response";
 import { columnsProductDetails } from "@/pages/mis-cotizaciones/components/table/columnsProductDetails";
 import {
   Card,
@@ -57,7 +58,16 @@ const DetallesTab: React.FC<DetallesTabProps> = ({
     isLoading,
     isError,
   } = useGetQuotationById(selectedQuotationId);
+
+  // Hook para obtener las respuestas de cotización
+  const {
+    data: quotationResponses,
+    isLoading: isLoadingResponses,
+    isError: isErrorResponses,
+  } = useGetQuatitationResponse(selectedQuotationId);
+
   const [selectedServiceType, setSelectedServiceType] = useState<string>("");
+  const [selectedResponseTab, setSelectedResponseTab] = useState<string>("");
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [selectedProductImages, setSelectedProductImages] = useState<string[]>(
     []
@@ -114,6 +124,13 @@ const DetallesTab: React.FC<DetallesTabProps> = ({
     }
   }, [quotationDetail?.products]);
 
+  // useEffect para establecer la primera respuesta como seleccionada
+  useEffect(() => {
+    if (quotationResponses && quotationResponses.length > 0 && !selectedResponseTab) {
+      setSelectedResponseTab(quotationResponses[0].serviceType);
+    }
+  }, [quotationResponses, selectedResponseTab]);
+
   const updateProduct = (
     id: string,
     field: keyof ProductRow,
@@ -157,6 +174,185 @@ const DetallesTab: React.FC<DetallesTabProps> = ({
     0
   );
   const factorM = calculateFactorM(productsList);
+  
+  // Función para renderizar las respuestas de importación
+  const renderQuotationResponse = (response: any) => {
+    if (!response) return null;
+
+    return (
+      <div className="space-y-6">
+        {/* Gastos de Importación */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <DollarSign className="h-5 w-5 text-orange-600" />
+                Gastos de Importación
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="space-y-2">
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-sm text-gray-600">
+                    Servicio Consolidado
+                  </span>
+                  <span className="font-medium">
+                    USD {formatCurrency(response.serviceCalculations?.importExpenses?.finalValues?.servicioConsolidado || 0)}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-sm text-gray-600">
+                    Separación de Carga
+                  </span>
+                  <span className="font-medium">
+                    USD {formatCurrency(response.serviceCalculations?.importExpenses?.finalValues?.separacionCarga || 0)}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-sm text-gray-600">
+                    Inspección de Productos
+                  </span>
+                  <span className="font-medium">
+                    USD {formatCurrency(response.serviceCalculations?.importExpenses?.finalValues?.inspeccionProductos || 0)}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-sm text-gray-600">
+                    Gestión de Certificado
+                  </span>
+                  <span className="font-medium">
+                    USD {formatCurrency(response.serviceCalculations?.importExpenses?.finalValues?.gestionCertificado || 0)}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-sm text-gray-600">
+                    Desaduanaje + Flete + Seguro
+                  </span>
+                  <span className="font-medium">
+                    USD {formatCurrency(response.serviceCalculations?.importExpenses?.finalValues?.desaduanajeFleteSaguro || 0)}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-sm text-gray-600">
+                    Transporte Local China
+                  </span>
+                  <span className="font-medium">
+                    USD {formatCurrency(response.serviceCalculations?.importExpenses?.finalValues?.transporteLocalChina || 0)}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-sm text-gray-600">
+                    Transporte Local Cliente
+                  </span>
+                  <span className="font-medium">
+                    USD {formatCurrency(response.serviceCalculations?.importExpenses?.finalValues?.transporteLocalCliente || 0)}
+                  </span>
+                </div>
+
+                <Separator />
+                <div className="flex justify-between items-center py-2 bg-orange-50 px-3 rounded-lg">
+                  <span className="font-medium text-orange-900">
+                    Total Gastos de Importación
+                  </span>
+                  <span className="font-bold text-orange-900">
+                    USD {formatCurrency(response.serviceCalculations?.importExpenses?.totalGastosImportacion || 0)}
+                  </span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Resumen de Gastos de Importación */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <ChartBar className="h-5 w-5 text-orange-600" />
+                Resumen de Gastos de Importación
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <div className="space-y-2">
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-lg text-gray-600">
+                    INCOTERM DE IMPORTACION
+                  </span>
+                  <span className="font-medium">{response.serviceType}</span>
+                </div>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-lg text-gray-600">
+                    VALOR DE COMPRA FACTURA COMERCIAL
+                  </span>
+                  <span className="font-medium">
+                    USD {formatCurrency(totalAmount)}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-lg text-gray-600">
+                    TOTAL GASTOS DE IMPORTACION
+                  </span>
+                  <span className="font-medium">
+                    USD {formatCurrency(response.serviceCalculations?.importExpenses?.totalGastosImportacion || 0)}
+                  </span>
+                </div>
+                <Separator />
+                <div className="flex justify-between items-center py-2 bg-green-50 px-3 rounded-lg">
+                  <span className="text-lg text-green-900">
+                    INVERSION TOTAL DE IMPORTACION
+                  </span>
+                  <span className="font-medium text-green-900">
+                    USD {formatCurrency(response.serviceCalculations?.totals?.inversionTotal || 0)}
+                  </span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Tabla de costeo unitario de importación */}
+        <div className="p-6 bg-gray-50">
+          <Card className="overflow-hidden">
+            <CardHeader>
+              <CardTitle className="text-lg font-bold text-center flex-1">
+                <div className="relative">
+                  COSTEO UNITARIO DE IMPORTACIÓN - {response.serviceType}
+                  <div className="absolute top-0 right-0 text-black px-3 py-1 text-sm font-bold">
+                    <div className="text-xs">FACTOR M.</div>
+                    <div>{factorM.toFixed(2)}</div>
+                  </div>
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <DataTable
+                columns={columns}
+                data={response.unitCostProducts || []}
+                pageInfo={{
+                  pageNumber: 1,
+                  pageSize: 10,
+                  totalElements: response.unitCostProducts?.length || 0,
+                  totalPages: 1,
+                }}
+                onPageChange={() => {}}
+                onSearch={() => {}}
+                searchTerm={""}
+                isLoading={false}
+                paginationOptions={{
+                  showSelectedCount: false,
+                  showPagination: false,
+                  showNavigation: false,
+                }}
+                toolbarOptions={{
+                  showSearch: false,
+                  showViewOptions: false,
+                }}
+              />
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  };
+
   // ...y las demás funciones como openImageModal, formatDate, etc.
 
   // ✅ AHORA SÍ, LAS COMPROBACIONES Y RETORNOS ANTICIPADOS
@@ -386,160 +582,77 @@ const DetallesTab: React.FC<DetallesTabProps> = ({
               </h1>
             </div>
 
-            <Tabs
-              value={selectedServiceType}
-              onValueChange={setSelectedServiceType}
-              className="w-full"
-            >
-              <TabsList className="relative flex border-b border-gray-200 rounded-">
-                {serviceTypes.map((serviceType: any) => (
-                  <TabsTrigger
-                    key={serviceType}
-                    value={serviceType}
-                    className={`
-            relative px-6 py-4 text-sm font-medium transition-colors
-            ${
-              selectedServiceType === serviceType
-                ? "text-[#d7751f]"
-                : "text-gray-600 hover:text-gray-800"
-            }
-          `}
-                  >
-                    {serviceType}
-                    {/* Línea animada */}
-                    <span
+            {/* Mostrar respuestas si existen, si no mostrar vacío */}
+            {isLoadingResponses ? (
+              <div className="text-center py-8">
+                <div className="animate-pulse">
+                  <div className="h-4 bg-gray-200 rounded w-1/4 mx-auto mb-4"></div>
+                  <div className="h-4 bg-gray-200 rounded w-1/2 mx-auto"></div>
+                </div>
+              </div>
+            ) : isErrorResponses || !quotationResponses || quotationResponses.length === 0 ? (
+              <div className="text-center py-12 bg-gray-50 rounded-lg">
+                <div className="text-gray-500 text-lg mb-2">
+                  No hay respuestas de cotización disponibles
+                </div>
+                <div className="text-gray-400 text-sm">
+                  Las respuestas aparecerán aquí una vez que el administrador las procese
+                </div>
+              </div>
+            ) : (
+              <Tabs
+                value={selectedResponseTab}
+                onValueChange={setSelectedResponseTab}
+                className="w-full"
+              >
+                <TabsList className="relative flex border-b border-gray-200 rounded-">
+                  {quotationResponses.map((response, index) => (
+                    <TabsTrigger
+                      key={`${response.serviceType}-${index}`}
+                      value={response.serviceType}
                       className={`
-              absolute bottom-0 left-0 h-0.5 bg-[#d7751f]
-              transition-all duration-300
-              ${selectedServiceType === serviceType ? "w-full" : "w-0"}
-            `}
-                    />
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-              {/* Genero un TabsContent por cada serviceType */}
-              {quotationDetail.summaryByServiceType?.map((price, index) => {
-                //const pricingData = getPricingData(price);
-                return (
-                  <TabsContent key={index} value={index.toString()}>
-                    {/* Aquí pinto los datos de ese tipo de servicio */}
-                    {/* Pricing Cards Grid */}
+                        relative px-6 py-4 text-sm font-medium transition-colors
+                        ${
+                          selectedResponseTab === response.serviceType
+                            ? "text-[#d7751f]"
+                            : "text-gray-600 hover:text-gray-800"
+                        }
+                      `}
+                    >
+                      {response.serviceType}
+                      {/* Línea animada */}
+                      <span
+                        className={`
+                          absolute bottom-0 left-0 h-0.5 bg-[#d7751f]
+                          transition-all duration-300
+                          ${selectedResponseTab === response.serviceType ? "w-full" : "w-0"}
+                        `}
+                      />
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+                
+                {/* Generar un TabsContent por cada respuesta */}
+                {quotationResponses.map((response, index) => (
+                  <TabsContent 
+                    key={`${response.serviceType}-content-${index}`} 
+                    value={response.serviceType}
+                    className="mt-6"
+                  >
+                    {renderQuotationResponse(response)}
                   </TabsContent>
-                );
-              })}
-            </Tabs>
+                ))}
+              </Tabs>
+            )}
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Import Expenses */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <DollarSign className="h-5 w-5 text-orange-600" />
-                    Gastos de Importación
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center py-2">
-                      <span className="text-sm text-gray-600">
-                        Servicio Consolidado Aéreo
-                      </span>
-                      <span className="font-medium">USD 0.00</span>
-                    </div>
-                    {/* Separación de Carga */}
-                    <div className="flex justify-between items-center py-2">
-                      <span className="text-sm text-gray-600">
-                        Separación de Carga
-                      </span>
-                      <span className="font-medium">USD 0.00</span>
-                    </div>
-                    {/* Inspección de Productos */}
-                    <div className="flex justify-between items-center py-2">
-                      <span className="text-sm text-gray-600">
-                        Inspección de Productos
-                      </span>
-                      <span className="font-medium">USD 0.00</span>
-                    </div>
-                    {/* AD/VALOREM + IGV + IPM */}
-                    <div className="flex justify-between items-center py-2">
-                      <span className="text-sm text-gray-600">
-                        AD/VALOREM + IGV + IPM
-                      </span>
-                      <span className="font-medium">USD 0.00</span>
-                    </div>
-                    {/* Desaduanaje + Flete + Seguro */}
-                    <div className="flex justify-between items-center py-2">
-                      <span className="text-sm text-gray-600">
-                        Desaduanaje + Flete + Seguro
-                      </span>
-                      <span className="font-medium">USD 0.00</span>
-                    </div>
 
-                    <Separator />
-                    <div className="flex justify-between items-center py-2 bg-orange-50 px-3 rounded-lg">
-                      <span className="font-medium text-orange-900">
-                        Total Gastos de Importación
-                      </span>
-                      <span className="font-bold text-orange-900">
-                        USD 0.00
-                      </span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Resumen de Gastos de Importación */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <ChartBar className="h-5 w-5 text-orange-600" />
-                    Resumen de Gastos de Importación
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <div className="space-y-2">
-                    {/* Incoterm de Importacion */}
-                    <div className="flex justify-between items-center py-2">
-                      <span className="text-lg text-gray-600">
-                        INCOTERM DE IMPORTACION
-                      </span>
-                      <span className="font-medium">ABC</span>
-                    </div>
-                    {/* Valor de Compra Factura Comercial */}
-                    <div className="flex justify-between items-center py-2">
-                      <span className="text-lg text-gray-600">
-                        VALOR DE COMPRA FACTURA COMERCIAL
-                      </span>
-                      <span className="font-medium">USD 0.00</span>
-                    </div>
-                    {/* Total Gastos de Importacion */}
-                    <div className="flex justify-between items-center py-2">
-                      <span className="text-lg text-gray-600">
-                        TOTAL GASTOS DE IMPORTACION
-                      </span>
-                      <span className="font-medium">USD 0.00</span>
-                    </div>
-                    <Separator />
-                    {/* Inversion Total de Importacion */}
-                    <div className="flex justify-between items-center py-2 bg-green-50 px-3 rounded-lg">
-                      <span className="text-lg text-green-900">
-                        INVERSION TOTAL DE IMPORTACION
-                      </span>
-                      <span className="font-medium text-green-900">
-                        USD 0.00
-                      </span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            <div className="p-6 bg-gray-50">
+            {/* Tabla de productos original (siempre visible) */}
+            <div className="mt-8 p-6 bg-gray-50">
               <Card className="overflow-hidden">
                 <CardHeader>
                   <CardTitle className="text-lg font-bold text-center flex-1">
                     <div className="relative">
-                      COSTEO UNITARIO DE IMPORTACIÓN
+                      DETALLE DE PRODUCTOS SOLICITADOS
                       <div className="absolute top-0 right-0  text-black px-3 py-1 text-sm font-bold">
                         <div className="text-xs">FACTOR M.</div>
                         <div>{factorM.toFixed(2)}</div>

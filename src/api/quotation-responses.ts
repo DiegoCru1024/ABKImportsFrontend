@@ -1,82 +1,29 @@
 import { apiFetch } from "./apiFetch";
-import type { getAllResponsesForSpecificProductoInQuotationResponse, QuotationResponseRequest } from "./interface/quotationResponseInterfaces";
+import type {
+  QuotationResponseDTO,
+  QuotationGetResponsesForUsersDTO,
+  QuotationResponseListDTO,
+} from "./interface/quotationResponseInterfaces";
 
 /**
- * Obtiene todas las respuestas de una cotización por su ID
- * @param {string} id - El ID de la cotización
+ * Crea una respuesta de una cotización (Admin Only)
+ * @param {QuotationResponseDTO} data - Los datos a crear
+ * @param {string} quotationId - El ID de la cotización
  * @returns {Promise<any>} - La respuesta de la cotización
  */
-export const getAllResponsesForSpecificQuotation = async (id: string) => {
-  try {
-    const response = await apiFetch(`/quotation-responses/quotation/${id}`);
-    return response;
-  } catch (error) {
-    console.error("Error al obtener la respuesta de la cotización:", error);
-    throw error;
-  }
-};
-
-
-
-/**
- * Obtiene todas las respuestas de un producto en una cotización por su ID
- * @param {string} id - El ID de la cotización
- * @param {string} productId - El ID del producto
- * @returns {Promise<any>} - La respuesta de la cotización
- */
-export const getAllResponsesForSpecificProductoInQuotation = async (
-  id: string,
-  productId: string
+export const createQuatitationResponse = async (
+  data: QuotationResponseDTO,
+  quotationId: string
 ) => {
   try {
-    const response =
-      await apiFetch<getAllResponsesForSpecificProductoInQuotationResponse>(
-        `/quotation-responses/quotation/${id}/product/${productId}`
-      );
-    return response;
-  } catch (error) {
-    console.error("Error al obtener la respuesta de la cotización:", error);
-    throw error;
-  }
-};
-
-/**
- * Crea una respuesta de una cotización (admin)
- * @param {any} data - Los datos a crear
- * @returns {Promise<any>} - La respuesta de la cotización
- */
-export const createQuatitationResponse = async (data: any) => {
-  try {
-    const response = await apiFetch(`/quotation-responses`, {
-      method: "POST",
-      body: JSON.stringify(data),
-    });
-    return response;
-  } catch (error) {
-    console.error("Error al crear la respuesta de la cotización:", error);
-    throw error;
-  }
-};
-
-/**
- * Crea una varias de una cotización (admin)
- * @param {QuotationResponseRequest} data - Los datos a crear
- * @returns {Promise<any>} - La respuesta de la cotización
- */
-export const createQuatitationResponseMultiple = async (
-  data: QuotationResponseRequest,
-  quotationId: string,
-  productId: string
-) => {
-  try {
-    return await apiFetch(
-      `/quotation-responses/multiple/quotation/${quotationId}/product/${productId}`,
+    const response = await apiFetch(
+      `/quotation-responses/quotation/${quotationId}/complete-response`,
       {
-
         method: "POST",
         body: JSON.stringify(data),
       }
     );
+    return response;
   } catch (error) {
     console.error("Error al crear la respuesta de la cotización:", error);
     throw error;
@@ -84,7 +31,7 @@ export const createQuatitationResponseMultiple = async (
 };
 
 /**
- * Elimina una respuesta de una cotización por su ID (admin)
+ * Elimina una respuesta de una cotización por su ID (Admin Only)
  * @param {string} id - El ID de la respuesta
  * @returns {Promise<any>} - La respuesta de la cotización
  */
@@ -101,20 +48,78 @@ export const deleteQuatitationResponse = async (id: string) => {
 };
 
 /**
- * Actualiza el estado de una respuesta de una cotización por su ID (admin)
- * @param {string} id - El ID de la respuesta
- * @param {any} data - Los datos a actualizar
+ * Actualiza el estado de una respuesta de una cotización por su ID (Admin Only)
+ * @param {string} quotationId - El ID de la cotización
+ * @param {string} quotationResponseId - El ID de la respuesta
+ * @param {QuotationResponseDTO} data - Los datos a actualizar
  * @returns {Promise<any>} - La respuesta de la cotización
  */
-export const patchQuatitationResponse = async (id: string, data: any) => {
+export const patchQuatitationResponse = async (
+  quotationId: string,
+  quotationResponseId: string,
+  data: QuotationResponseDTO
+) => {
   try {
-    const response = await apiFetch(`/quotation-responses/${id}/status`, {
-      method: "PATCH",
-      body: JSON.stringify(data),
-    });
+    const response = await apiFetch(
+      `/quotation-responses/update-responses/${quotationId}/${quotationResponseId}`,
+      {
+        method: "PATCH",
+        body: JSON.stringify(data),
+      }
+    );
     return response;
   } catch (error) {
     console.error("Error al actualizar la respuesta de la cotización:", error);
+    throw error;
+  }
+};
+
+/**
+ * Lista las respuestas de una cotización (Admin Only)
+ * @param {string} quotationId - El ID de la cotización
+ * @param {number} page - La página actual
+ * @param {number} size - El tamaño de la página
+ * @returns {Promise<QuotationResponseListDTO>} - Las respuestas de la cotización
+ */
+export const listQuatitationResponses = async (
+  quotationId: string,
+  page: number,
+  size: number
+) => {
+  const queryParams = new URLSearchParams();
+  queryParams.append("page", page.toString());
+  queryParams.append("size", size.toString());
+
+  try {
+    const response: QuotationResponseListDTO = await apiFetch(
+      `/quotation-responses/list/${quotationId}?${queryParams.toString()}`,
+      {
+        method: "GET",
+      }
+    );
+    return response;
+  } catch (error) {
+    console.error("Error al listar las respuestas de la cotización:", error);
+    throw error;
+  }
+};
+
+/**
+ * Obtiene las respuestas del administrador para un usuario para una cotización (Usuarios no administradores)
+ * @param {string} quotationId - El ID de la cotización
+ * @returns {Promise<QuotationGetResponsesForUsersDTO[]>} - Las respuestas de la cotización
+ */
+export const getResponsesForUsers = async (quotationId: string) => {
+  try {
+    const response: QuotationGetResponsesForUsersDTO[] = await apiFetch(
+      `/quotation-responses/get-responses/${quotationId}`,
+      {
+        method: "GET",
+      }
+    );
+    return response;
+  } catch (error) {
+    console.error("Error al listar las respuestas de los usuarios:", error);
     throw error;
   }
 };

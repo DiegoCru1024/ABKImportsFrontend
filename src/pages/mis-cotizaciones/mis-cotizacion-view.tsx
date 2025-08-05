@@ -7,7 +7,6 @@ import QuotationsListTab from "./components/tabs/QuotationsListTab";
 import QuotationDetailsTab from "./components/tabs/QuotationDetailsTab";
 
 
-  import TrackingTab from "./components/tabs/TrackingTab";
 
   // Definir las tabs
 const tabs = [

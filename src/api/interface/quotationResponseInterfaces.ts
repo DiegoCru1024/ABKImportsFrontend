@@ -1,61 +1,171 @@
-export interface QuotationResponseRequest {
-  statusResponseProduct: string;
-  sendResponse: boolean;
-  responses: QuotationResponse[];
+export interface QuotationInfo {
+  quotationId: string;
+  correlative: string;
+  date: string;
+  serviceType: string;
+  cargoType: string;
+  courier: string;
+  incoterm: string;
+  isFirstPurchase: boolean;
+  regime: string;
+  originCountry: string;
+  destinationCountry: string;
+  customs: string;
+  originPort: string;
+  destinationPort: string;
+  serviceTypeDetail: string;
+  transitTime: number;
+  naviera: string;
+  proformaValidity: string;
+  id_asesor: string;
 }
 
-export interface QuotationResponse {
-  logistics_service: string;
-  unit_price: number;
-  incoterms: string;
-  total_price: number;
-  express_price: number;
-  service_fee: number;
-  taxes: number;
-  recommendations: string;
-  additional_comments: string;
-  weight: number | null;
-  volume: number | null;
-  number_of_boxes: number | null;
-  international_freight: number | null;
-  customs_clearance: number | null;
-  delivery: number | null;
-  other_expenses: number | null;
-  files: string[]; // URLs de AWS
+export interface dynamicValues {
+  comercialValue: number;
+  flete: number;
+  cajas: number;
+  desaduanaje: number;
+  kg: number;
+  ton: number;
+  kv: number;
+  fob: number;
+  seguro: number;
+  tipoCambio: number;
+  nroBultos: number;
+  volumenCBM: number;
+  calculoFlete: number;
+  servicioConsolidado: number;
+  separacionCarga: number;
+  inspeccionProductos: number;
+  gestionCertificado: number;
+  inspeccionProducto: number;
+  inspeccionFabrica: number;
+  transporteLocal: number;
+  otrosServicios: number;
+  adValoremRate: number;
+  antidumpingGobierno: number;
+  antidumpingCantidad: number;
+  iscRate: number;
+  igvRate: number;
+  ipmRate: number;
+  percepcionRate: number;
+  transporteLocalChinaEnvio: number;
+  transporteLocalClienteEnvio: number;
+  cif: number;
+  shouldExemptTaxes: boolean;
 }
 
-
-export interface getAllResponsesForSpecificProductoInQuotationResponse {
-  product: ProductBasicInfo;
-responses: Responses[];
+export interface Exemptions {
+  servicioConsolidadoAereo: boolean;
+  separacionCarga: boolean;
+  inspeccionProductos: boolean;
+  obligacionesFiscales: boolean;
+  desaduanajeFleteSaguro: boolean;
+  transporteLocalChina: boolean;
+  transporteLocalCliente: boolean;
+  servicioConsolidadoMaritimo: boolean;
+  gestionCertificado: boolean;
+  servicioInspeccion: boolean;
+  transporteLocal: boolean;
+  totalDerechos: boolean;
+}
+export interface serviceFields {
+  servicioConsolidado: number;
+  separacionCarga: number;
+  inspeccionProductos: number;
 }
 
-export interface ProductBasicInfo {
-id: string;
-name: string;
-quantity: number;
-size: string;
-color: string;
-url: string;
-comment: string;
-weight: string;
-volume: string;
-number_of_boxes: number;
-attachments: string[];
-statusResponseProduct: string;
-sendResponse: boolean;
+export interface fiscalObligations {
+  adValorem: number;
+  antidumping: number;
+  isc: number;
+  baseIgvIpm: number;
+  igvFiscal: number;
+  ipm: number;
+  percepcion: number;
+  totalDerechosDolares: number;
+  totalDerechosSoles: number;
+  totalDerechosDolaresFinal: number;
 }
 
+export interface importExpenses {
+  servicioConsolidadoFinal: number;
+  separacionCargaFinal: number;
+  inspeccionProductosFinal: number;
+  servicioConsolidadoMaritimoFinal: number;
+  gestionCertificadoFinal: number;
+  servicioInspeccionFinal: number;
+  transporteLocalFinal: number;
+  desaduanajeFleteSaguro: number;
+  finalValues: finalValues;
+  totalGastosImportacion: number;
+}
 
-export interface Responses {
-  logistics_service: string;
-  unit_price: number;
-  incoterms: string;
-  total_price: number;
-  express_price: number;
-  service_fee: number;
-  taxes: number;
-  recommendations: string;
-  additional_comments: string;
-  files: string[];
+export interface finalValues {
+  servicioConsolidado: number;
+  gestionCertificado: number;
+  servicioInspeccion: number;
+  transporteLocal: number;
+  separacionCarga: number;
+  inspeccionProductos: number;
+  desaduanajeFleteSaguro: number;
+  transporteLocalChina: number;
+  transporteLocalCliente: number;
+}
+
+export interface ServiceCalculations {
+  serviceFields: serviceFields;
+  subtotalServices: number;
+  igvServices: number;
+  totalServices: number;
+  fiscalObligations: fiscalObligations;
+  importExpenses: importExpenses;
+  totals: {
+    inversionTotal: number;
+  };
+}
+
+export interface UnitCostProducts {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+  total: number;
+  equivalence: number;
+  importCosts: number;
+  totalCost: number;
+  unitCost: number;
+}
+
+//!INTERFACES PARA CREAR UNA RESPUESTA DE UNA COTIZACIÓN
+export interface QuotationResponseDTO {
+  quotationInfo: QuotationInfo;
+  dynamicValues: dynamicValues;
+  exemptions: Exemptions;
+  serviceCalculations: ServiceCalculations;
+  unitCostProducts: UnitCostProducts[];
+}
+
+export interface contentQuotationResponseDTO {
+  id_quotation_response: string;
+  service_type: string;
+  cargo_type: string;
+  response_date: string;
+}
+
+//!Interfaz para listar las respuestas de una cotización
+export interface QuotationResponseListDTO {
+  content: contentQuotationResponseDTO[];
+  pageNumber: number;
+  pageSize: number;
+  totalElements: number;
+  totalPages: number;
+  last: boolean;
+}
+
+//!Interfaz para listar las respuestas del administrador y sean vistas por el usuario
+export interface QuotationGetResponsesForUsersDTO {
+  serviceType: string;
+  serviceCalculations: ServiceCalculations;
+  unitCostProducts: UnitCostProducts[];
 }

@@ -27,7 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { Producto } from "@/pages/Cotizacion/utils/interface";
+
 import { columnasCotizacion } from "@/pages/cotizacion/components/table/columnasCotizacion";
 import { servicios } from "@/pages/cotizacion/components/data/static";
 import { useForm } from "react-hook-form";
@@ -48,9 +48,10 @@ import { useNavigate } from "react-router-dom";
 import { productoSchema } from "@/pages/cotizacion/utils/schema";
 import { Label } from "@/components/ui/label";
 
+
 export default function CotizacionViewNew() {
   const navigate = useNavigate();
-  const [productos, setProductos] = useState<Producto[]>([]);
+  const [productos, setProductos] = useState<any[]>([]);
   const [service, setService] = useState("Pendiente");
   const [resetCounter, setResetCounter] = useState(0);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
@@ -100,7 +101,7 @@ export default function CotizacionViewNew() {
 
     // Obtener los valores del formulario
     const values = form.getValues();
-    const newProduct: Producto = {
+    const newProduct: any = {
       name: values.name,
       quantity: values.quantity,
       size: values.size,

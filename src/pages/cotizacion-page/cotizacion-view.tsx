@@ -11,6 +11,9 @@ import {
   File,
   PackageOpen,
   Loader2,
+  Upload,
+  X,
+  Edit2,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
@@ -20,6 +23,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { z } from "zod";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import FileUploadComponent from "@/components/comp-552";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -56,6 +60,8 @@ export default function CotizacionView() {
   const [resetCounter, setResetCounter] = useState(0);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
 
   //* Hook para enviar cotización
   const createQuotationMut = useCreateQuotation();
@@ -81,7 +87,39 @@ export default function CotizacionView() {
     setProductos((prev) => prev.filter((_, i) => i !== index));
   };
 
-  //* Función para agregar producto
+  //* Función para editar producto
+  const handleEditar = (index: number) => {
+    const producto = productos[index];
+    
+    // Cargar datos del producto en el formulario
+    form.setValue("name", producto.name);
+    form.setValue("quantity", producto.quantity);
+    form.setValue("size", producto.size);
+    form.setValue("color", producto.color);
+    form.setValue("url", producto.url);
+    form.setValue("comment", producto.comment);
+    form.setValue("weight", producto.weight || 0);
+    form.setValue("volume", producto.volume || 0);
+    form.setValue("number_of_boxes", producto.number_of_boxes || 0);
+    
+    // Establecer archivos seleccionados
+    setSelectedFiles(producto.files || []);
+    
+    // Establecer modo edición
+    setEditingIndex(index);
+    setIsEditing(true);
+  };
+
+  //* Función para cancelar edición
+  const handleCancelarEdicion = () => {
+    form.reset();
+    setSelectedFiles([]);
+    setEditingIndex(null);
+    setIsEditing(false);
+    setResetCounter((prev) => prev + 1);
+  };
+
+  //* Función para agregar o actualizar producto
   const handleAgregar = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -94,14 +132,15 @@ export default function CotizacionView() {
     // Validar que haya al menos un archivo antes de proceder
     if (selectedFiles.length === 0) {
       toast.error(
-        "Por favor, adjunte al menos un archivo antes de agregar el producto."
+        "Por favor, adjunte al menos un archivo antes de " + 
+        (isEditing ? "actualizar" : "agregar") + " el producto."
       );
       return;
     }
 
     // Obtener los valores del formulario
     const values = form.getValues();
-    const newProduct: any = {
+    const productData: any = {
       name: values.name,
       quantity: values.quantity,
       size: values.size,
@@ -115,15 +154,28 @@ export default function CotizacionView() {
       files: selectedFiles, // Guardar archivos originales
     };
 
-    // Agregar el producto a la lista
-    setProductos((prev) => [...prev, newProduct]);
+    if (isEditing && editingIndex !== null) {
+      // Actualizar producto existente
+      setProductos((prev) => 
+        prev.map((producto, index) => 
+          index === editingIndex ? productData : producto
+        )
+      );
+      toast.success("Producto actualizado correctamente");
+      
+      // Salir del modo edición
+      setEditingIndex(null);
+      setIsEditing(false);
+    } else {
+      // Agregar nuevo producto
+      setProductos((prev) => [...prev, productData]);
+      toast.success("Producto agregado correctamente");
+    }
 
     // Resetear el formulario y los archivos
     form.reset();
     setResetCounter((prev) => prev + 1);
     setSelectedFiles([]);
-
-    toast.success("Producto agregado correctamente");
   };
 
   //* Función para enviar cotización
@@ -213,7 +265,7 @@ export default function CotizacionView() {
   }, [productos]);
 
   //* Columnas de la tabla
-  const columns = columnasCotizacion({ handleEliminar });
+  const columns = columnasCotizacion({ handleEliminar, handleEditar });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-500/5 via-background to-orange-400/10">
@@ -259,30 +311,42 @@ export default function CotizacionView() {
         </div>
       </div>
 
-      <div className="w-full  p-2">
-        <div className="grid grid-cols-1  gap-6">
-          <div className="overflow-hidden rounded-sm ">
-            {/* Formulario */}
+      <div className="w-full p-2">
+        <div className="grid grid-cols-1 gap-6">
+          {/* Add Product Form */}
+          <Card>
+            <CardContent className="p-6">
+              {/* Indicador de modo edición */}
+              {isEditing && (
+                <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                  <div className="flex items-center gap-2 text-blue-700 dark:text-blue-300">
+                    <Edit2 className="h-5 w-5" />
+                    <span className="font-medium">Editando producto</span>
+                  </div>
+                  <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
+                    Está editando el producto. Los cambios se aplicarán al guardar.
+                  </p>
+                </div>
+              )}
+
             <Form {...form}>
               <form onSubmit={handleAgregar}>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6   p-6">
-                  {/* Primera Columna */}
-                  <div className="space-y-4">
-                    {/* Nombre del producto */}
-                    <div className="space-y-2">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    <div>
                       <FormField
                         control={form.control}
                         name="name"
                         render={({ field }) => (
                           <FormItem>
-                            <div className="flex items-center gap-2">
-                              <Package className="w-4 h-4 text-orange-500" />
-                              <FormLabel>Nombre del Producto</FormLabel>
-                            </div>
+                            <Label className="flex items-center gap-2 text-orange-600 font-medium">
+                              <Package className="h-4 w-4" />
+                              Nombre del Producto
+                            </Label>
                             <FormControl>
                               <Input
                                 {...field}
                                 placeholder="Ej: Monitor, Teclado, Mouse..."
+                                className="mt-1"
                               />
                             </FormControl>
                             <FormMessage />
@@ -291,126 +355,25 @@ export default function CotizacionView() {
                       />
                     </div>
 
-                    {/* URL del producto */}
-                    <div className="grid grid-cols-1  gap-4">
-                      <div className="space-y-2">
-                        <FormField
-                          control={form.control}
-                          name="url"
-                          render={({ field }) => (
-                            <FormItem>
-                              <div className="flex items-center gap-2">
-                                <Link className="w-4 h-4 text-orange-500" />
-                                <FormLabel>URL</FormLabel>
-                              </div>
-                              <FormControl>
-                                <Input
-                                  {...field}
-                                  placeholder="https://temu.com/producto/123"
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                    </div>
-
-                    {service === "Almacenaje de Mercancia" && (
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="space-y-2">
-                          <FormField
-                            control={form.control}
-                            name="weight"
-                            render={({ field }) => (
-                              <FormItem>
-                                <div className="flex items-center gap-2">
-                                  <MessageSquare className="w-4 h-4 text-orange-500" />
-                                  <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                                    Peso (Kg)
-                                  </FormLabel>
-                                </div>
-                                <FormControl>
-                                  <Input {...field} type="number" />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <FormField
-                            control={form.control}
-                            name="volume"
-                            render={({ field }) => (
-                              <FormItem>
-                                <div className="flex items-center gap-2">
-                                  <MessageSquare className="w-4 h-4 text-orange-500" />
-                                  <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                                    Volumen
-                                  </FormLabel>
-                                </div>
-                                <FormControl>
-                                  <Input {...field} type="number" />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <FormField
-                            control={form.control}
-                            name="number_of_boxes"
-                            render={({ field }) => (
-                              <FormItem>
-                                <div className="flex items-center gap-2">
-                                  <MessageSquare className="w-4 h-4 text-orange-500" />
-                                  <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                                    Nro. cajas
-                                  </FormLabel>
-                                </div>
-                                <FormControl>
-                                  <Input {...field} type="number" />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  {/* Segunda Columna */}
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="space-y-2">
+                    <div>
                         <FormField
                           control={form.control}
                           name="quantity"
                           render={({ field }) => (
                             <FormItem>
-                              <div className="flex items-center gap-2">
-                                <Hash className="w-4 h-4 text-orange-500" />
-                                <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                            <Label className="flex items-center gap-2 text-orange-600 font-medium">
+                              <span className="text-lg">#</span>
                                   Cantidad
-                                </FormLabel>
-                              </div>
+                            </Label>
                               <FormControl>
                                 <Input
                                   {...field}
                                   type="number"
-                                  min={1}
-                                  required
+                                min="1"
+                                className="mt-1"
                                   onChange={(e) => {
-                                    const value =
-                                      e.target.value === ""
-                                        ? 1
-                                        : Number(e.target.value);
+                                  const value = e.target.value === "" ? 1 : Number(e.target.value);
                                     field.onChange(value);
-                                  }}
-                                  onBlur={() => {
-                                    form.clearErrors("quantity");
                                   }}
                                 />
                               </FormControl>
@@ -420,22 +383,21 @@ export default function CotizacionView() {
                         />
                       </div>
 
-                      <div className="space-y-2">
+                    <div>
                         <FormField
                           control={form.control}
                           name="size"
                           render={({ field }) => (
                             <FormItem>
-                              <div className="flex items-center gap-2">
-                                <Ruler className="w-4 h-4 text-orange-500" />
-                                <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                            <Label className="flex items-center gap-2 text-orange-600 font-medium">
+                              <span className="text-lg">📏</span>
                                   Tamaño
-                                </FormLabel>
-                              </div>
+                            </Label>
                               <FormControl>
                                 <Input
                                   {...field}
                                   placeholder="Ej: 10x10x10 cm"
+                                className="mt-1"
                                 />
                               </FormControl>
                               <FormMessage />
@@ -444,22 +406,21 @@ export default function CotizacionView() {
                         />
                       </div>
 
-                      <div className="space-y-2">
+                    <div>
                         <FormField
                           control={form.control}
                           name="color"
                           render={({ field }) => (
                             <FormItem>
-                              <div className="flex items-center gap-2">
-                                <Palette className="w-4 h-4 text-orange-500" />
-                                <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                            <Label className="flex items-center gap-2 text-orange-600 font-medium">
+                              <span className="text-lg">🎨</span>
                                   Color
-                                </FormLabel>
-                              </div>
+                            </Label>
                               <FormControl>
                                 <Input
                                   {...field}
                                   placeholder="Ej: Rojo, Azul, Verde..."
+                                className="mt-1"
                                 />
                               </FormControl>
                               <FormMessage />
@@ -469,23 +430,46 @@ export default function CotizacionView() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1  gap-4">
-                      <div className="space-y-2">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div>
+                      <FormField
+                        control={form.control}
+                        name="url"
+                        render={({ field }) => (
+                          <FormItem>
+                            <Label className="flex items-center gap-2 text-orange-600 font-medium">
+                              <span className="text-lg">🔗</span>
+                              URL
+                            </Label>
+                            <FormControl>
+                              <Input
+                                {...field}
+                                placeholder="https://temu.com/producto/123"
+                                className="mt-1"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <div>
                         <FormField
                           control={form.control}
                           name="comment"
                           render={({ field }) => (
                             <FormItem>
-                              <div className="flex items-center gap-2">
-                                <MessageSquare className="w-4 h-4 text-orange-500" />
-                                <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                            <Label className="flex items-center gap-2 text-orange-600 font-medium">
+                              <span className="text-lg">💬</span>
                                   Comentario
-                                </FormLabel>
-                              </div>
+                            </Label>
                               <FormControl>
                                 <Textarea
                                   {...field}
                                   placeholder="Ej: Producto en buen estado, etc."
+                                className="mt-1"
+                                rows={3}
                                 />
                               </FormControl>
                               <FormMessage />
@@ -494,39 +478,115 @@ export default function CotizacionView() {
                         />
                       </div>
                     </div>
+
+                  {/* Campos adicionales para Almacenaje de Mercancia */}
+                  {service === "Almacenaje de Mercancia" && (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                      <div>
+                        <FormField
+                          control={form.control}
+                          name="weight"
+                          render={({ field }) => (
+                            <FormItem>
+                              <Label className="flex items-center gap-2 text-orange-600 font-medium">
+                                <span className="text-lg">⚖️</span>
+                                Peso (Kg)
+                              </Label>
+                              <FormControl>
+                                <Input {...field} type="number" className="mt-1" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <div>
+                        <FormField
+                          control={form.control}
+                          name="volume"
+                          render={({ field }) => (
+                            <FormItem>
+                              <Label className="flex items-center gap-2 text-orange-600 font-medium">
+                                <span className="text-lg">📦</span>
+                                Volumen
+                              </Label>
+                              <FormControl>
+                                <Input {...field} type="number" className="mt-1" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <div>
+                        <FormField
+                          control={form.control}
+                          name="number_of_boxes"
+                          render={({ field }) => (
+                            <FormItem>
+                              <Label className="flex items-center gap-2 text-orange-600 font-medium">
+                                <span className="text-lg">📦</span>
+                                Nro. cajas
+                              </Label>
+                              <FormControl>
+                                <Input {...field} type="number" className="mt-1" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
                   </div>
                 </div>
+                  )}
 
-                <div className="space-y-4 bg-white dark:bg-gray-900 p-6">
-                  <div className="flex items-center gap-2">
-                    <File className="w-4 h-4 text-orange-500" />
-                    <Label className="text-sm font-medium text-gray-700 dark:text-white">
+                  {/* File Upload Section */}
+                  <div className="mb-6">
+                    <Label className="flex items-center gap-2 text-orange-600 font-medium mb-3">
+                      <span className="text-lg">📁</span>
                       Archivos
                     </Label>
-                  </div>
 
-                  <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 bg-white dark:bg-gray-800">
+                    <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4">
                     <FileUploadComponent
                       onFilesChange={setSelectedFiles}
                       resetCounter={resetCounter}
                     />
+                    </div>
                   </div>
 
-                  <div className="mt-6 flex justify-end">
+                  <div className="flex justify-end gap-2">
+                    {isEditing && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleCancelarEdicion}
+                        className="text-gray-600 border-gray-300 hover:bg-gray-50"
+                      >
+                        Cancelar
+                      </Button>
+                    )}
                     <Button
-                      className="bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-full px-8 
-                       py-2 shadow-md transition-all duration-200 transform hover:scale-105 animate-in fade-in-0 zoom-in-95"
                       type="submit"
-                      title="Agregar Producto"
+                      className="bg-orange-600 hover:bg-orange-700 text-white"
+                      disabled={!form.watch("name")?.trim()}
                     >
-                      <Plus className="w-5 h-5 mr-2" />
+                      {isEditing ? (
+                        <>
+                          <Edit2 className="w-4 h-4 mr-2" />
+                          Actualizar Producto
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="w-4 h-4 mr-2" />
                       Agregar Producto
+                        </>
+                      )}
                     </Button>
-                  </div>
                 </div>
               </form>
             </Form>
-          </div>
+            </CardContent>
+          </Card>
 
           {/* Tabla de productos */}
           <div className="w-full p-1 pt-6">

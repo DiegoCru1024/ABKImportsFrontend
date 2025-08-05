@@ -20,6 +20,7 @@ import {
 import { toast } from "sonner";
 import SendingModal from "@/components/sending-modal";
 import { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 
 const loginSchema = z.object({
   email: z.string().email("El correo electrónico no es válido"),
@@ -29,6 +30,7 @@ const loginSchema = z.object({
 export default function LoginPage() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -69,6 +71,21 @@ export default function LoginPage() {
     setIsLoading(false);
   };
 
+
+  const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
+  const [darkMode, setDarkMode] = useState(false);
+  const modeStyles = {
+    container: darkMode ? "bg-gray-900" : "bg-white",
+    formContainer: darkMode
+      ? "bg-gradient-to-r from-[#545252] to-red-300 "
+      : "bg-gradient-to-r from-slate-300 to-red-300 ",
+    textPrimary: darkMode ? "text-white" : "text-gray-900",
+    textSecondary: darkMode ? "text-gray-200" : "text-gray-800",
+    inputBorder: darkMode ? "border-gray-600" : "border-gray-300",
+  };
+
+
+
   return (
     <div className="min-h-screen flex">
       {/* Left side - Image */}
@@ -88,11 +105,11 @@ export default function LoginPage() {
           <div className="text-center">
             <div className="flex justify-center mb-6">
               <img
-                src="/LOGO-02.png"
+                src="/LOGO-02.webp"
                 alt="ABK Logistics"
-                width={200}
-                height={80}
-                className="h-16 w-auto"
+                width={100}
+                height={100}
+                className="h-16 w-auto object-contain"
               />
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
@@ -136,26 +153,44 @@ export default function LoginPage() {
                       </FormItem>
                     )}
                   />
-                  <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Contraseña</FormLabel>
-                        <FormControl>
-                          <Input
-                            id="password"
-                            type="password"
-                            placeholder="Ingresa tu contraseña"
-                            className="h-11"
-                            required
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  {/* Campo de Contraseña */}
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem className={`${modeStyles.textPrimary}`}>
+                    <FormLabel id="password">Contraseña</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Input
+                          type={showPassword ? "text" : "password"}
+                          placeholder="Ingresa la contraseña"
+                          {...field}
+                          className={`bg-transparent ${modeStyles.textSecondary} placeholder:text-white border`}
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className={`absolute right-2 top-1/2 h-7 w-7 -translate-y-1/2 ${modeStyles.textPrimary}`}
+                          onClick={togglePasswordVisibility}
+                        >
+                          {showPassword ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                          <span className="sr-only">
+                            {showPassword ? "Hide password" : "Show password"}
+                          </span>
+                        </Button>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
                   <Button
                     type="submit"
                     className="w-full h-11 bg-orange-600 hover:bg-orange-700"

@@ -1,17 +1,19 @@
 import type { Producto } from "@/pages/cotizacion-page/utils/interface";
 import type { ColumnDef } from "@tanstack/react-table";
-import { EyeIcon, Trash } from "lucide-react";
+import { EyeIcon, Trash, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import ImageViewerModal from "@/pages/cotizacion-page/components/ImageViewerModal";
 
 interface ColumnasCotizacionProps {
   handleEliminar: (index: number) => void;
+  handleEditar: (index: number) => void;
 }
 
 // Definición de columnas dentro del componente para usar callbacks
 export function columnasCotizacion({
   handleEliminar,
+  handleEditar,
 }: ColumnasCotizacionProps): ColumnDef<Producto, any>[] {
   return [
     {
@@ -119,8 +121,18 @@ export function columnasCotizacion({
           <Button
             variant="ghost"
             size="sm"
+            onClick={() => handleEditar(row.index)}
+            className="h-8 w-8 p-0 text-blue-500 hover:text-blue-700"
+            title="Editar producto"
+          >
+            <Edit className="w-4 h-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => handleEliminar(row.index)}
             className="h-8 w-8 p-0 text-red-500 hover:text-red-700"
+            title="Eliminar producto"
           >
             <Trash className="w-4 h-4" />
           </Button>

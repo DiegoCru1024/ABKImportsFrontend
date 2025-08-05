@@ -28,8 +28,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { columnasCotizacion } from "@/pages/cotizacion/components/table/columnasCotizacion";
-import { servicios } from "@/pages/cotizacion/components/data/static";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -45,9 +43,11 @@ import { uploadMultipleFiles } from "@/api/fileUpload";
 import { toast } from "sonner";
 import SendingModal from "@/components/sending-modal";
 import { useNavigate } from "react-router-dom";
-import { productoSchema } from "@/pages/cotizacion/utils/schema";
-import { Label } from "@/components/ui/label";
 
+import { Label } from "@/components/ui/label";
+import { productoSchema } from "@/pages/Cotizacion/utils/schema";
+import { columnasCotizacion } from "@/pages/Cotizacion/components/table/columnasCotizacion";
+import { servicios } from "@/pages/Cotizacion/components/data/static";
 
 export default function CotizacionView() {
   const navigate = useNavigate();
@@ -180,10 +180,7 @@ export default function CotizacionView() {
         };
       });
 
-      //console.log("Productos con URLs:", productosConUrls);
-      console.log(
-        JSON.stringify({ products: productosConUrls, service_type: service })
-      );
+      console.log(JSON.stringify(productosConUrls, null, 2));
 
       // 4. Enviar al hook de cotización
       createQuotationMut.mutate(
@@ -317,7 +314,6 @@ export default function CotizacionView() {
                           )}
                         />
                       </div>
-
                     </div>
 
                     {service === "Almacenaje de Mercancia" && (

@@ -31,12 +31,12 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 import { formatDate, formatDateTime } from "@/lib/format-time";
-import type { TabId } from "@/pages/cotizacion/components/static";
-import { statusFilterOptions, statusMap } from "@/pages/cotizacion/components/static";
+
+import { statusFilterOptions, statusMap } from "@/pages/Cotizacion/components/static";
 
 export default function GestionDeCotizacionesView() {
   // ********Tabs**** */
-  const [mainTab, setMainTab] = useState<TabId>("solicitudes");
+  const [mainTab, setMainTab] = useState<string>("solicitudes");
 
   // ********Cotización seleccionada**** */
   const [selectedQuotationId, setSelectedQuotationId] = useState<string>("");

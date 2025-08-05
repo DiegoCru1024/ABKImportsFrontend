@@ -37,11 +37,8 @@ export default function SocketNotification() {
     const loadNotifications = async () => {
         try {
             setLoading(true);
-            const response = await notificationsAPI.getNotifications({
-                size: 50,
-                page: 1
-            });
-            setNotifications(response.content || []);
+            const response = await notificationsAPI.getNotifications();
+            setNotifications(response || []);
         } catch (error) {
             console.error("Error loading notifications:", error);
         } finally {
@@ -52,6 +49,7 @@ export default function SocketNotification() {
     useEffect(() => {
         if (access_token) {
             loadNotifications();
+            console.log("Se llamo al endpoint de notificaciones");
         }
     }, [access_token]);
 

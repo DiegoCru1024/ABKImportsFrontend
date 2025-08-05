@@ -1,7 +1,7 @@
 import { API_URL } from "../../config";
 
 interface NotificationResponse {
-    content: Array<{
+  
         id: string;
         type: "quotation_created" | "quotation_response";
         title: string;
@@ -12,12 +12,7 @@ interface NotificationResponse {
         isRead: boolean;
         createdAt: string;
         updatedAt: string;
-    }>;
-    pageNumber: number;
-    pageSize: number;
-    totalElements: number;
-    totalPages: number;
-    last: boolean;
+    
 }
 
 interface NotificationFilters {
@@ -29,23 +24,18 @@ interface NotificationFilters {
 }
 
 export const notificationsAPI = {
-    getNotifications: async (filters: NotificationFilters = {}): Promise<NotificationResponse> => {
+    getNotifications: async (): Promise<NotificationResponse[]> => {
         const token = localStorage.getItem("access_token");
-        const params = new URLSearchParams();
 
-        Object.entries(filters).forEach(([key, value]) => {
-            if (value !== undefined && value !== null) {
-                params.append(key, value.toString());
-            }
-        });
-
-        const response = await fetch(`${API_URL}/notifications?${params}`, {
+        const response = await fetch(`${API_URL}/notifications`, {
             method: "GET",
             headers: {
                 "Authorization": `Bearer ${token}`,
                 "Content-Type": "application/json",
             },
         });
+
+        console.log(response);
 
         if (!response.ok) {
             throw new Error(`Error fetching notifications: ${response.status}`);
@@ -57,7 +47,7 @@ export const notificationsAPI = {
     markAsRead: async (notificationId: string) => {
         const token = localStorage.getItem("access_token");
 
-        const response = await fetch(`${API_URL}/notifications/${notificationId}/mark-read`, {
+        const response = await fetch(`${API_URL}/notifications/${notificationId}/read`, {
             method: "PATCH",
             headers: {
                 "Authorization": `Bearer ${token}`,
@@ -75,7 +65,7 @@ export const notificationsAPI = {
     markAllAsRead: async () => {
         const token = localStorage.getItem("access_token");
 
-        const response = await fetch(`${API_URL}/notifications/mark-all-read`, {
+        const response = await fetch(`${API_URL}/notifications/all-read`, {
             method: "PATCH",
             headers: {
                 "Authorization": `Bearer ${token}`,

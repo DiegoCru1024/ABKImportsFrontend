@@ -1,9 +1,9 @@
-import type { Producto } from "@/pages/cotizacion/utils/interface";
+import type { Producto } from "@/pages/Cotizacion/utils/interface";
 import type { ColumnDef } from "@tanstack/react-table";
 import { EyeIcon, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import ImageViewerModal from "@/pages/cotizacion/components/ImageViewerModal";
+import ImageViewerModal from "@/pages/Cotizacion/components/ImageViewerModal";
 
 interface ColumnasCotizacionProps {
   handleEliminar: (index: number) => void;

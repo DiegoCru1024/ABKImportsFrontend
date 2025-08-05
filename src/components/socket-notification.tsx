@@ -41,7 +41,7 @@ export default function SocketNotification() {
                 size: 50,
                 page: 1
             });
-            setNotifications(response.content);
+            setNotifications(response.content || []);
         } catch (error) {
             console.error("Error loading notifications:", error);
         } finally {
@@ -110,7 +110,7 @@ export default function SocketNotification() {
         };
     }, [access_token]);
 
-    const unreadCount = notifications.filter(n => !n.isRead).length ?? 0;
+    const unreadCount = (notifications || []).filter(n => !n.isRead).length;
 
     const markAsRead = async (isRead: boolean, notificationId: string) => {
         try {
@@ -149,7 +149,7 @@ export default function SocketNotification() {
     };
 
     const clearAllNotifications = () => {
-        notifications.forEach(notification => {
+        (notifications || []).forEach(notification => {
             deleteNotification(notification.id);
         });
     };
@@ -214,14 +214,14 @@ export default function SocketNotification() {
                         <div className="flex items-center justify-center h-32">
                             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-yellow-500"></div>
                         </div>
-                    ) : notifications.length === 0 ? (
+                    ) : (notifications || []).length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-40 text-center p-4">
                             <Bell className="w-8 h-8 text-muted-foreground mb-2" />
                             <p className="text-sm text-muted-foreground">No hay notificaciones</p>
                         </div>
                     ) : (
                         <div className="p-2">
-                            {notifications.map((notification) => (
+                            {(notifications || []).map((notification) => (
                                 <div
                                     onClick={() => markAsRead(notification.isRead, notification.id)}
                                     key={notification.id}
@@ -268,7 +268,7 @@ export default function SocketNotification() {
                     )}
                 </div>
 
-                {notifications.length > 0 && (
+                {(notifications || []).length > 0 && (
                     <div className="border-t p-3">
                         <Button
                             variant="ghost"

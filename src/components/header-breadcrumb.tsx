@@ -81,7 +81,7 @@ export default function HeaderConBreadcrumb() {
             )}
             <span className="sr-only">Toggle theme</span>
           </div>
-          {/* <SocketNotification /> */}
+           <SocketNotification /> 
         </div>
       </div>
     </header>

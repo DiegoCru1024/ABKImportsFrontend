@@ -1,4 +1,4 @@
-import type { Quotation } from "@/pages/Cotizacion/utils/interface";
+import type { Quotation } from "@/pages/cotizacion-page/utils/interface";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createQuotation, deleteQuotation, getQuotationById, getQuotationsByUser, updateQuotation } from "@/api/quotations";

@@ -12,7 +12,7 @@ import GestionDeUsuarios from "@/pages/gestion-de-usuarios/gestion-de-usuarios-v
 import GestionDeTracking from "@/pages/gestion-de-tracking";
 import GestionDeMercanciasView from "@/pages/gestion-de-mercancia/gestion-de-mercancias-view";
 import InspectionDetailView from "@/pages/gestion-de-mercancia/inspection-detail-view";
-//import CotizacionView from "@/pages/Cotizacion/cotizacion-view";
+import CotizacionView from "@/pages/cotizacion-page/cotizacion-view";
 import MisCotizacionesView from "@/pages/mis-cotizaciones/mis-cotizacion-view";
 import ShipmentDetailView from "@/pages/shipment-detail-view";
 import Calculador from "./pages/calculator";
@@ -67,10 +67,10 @@ function App() {
         />
 
         {/* Rutas de la plataforma */}
-       {/* <Route
+        <Route
           path="/dashboard/cotizacion-de-productos"
           element={<CotizacionView />}
-        />*/}
+        />
         <Route
           path="/dashboard/calculador-de-impuestos"
           element={<Calculador />}

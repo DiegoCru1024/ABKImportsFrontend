@@ -67,8 +67,6 @@ import {
   aduana,
 } from "../utils/static";
 
-
-
 import EditableUnitCostTable from "./editableunitcosttable";
 import type { ProductRow } from "./editableunitcosttable";
 import { EditableNumericField } from "@/components/ui/editableNumberFieldProps";
@@ -95,7 +93,7 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
     //Obtener id_usuario del usuario logueado
     const id_usuario = obtenerUser().id_usuario;
     setId_usuario(id_usuario);
-   }, []);
+  }, []);
 
   //* Hook para crear respuesta de cotización
   const createQuotationResponseMutation = useCreateQuatitationResponse();
@@ -492,14 +490,13 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
     setEditableUnitCostProducts(products);
   };
 
-
-
   //* Función para generar el DTO con toda la información de la respuesta
   const generateQuotationResponseDTO = () => {
     return {
       // Información de la cotización
       quotationInfo: {
         quotationId: selectedQuotationId,
+        status: "ANSWERED",
         correlative: quotationDetail?.correlative || "",
         date: quotationDate,
         serviceType: selectedServiceLogistic,
@@ -517,7 +514,7 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
         transitTime: tiempoTransito,
         naviera: naviera,
         proformaValidity: selectedProformaVigencia,
-        id_asesor: id_usuario,
+        id_asesor: id_usuario || "",
       },
 
       // Valores dinámicos
@@ -629,11 +626,8 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
 
       // Productos del costeo unitario
       unitCostProducts: editableUnitCostProducts,
-
-
     };
   };
-
 
   //* Función para enviar la respuesta al backend usando el hook
   const handleSaveResponse = async () => {
@@ -643,19 +637,21 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
 
       const dto = generateQuotationResponseDTO();
 
-      console.log("Enviando respuesta al backend:", JSON.stringify(dto, null, 2));
+      console.log(
+        "Enviando respuesta al backend:",
+        JSON.stringify(dto, null, 2)
+      );
 
       // Llamada al backend usando el hook
-      /*await createQuotationResponseMutation.mutateAsync({
+      await createQuotationResponseMutation.mutateAsync({
         data: dto,
         quotationId: selectedQuotationId,
-      });*/
-      
+      });
     } catch (error) {
       console.error("Error al guardar la respuesta:", error);
     } finally {
       // El modal se cerrará automáticamente después del progreso
-      // setIsSendingModalOpen(false); - Se maneja automáticamente por el componente SendingModal
+      setIsSendingModalOpen(false);
     }
   };
 
@@ -2240,40 +2236,39 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                 <X className="w-4 h-4" />
                 Cancelar
               </Button>
-             {/* Botón Enviar */}
-          <div className="flex justify-end mt-8">
-            <ConfirmDialog
-              trigger={
-                <Button
-                  disabled={isLoading}
-                  className="bg-orange-500 hover:bg-orange-600 animate-pulse text-white px-8 py-2 rounded-full  shadow-md flex items-center gap-2 disabled:opacity-50"
-                >
-                  {isLoading ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                  ) : (
-                    <Send className="w-5 h-5" />
-                  )}
-                  Enviar
-                </Button>
-              }
-              title="Confirmar envío de cotización"
-              description={`¿Está seguro de enviar la cotización?`}
-              confirmText="Enviar"
-              cancelText="Cancelar"
-              onConfirm={handleSaveResponse}
-            />
-          </div>
+              {/* Botón Enviar */}
+              <div className="flex justify-end mt-8">
+                <ConfirmDialog
+                  trigger={
+                    <Button
+                      disabled={isLoading}
+                      className="bg-orange-500 hover:bg-orange-600 animate-pulse text-white px-8 py-2 rounded-full  shadow-md flex items-center gap-2 disabled:opacity-50"
+                    >
+                      {isLoading ? (
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                      ) : (
+                        <Send className="w-5 h-5" />
+                      )}
+                      Enviar
+                    </Button>
+                  }
+                  title="Confirmar envío de cotización"
+                  description={`¿Está seguro de enviar la cotización?`}
+                  confirmText="Enviar"
+                  cancelText="Cancelar"
+                  onConfirm={handleSaveResponse}
+                />
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-
-       {/* Modal de carga */}
-       <SendingModal 
-         isOpen={isSendingModalOpen} 
-         onClose={() => setIsSendingModalOpen(false)} 
-       />
+      {/* Modal de carga */}
+      <SendingModal
+        isOpen={isSendingModalOpen}
+        onClose={() => setIsSendingModalOpen(false)}
+      />
     </div>
   );
 };

@@ -20,6 +20,7 @@ const applyDefaultValues = (data: QuotationResponseDTO): QuotationResponseDTO =>
     quotationInfo: {
       quotationId: data.quotationInfo?.quotationId || "",
       correlative: data.quotationInfo?.correlative || "",
+      status: data.quotationInfo?.status || "ANSWERED",
       date: data.quotationInfo?.date || "",
       serviceType: data.quotationInfo?.serviceType || "",
       cargoType: data.quotationInfo?.cargoType || "",

@@ -1,5 +1,6 @@
 export interface QuotationInfo {
   quotationId: string;
+  status: string;
   correlative: string;
   date: string;
   serviceType: string;

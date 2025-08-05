@@ -57,7 +57,7 @@ export function columnsEditableUnitcost(
       header: () => <div className="text-center">TOTAL</div>,
       cell: ({ row }) => (
         <div className="text-center font-semibold">
-          USD {row.original.total.toFixed(2)}
+          USD {(Number(row.original.total) || 0).toFixed(2)}
         </div>
       ),
       minSize: 150,
@@ -71,7 +71,7 @@ export function columnsEditableUnitcost(
       cell: ({ row }) => {
         return (
           <div className="text-center flex justify-center items-center">
-            <span className="font-semibold">{row.original.equivalence.toFixed(2)}%</span>
+            <span className="font-semibold">{(Number(row.original.equivalence) || 0).toFixed(2)}%</span>
           </div>
         );
       },
@@ -85,7 +85,7 @@ export function columnsEditableUnitcost(
       header: () => <div className="text-center">GASTOS DE IMPORTACIÓN</div>,
       cell: ({ row }) => (
         <div className="text-center font-semibold">
-          USD {row.original.importCosts.toFixed(2)}
+          USD {(Number(row.original.importCosts) || 0).toFixed(2)}
         </div>
       ),
       minSize: 150,
@@ -98,7 +98,7 @@ export function columnsEditableUnitcost(
       header: () => <div className="text-center">COSTO TOTAL</div>,
       cell: ({ row }) => (
         <div className="text-center font-semibold">
-          USD {row.original.totalCost.toFixed(2)}
+          USD {(Number(row.original.totalCost) || 0).toFixed(2)}
         </div>
       ),
       minSize: 150,
@@ -111,7 +111,7 @@ export function columnsEditableUnitcost(
       header: () => <div className="text-center">COSTO UNITARIO</div>,
       cell: ({ row }) => (
         <div className="text-center font-semibold">
-          USD {row.original.unitCost.toFixed(2)}
+          USD {(Number(row.original.unitCost) || 0).toFixed(2)}
         </div>
       ),
       minSize: 150,

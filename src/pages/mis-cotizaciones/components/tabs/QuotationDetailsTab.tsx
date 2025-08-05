@@ -66,7 +66,7 @@ const DetallesTab: React.FC<DetallesTabProps> = ({
     isError: isErrorResponses,
   } = useGetQuatitationResponse(selectedQuotationId);
 
-  const [selectedServiceType, setSelectedServiceType] = useState<string>("");
+
   const [selectedResponseTab, setSelectedResponseTab] = useState<string>("");
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [selectedProductImages, setSelectedProductImages] = useState<string[]>(
@@ -156,7 +156,9 @@ const DetallesTab: React.FC<DetallesTabProps> = ({
   const calculateFactorM = (products: ProductRow[]): number => {
     return 0;
   };
+
   const columns = columnsEditableUnitcost(updateProduct);
+  
   const totalQuantity = productsList.reduce(
     (sum, product) => sum + (product.quantity || 0),
     0

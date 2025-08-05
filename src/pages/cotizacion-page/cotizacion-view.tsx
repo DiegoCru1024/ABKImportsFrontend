@@ -45,9 +45,9 @@ import SendingModal from "@/components/sending-modal";
 import { useNavigate } from "react-router-dom";
 
 import { Label } from "@/components/ui/label";
-import { productoSchema } from "@/pages/Cotizacion/utils/schema";
-import { columnasCotizacion } from "@/pages/Cotizacion/components/table/columnasCotizacion";
-import { servicios } from "@/pages/Cotizacion/components/data/static";
+import { productoSchema } from "@/pages/cotizacion-page/utils/schema";
+import { columnasCotizacion } from "@/pages/cotizacion-page/components/table/columnasCotizacion";
+import { servicios } from "@/pages/cotizacion-page/components/data/static";
 
 export default function CotizacionView() {
   const navigate = useNavigate();

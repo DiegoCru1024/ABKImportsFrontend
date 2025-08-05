@@ -133,7 +133,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="w-full h-96 border rounded-lg overflow-hidden">
+      <div className="relative z-0 w-full h-96 border rounded-lg overflow-hidden">
         <MapContainer 
           center={center} 
           zoom={12} 

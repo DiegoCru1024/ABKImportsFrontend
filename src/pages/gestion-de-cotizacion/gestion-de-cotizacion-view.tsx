@@ -32,7 +32,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 import { formatDate, formatDateTime } from "@/lib/format-time";
 
-import { statusFilterOptions, statusMap } from "@/pages/Cotizacion/components/static";
+import { statusFilterOptions, statusMap } from "@/pages/cotizacion-page/components/static";
 
 export default function GestionDeCotizacionesView() {
   // ********Tabs**** */

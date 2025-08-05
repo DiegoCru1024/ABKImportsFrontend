@@ -190,7 +190,7 @@ export default function SocketNotification() {
                 </div>
             </SheetTrigger>
 
-            <SheetContent side="right" className="w-80 p-0">
+            <SheetContent side="right" className="w-80 p-0 z-50">
                 <SheetHeader className="px-4 py-4 border-b">
                     <div className="flex items-center justify-between">
                         <SheetTitle className="text-lg font-semibold">Notificaciones</SheetTitle>

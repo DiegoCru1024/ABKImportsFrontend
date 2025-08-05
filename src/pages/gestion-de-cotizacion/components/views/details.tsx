@@ -101,8 +101,6 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
   //* Estado para la fecha de la cotización
   const [quotationDate, setQuotationDate] = useState<string>("");
 
-  //* Estado de apertura de modal de respuesta
-  const [isResponseModalOpen, setIsResponseModalOpen] = useState(false);
 
   //* Estado para el modal de envío
   const [isSendingModalOpen, setIsSendingModalOpen] = useState(false);
@@ -110,9 +108,6 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
   //* Estado para el servicio seleccionado
   const [selectedServiceType, setSelectedServiceType] = useState<string>("");
 
-  //* Estados para el sistema de respuestas
-  const [selectedProduct, setSelectedProduct] =
-    useState<ProductoResponseIdInterface | null>(null);
 
   //! Estado para almacenar los productos
   const [product, setProduct] = useState<ProductoResponseIdInterface[]>([]);

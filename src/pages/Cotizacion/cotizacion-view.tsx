@@ -28,7 +28,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { Producto } from "@/pages/cotizacion/utils/interface";
-import { columnasCotizacion } from "@/pages/cotizacion/components/table/columnasCotizacion";
+import { columnasCotizacion } from "@/pages/Cotizacion/components/table/columnasCotizacion";
 import { servicios } from "@/pages/cotizacion/components/data/static";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";

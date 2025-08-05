@@ -50,7 +50,7 @@ export default function LoginPage() {
         localStorage.setItem("user.id_usuario", res.data?.user?.id_usuario);
         localStorage.setItem("user.name", res.data?.user?.name);
         localStorage.setItem("user.email", res.data?.user?.email);
-        localStorage.setItem("user.type", res.data?.user?.type);
+        localStorage.setItem("user.type", res.data?.user?.type); 
 
         // Espera 300ms antes de redirigir
         setTimeout(() => {

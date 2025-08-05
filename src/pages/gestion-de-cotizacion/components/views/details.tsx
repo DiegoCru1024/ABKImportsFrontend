@@ -43,7 +43,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { formatCurrency } from "@/lib/functions";
+import { formatCurrency, obtenerUser } from "@/lib/functions";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -89,6 +89,13 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
     isLoading,
     isError,
   } = useGetQuotationById(selectedQuotationId);
+
+  const [id_usuario, setId_usuario] = useState<string | null>(null);
+  useEffect(() => {
+    //Obtener id_usuario del usuario logueado
+    const id_usuario = obtenerUser().id_usuario;
+    setId_usuario(id_usuario);
+   }, []);
 
   //* Hook para crear respuesta de cotización
   const createQuotationResponseMutation = useCreateQuatitationResponse();
@@ -485,6 +492,8 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
     setEditableUnitCostProducts(products);
   };
 
+
+
   //* Función para generar el DTO con toda la información de la respuesta
   const generateQuotationResponseDTO = () => {
     return {
@@ -508,7 +517,7 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
         transitTime: tiempoTransito,
         naviera: naviera,
         proformaValidity: selectedProformaVigencia,
-        id_asesor: "PAULO",
+        id_asesor: id_usuario,
       },
 
       // Valores dinámicos

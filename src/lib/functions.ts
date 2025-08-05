@@ -1,6 +1,6 @@
 export const obtenerUser = () => {
   const user = {
-    id: localStorage.getItem("user.id"),
+    id_usuario: localStorage.getItem("user.id_usuario"),
     name: localStorage.getItem("user.name"),
     email: localStorage.getItem("user.email"),
     type: localStorage.getItem("user.type"),

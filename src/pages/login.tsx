@@ -47,7 +47,7 @@ export default function LoginPage() {
       if (res.status === 201) {
         toast.success("Inicio de sesión exitoso");
         localStorage.setItem("access_token", res.data.access_token);
-        localStorage.setItem("user.id", res.data?.user?.id);
+        localStorage.setItem("user.id_usuario", res.data?.user?.id_usuario);
         localStorage.setItem("user.name", res.data?.user?.name);
         localStorage.setItem("user.email", res.data?.user?.email);
         localStorage.setItem("user.type", res.data?.user?.type);

@@ -49,7 +49,7 @@ import { productoSchema } from "@/pages/cotizacion/utils/schema";
 import { Label } from "@/components/ui/label";
 
 
-export default function CotizacionViewNew() {
+export default function CotizacionView() {
   const navigate = useNavigate();
   const [productos, setProductos] = useState<any[]>([]);
   const [service, setService] = useState("Pendiente");

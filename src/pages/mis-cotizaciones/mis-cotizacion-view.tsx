@@ -5,6 +5,7 @@ import { useState } from "react";
 // Importar componentes modulares
 import QuotationsListTab from "./components/tabs/QuotationsListTab";
 import QuotationDetailsTab from "./components/tabs/QuotationDetailsTab";
+import EditCotizacionView from "../cotizacion-page/edit-cotizacion-view";
 
 
 
@@ -24,6 +25,13 @@ const tabs = [
     description: "Ver respuesta de la cotización seleccionada",
     disabled: false,
   },
+  {
+    id: "editar",
+    label: "Editar Cotización",
+    icon: FileText,
+    description: "Editar cotización seleccionada",
+    disabled: false,
+  },
 
 ] as const;
 
@@ -35,6 +43,9 @@ export default function MisCotizacionesView() {
   //********Cotización seleccionada**** */
   const [selectedQuotationId, setSelectedQuotationId] = useState<string>("");
 
+  //********Cotización seleccionada para editar**** */
+  const [editingQuotationId, setEditingQuotationId] = useState<string>("");
+
   //********Producto seleccionado para respuesta**** */
   const [selectedProductId, setSelectedProductId] = useState<string>("");
   const [selectedProductName, setSelectedProductName] = useState<string>("");
@@ -43,6 +54,12 @@ export default function MisCotizacionesView() {
   const handleViewDetails = (quotationId: string) => {
     setSelectedQuotationId(quotationId);
     setMainTab("respuesta");
+  };
+
+  // Función para manejar la edición de cotización
+  const handleEditQuotation = (quotationId: string) => {
+    setEditingQuotationId(quotationId);
+    setMainTab("editar");
   };
 
   // Función para manejar la selección de producto para respuesta
@@ -81,7 +98,8 @@ export default function MisCotizacionesView() {
               const isActive = mainTab === tabItem.id;
               // Lógica de habilitación de tabs
               const isDisabled =
-                (tabItem.id === "respuesta" && !selectedQuotationId) 
+                (tabItem.id === "respuesta" && !selectedQuotationId) ||
+                (tabItem.id === "editar" && !editingQuotationId) 
               return (
                 <button
                   key={tabItem.id}
@@ -115,13 +133,23 @@ export default function MisCotizacionesView() {
 
           {/* Contenidos de las tabs */}
           {mainTab === "cotizaciones" && (
-            <QuotationsListTab onViewDetails={handleViewDetails} />
+            <QuotationsListTab 
+              onViewDetails={handleViewDetails} 
+              onEditQuotation={handleEditQuotation}
+            />
           )}
 
           {mainTab === "respuesta" && selectedQuotationId && (
             <QuotationDetailsTab
               selectedQuotationId={selectedQuotationId}
               onSelectProductForResponse={handleSelectProductForResponse}
+            />
+          )}
+
+          {mainTab === "editar" && editingQuotationId && (
+            <EditCotizacionView
+              quotationId={editingQuotationId}
+              onBack={() => setMainTab("cotizaciones")}
             />
           )}
 

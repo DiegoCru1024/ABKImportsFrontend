@@ -1,7 +1,7 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { EllipsisVerticalIcon, Eye, Trash, Truck } from "lucide-react";
+import { Edit, EllipsisVerticalIcon, Eye, Trash, Truck } from "lucide-react";
 import type { QuotationListItem } from "../../types/interfaces";
 import { obtenerUser } from "@/lib/functions";
 import {
@@ -13,12 +13,14 @@ import {
   
 interface ColumnsQuotationsListProps {
   onViewDetails: (quotationId: string,correlative:string) => void;
+  onEditQuotation: (quotationId: string,correlative:string) => void;
   onGenerateInspectionId?: (quotationId: string,correlative:string ) => void;
   onDelete?: (quotationId: string) => void;
 }
 
 export function columnsQuotationsList({
   onViewDetails,
+  onEditQuotation,
   onGenerateInspectionId,
   onDelete,
 }: ColumnsQuotationsListProps): ColumnDef<QuotationListItem, any>[] {
@@ -155,73 +157,38 @@ export function columnsQuotationsList({
     {
       id: "actions",
       header: "Acciones",
-      cell: ({ row }) => {
-        
-        return (
-          isAdmin ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm">
-                  <EllipsisVerticalIcon className="w-4 h-4 text-blue-500" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem className=" text-green-600 hover:text-green-800 hover:bg-green-50">
-                  <Button
-                    variant="ghost"
-                    className=" text-green-600 hover:text-green-800 hover:bg-green-50"
-                    size="sm"
-                    onClick={() => onViewDetails(row.original.id,row.original.correlative)}
-                  >
-                    <Eye className="h-4 w-4 mr-2 text-green-500" />
-                    Ver Detalles
-                  </Button>
-                </DropdownMenuItem>
-                <DropdownMenuItem className=" text-blue-600 hover:text-blue-800 hover:bg-blue-50">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
-                    onClick={() => onGenerateInspectionId?.(row.original.id, row.original.correlative)}
-                  >
-                    <Truck className="h-4 w-4 mr-2 text-blue-500" />
-                    Generar Id de Inspección
-                  </Button>
-                </DropdownMenuItem>
-                
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm">
-                  <EllipsisVerticalIcon className="w-4 h-4 text-blue-500" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem className=" text-green-600 hover:text-green-800 hover:bg-green-50">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-green-600 hover:text-green-800 hover:bg-green-50"
-                    onClick={() => onViewDetails(row.original.id,row.original.correlative)}
-                  >
-                    <Eye className="h-4 w-4 mr-2 text-green-500" />
-                    Ver Detalles
-                  </Button>
-                </DropdownMenuItem>
-
-                <DropdownMenuItem className=" text-red-600 hover:text-red-800 hover:bg-red-50" onClick={() => onDelete?.(row.original.id)}>
-                  <Trash className="h-4 w-4 mr-2 text-red-500" />
-                  Eliminar
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )
-        );
-      },
-
-      size: 120,
+      size: 100,
+      cell: ({ row }) => (
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onViewDetails(row.original.id, row.original.correlative)}
+            className="h-8 w-8 p-0 text-orange-500 hover:text-orange-700"
+            title="Ver cotizacion"
+          >
+            <Eye className="w-4 h-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onEditQuotation(row.original.id, row.original.correlative)}
+            className="h-8 w-8 p-0 text-blue-500 hover:text-blue-700"
+            title="Editar cotizacion"
+          >
+            <Edit className="w-4 h-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onDelete?.(row.original.id)}
+            className="h-8 w-8 p-0 text-red-500 hover:text-red-700"
+            title="Eliminar producto"
+          >
+            <Trash className="w-4 h-4" />
+          </Button>
+        </div>
+      ),
     },
   ];
 }

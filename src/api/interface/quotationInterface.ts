@@ -5,7 +5,7 @@ export interface QuotationResponseIdInterface {
   id: string;
   correlative: string;
   statusResponseQuotation: string;
-  summaryByServiceType: SumaryByServiceTypeInterface[];
+  service_type:string;
   user: {
     id: string;
     name: string;
@@ -16,16 +16,6 @@ export interface QuotationResponseIdInterface {
   updatedAt: string;
 }
 
-/**
- * Interfaz para el resumen por tipo de servicio
- */
-export interface SumaryByServiceTypeInterface{
-  service_type: string;
-  total_price: number;
-  express_price: number;
-  service_fee: number;
-  taxes: number;
-}
 
 /**
  * Interfaz para el producto de la cotización

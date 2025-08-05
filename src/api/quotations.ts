@@ -101,6 +101,7 @@ export const updateQuotation = async (id: string, quotation: Quotation) => {
  */
 export const deleteQuotation = async (id: string) => {
   try {
+    console.log("Eliminando cotizacion", id);
     return await apiFetch(`/quotations/${id}`, {
       method: "DELETE",
     });
@@ -110,3 +111,15 @@ export const deleteQuotation = async (id: string) => {
   }
 };
 
+
+export const patchQuotation = async (id: string, quotation: Quotation) => {
+  try {
+    return await apiFetch(`/quotations/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(quotation),
+    });
+  } catch (error) {
+    console.error("Error al actualizar la cotización:", error);
+    throw error;
+  }
+}

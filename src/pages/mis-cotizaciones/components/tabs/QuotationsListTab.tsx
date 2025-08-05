@@ -8,9 +8,10 @@ import { toast } from "sonner";
 
 interface QuotationsListTabProps {
   onViewDetails: (quotationId: string) => void;
+  onEditQuotation: (quotationId: string) => void;
 }
 
-const QuotationsListTab: React.FC<QuotationsListTabProps> = ({ onViewDetails }) => {
+const QuotationsListTab: React.FC<QuotationsListTabProps> = ({ onViewDetails, onEditQuotation }) => {
   const [data, setData] = useState<any[]>([]);
   
   // Estados para nueva creación y eliminación
@@ -54,7 +55,7 @@ const QuotationsListTab: React.FC<QuotationsListTabProps> = ({ onViewDetails }) 
     }));
   };
 
-  const { mutate: deleteQuotation } = useDeleteQuotation("");
+  const { mutate: deleteQuotation } = useDeleteQuotation();
 
   const onDelete = async (id: string) => {
     console.log("eliminarCotizacion", id);    
@@ -64,7 +65,7 @@ const QuotationsListTab: React.FC<QuotationsListTabProps> = ({ onViewDetails }) 
 
 
 
-  const columns = columnsQuotationsList({ onViewDetails, onDelete });
+  const columns = columnsQuotationsList({ onViewDetails, onEditQuotation, onDelete });
 
   if (isError) {
     return (

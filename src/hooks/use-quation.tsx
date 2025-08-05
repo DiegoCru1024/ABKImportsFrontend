@@ -1,7 +1,7 @@
 import type { Quotation } from "@/pages/cotizacion-page/utils/interface";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createQuotation, deleteQuotation, getQuotationById, getQuotationsByUser, updateQuotation } from "@/api/quotations";
+import { createQuotation, deleteQuotation, getQuotationById, getQuotationsByUser, patchQuotation, updateQuotation } from "@/api/quotations";
 import { toast } from "sonner";
 import { Check, X } from "lucide-react";
 
@@ -124,7 +124,7 @@ export function useUpdateQuotation(id: string) {
  * @param {string} id - El ID de la cotización
  * @returns {useMutation} - Mutación para eliminar una cotización
  */ 
-export function useDeleteQuotation(id: string) {
+export function useDeleteQuotation() {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -132,6 +132,7 @@ export function useDeleteQuotation(id: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["Quotations"],
+
       });
       toast.success("Cotización eliminada exitosamente", {
         className: "bg-green-50 border-green-500",
@@ -148,3 +149,25 @@ export function useDeleteQuotation(id: string) {
   });
 }
 
+  /**
+   * Hook para actualizar una cotización
+   * @param {string} id - El ID de la cotización
+   * @returns {useMutation} - Mutación para actualizar una cotización
+   */ 
+  export function usePatchQuotation(id: string) {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+      mutationFn: ({ data }: { data: Quotation }) => patchQuotation(id, data),
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: ["Quotation", id],
+        });
+        toast.success("Cotización actualizada exitosamente");
+      },
+      onError: (error) => {
+        console.error("Error al actualizar la cotización:", error);
+        toast.error("Error al actualizar la cotización");
+      },
+    });
+  }

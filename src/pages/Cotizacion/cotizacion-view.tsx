@@ -28,8 +28,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { Producto } from "@/pages/Cotizacion/utils/interface";
-import { columnasCotizacion } from "@/pages/Cotizacion/components/table/columnasCotizacion";
-import { servicios } from "@/pages/Cotizacion/components/data/static";
+import { columnasCotizacion } from "@/pages/cotizacion/components/table/columnasCotizacion";
+import { servicios } from "@/pages/cotizacion/components/data/static";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -45,7 +45,7 @@ import { uploadMultipleFiles } from "@/api/fileUpload";
 import { toast } from "sonner";
 import SendingModal from "@/components/sending-modal";
 import { useNavigate } from "react-router-dom";
-import { productoSchema } from "@/pages/Cotizacion/utils/schema";
+import { productoSchema } from "@/pages/cotizacion/utils/schema";
 import { Label } from "@/components/ui/label";
 
 export default function CotizacionViewNew() {

@@ -10,10 +10,13 @@ import EditCotizacionView from "../cotizacion-page/edit-cotizacion-view";
 import ConfirmationModal from "@/components/modal-confirmation";
 import SendingModal from "@/components/sending-modal";
 import { useDeleteQuotation } from "@/hooks/use-quation";
+import { useNavigate } from "react-router-dom";
 
 type ViewType = "list" | "details" | "edit";
 
 export default function MisCotizacionesView() {
+
+  const navigate = useNavigate();
   const [currentView, setCurrentView] = useState<ViewType>("list");
   const [data, setData] = useState<any[]>([]);
   const [selectedQuotationId, setSelectedQuotationId] = useState<string>("");
@@ -149,7 +152,7 @@ export default function MisCotizacionesView() {
               </div>
               <Button 
                 className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-full shadow-md flex items-center gap-2"
-                onClick={() => window.location.href = "/dashboard/cotizacion"}
+                onClick={() => navigate("/dashboard/cotizacion-de-productos")}
               >
                 <Plus className="h-4 w-4" />
                 Nueva Cotización

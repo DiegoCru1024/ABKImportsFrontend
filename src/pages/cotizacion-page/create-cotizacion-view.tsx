@@ -53,7 +53,7 @@ import { productoSchema } from "@/pages/cotizacion-page/utils/schema";
 import { columnasCotizacion } from "@/pages/cotizacion-page/components/table/columnasCotizacion";
 import { servicios } from "@/pages/cotizacion-page/components/data/static";
 
-export default function CotizacionView() {
+export default function CreateCotizacionView() {
   const navigate = useNavigate();
   const [productos, setProductos] = useState<any[]>([]);
   const [service, setService] = useState("Pendiente");
@@ -178,10 +178,10 @@ export default function CotizacionView() {
     setSelectedFiles([]);
   };
 
-  //* Función para enviar cotización
-  const handleEnviar = async () => {
+  //* Función para enviar o guardar como borrador cotización
+  const handleSubmitQuotation = async (saveAsDraft: boolean = false) => {
     if (productos.length === 0) {
-      toast.error("No hay productos para enviar");
+      toast.error("No hay productos para " + (saveAsDraft ? "guardar" : "enviar"));
       return;
     }
 
@@ -232,16 +232,30 @@ export default function CotizacionView() {
         };
       });
 
-      console.log(JSON.stringify(productosConUrls, null, 2));
+      const dataToSend = {
+        products: productosConUrls,
+        service_type: service,
+        saveAsDraft: saveAsDraft
+      };
+
+      console.log("Datos a enviar:", JSON.stringify(dataToSend, null, 2));
 
       // 4. Enviar al hook de cotización
       createQuotationMut.mutate(
-        { data: { products: productosConUrls, service_type: service } },
+        { data: dataToSend },
         {
           onSuccess: () => {
             setIsLoading(false);
             //*Limpiar productos después del envío exitoso
             setProductos([]);
+            
+            // Mostrar mensaje apropiado según la acción
+            if (saveAsDraft) {
+              toast.success("Cotización guardada como borrador exitosamente");
+            } else {
+              toast.success("Cotización enviada exitosamente");
+            }
+            
             //*Esperar 3 segundos y luego redirigir
             setTimeout(() => {
               navigate("/dashboard/mis-cotizaciones");
@@ -249,16 +263,23 @@ export default function CotizacionView() {
           },
           onError: (error) => {
             setIsLoading(false);
-            console.error("Error al enviar cotización:", error);
+            console.error("Error al " + (saveAsDraft ? "guardar" : "enviar") + " cotización:", error);
+            toast.error("Error al " + (saveAsDraft ? "guardar" : "enviar") + " la cotización");
           },
         }
       );
     } catch (error) {
-      console.error("Error durante el proceso de envío:", error);
+      console.error("Error durante el proceso de " + (saveAsDraft ? "guardado" : "envío") + ":", error);
       toast.error("Error al procesar los archivos");
       setIsLoading(false);
     }
   };
+
+  //* Función para enviar cotización (wrapper)
+  const handleEnviar = () => handleSubmitQuotation(false);
+
+  //* Función para guardar como borrador (wrapper)
+  const handleGuardarBorrador = () => handleSubmitQuotation(true);
 
   useEffect(() => {
     console.log("Productos actuales:", productos);
@@ -624,13 +645,29 @@ export default function CotizacionView() {
             </div>
           </div>
 
-          {/* Botón Enviar */}
-          <div className="flex justify-end mt-8">
+          {/* Botones de acción */}
+          <div className="flex justify-end gap-2 mt-8">
+            {/* Botón Guardar como borrador */}
+            <Button
+              variant="secondary"
+              onClick={handleGuardarBorrador}
+              disabled={isLoading || productos.length === 0}
+              className="text-gray-600 border-gray-300 hover:bg-gray-50 px-6 py-2 flex items-center gap-2 disabled:opacity-50"
+            >
+              {isLoading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <File className="w-4 h-4" />
+              )}
+              Guardar como borrador
+            </Button>
+
+            {/* Botón Enviar con confirmación */}
             <ConfirmDialog
               trigger={
                 <Button
                   disabled={isLoading || productos.length === 0}
-                  className="bg-orange-500 hover:bg-orange-600 animate-pulse text-white px-8 py-2 rounded-full  shadow-md flex items-center gap-2 disabled:opacity-50"
+                  className="bg-orange-500 hover:bg-orange-600 animate-pulse text-white px-8 py-2 rounded-full shadow-md flex items-center gap-2 disabled:opacity-50"
                 >
                   {isLoading ? (
                     <Loader2 className="w-5 h-5 animate-spin" />

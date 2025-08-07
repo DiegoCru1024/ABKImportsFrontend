@@ -28,6 +28,7 @@ export interface Quotation {
       number_of_boxes: number;
       attachments: string[];
   }[];
+  saveAsDraft?: boolean;
 }
 
 

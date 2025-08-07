@@ -4,13 +4,8 @@
 export interface QuotationResponseIdInterface {
   id: string;
   correlative: string;
-  statusResponseQuotation: string;
+  status: string;
   service_type:string;
-  user: {
-    id: string;
-    name: string;
-    email: string;
-  };
   products: ProductoResponseIdInterface[];
   createdAt: string;
   updatedAt: string;
@@ -32,8 +27,7 @@ export interface ProductoResponseIdInterface {
   volume: string;
   number_of_boxes: number;
   attachments: string[];
-  statusResponseProduct: string | null;
-  sendResponse: boolean;
+
 }
 
 

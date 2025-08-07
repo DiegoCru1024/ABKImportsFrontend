@@ -108,7 +108,7 @@ export function useUpdateQuotation(id: string) {
       updateQuotation(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["Quotation", id],
+        queryKey: ["useGetQuotationsByUser"],
       });
       toast.success("Cotización actualizada exitosamente");
     },
@@ -131,7 +131,7 @@ export function useDeleteQuotation() {
     mutationFn: (id: string) => id ? deleteQuotation(id) : Promise.resolve(null),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["Quotations"],
+        queryKey: ["useGetQuotationsByUser"],
 
       });
       toast.success("Cotización eliminada exitosamente", {
@@ -161,7 +161,7 @@ export function useDeleteQuotation() {
       mutationFn: ({ data }: { data: Quotation }) => patchQuotation(id, data),
       onSuccess: () => {
         queryClient.invalidateQueries({
-          queryKey: ["Quotation", id],
+          queryKey: ["useGetQuotationsByUser"],
         });
         toast.success("Cotización actualizada exitosamente");
       },

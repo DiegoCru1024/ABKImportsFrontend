@@ -17,8 +17,8 @@ export function columnasCotizacion({
 }: ColumnasCotizacionProps): ColumnDef<Producto, any>[] {
   return [
     {
-      id: "nombre",
-      accessorKey: "nombre",
+      id: "name",
+      accessorKey: "name",
       header: "Nombre",
       cell: ({ row }) => <div>{row.original.name}</div>,
       minSize: 150,
@@ -26,14 +26,14 @@ export function columnasCotizacion({
       maxSize: 250,
     },
     {
-      id: "cantidad",
+      id: "quantity",
       accessorKey: "quantity",
       header: "Cantidad",
       cell: ({ row }) => <div>{row.original.quantity}</div>,
       size: 50,
     },
     {
-      id: "tamano",
+      id: "size",
       accessorKey: "size",
       header: "Tamaño",
       cell: ({ row }) => <div>{row.original.size}</div>,
@@ -51,14 +51,28 @@ export function columnasCotizacion({
       accessorKey: "url",
       header: "URL",
       cell: ({ row }) => (
-        <div className="truncate max-w-[100px]">{row.original.url}</div>
+        <div className="flex items-center gap-2">
+          {row.original.url ? (
+            <a
+              href={row.original.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:underline text-sm"
+            >
+              Ver enlace
+            </a>
+          ) : (
+            <span className="text-gray-400 text-sm">Sin enlace</span>
+          )}
+        </div>
       ),
       minSize: 70,
       size: 80,
       maxSize: 100,
     },
     {
-      accessorKey: "comentario",
+      id: "comment",
+      accessorKey: "comment",
       header: "Comentario",
       cell: ({ row }) => (
         <div className="whitespace-normal break-words w-[250px]">
@@ -70,16 +84,18 @@ export function columnasCotizacion({
       maxSize: 250,
     },
     {
-      id: "archivos",
-      accessorKey: "archivos",
+      id: "attachments",
+      accessorKey: "attachments",
       header: "Archivos",
       size: 100,
       cell: ({ row }) => {
         const files: File[] = row.original.files || [];
-        
+        const attachments: string[] = row.original.attachments || [];
+        const totalFiles = files.length + attachments.length;
+
         const FileViewerCell = () => {
           const [isModalOpen, setIsModalOpen] = useState(false);
-          
+
           return (
             <>
               <Button
@@ -87,26 +103,27 @@ export function columnasCotizacion({
                 size="sm"
                 onClick={() => setIsModalOpen(true)}
                 className="h-8 w-8 p-0"
-                disabled={files.length === 0}
+                disabled={totalFiles === 0}
               >
                 <EyeIcon className="w-4 h-4 text-blue-500" />
               </Button>
-              
+
               <ImageViewerModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 files={files}
+                attachments={attachments}
                 productName={row.original.name}
               />
             </>
           );
         };
-        
+
         return (
           <div className="flex items-center gap-2">
             <FileViewerCell />
             <span className="text-xs text-muted-foreground">
-              ({files.length} archivo{files.length !== 1 ? 's' : ''})
+              ({totalFiles} archivo{totalFiles !== 1 ? "s" : ""})
             </span>
           </div>
         );

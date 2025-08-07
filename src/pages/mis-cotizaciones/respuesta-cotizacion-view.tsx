@@ -40,12 +40,12 @@ import { Separator } from "@/components/ui/separator";
 import { columnsEditableUnitcost } from "@/pages/gestion-de-cotizacion/components/table/columnseditableunitcost";
 import type { ProductRow } from "@/pages/gestion-de-cotizacion/components/views/editableunitcosttable";
 
-interface DetallesTabProps {
+interface ResponseCotizacionViewProps {
   selectedQuotationId: string;
   onSelectProductForResponse: (productId: string, productName: string) => void;
 }
 
-const DetallesTab: React.FC<DetallesTabProps> = ({
+const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
   selectedQuotationId,
   onSelectProductForResponse,
 }) => {
@@ -402,44 +402,12 @@ const DetallesTab: React.FC<DetallesTabProps> = ({
                       {quotationDetail.correlative}
                     </h3>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-500">
-                      Estado de respuesta:
-                    </span>
-                    <Badge
-                      className={`${
-                        statusColorsQuotation[
-                          quotationDetail.statusResponseQuotation as keyof typeof statusResponseQuotation
-                        ]
-                      } border px-3 py-1 flex items-center gap-1`}
-                    >
-                      <div
-                        className={`w-2 h-2 rounded-full ${
-                          statusColorsQuotation[
-                            quotationDetail.statusResponseQuotation as keyof typeof statusResponseQuotation
-                          ]
-                        }`}
-                      ></div>
-                      {
-                        statusResponseQuotation[
-                          quotationDetail.statusResponseQuotation as keyof typeof statusResponseQuotation
-                        ]
-                      }
-                    </Badge>
-                  </div>
+
                 </div>
               </div>
 
               {/* Estadísticas */}
               <div className="flex items-center gap-6">
-                <div>
-                  <p className="text-gray-900 font-medium">
-                    Cliente: {quotationDetail.user?.name}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    Correo: {quotationDetail.user?.email}
-                  </p>
-                </div>
                 <div className="text-center">
                   <div className="flex  flex-col  gap-1 items-start text-gray-600">
                     <div className="flex items-center gap-1">
@@ -746,4 +714,4 @@ const DetallesTab: React.FC<DetallesTabProps> = ({
   );
 };
 
-export default DetallesTab;
+export default ResponseCotizacionView;

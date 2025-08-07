@@ -1,31 +1,23 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Edit, EllipsisVerticalIcon, Eye, Trash, Truck } from "lucide-react";
+import { Edit, Eye, Trash, Truck } from "lucide-react";
 import type { QuotationListItem } from "../../types/interfaces";
-import { obtenerUser } from "@/lib/functions";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+
+
   
 interface ColumnsQuotationsListProps {
   onViewDetails: (quotationId: string,correlative:string) => void;
   onEditQuotation: (quotationId: string,correlative:string) => void;
-  onGenerateInspectionId?: (quotationId: string,correlative:string ) => void;
-  onDelete?: (quotationId: string) => void;
+  onDelete: (quotationId: string) => void;
 }
 
 export function columnsQuotationsList({
   onViewDetails,
   onEditQuotation,
-  onGenerateInspectionId,
   onDelete,
 }: ColumnsQuotationsListProps): ColumnDef<QuotationListItem, any>[] {
-  const currentUser = obtenerUser();
-  const isAdmin = currentUser?.type === "admin";
+
 
   const getStatusBadge = (status: string) => {
     switch (status.toLowerCase()) {
@@ -84,17 +76,7 @@ export function columnsQuotationsList({
 
 
   return [
-    /*{
-      id: "id",
-      accessorKey: "id",
-      header: "ID",
-      cell: ({ row }) => (
-        <div className="font-mono text-xs truncate max-w-[80px]" title={row.original.id}>
-          {row.original.id.substring(0, 8)}...
-        </div>
-      ),
-      size: 100,
-    },*/
+
     {
       id: "correlative",
       accessorKey: "correlative",
@@ -106,7 +88,8 @@ export function columnsQuotationsList({
       ),
       size: 120,
     },
-    /*...(isAdmin ? [userColumn] : []),*/
+
+
     {
       id: "status",
       accessorKey: "status",
@@ -130,10 +113,10 @@ export function columnsQuotationsList({
       size: 200,
     },
     {
-      id: "productQuantity",
-      accessorKey: "productQuantity",
-      header: "Cantidad de Productos",
-      cell: ({ row }) => <div>{row.original.productQuantity}</div>,
+      id: "quantityProducts",
+      accessorKey: "quantityProducts",
+      header: "Nro. Productos",
+      cell: ({ row }) => <div className="text-center">{row.original.quantityProducts}</div>,
       size: 80,
     },
     {
@@ -165,7 +148,7 @@ export function columnsQuotationsList({
             size="sm"
             onClick={() => onViewDetails(row.original.id, row.original.correlative)}
             className="h-8 w-8 p-0 text-orange-500 hover:text-orange-700"
-            title="Ver cotizacion"
+            title="Ver detalles de respuesta"
           >
             <Eye className="w-4 h-4" />
           </Button>
@@ -181,9 +164,9 @@ export function columnsQuotationsList({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => onDelete?.(row.original.id)}
+            onClick={() => onDelete(row.original.id)}
             className="h-8 w-8 p-0 text-red-500 hover:text-red-700"
-            title="Eliminar producto"
+            title="Eliminar cotizacion"
           >
             <Trash className="w-4 h-4" />
           </Button>

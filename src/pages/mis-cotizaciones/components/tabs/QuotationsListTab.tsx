@@ -1,19 +1,30 @@
 import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable } from "@/components/table/data-table";
-import { useDeleteQuotation, useGetQuotationsListWithPagination } from "@/hooks/use-quation";
+import {
+  useDeleteQuotation,
+  useGetQuotationsListWithPagination,
+} from "@/hooks/use-quation";
 import { columnsQuotationsList } from "../table/columnsQuotationsList";
 import { toast } from "sonner";
-
+import ConfirmationModal from "@/components/modal-confirmation";
+import SendingModal from "@/components/sending-modal";
 
 interface QuotationsListTabProps {
-  onViewDetails: (quotationId: string) => void;
-  onEditQuotation: (quotationId: string) => void;
+  onViewDetails: (quotationId: string, correlative: string) => void;
+  onEditQuotation: (quotationId: string, correlative: string) => void;
 }
 
-const QuotationsListTab: React.FC<QuotationsListTabProps> = ({ onViewDetails, onEditQuotation }) => {
+const QuotationsListTab: React.FC<QuotationsListTabProps> = ({
+  onViewDetails,
+  onEditQuotation,
+}) => {
   const [data, setData] = useState<any[]>([]);
-  
+  const [isOpen, setIsOpen] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+  const [selectedQuotationId, setSelectedQuotationId] = useState<string | null>(
+    null
+  );
   // Estados para nueva creación y eliminación
   const [searchTerm, setSearchTerm] = useState("");
   const [pageInfo, setPageInfo] = useState({
@@ -22,7 +33,15 @@ const QuotationsListTab: React.FC<QuotationsListTabProps> = ({ onViewDetails, on
     totalElements: 0,
     totalPages: 0,
   });
-  const { data: dataQuotations, isLoading, isError } = useGetQuotationsListWithPagination( searchTerm,pageInfo.pageNumber,pageInfo.pageSize);
+  const {
+    data: dataQuotations,
+    isLoading,
+    isError,
+  } = useGetQuotationsListWithPagination(
+    searchTerm,
+    pageInfo.pageNumber,
+    pageInfo.pageSize
+  );
   useEffect(() => {
     if (dataQuotations) {
       console.log("data", dataQuotations);
@@ -35,8 +54,6 @@ const QuotationsListTab: React.FC<QuotationsListTabProps> = ({ onViewDetails, on
       });
     }
   }, [dataQuotations, isLoading]);
-
-
 
   const handlePageChange = (page: number, pageSize: number) => {
     console.log(`Cambiando a página ${page} con tamaño ${pageSize}`);
@@ -58,14 +75,31 @@ const QuotationsListTab: React.FC<QuotationsListTabProps> = ({ onViewDetails, on
   const { mutate: deleteQuotation } = useDeleteQuotation();
 
   const onDelete = async (id: string) => {
-    console.log("eliminarCotizacion", id);    
-    deleteQuotation(id);
-
+    console.log("eliminarCotizacion", id);
+    setSelectedQuotationId(id);
+    setIsOpen(true);
   };
 
+  const handleConfirm = () => {
+    setIsOpen(false);
+    if (selectedQuotationId) {
+      setIsSending(true);
+      try {
+        deleteQuotation(selectedQuotationId);
+      } catch (error) {
+        console.error("Error al eliminar la cotización:", error);
+        toast.error("Error al eliminar la cotización");
+      } finally {
+        setIsSending(false);
+      }
+    }
+  };
 
-
-  const columns = columnsQuotationsList({ onViewDetails, onEditQuotation, onDelete });
+  const columns = columnsQuotationsList({
+    onViewDetails,
+    onEditQuotation,
+    onDelete,
+  });
 
   if (isError) {
     return (
@@ -85,9 +119,7 @@ const QuotationsListTab: React.FC<QuotationsListTabProps> = ({ onViewDetails, on
         <CardTitle className="text-necro font-medium text-lg">
           Solicitudes de Cotización
         </CardTitle>
-        <p className="text-muted-foreground text-sm leading-relaxed">
-
-        </p>
+        <p className="text-muted-foreground text-sm leading-relaxed"></p>
       </CardHeader>
       <CardContent>
         <DataTable
@@ -106,8 +138,18 @@ const QuotationsListTab: React.FC<QuotationsListTabProps> = ({ onViewDetails, on
           }}
         />
       </CardContent>
+      <ConfirmationModal
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        onConfirm={handleConfirm}
+        title="Confirmación"
+        description="¿Estás seguro de querer eliminar esta cotización?"
+        buttonText="Eliminar"
+      />
+
+      <SendingModal isOpen={isSending} onClose={() => setIsSending(false)} />
     </Card>
   );
 };
 
-export default QuotationsListTab; 
+export default QuotationsListTab;

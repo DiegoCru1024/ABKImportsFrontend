@@ -1,7 +1,7 @@
 export const servicios = [
   {
     id: 1,
-    value: "Pendiente",
+    value: "pending",
     label: "Pendiente",
   },
   {

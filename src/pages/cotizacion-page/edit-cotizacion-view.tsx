@@ -58,7 +58,10 @@ interface EditCotizacionViewProps {
   onBack: () => void;
 }
 
-export default function EditCotizacionView({ quotationId, onBack }: EditCotizacionViewProps) {
+export default function EditCotizacionView({
+  quotationId,
+  onBack,
+}: EditCotizacionViewProps) {
   const [productos, setProductos] = useState<any[]>([]);
   const [service, setService] = useState("Pendiente");
   const [resetCounter, setResetCounter] = useState(0);
@@ -68,7 +71,8 @@ export default function EditCotizacionView({ quotationId, onBack }: EditCotizaci
   const [isEditing, setIsEditing] = useState(false);
 
   //* Hook para obtener cotización por ID
-  const { data: quotationData, isLoading: loadingQuotation } = useGetQuotationById(quotationId);
+  const { data: quotationData, isLoading: loadingQuotation } =
+    useGetQuotationById(quotationId);
 
   //* Hook para actualizar cotización
   const patchQuotationMut = usePatchQuotation(quotationId);
@@ -93,10 +97,10 @@ export default function EditCotizacionView({ quotationId, onBack }: EditCotizaci
   useEffect(() => {
     if (quotationData) {
       console.log("Datos de cotización cargados:", quotationData);
-      
+
       // Establecer tipo de servicio
       setService(quotationData.service_type || "Pendiente");
-      
+
       // Mapear productos de la cotización
       const mappedProducts = quotationData.products.map((product) => ({
         name: product.name,
@@ -111,7 +115,7 @@ export default function EditCotizacionView({ quotationId, onBack }: EditCotizaci
         attachments: product.attachments || [],
         files: [], // Los archivos originales no están disponibles, solo las URLs
       }));
-      
+
       setProductos(mappedProducts);
     }
   }, [quotationData]);
@@ -124,7 +128,7 @@ export default function EditCotizacionView({ quotationId, onBack }: EditCotizaci
   //* Función para editar producto
   const handleEditar = (index: number) => {
     const producto = productos[index];
-    
+
     // Cargar datos del producto en el formulario
     form.setValue("name", producto.name);
     form.setValue("quantity", producto.quantity);
@@ -135,10 +139,10 @@ export default function EditCotizacionView({ quotationId, onBack }: EditCotizaci
     form.setValue("weight", producto.weight || 0);
     form.setValue("volume", producto.volume || 0);
     form.setValue("number_of_boxes", producto.number_of_boxes || 0);
-    
+
     // Establecer archivos seleccionados (vacío porque no tenemos los archivos originales)
     setSelectedFiles([]);
-    
+
     // Establecer modo edición
     setEditingIndex(index);
     setIsEditing(true);
@@ -166,7 +170,9 @@ export default function EditCotizacionView({ quotationId, onBack }: EditCotizaci
     // Para productos editados, permitir sin archivos (mantener los existentes)
     // Para productos nuevos, requerir archivos
     if (!isEditing && selectedFiles.length === 0) {
-      toast.error("Por favor, adjunte al menos un archivo antes de agregar el producto.");
+      toast.error(
+        "Por favor, adjunte al menos un archivo antes de agregar el producto."
+      );
       return;
     }
 
@@ -188,17 +194,22 @@ export default function EditCotizacionView({ quotationId, onBack }: EditCotizaci
 
     if (isEditing && editingIndex !== null) {
       // Actualizar producto existente
-      setProductos((prev) => 
-        prev.map((producto, index) => 
-          index === editingIndex ? {
-            ...productData,
-            // Mantener attachments existentes si no hay nuevos archivos
-            attachments: selectedFiles.length > 0 ? [] : productos[editingIndex].attachments
-          } : producto
+      setProductos((prev) =>
+        prev.map((producto, index) =>
+          index === editingIndex
+            ? {
+                ...productData,
+                // Mantener attachments existentes si no hay nuevos archivos
+                attachments:
+                  selectedFiles.length > 0
+                    ? []
+                    : productos[editingIndex].attachments,
+              }
+            : producto
         )
       );
       toast.success("Producto actualizado correctamente");
-      
+
       // Salir del modo edición
       setEditingIndex(null);
       setIsEditing(false);
@@ -254,7 +265,7 @@ export default function EditCotizacionView({ quotationId, onBack }: EditCotizaci
       // 3. Distribuir las URLs a cada producto según corresponda
       const productosConUrls = productos.map((producto, productIndex) => {
         let finalAttachments = producto.attachments || [];
-        
+
         // Si hay archivos nuevos para este producto, usar las nuevas URLs
         if (fileIndexMap[productIndex]) {
           const { start, count } = fileIndexMap[productIndex];
@@ -276,25 +287,18 @@ export default function EditCotizacionView({ quotationId, onBack }: EditCotizaci
         };
       });
 
-      console.log("Productos con URLs actualizadas:", JSON.stringify(productosConUrls, null, 2));
+      const dataToSend = {
+        service_type: service,
+        products: productosConUrls,
+      };
+
+      console.log(
+        "Informacion a enviar :",
+        JSON.stringify(dataToSend, null, 2)
+      );
 
       // 4. Actualizar cotización usando el hook
-      patchQuotationMut.mutate(
-        { data: { products: productosConUrls, service_type: service } },
-        {
-          onSuccess: () => {
-            setIsLoading(false);
-            toast.success("Cotización actualizada exitosamente");
-            setTimeout(() => {
-              onBack();
-            }, 2000);
-          },
-          onError: (error) => {
-            setIsLoading(false);
-            console.error("Error al actualizar cotización:", error);
-          },
-        }
-      );
+      patchQuotationMut.mutate({ data: dataToSend });
     } catch (error) {
       console.error("Error durante el proceso de actualización:", error);
       toast.error("Error al procesar los archivos");
@@ -353,7 +357,7 @@ export default function EditCotizacionView({ quotationId, onBack }: EditCotizaci
               onValueChange={(value) => setService(value)}
               value={service}
             >
-              <SelectTrigger>
+              <SelectTrigger className="w-full" value={service}>
                 <SelectValue placeholder="Seleccione" />
               </SelectTrigger>
               <SelectContent>
@@ -383,7 +387,8 @@ export default function EditCotizacionView({ quotationId, onBack }: EditCotizaci
                     <span className="font-medium">Editando producto</span>
                   </div>
                   <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
-                    Está editando el producto. Los cambios se aplicarán al guardar.
+                    Está editando el producto. Los cambios se aplicarán al
+                    guardar.
                   </p>
                 </div>
               )}
@@ -431,7 +436,10 @@ export default function EditCotizacionView({ quotationId, onBack }: EditCotizaci
                                 min="1"
                                 className="mt-1"
                                 onChange={(e) => {
-                                  const value = e.target.value === "" ? 1 : Number(e.target.value);
+                                  const value =
+                                    e.target.value === ""
+                                      ? 1
+                                      : Number(e.target.value);
                                   field.onChange(value);
                                 }}
                               />
@@ -552,7 +560,11 @@ export default function EditCotizacionView({ quotationId, onBack }: EditCotizaci
                                 Peso (Kg)
                               </Label>
                               <FormControl>
-                                <Input {...field} type="number" className="mt-1" />
+                                <Input
+                                  {...field}
+                                  type="number"
+                                  className="mt-1"
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -570,7 +582,11 @@ export default function EditCotizacionView({ quotationId, onBack }: EditCotizaci
                                 Volumen
                               </Label>
                               <FormControl>
-                                <Input {...field} type="number" className="mt-1" />
+                                <Input
+                                  {...field}
+                                  type="number"
+                                  className="mt-1"
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -588,7 +604,11 @@ export default function EditCotizacionView({ quotationId, onBack }: EditCotizaci
                                 Nro. cajas
                               </Label>
                               <FormControl>
-                                <Input {...field} type="number" className="mt-1" />
+                                <Input
+                                  {...field}
+                                  type="number"
+                                  className="mt-1"
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -611,10 +631,11 @@ export default function EditCotizacionView({ quotationId, onBack }: EditCotizaci
                         resetCounter={resetCounter}
                       />
                     </div>
-                    
+
                     {isEditing && (
                       <p className="text-sm text-gray-500 mt-2">
-                        * Si no selecciona archivos nuevos, se mantendrán los archivos existentes del producto.
+                        * Si no selecciona archivos nuevos, se mantendrán los
+                        archivos existentes del producto.
                       </p>
                     )}
                   </div>

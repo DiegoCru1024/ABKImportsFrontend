@@ -154,6 +154,15 @@ export interface contentQuotationResponseDTO {
   response_date: string;
 }
 
+
+//!Interfaz para listar las respuestas del administrador y sean vistas por el usuario
+export interface QuotationGetResponsesForUsersDTO {
+  serviceType: string;
+  serviceCalculations: ServiceCalculations;
+  unitCostProducts: UnitCostProducts[];
+}
+
+
 //!Interfaz para listar las respuestas de una cotización
 export interface QuotationResponseListDTO {
   content: contentQuotationResponseDTO[];
@@ -162,11 +171,4 @@ export interface QuotationResponseListDTO {
   totalElements: number;
   totalPages: number;
   last: boolean;
-}
-
-//!Interfaz para listar las respuestas del administrador y sean vistas por el usuario
-export interface QuotationGetResponsesForUsersDTO {
-  serviceType: string;
-  serviceCalculations: ServiceCalculations;
-  unitCostProducts: UnitCostProducts[];
 }

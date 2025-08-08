@@ -4,6 +4,7 @@ import {
   patchQuatitationResponse,
   getResponsesForUsers,
   listQuatitationResponses,
+  getListResponsesByQuotationId,
   } from "@/api/quotation-responses";
 import type { QuotationResponseDTO } from "@/api/interface/quotationResponseInterfaces";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -187,14 +188,14 @@ export function useCreateQuatitationResponse() {
 
 /**
  * Hook para eliminar una respuesta de una cotización
- * @param {string} id - El ID de la respuesta
+ * @param {string} quotationResponseId - El ID de la respuesta
  * @returns {useMutation} - La respuesta de la cotización eliminada
  */
-export function useDeleteQuatitationResponse(id: string) {
+export function useDeleteQuatitationResponse() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: () => deleteQuatitationResponse(id),
+    mutationFn: (quotationResponseId: string) => deleteQuatitationResponse(quotationResponseId),
     onSuccess: () => {
       toast.success("Respuesta de cotización eliminada exitosamente");
     },
@@ -203,8 +204,15 @@ export function useDeleteQuatitationResponse(id: string) {
       throw error;
     },
     onSettled: () => {
+      // Invalida tanto el listado general como el listado por quotationId
       queryClient.invalidateQueries({
-        queryKey: ["allQuatitationResponse"],
+        predicate: (query) => {
+          const [key] = query.queryKey as unknown as [string];
+          return (
+            key === "allQuatitationResponse" ||
+            key === "getListResponsesByQuotationId"
+          );
+        },
       });
     },
   });
@@ -265,5 +273,21 @@ export function useGetQuatitationResponse(quotationId: string) {
   return useQuery({
     queryKey: ["allQuatitationResponse", quotationId],
     queryFn: () => getResponsesForUsers(quotationId),
+  });
+}
+
+
+/**
+ * Hook para obtener las respuestas de una cotización por su ID (Admin Only)
+ * @param {string} quotationId - El ID de la cotización
+ * @param {number} page - La página actual
+ * @param {number} size - El tamaño de la página
+ * @returns {useQuery} - Las respuestas de la cotización
+ */
+export function useGetListResponsesByQuotationId(quotationId: string, page: number, size: number) {
+  return useQuery({
+    queryKey: ["getListResponsesByQuotationId", quotationId, page, size],
+    queryFn: () => getListResponsesByQuotationId(quotationId, page, size),
+    enabled: Boolean(quotationId),
   });
 }

@@ -11,6 +11,7 @@ import {
   Download,
   ExternalLink,
   Clock,
+  EyeOff,
 } from "lucide-react";
 
 // Importar componentes modulares
@@ -399,6 +400,8 @@ export default function GestionDeCotizacionesView() {
                           </Button>
                         </div>
                       ) : (
+                        <>
+                        {quote.status !== "draft" ?(
                         <div className="flex justify-end">
                           <Button
                             onClick={() => handleViewDetails(quote.id)}
@@ -408,9 +411,20 @@ export default function GestionDeCotizacionesView() {
                             Responder
                           </Button>
                         </div>
-                      )}
-
-
+                        ):
+                        (
+                          <div className="flex justify-end">
+                            <Button
+                              //onClick={() => handleViewDetails(quote.id)}
+                              className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white"
+                            >
+                              <EyeOff className="w-4 h-4" />
+                              Cotización en borrador
+                            </Button>
+                          </div>
+                          )}
+                      </>
+                    )}
                     </div>
                   </Card>
                 );

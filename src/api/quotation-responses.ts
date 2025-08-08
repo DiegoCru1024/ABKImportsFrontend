@@ -123,3 +123,30 @@ export const getResponsesForUsers = async (quotationId: string) => {
     throw error;
   }
 };
+
+
+/**
+ * Obtiene las respuestas de una cotización por su ID (Admin Only)
+ * @param {string} quotationId - El ID de la cotización
+ * @param {number} page - La página actual
+ * @param {number} size - El tamaño de la página
+ * @returns {Promise<QuotationResponseListDTO>} - Las respuestas de la cotización
+ */
+export const getListResponsesByQuotationId = async (quotationId: string, page: number, size: number) => {
+  const queryParams = new URLSearchParams();
+  queryParams.append("page", page.toString());
+  queryParams.append("size", size.toString());
+
+  try {
+    const response: QuotationResponseListDTO = await apiFetch<QuotationResponseListDTO>(
+      `/quotation-responses/list/${quotationId}?${queryParams.toString()}`,
+      {
+        method: "GET",
+      }
+    );
+    return response;
+  } catch (error) {
+    console.error("Error al listar las respuestas de la cotización:", error);
+    throw error;
+  }
+};

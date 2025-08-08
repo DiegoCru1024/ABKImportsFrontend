@@ -393,7 +393,7 @@ export default function GestionDeCotizacionesView() {
                         <div className="flex justify-end">
                           <Button
                             onClick={() => handleViewListResponses(quote.id)}
-                            className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white"
+                            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white"
                           >
                             <Eye className="w-4 h-4" />
                             Ver respuestas

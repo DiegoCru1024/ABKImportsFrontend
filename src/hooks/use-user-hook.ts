@@ -9,7 +9,7 @@ import {
   getAllUserProfileWithPagination,
 } from "@/api/apiUser";
 import { toast } from "sonner";
-import type { User } from "@/api/apiUser";
+import type { User } from "@/api/interface/user";
 
 /**
  * Hook para obtener el perfil del usuario actual

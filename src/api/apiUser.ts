@@ -1,15 +1,12 @@
 import { API_URL } from "../../config";
 import { apiFetch } from "./apiFetch";
+import type { User } from "./interface/user";
 
-export interface User {
-  name: string;
-  email: string;
-  password: string;
-}
+
 
 export const registerUser = async (user: User) => {
   try {
-    return await apiFetch("/users/register", {
+    return await apiFetch("/users", {
       method: "POST",
       body: JSON.stringify(user),
     });
@@ -81,9 +78,13 @@ export const getAllUserProfileWithPagination = async (searchTerm: string, page: 
   url.searchParams.append("size", size.toString());
 
   try {
-    return await apiFetch<UserProfileWithPagination>(url.pathname + url.search, {
-      method: "GET",
-    });
+    const response: UserProfileWithPagination = await apiFetch(
+      `/users?${url.toString()}`,
+      {
+        method: "GET",
+      }
+    );
+    return response;
   } catch (error) {
     console.error("Error al obtener los usuarios:", error);
     throw error; // Lanza en vez de retornar un objeto de error

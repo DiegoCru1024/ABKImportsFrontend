@@ -54,6 +54,11 @@ export const statusMap = {
     label: "Aprobada",
     dotColor: "bg-green-500"
   },
+  answered: { 
+    color: "bg-green-100 text-green-800 border-green-200", 
+    label: "Respondida",
+    dotColor: "bg-green-500"
+  },
 };
 
 // 1. Define una configuración por defecto
@@ -70,4 +75,5 @@ export const statusFilterOptions = [
   { key: "in_progress", label: "En Proceso", count: 0 },
   { key: "completed", label: "Completadas", count: 0 },
   { key: "approved", label: "Aprobadas", count: 0 },
+  { key: "answered", label: "Respondidas", count: 0 },
 ];

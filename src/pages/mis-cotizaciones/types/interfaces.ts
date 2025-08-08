@@ -11,7 +11,7 @@ export interface QuotationListItem {
   correlative: string;
   status: string;
   service_type: string;
-  quantityProducts: number;
+  productQuantity: number;
   createdAt: string;
   updatedAt: string;
 }

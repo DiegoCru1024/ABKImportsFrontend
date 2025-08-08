@@ -48,7 +48,7 @@ import { formatCurrency, obtenerUser } from "@/lib/functions";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import type { ProductoResponseIdInterface } from "@/api/interface/quotationInterface";
-import type { DetallesTabProps } from "../utils/interface";
+import type { DetailsResponseProps } from "../utils/interface";
 
 // Importar datos estáticos
 import {
@@ -79,8 +79,9 @@ import { Button } from "@/components/ui/button";
 import { useCreateQuatitationResponse } from "@/hooks/use-quatitation-response";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import SendingModal from "@/components/sending-modal";
+import { useNavigate } from "react-router-dom";
 
-const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
+const DetailsResponse: React.FC<DetailsResponseProps> = ({ selectedQuotationId }) => {
   //* Hook para obtener los detalles de la cotización - DEBE IR PRIMERO
   const {
     data: quotationDetail,
@@ -694,6 +695,9 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
     }
   }, [quotationDetail, editableUnitCostProducts.length]);
 
+  const navigate = useNavigate();
+
+
   if (isLoading) {
     return (
       <div className="space-y-4 p-6">
@@ -878,9 +882,7 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
                             <EditableNumericField
                               value={dynamicValues.kg}
                               onChange={
-                                isMaritimeService(selectedServiceLogistic)
-                                  ? handleKgChange
-                                  : (value) => updateDynamicValue("kg", value)
+                                handleKgChange
                               }
                             />
                           </div>
@@ -2223,21 +2225,13 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
           </Tabs>
           <div className="flex justify-end mt-4">
             <div className="flex gap-3">
-              <Button
-                //onClick={handleGenerateDTO}
-                variant="destructive"
-                className="flex-1 flex items-center gap-2"
-              >
-                <X className="w-4 h-4" />
-                Cancelar
-              </Button>
               {/* Botón Enviar */}
-              <div className="flex justify-end mt-8">
+              <div className="flex justify-end ">
                 <ConfirmDialog
                   trigger={
                     <Button
                       disabled={isLoading}
-                      className="bg-orange-500 hover:bg-orange-600 animate-pulse text-white px-8 py-2 rounded-full  shadow-md flex items-center gap-2 disabled:opacity-50"
+                      className="bg-orange-500 hover:bg-orange-600  text-white px-8 py-2 rounded-sm shadow-md flex items-center gap-2 disabled:opacity-50"
                     >
                       {isLoading ? (
                         <Loader2 className="w-5 h-5 animate-spin" />
@@ -2268,4 +2262,4 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
   );
 };
 
-export default DetallesTab;
+export default DetailsResponse;

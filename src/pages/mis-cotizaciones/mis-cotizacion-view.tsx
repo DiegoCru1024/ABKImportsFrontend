@@ -265,22 +265,18 @@ export default function MisCotizacionesView() {
                 />
               )}
             </CardContent>
-
-            <ConfirmationModal
-              isOpen={isOpen}
-              onClose={handleCancelDelete}
-              onConfirm={handleConfirm}
-              title="Confirmación"
-              description="¿Estás seguro de querer eliminar esta cotización?"
-              buttonText="Eliminar"
-            />
-
-            <SendingModal
-              isOpen={isSending}
-              onClose={() => setIsSending(false)}
-            />
           </Card>
         </div>
+        <ConfirmationModal
+          isOpen={isOpen}
+          onClose={handleCancelDelete}
+          onConfirm={handleConfirm}
+          title="Confirmar eliminación"
+          description="¿Estás seguro de querer eliminar esta cotización?"
+          buttonText="Eliminar"
+        />
+
+        <SendingModal isOpen={isSending} onClose={() => setIsSending(false)} />
       </div>
     );
   }
@@ -319,12 +315,7 @@ export default function MisCotizacionesView() {
           </div>
         </div>
 
-        <div className="p-6">
-          <ResponseCotizacionView
-            selectedQuotationId={selectedQuotationId}
-            onSelectProductForResponse={() => {}}
-          />
-        </div>
+        <ResponseCotizacionView selectedQuotationId={selectedQuotationId} />
       </div>
     );
   }

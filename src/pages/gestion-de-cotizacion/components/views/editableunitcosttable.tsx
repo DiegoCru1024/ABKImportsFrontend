@@ -140,6 +140,8 @@ const EditableUnitCostTable: React.FC<EditableUnitCostTableProps> = ({
     });
   };
 
+  
+
   // Generar columnas con la lógica de actualización
   const columns = columnsEditableUnitcost(updateProduct);
 

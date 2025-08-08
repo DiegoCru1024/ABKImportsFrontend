@@ -1,11 +1,11 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import type { ProductRow } from "../views/editableunitcosttable";
-import { EditableNumericField } from "@/components/ui/editableNumberFieldProps";
+import type { ProductRow } from "@/pages/gestion-de-cotizacion/components/views/editableunitcosttable";
+
 
 
 // Definición de columnas dentro del componente para usar callbacks
-export function columnsEditableUnitcost(
-  updateProduct: (id: string, field: keyof ProductRow, value: number) => void
+export function columnsUnitCost(
+  
 ): ColumnDef<ProductRow, any>[] {
   return [
     {
@@ -22,14 +22,11 @@ export function columnsEditableUnitcost(
       accessorKey: "price",
       header: () => <div className="text-center">PRECIO</div>,
       cell: ({ row }) => {
-        return (
-          <EditableNumericField
-            value={row.original.price}
-            onChange={(value) => {
-              updateProduct(row.original.id, "price", value);
-            }}
-          />
-        );
+   <div className="text-center">
+    <span className="font-semibold">
+      USD {(Number(row.original.price) || 0).toFixed(2)}
+    </span>
+   </div>
       },
       minSize: 150,
       size: 200,
@@ -40,12 +37,11 @@ export function columnsEditableUnitcost(
       accessorKey: "quantity",
       header: () => <div className="text-center">CANTIDAD</div>,
       cell: ({ row }) => (
-        <EditableNumericField
-          value={row.original.quantity}
-          onChange={(value) => {
-            updateProduct(row.original.id, "quantity", value);
-          }}
-        />
+        <div className="text-center">
+          <span className="font-semibold">
+            {row.original.quantity}
+          </span>
+        </div>
       ),
       minSize: 150,
       size: 200,

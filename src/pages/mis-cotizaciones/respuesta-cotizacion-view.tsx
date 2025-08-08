@@ -20,7 +20,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { useGetQuotationById } from "@/hooks/use-quation";
 import { useGetQuatitationResponse } from "@/hooks/use-quatitation-response";
-import { columnsProductDetails } from "@/pages/mis-cotizaciones/components/table/columnsProductDetails";
+
 import {
   Card,
   CardContent,
@@ -30,29 +30,23 @@ import {
 } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/functions";
 import { formatDate, formatDateTime } from "@/lib/format-time";
-import type { ProductoResponseIdInterface } from "@/api/interface/quotationInterface";
-import {
-  statusColorsQuotation,
-  statusResponseQuotation,
-} from "@/pages/gestion-de-cotizacion/components/utils/static";
+
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { columnsEditableUnitcost } from "@/pages/gestion-de-cotizacion/components/table/columnseditableunitcost";
 import type { ProductRow } from "@/pages/gestion-de-cotizacion/components/views/editableunitcosttable";
+import { columnsUnitCost } from "./components/table/columnsUnitCost";
 
 interface ResponseCotizacionViewProps {
   selectedQuotationId: string;
-  onSelectProductForResponse: (productId: string, productName: string) => void;
 }
 
 const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
   selectedQuotationId,
-  onSelectProductForResponse,
 }) => {
   // ✅ TODOS LOS HOOKS Y ESTADOS VAN PRIMERO
-  const [subTab, setSubTab] = useState<
-    "Todos" | "No respondido" | "Respondido" | "Observado"
-  >("Todos");
+
   const {
     data: quotationDetail,
     isLoading,
@@ -65,7 +59,6 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
     isLoading: isLoadingResponses,
     isError: isErrorResponses,
   } = useGetQuatitationResponse(selectedQuotationId);
-
 
   const [selectedResponseTab, setSelectedResponseTab] = useState<string>("");
   const [imageModalOpen, setImageModalOpen] = useState(false);
@@ -126,39 +119,24 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
 
   // useEffect para establecer la primera respuesta como seleccionada
   useEffect(() => {
-    if (quotationResponses && quotationResponses.length > 0 && !selectedResponseTab) {
+    if (
+      quotationResponses &&
+      quotationResponses.length > 0 &&
+      !selectedResponseTab
+    ) {
       setSelectedResponseTab(quotationResponses[0].serviceType);
     }
   }, [quotationResponses, selectedResponseTab]);
 
-  const updateProduct = (
-    id: string,
-    field: keyof ProductRow,
-    value: number
-  ) => {
-    setProductsList((prev) => {
-      const updated = prev.map((product) => {
-        if (product.id === id) {
-          const updatedProduct = { ...product, [field]: value };
-          if (field === "price" || field === "quantity") {
-            updatedProduct.total =
-              (updatedProduct.price || 0) * (updatedProduct.quantity || 0);
-          }
-          return updatedProduct;
-        }
-        return product;
-      });
-      return recalculateProducts(updated);
-    });
-  };
+
 
   // El resto de tus funciones y cálculos
   const calculateFactorM = (products: ProductRow[]): number => {
     return 0;
   };
 
-  const columns = columnsEditableUnitcost(updateProduct);
-  
+  const columns = columnsUnitCost();
+
   const totalQuantity = productsList.reduce(
     (sum, product) => sum + (product.quantity || 0),
     0
@@ -176,15 +154,15 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
     0
   );
   const factorM = calculateFactorM(productsList);
-  
+
   // Función para renderizar las respuestas de importación
   const renderQuotationResponse = (response: any) => {
     if (!response) return null;
 
     return (
-      <div className="space-y-6">
+      <div className="space-y-4">
         {/* Gastos de Importación */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg">
@@ -199,7 +177,11 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
                     Servicio Consolidado
                   </span>
                   <span className="font-medium">
-                    USD {formatCurrency(response.serviceCalculations?.importExpenses?.finalValues?.servicioConsolidado || 0)}
+                    USD{" "}
+                    {formatCurrency(
+                      response.serviceCalculations?.importExpenses?.finalValues
+                        ?.servicioConsolidado || 0
+                    )}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-2">
@@ -207,7 +189,11 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
                     Separación de Carga
                   </span>
                   <span className="font-medium">
-                    USD {formatCurrency(response.serviceCalculations?.importExpenses?.finalValues?.separacionCarga || 0)}
+                    USD{" "}
+                    {formatCurrency(
+                      response.serviceCalculations?.importExpenses?.finalValues
+                        ?.separacionCarga || 0
+                    )}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-2">
@@ -215,7 +201,11 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
                     Inspección de Productos
                   </span>
                   <span className="font-medium">
-                    USD {formatCurrency(response.serviceCalculations?.importExpenses?.finalValues?.inspeccionProductos || 0)}
+                    USD{" "}
+                    {formatCurrency(
+                      response.serviceCalculations?.importExpenses?.finalValues
+                        ?.inspeccionProductos || 0
+                    )}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-2">
@@ -223,7 +213,11 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
                     Gestión de Certificado
                   </span>
                   <span className="font-medium">
-                    USD {formatCurrency(response.serviceCalculations?.importExpenses?.finalValues?.gestionCertificado || 0)}
+                    USD{" "}
+                    {formatCurrency(
+                      response.serviceCalculations?.importExpenses?.finalValues
+                        ?.gestionCertificado || 0
+                    )}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-2">
@@ -231,7 +225,11 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
                     Desaduanaje + Flete + Seguro
                   </span>
                   <span className="font-medium">
-                    USD {formatCurrency(response.serviceCalculations?.importExpenses?.finalValues?.desaduanajeFleteSaguro || 0)}
+                    USD{" "}
+                    {formatCurrency(
+                      response.serviceCalculations?.importExpenses?.finalValues
+                        ?.desaduanajeFleteSaguro || 0
+                    )}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-2">
@@ -239,7 +237,11 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
                     Transporte Local China
                   </span>
                   <span className="font-medium">
-                    USD {formatCurrency(response.serviceCalculations?.importExpenses?.finalValues?.transporteLocalChina || 0)}
+                    USD{" "}
+                    {formatCurrency(
+                      response.serviceCalculations?.importExpenses?.finalValues
+                        ?.transporteLocalChina || 0
+                    )}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-2">
@@ -247,7 +249,11 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
                     Transporte Local Cliente
                   </span>
                   <span className="font-medium">
-                    USD {formatCurrency(response.serviceCalculations?.importExpenses?.finalValues?.transporteLocalCliente || 0)}
+                    USD{" "}
+                    {formatCurrency(
+                      response.serviceCalculations?.importExpenses?.finalValues
+                        ?.transporteLocalCliente || 0
+                    )}
                   </span>
                 </div>
 
@@ -257,7 +263,11 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
                     Total Gastos de Importación
                   </span>
                   <span className="font-bold text-orange-900">
-                    USD {formatCurrency(response.serviceCalculations?.importExpenses?.totalGastosImportacion || 0)}
+                    USD{" "}
+                    {formatCurrency(
+                      response.serviceCalculations?.importExpenses
+                        ?.totalGastosImportacion || 0
+                    )}
                   </span>
                 </div>
               </div>
@@ -293,7 +303,11 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
                     TOTAL GASTOS DE IMPORTACION
                   </span>
                   <span className="font-medium">
-                    USD {formatCurrency(response.serviceCalculations?.importExpenses?.totalGastosImportacion || 0)}
+                    USD{" "}
+                    {formatCurrency(
+                      response.serviceCalculations?.importExpenses
+                        ?.totalGastosImportacion || 0
+                    )}
                   </span>
                 </div>
                 <Separator />
@@ -302,7 +316,10 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
                     INVERSION TOTAL DE IMPORTACION
                   </span>
                   <span className="font-medium text-green-900">
-                    USD {formatCurrency(response.serviceCalculations?.totals?.inversionTotal || 0)}
+                    USD{" "}
+                    {formatCurrency(
+                      response.serviceCalculations?.totals?.inversionTotal || 0
+                    )}
                   </span>
                 </div>
               </div>
@@ -311,7 +328,7 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
         </div>
 
         {/* Tabla de costeo unitario de importación */}
-        <div className="p-6 bg-gray-50">
+        <div className="p-2 bg-gray-50 grid grid-cols-1">
           <Card className="overflow-hidden">
             <CardHeader>
               <CardTitle className="text-lg font-bold text-center flex-1">
@@ -348,6 +365,41 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
                   showViewOptions: false,
                 }}
               />
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4">
+                <Card className="h-20 w-full bg-gradient-to-r from-red-400 to-red-300 rounded-lg text-white">
+                  <CardContent className="p-4 h-full flex flex-col justify-center">
+                    <div className="text-3xl font-bold">{totalQuantity}</div>
+                    <div className="text-sm opacity-90">Total Unidades</div>
+                  </CardContent>
+                </Card>
+                <Card className="h-20 w-full bg-gradient-to-r from-blue-400 to-blue-300  rounded-lg text-white">
+                  <CardContent className="p-4 h-full flex flex-col justify-center">
+                    <div className="text-3xl font-bold">
+                      {totalAmount.toFixed(2)}
+                    </div>
+                    <div className="text-sm opacity-90">Precio Total USD</div>
+                  </CardContent>
+                </Card>
+
+                <Card className="h-20 w-full bg-gradient-to-r from-green-400 to-green-300 rounded-lg text-white">
+                  <CardContent className="p-4 h-full flex flex-col justify-center">
+                    <div className="text-3xl font-bold">
+                      {totalImportCostsSum.toFixed(2)}
+                    </div>
+                    <div className="text-sm opacity-90">Total Importación</div>
+                  </CardContent>
+                </Card>
+
+                <Card className="h-20 w-full bg-gradient-to-r from-orange-400 to-orange-300 rounded-lg text-white">
+                  <CardContent className="p-4 h-full flex flex-col justify-center">
+                    <div className="text-3xl font-bold">
+                      {grandTotal.toFixed(2)}
+                    </div>
+                    <div className="text-sm opacity-90">Total Costo</div>
+                  </CardContent>
+                </Card>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -355,9 +407,6 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
     );
   };
 
-  // ...y las demás funciones como openImageModal, formatDate, etc.
-
-  // ✅ AHORA SÍ, LAS COMPROBACIONES Y RETORNOS ANTICIPADOS
   if (isLoading) {
     return (
       <div className="space-y-4 p-6">
@@ -376,16 +425,8 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
     );
   }
 
-  const serviceTypes = [
-    "Servicio Consolidado Aéreo",
-    "Separación de Carga",
-    "Inspección de Productos",
-    "AD/VALOREM + IGV + IPM",
-    "Desaduanaje + Flete + Seguro",
-  ];
-
   return (
-    <div className="space-y-4 p-6">
+    <div className="space-y-4 p-4">
       {/* Header Bento Grid */}
       <div className="relative ">
         <div className="bg-white rounded-2xl shadow-sm p-4 border border-gray-100">
@@ -402,7 +443,6 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
                       {quotationDetail.correlative}
                     </h3>
                   </div>
-
                 </div>
               </div>
 
@@ -560,13 +600,16 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
                   <div className="h-4 bg-gray-200 rounded w-1/2 mx-auto"></div>
                 </div>
               </div>
-            ) : isErrorResponses || !quotationResponses || quotationResponses.length === 0 ? (
+            ) : isErrorResponses ||
+              !quotationResponses ||
+              quotationResponses.length === 0 ? (
               <div className="text-center py-12 bg-gray-50 rounded-lg">
                 <div className="text-gray-500 text-lg mb-2">
                   No hay respuestas de cotización disponibles
                 </div>
                 <div className="text-gray-400 text-sm">
-                  Las respuestas aparecerán aquí una vez que el administrador las procese
+                  Las respuestas aparecerán aquí una vez que el administrador
+                  las procese
                 </div>
               </div>
             ) : (
@@ -595,17 +638,21 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
                         className={`
                           absolute bottom-0 left-0 h-0.5 bg-[#d7751f]
                           transition-all duration-300
-                          ${selectedResponseTab === response.serviceType ? "w-full" : "w-0"}
+                          ${
+                            selectedResponseTab === response.serviceType
+                              ? "w-full"
+                              : "w-0"
+                          }
                         `}
                       />
                     </TabsTrigger>
                   ))}
                 </TabsList>
-                
+
                 {/* Generar un TabsContent por cada respuesta */}
                 {quotationResponses.map((response, index) => (
-                  <TabsContent 
-                    key={`${response.serviceType}-content-${index}`} 
+                  <TabsContent
+                    key={`${response.serviceType}-content-${index}`}
                     value={response.serviceType}
                     className="mt-6"
                   >
@@ -614,99 +661,6 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
                 ))}
               </Tabs>
             )}
-
-
-            {/* Tabla de productos original (siempre visible) */}
-            <div className="mt-8 p-6 bg-gray-50">
-              <Card className="overflow-hidden">
-                <CardHeader>
-                  <CardTitle className="text-lg font-bold text-center flex-1">
-                    <div className="relative">
-                      DETALLE DE PRODUCTOS SOLICITADOS
-                      <div className="absolute top-0 right-0  text-black px-3 py-1 text-sm font-bold">
-                        <div className="text-xs">FACTOR M.</div>
-                        <div>{factorM.toFixed(2)}</div>
-                      </div>
-                    </div>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <DataTable
-                    columns={columns}
-                    data={productsList}
-                    pageInfo={{
-                      pageNumber: 1,
-                      pageSize: 10,
-                      totalElements: productsList.length,
-                      totalPages: 1,
-                    }}
-                    onPageChange={() => {}}
-                    onSearch={() => {}}
-                    searchTerm={""}
-                    isLoading={false}
-                    paginationOptions={{
-                      showSelectedCount: false,
-                      showPagination: false,
-                      showNavigation: false,
-                    }}
-                    toolbarOptions={{
-                      showSearch: false,
-                      showViewOptions: false,
-                    }}
-                  />
-
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4">
-                    <Card className="h-20 w-full bg-gradient-to-r from-red-400 to-red-300 rounded-lg text-white">
-                      <CardContent className="p-4 h-full flex flex-col justify-center">
-                        <div className="text-3xl font-bold">
-                          {totalQuantity}
-                        </div>
-                        <div className="text-sm opacity-90">Total Unidades</div>
-                      </CardContent>
-                    </Card>
-                    <Card className="h-20 w-full bg-gradient-to-r from-blue-400 to-blue-300  rounded-lg text-white">
-                      <CardContent className="p-4 h-full flex flex-col justify-center">
-                        <div className="text-3xl font-bold">
-                          {totalAmount.toFixed(2)}
-                        </div>
-                        <div className="text-sm opacity-90">
-                          Precio Total USD
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    <Card className="h-20 w-full bg-gradient-to-r from-green-400 to-green-300 rounded-lg text-white">
-                      <CardContent className="p-4 h-full flex flex-col justify-center">
-                        <div className="text-3xl font-bold">
-                          {totalImportCostsSum.toFixed(2)}
-                        </div>
-                        <div className="text-sm opacity-90">
-                          Total Importación
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    <Card className="h-20 w-full bg-gradient-to-r from-orange-400 to-orange-300 rounded-lg text-white">
-                      <CardContent className="p-4 h-full flex flex-col justify-center">
-                        <div className="text-3xl font-bold">
-                          {grandTotal.toFixed(2)}
-                        </div>
-                        <div className="text-sm opacity-90">Total Costo</div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Footer Note */}
-            <div className="text-center p-8">
-              <div className="inline-flex items-center space-x-2 text-xs text-slate-400 font-light">
-                <div className="w-1 h-1 bg-slate-300 rounded-full"></div>
-                <span>Cotización válida por 30 días</span>
-                <div className="w-1 h-1 bg-slate-300 rounded-full"></div>
-              </div>
-            </div>
           </div>
         </div>
       </div>

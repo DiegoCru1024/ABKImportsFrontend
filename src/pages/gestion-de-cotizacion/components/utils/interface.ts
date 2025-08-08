@@ -116,7 +116,7 @@ export interface QuotationById {
   updatedAt: string; // Fecha ISO
 }
 
-export interface DetallesTabProps {
+export interface DetailsResponseProps {
   selectedQuotationId: string;
 }
 

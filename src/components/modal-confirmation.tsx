@@ -46,10 +46,10 @@ const ConfirmationModal = ({
           </div>
 
           <DialogHeader className="space-y-4">
-            <DialogTitle className="text-xl font-semibold text-gray-900">
+            <DialogTitle className="text-xl text-center font-semibold text-gray-900">
               {title}
             </DialogTitle>
-            <DialogDescription className="text-xs text-gray-600">
+            <DialogDescription className="text-sm text-center text-gray-600">
               {description}
             </DialogDescription>
           </DialogHeader>

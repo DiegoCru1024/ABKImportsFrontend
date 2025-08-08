@@ -14,7 +14,8 @@ import {
 } from "lucide-react";
 
 // Importar componentes modulares
-import DetallesTab from "./components/views/details";
+import DetailsResponse from "./components/views/detailsreponse";
+import ListResponses from "./components/views/listreponses";
 
 import { useGetQuotationsListWithPagination } from "@/hooks/use-quation";
 import type { QuotationsByUserResponseInterfaceContent } from "@/api/interface/quotationInterface";
@@ -112,6 +113,11 @@ export default function GestionDeCotizacionesView() {
     setMainTab("detalles");
   };
 
+  const handleViewListResponses = (quotationId: string) => {
+    setSelectedQuotationId(quotationId);
+    setMainTab("listResponses");
+  };
+
   // Función para cambiar de página
   const handlePageChange = (newPage: number) => {
     setPageInfo((prev) => ({
@@ -182,10 +188,31 @@ export default function GestionDeCotizacionesView() {
             </Button>
           </div>
         </div>
-        <DetallesTab selectedQuotationId={selectedQuotationId} />
+        <DetailsResponse selectedQuotationId={selectedQuotationId} />
       </div>
     );
   }
+
+    // Renderizado condicional según el tab activo
+    if (mainTab === "listResponses" && selectedQuotationId) {
+      return (
+        <div className="min-h-screen bg-gray-50">
+          <div className="border-b bg-white shadow-sm">
+            <div className="container flex items-center justify-between px-4 py-4">
+              <Button
+                variant="ghost"
+                onClick={() => setMainTab("solicitudes")}
+                className="flex items-center gap-2"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Volver a Solicitudes
+              </Button>
+            </div>
+          </div>
+            <ListResponses selectedQuotationId={selectedQuotationId} />
+        </div>
+      );
+    }
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-gray-50">
@@ -277,7 +304,6 @@ export default function GestionDeCotizacionesView() {
                 const statusConfig =
                   statusMap[quote.status as keyof typeof statusMap] ||
                   defaultStatusConfig;
-                const totalProducts = quote.productQuantity || 0;
 
                 return (
                   <Card
@@ -336,8 +362,6 @@ export default function GestionDeCotizacionesView() {
                               </div>
                             </div>
                           </div>
-
-
                         </div>
                       </div>
 
@@ -358,22 +382,35 @@ export default function GestionDeCotizacionesView() {
                               </div>
                             </div>
                             <div className="text-sm text-gray-600">
-                              Para ver los detalles completos de los productos, haga clic en "Ver Detalles y Responder"
+                              Para ver los detalles completos de los productos,
+                              haga clic en "Ver Detalles y Responder"
                             </div>
                           </div>
                         </div>
                       </div>
+                      {quote.status !== "pending" && quote.status !=="draft" ? (
+                        <div className="flex justify-end">
+                          <Button
+                            onClick={() => handleViewListResponses(quote.id)}
+                            className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white"
+                          >
+                            <Eye className="w-4 h-4" />
+                            Ver respuestas
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="flex justify-end">
+                          <Button
+                            onClick={() => handleViewDetails(quote.id)}
+                            className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white"
+                          >
+                            <Eye className="w-4 h-4" />
+                            Responder
+                          </Button>
+                        </div>
+                      )}
 
-                      {/* Botón acción */}
-                      <div className="flex justify-end">
-                        <Button
-                          onClick={() => handleViewDetails(quote.id)}
-                          className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white"
-                        >
-                          <Eye className="w-4 h-4" />
-                          Ver Detalles y Responder
-                        </Button>
-                      </div>
+
                     </div>
                   </Card>
                 );

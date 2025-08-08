@@ -111,7 +111,12 @@ export const deleteQuotation = async (id: string) => {
   }
 };
 
-
+/**
+ * Actualiza una cotización por su ID
+ * @param {string} id - El ID de la cotización
+ * @param {Quotation} quotation - La cotización a actualizar
+ * @returns {Promise<any>} - La cotización actualizada
+ */
 export const patchQuotation = async (id: string, quotation: Quotation) => {
   try {
     return await apiFetch(`/quotations/${id}`, {
@@ -120,6 +125,24 @@ export const patchQuotation = async (id: string, quotation: Quotation) => {
     });
   } catch (error) {
     console.error("Error al actualizar la cotización:", error);
+    throw error;
+  }
+}
+
+/**
+* Envia un borrador de cotización
+* @param {string} id - El ID de la cotización
+* @param {Quotation} data - La cotización a enviar
+* @returns {Promise<any>} - La cotización enviada
+*/
+export const submitDraft = async(id:string,data:Quotation )=>{
+  try {
+    return await apiFetch(`/quotations/${id}/submit-draft`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  } catch (error) {
+    console.error("Error al enviar el borrador:", error);
     throw error;
   }
 }

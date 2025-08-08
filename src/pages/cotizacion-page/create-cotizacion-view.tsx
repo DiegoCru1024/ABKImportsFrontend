@@ -42,7 +42,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useCreateQuotation } from "@/hooks/use-quation";
+import { useCreateQuotation, useSubmitDraft } from "@/hooks/use-quation";
 import { uploadMultipleFiles } from "@/api/fileUpload";
 import { toast } from "sonner";
 import SendingModal from "@/components/sending-modal";
@@ -65,7 +65,6 @@ export default function CreateCotizacionView() {
 
   //* Hook para enviar cotización
   const createQuotationMut = useCreateQuotation();
-
   const form = useForm<z.infer<typeof productoSchema>>({
     resolver: zodResolver(productoSchema),
     defaultValues: {
@@ -90,7 +89,7 @@ export default function CreateCotizacionView() {
   //* Función para editar producto
   const handleEditar = (index: number) => {
     const producto = productos[index];
-    
+
     // Cargar datos del producto en el formulario
     form.setValue("name", producto.name);
     form.setValue("quantity", producto.quantity);
@@ -101,10 +100,10 @@ export default function CreateCotizacionView() {
     form.setValue("weight", producto.weight || 0);
     form.setValue("volume", producto.volume || 0);
     form.setValue("number_of_boxes", producto.number_of_boxes || 0);
-    
+
     // Establecer archivos seleccionados
     setSelectedFiles(producto.files || []);
-    
+
     // Establecer modo edición
     setEditingIndex(index);
     setIsEditing(true);
@@ -132,8 +131,9 @@ export default function CreateCotizacionView() {
     // Validar que haya al menos un archivo antes de proceder
     if (selectedFiles.length === 0) {
       toast.error(
-        "Por favor, adjunte al menos un archivo antes de " + 
-        (isEditing ? "actualizar" : "agregar") + " el producto."
+        "Por favor, adjunte al menos un archivo antes de " +
+          (isEditing ? "actualizar" : "agregar") +
+          " el producto."
       );
       return;
     }
@@ -156,13 +156,13 @@ export default function CreateCotizacionView() {
 
     if (isEditing && editingIndex !== null) {
       // Actualizar producto existente
-      setProductos((prev) => 
-        prev.map((producto, index) => 
+      setProductos((prev) =>
+        prev.map((producto, index) =>
           index === editingIndex ? productData : producto
         )
       );
       toast.success("Producto actualizado correctamente");
-      
+
       // Salir del modo edición
       setEditingIndex(null);
       setIsEditing(false);
@@ -181,7 +181,9 @@ export default function CreateCotizacionView() {
   //* Función para enviar o guardar como borrador cotización
   const handleSubmitQuotation = async (saveAsDraft: boolean = false) => {
     if (productos.length === 0) {
-      toast.error("No hay productos para " + (saveAsDraft ? "guardar" : "enviar"));
+      toast.error(
+        "No hay productos para " + (saveAsDraft ? "guardar" : "enviar")
+      );
       return;
     }
 
@@ -235,41 +237,26 @@ export default function CreateCotizacionView() {
       const dataToSend = {
         products: productosConUrls,
         service_type: service,
-        saveAsDraft: saveAsDraft
+        saveAsDraft: saveAsDraft,
       };
 
       console.log("Datos a enviar:", JSON.stringify(dataToSend, null, 2));
 
-      // 4. Enviar al hook de cotización
-      createQuotationMut.mutate(
-        { data: dataToSend },
-        {
-          onSuccess: () => {
-            setIsLoading(false);
-            //*Limpiar productos después del envío exitoso
-            setProductos([]);
-            
-            // Mostrar mensaje apropiado según la acción
-            if (saveAsDraft) {
-              toast.success("Cotización guardada como borrador exitosamente");
-            } else {
-              toast.success("Cotización enviada exitosamente");
-            }
-            
-            //*Esperar 3 segundos y luego redirigir
-            setTimeout(() => {
-              navigate("/dashboard/mis-cotizaciones");
-            }, 3000);
-          },
-          onError: (error) => {
-            setIsLoading(false);
-            console.error("Error al " + (saveAsDraft ? "guardar" : "enviar") + " cotización:", error);
-            toast.error("Error al " + (saveAsDraft ? "guardar" : "enviar") + " la cotización");
-          },
-        }
-      );
+      const response = await createQuotationMut.mutateAsync({
+        data: dataToSend,
+      });
+      if (response) {
+        navigate(`/dashboard/mis-cotizaciones`);
+      } else {
+        toast.error("Error al crear la cotización");
+      }
     } catch (error) {
-      console.error("Error durante el proceso de " + (saveAsDraft ? "guardado" : "envío") + ":", error);
+      console.error(
+        "Error durante el proceso de " +
+          (saveAsDraft ? "guardado" : "envío") +
+          ":",
+        error
+      );
       toast.error("Error al procesar los archivos");
       setIsLoading(false);
     }
@@ -345,14 +332,15 @@ export default function CreateCotizacionView() {
                     <span className="font-medium">Editando producto</span>
                   </div>
                   <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
-                    Está editando el producto. Los cambios se aplicarán al guardar.
+                    Está editando el producto. Los cambios se aplicarán al
+                    guardar.
                   </p>
                 </div>
               )}
 
-            <Form {...form}>
-              <form onSubmit={handleAgregar}>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+              <Form {...form}>
+                <form onSubmit={handleAgregar}>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4  gap-4 mb-6">
                     <div>
                       <FormField
                         control={form.control}
@@ -360,13 +348,68 @@ export default function CreateCotizacionView() {
                         render={({ field }) => (
                           <FormItem>
                             <Label className="flex items-center gap-2 text-orange-600 font-medium">
-                              <Package className="h-4 w-4" />
+                              <span className="text-lg">🔍</span>
                               Nombre del Producto
                             </Label>
                             <FormControl>
                               <Input
                                 {...field}
                                 placeholder="Ej: Monitor, Teclado, Mouse..."
+                                className="mt-1"
+                                
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <div>
+                      <FormField
+                        control={form.control}
+                        name="quantity"
+                        render={({ field }) => (
+                          <FormItem>
+                            <Label className="flex items-center gap-2 text-orange-600 font-medium">
+                              <span className="text-lg">#</span>
+                              Cantidad
+                            </Label>
+                            <FormControl>
+                              <Input
+                                {...field}
+                                type="number"
+                                min="1"
+                                className="mt-1"
+                                onChange={(e) => {
+                                  const value =
+                                    e.target.value === ""
+                                      ? 1
+                                      : Number(e.target.value);
+                                  field.onChange(value);
+                                }}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <div>
+                      <FormField
+                        control={form.control}
+                        name="size"
+                        render={({ field }) => (
+                          <FormItem>
+                            <Label className="flex items-center gap-2 text-orange-600 font-medium">
+                              <span className="text-lg">📏</span>
+                              Tamaño
+                            </Label>
+                            <FormControl>
+                              <Input
+                                {...field}
+                                placeholder="Ej: 10x10x10 cm"
                                 className="mt-1"
                               />
                             </FormControl>
@@ -377,79 +420,28 @@ export default function CreateCotizacionView() {
                     </div>
 
                     <div>
-                        <FormField
-                          control={form.control}
-                          name="quantity"
-                          render={({ field }) => (
-                            <FormItem>
-                            <Label className="flex items-center gap-2 text-orange-600 font-medium">
-                              <span className="text-lg">#</span>
-                                  Cantidad
-                            </Label>
-                              <FormControl>
-                                <Input
-                                  {...field}
-                                  type="number"
-                                min="1"
-                                className="mt-1"
-                                  onChange={(e) => {
-                                  const value = e.target.value === "" ? 1 : Number(e.target.value);
-                                    field.onChange(value);
-                                  }}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-
-                    <div>
-                        <FormField
-                          control={form.control}
-                          name="size"
-                          render={({ field }) => (
-                            <FormItem>
-                            <Label className="flex items-center gap-2 text-orange-600 font-medium">
-                              <span className="text-lg">📏</span>
-                                  Tamaño
-                            </Label>
-                              <FormControl>
-                                <Input
-                                  {...field}
-                                  placeholder="Ej: 10x10x10 cm"
-                                className="mt-1"
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-
-                    <div>
-                        <FormField
-                          control={form.control}
-                          name="color"
-                          render={({ field }) => (
-                            <FormItem>
+                      <FormField
+                        control={form.control}
+                        name="color"
+                        render={({ field }) => (
+                          <FormItem>
                             <Label className="flex items-center gap-2 text-orange-600 font-medium">
                               <span className="text-lg">🎨</span>
-                                  Color
+                              Color
                             </Label>
-                              <FormControl>
-                                <Input
-                                  {...field}
-                                  placeholder="Ej: Rojo, Azul, Verde..."
+                            <FormControl>
+                              <Input
+                                {...field}
+                                placeholder="Ej: Rojo, Azul, Verde..."
                                 className="mt-1"
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                     </div>
+                  </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     <div>
@@ -476,29 +468,29 @@ export default function CreateCotizacionView() {
                     </div>
 
                     <div>
-                        <FormField
-                          control={form.control}
-                          name="comment"
-                          render={({ field }) => (
-                            <FormItem>
+                      <FormField
+                        control={form.control}
+                        name="comment"
+                        render={({ field }) => (
+                          <FormItem>
                             <Label className="flex items-center gap-2 text-orange-600 font-medium">
                               <span className="text-lg">💬</span>
-                                  Comentario
+                              Comentario
                             </Label>
-                              <FormControl>
-                                <Textarea
-                                  {...field}
-                                  placeholder="Ej: Producto en buen estado, etc."
+                            <FormControl>
+                              <Textarea
+                                {...field}
+                                placeholder="Ej: Producto en buen estado, etc."
                                 className="mt-1"
                                 rows={3}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                     </div>
+                  </div>
 
                   {/* Campos adicionales para Almacenaje de Mercancia */}
                   {service === "Almacenaje de Mercancia" && (
@@ -514,7 +506,11 @@ export default function CreateCotizacionView() {
                                 Peso (Kg)
                               </Label>
                               <FormControl>
-                                <Input {...field} type="number" className="mt-1" />
+                                <Input
+                                  {...field}
+                                  type="number"
+                                  className="mt-1"
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -532,7 +528,11 @@ export default function CreateCotizacionView() {
                                 Volumen
                               </Label>
                               <FormControl>
-                                <Input {...field} type="number" className="mt-1" />
+                                <Input
+                                  {...field}
+                                  type="number"
+                                  className="mt-1"
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -550,28 +550,32 @@ export default function CreateCotizacionView() {
                                 Nro. cajas
                               </Label>
                               <FormControl>
-                                <Input {...field} type="number" className="mt-1" />
+                                <Input
+                                  {...field}
+                                  type="number"
+                                  className="mt-1"
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
                           )}
                         />
-                  </div>
-                </div>
+                      </div>
+                    </div>
                   )}
 
                   {/* File Upload Section */}
                   <div className="mb-6">
                     <Label className="flex items-center gap-2 text-orange-600 font-medium mb-3">
                       <span className="text-lg">📁</span>
-                      Archivos
+                      Imagenes
                     </Label>
 
                     <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4">
-                    <FileUploadComponent
-                      onFilesChange={setSelectedFiles}
-                      resetCounter={resetCounter}
-                    />
+                      <FileUploadComponent
+                        onFilesChange={setSelectedFiles}
+                        resetCounter={resetCounter}
+                      />
                     </div>
                   </div>
 
@@ -599,13 +603,13 @@ export default function CreateCotizacionView() {
                       ) : (
                         <>
                           <Plus className="w-4 h-4 mr-2" />
-                      Agregar Producto
+                          Agregar Producto
                         </>
                       )}
                     </Button>
-                </div>
-              </form>
-            </Form>
+                  </div>
+                </form>
+              </Form>
             </CardContent>
           </Card>
 
@@ -652,7 +656,7 @@ export default function CreateCotizacionView() {
               variant="secondary"
               onClick={handleGuardarBorrador}
               disabled={isLoading || productos.length === 0}
-              className="text-gray-600 border-gray-300 hover:bg-gray-50 px-6 py-2 flex items-center gap-2 disabled:opacity-50"
+              className="bg-orange-500 hover:bg-orange-600  text-white px-8 py-2 rounded-full shadow-md flex items-center gap-2 disabled:opacity-50"
             >
               {isLoading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -667,7 +671,7 @@ export default function CreateCotizacionView() {
               trigger={
                 <Button
                   disabled={isLoading || productos.length === 0}
-                  className="bg-orange-500 hover:bg-orange-600 animate-pulse text-white px-8 py-2 rounded-full shadow-md flex items-center gap-2 disabled:opacity-50"
+                  className="bg-orange-500 hover:bg-orange-600  text-white px-8 py-2 rounded-full shadow-md flex items-center gap-2 disabled:opacity-50"
                 >
                   {isLoading ? (
                     <Loader2 className="w-5 h-5 animate-spin" />

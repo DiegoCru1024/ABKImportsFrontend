@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FileText, Package, Plus, ArrowLeft } from "lucide-react";
+import { FileText, Package, Plus, ArrowLeft, Undo2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/table/data-table";
@@ -15,12 +15,12 @@ import { useNavigate } from "react-router-dom";
 type ViewType = "list" | "details" | "edit";
 
 export default function MisCotizacionesView() {
-
   const navigate = useNavigate();
   const [currentView, setCurrentView] = useState<ViewType>("list");
   const [data, setData] = useState<any[]>([]);
   const [selectedQuotationId, setSelectedQuotationId] = useState<string>("");
   const [selectedCorrelative, setSelectedCorrelative] = useState<string>("");
+  const [statusQuotation, setStatusQuotation] = useState<string>("");
   const [isOpen, setIsOpen] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [quotationToDelete, setQuotationToDelete] = useState<string>("");
@@ -34,7 +34,11 @@ export default function MisCotizacionesView() {
     totalPages: 0,
   });
 
-  const { data: dataQuotations, isLoading, isError } = useGetQuotationsListWithPagination(
+  const {
+    data: dataQuotations,
+    isLoading,
+    isError,
+  } = useGetQuotationsListWithPagination(
     searchTerm,
     pageInfo.pageNumber,
     pageInfo.pageSize
@@ -75,10 +79,15 @@ export default function MisCotizacionesView() {
     setCurrentView("details");
   };
 
-  const handleEditQuotation = (quotationId: string, correlative: string) => {
+  const handleEditQuotation = (
+    quotationId: string,
+    correlative: string,
+    status: string
+  ) => {
     setSelectedQuotationId(quotationId);
     setSelectedCorrelative(correlative);
     setCurrentView("edit");
+    setStatusQuotation(status);
   };
 
   const handleBackToList = () => {
@@ -119,9 +128,10 @@ export default function MisCotizacionesView() {
   };
 
   // Calcular estadísticas
-  const pendingCount = data.filter(q => q.status === "pending").length;
-  const completedCount = data.filter(q => q.status === "completed").length;
-  const inProgressCount = data.filter(q => q.status === "in_progress").length;
+  const pendingCount = data.filter((q) => q.status === "pending").length;
+  const draftCount = data.filter((q) => q.status === "draft").length;
+  const completedCount = data.filter((q) => q.status === "completed").length;
+  const inProgressCount = data.filter((q) => q.status === "in_progress").length;
 
   const columns = columnsQuotationsList({
     onViewDetails: handleViewDetails,
@@ -131,16 +141,16 @@ export default function MisCotizacionesView() {
 
   // Vista de lista principal
   if (currentView === "list") {
-  return (
+    return (
       <div className="min-h-screen bg-gradient-to-br from-orange-500/5 via-background to-orange-400/10">
         {/* Header */}
         <div className="border-t border-border/60 bg-background/80 backdrop-blur-sm sticky top-0 z-10">
           <div className="w-full px-4 py-4 border-b border-border/60">
             <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-500 hover:bg-orange-600">
-                <FileText className="h-6 w-6 text-white" />
-              </div>
+              <div className="flex items-center space-x-4">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-500 hover:bg-orange-600">
+                  <FileText className="h-6 w-6 text-white" />
+                </div>
                 <div>
                   <h1 className="text-xl font-bold text-gray-900 dark:text-white">
                     Mis Cotizaciones
@@ -150,7 +160,7 @@ export default function MisCotizacionesView() {
                   </p>
                 </div>
               </div>
-              <Button 
+              <Button
                 className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-full shadow-md flex items-center gap-2"
                 onClick={() => navigate("/dashboard/cotizacion-de-productos")}
               >
@@ -167,29 +177,36 @@ export default function MisCotizacionesView() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Cotizaciones</CardTitle>
-                <FileText className="h-4 w-4 text-orange-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{pageInfo.totalElements}</div>
-                <p className="text-xs text-muted-foreground">cotizaciones registradas</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Pendientes</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Pendientes ({pendingCount})
+                </CardTitle>
                 <Package className="h-4 w-4 text-yellow-500" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{pendingCount}</div>
-                <p className="text-xs text-muted-foreground">esperando respuesta</p>
+                <p className="text-xs text-muted-foreground">
+                  esperando respuesta
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Borradores ({draftCount})
+                </CardTitle>
+                <Package className="h-4 w-4 text-orange-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{draftCount}</div>
+                <p className="text-xs text-muted-foreground">en proceso</p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Completadas</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Completadas ({completedCount})
+                </CardTitle>
                 <Package className="h-4 w-4 text-green-500" />
               </CardHeader>
               <CardContent>
@@ -200,7 +217,9 @@ export default function MisCotizacionesView() {
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">En Progreso</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  En Progreso ({inProgressCount})
+                </CardTitle>
                 <Package className="h-4 w-4 text-blue-500" />
               </CardHeader>
               <CardContent>
@@ -247,16 +266,19 @@ export default function MisCotizacionesView() {
               )}
             </CardContent>
 
-                         <ConfirmationModal
-               isOpen={isOpen}
-               onClose={handleCancelDelete}
-               onConfirm={handleConfirm}
-               title="Confirmación"
-               description="¿Estás seguro de querer eliminar esta cotización?"
-               buttonText="Eliminar"
-             />
+            <ConfirmationModal
+              isOpen={isOpen}
+              onClose={handleCancelDelete}
+              onConfirm={handleConfirm}
+              title="Confirmación"
+              description="¿Estás seguro de querer eliminar esta cotización?"
+              buttonText="Eliminar"
+            />
 
-            <SendingModal isOpen={isSending} onClose={() => setIsSending(false)} />
+            <SendingModal
+              isOpen={isSending}
+              onClose={() => setIsSending(false)}
+            />
           </Card>
         </div>
       </div>
@@ -274,37 +296,37 @@ export default function MisCotizacionesView() {
               <div className="flex items-center space-x-4">
                 <Button
                   variant="ghost"
-                  size="sm"
+                  size="icon"
                   onClick={handleBackToList}
-                  className="text-gray-600 hover:text-gray-900"
+                  className="text-gray-600 hover:text-gray-900 p-0"
+                  title="Atrás"
                 >
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Volver a Mis Cotizaciones
+                  <Undo2 className="h-8 w-8 text-orange-500 hover:text-orange-600" />
                 </Button>
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-500">
                   <FileText className="h-6 w-6 text-white" />
                 </div>
                 <div>
                   <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-                    Detalles de Cotización
-              </h1>
-                  <p className="text-sm text-muted-foreground">
+                    Respuesta de Cotización
+                  </h1>
+                  <p className="text-md text-muted-foreground font-medium">
                     Cotización #{selectedCorrelative}
                   </p>
                 </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
         <div className="p-6">
-            <ResponseCotizacionView
-              selectedQuotationId={selectedQuotationId}
-              onSelectProductForResponse={() => {}}
-            />
+          <ResponseCotizacionView
+            selectedQuotationId={selectedQuotationId}
+            onSelectProductForResponse={() => {}}
+          />
+        </div>
       </div>
-    </div>
-  );
+    );
   }
 
   // Vista de edición
@@ -313,6 +335,7 @@ export default function MisCotizacionesView() {
       <EditCotizacionView
         quotationId={selectedQuotationId}
         onBack={handleBackToList}
+        statusQuotation={statusQuotation}
       />
     );
   }

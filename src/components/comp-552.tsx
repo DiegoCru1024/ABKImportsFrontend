@@ -241,7 +241,7 @@ export default function FileUploadComponent({ onFilesChange, resetCounter }: Fil
             >
               <ImageIcon className="size-4 opacity-60" />
             </div>
-            <p className="mb-1.5 text-sm font-medium dark:text-gray-200">Arrastre sus archivos aquí</p>
+            <p className="mb-1.5 text-sm font-medium dark:text-gray-200">Arrastre sus imagenes aquí</p>
             <p className="text-muted-foreground text-xs">
               Max {maxFiles} archivos ∙ Max {maxSizeMB}MB c/u
             </p>

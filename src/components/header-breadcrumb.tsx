@@ -39,7 +39,7 @@ export default function HeaderConBreadcrumb() {
             <BreadcrumbList>
               <BreadcrumbItem className="hidden md:block">
                 <BreadcrumbLink asChild href="/">
-                  <Link to="/">Inicio</Link>
+                  <Link to="/dashboard">Inicio</Link>
                 </BreadcrumbLink>
               </BreadcrumbItem>
               {segments.map((seg, i) => {

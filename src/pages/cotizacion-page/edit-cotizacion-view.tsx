@@ -15,6 +15,7 @@ import {
   X,
   Edit2,
   ArrowLeft,
+  Undo2,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
@@ -43,7 +44,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useGetQuotationById, usePatchQuotation } from "@/hooks/use-quation";
+import { useGetQuotationById, usePatchQuotation, useSubmitDraft } from "@/hooks/use-quation";
 import { uploadMultipleFiles } from "@/api/fileUpload";
 import { toast } from "sonner";
 import SendingModal from "@/components/sending-modal";
@@ -56,19 +57,23 @@ import { servicios } from "@/pages/cotizacion-page/components/data/static";
 interface EditCotizacionViewProps {
   quotationId: string;
   onBack: () => void;
+  statusQuotation: string;
 }
 
 export default function EditCotizacionView({
   quotationId,
   onBack,
+  statusQuotation
 }: EditCotizacionViewProps) {
   const [productos, setProductos] = useState<any[]>([]);
-  const [service, setService] = useState("Pendiente");
+  const [service, setService] = useState("pending");
   const [resetCounter, setResetCounter] = useState(0);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+
+  console.log("statusQuotation", statusQuotation);
 
   //* Hook para obtener cotización por ID
   const { data: quotationData, isLoading: loadingQuotation } =
@@ -76,7 +81,7 @@ export default function EditCotizacionView({
 
   //* Hook para actualizar cotización
   const patchQuotationMut = usePatchQuotation(quotationId);
-
+  const submitDraftMut = useSubmitDraft(quotationId);
   const form = useForm<z.infer<typeof productoSchema>>({
     resolver: zodResolver(productoSchema),
     defaultValues: {
@@ -232,9 +237,8 @@ export default function EditCotizacionView({
       return;
     }
 
-    setIsLoading(true);
-
     try {
+      setIsLoading(true);
       // 1. Recopilar TODOS los archivos NUEVOS de TODOS los productos
       const allNewFiles: File[] = [];
       const fileIndexMap: {
@@ -297,11 +301,16 @@ export default function EditCotizacionView({
         JSON.stringify(dataToSend, null, 2)
       );
 
-      // 4. Actualizar cotización usando el hook
-      patchQuotationMut.mutate({ data: dataToSend });
+      if (statusQuotation === "pending") {
+        // 4. Actualizar cotización usando el hook
+        patchQuotationMut.mutate({ data: dataToSend });
+      } else {
+        // 4. Actualizar cotización usando el hook
+        submitDraftMut.mutate({ data: dataToSend });
+      }
     } catch (error) {
       console.error("Error durante el proceso de actualización:", error);
-      toast.error("Error al procesar los archivos");
+    } finally {
       setIsLoading(false);
     }
   };
@@ -328,25 +337,41 @@ export default function EditCotizacionView({
       <div className="border-t border-border/60 bg-background/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="w-full px-4 py-4 border-b border-border/60 flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onBack}
-              className="text-gray-600 hover:text-gray-900"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Volver
-            </Button>
+            <div className="flex flex-col items-center space-x-4">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onBack}
+                className="text-gray-600 hover:text-gray-900 p-0"
+                title="Atrás"
+              >
+                <Undo2 className="h-8 w-8 text-orange-500 hover:text-orange-600" />
+              </Button>
+            </div>
+
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-500 hover:bg-orange-600">
               <FileText className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-                Editar Cotización
-              </h1>
-              <p className="text-sm font-normal text-gray-500 dark:text-gray-400">
-                Edita los productos de tu cotización y actualiza la información.
-              </p>
+              {statusQuotation === "pending" ? (
+                <>
+                  <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+                    Editar Cotización
+                  </h1>
+                <p className="text-sm font-normal text-gray-500 dark:text-gray-400">
+                  Edita los productos de tu cotización y actualiza la información.
+                </p>
+                </>
+              ) : (
+                <>
+                <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+                  Editar Borrador
+                </h1>
+                <p className="text-sm font-normal text-gray-500 dark:text-gray-400">
+                  Edita y envia productos de tu borrador.
+                </p>
+                </> 
+              )}
             </div>
           </div>
           <div className="rounded-md flex items-center gap-2">
@@ -723,7 +748,7 @@ export default function EditCotizacionView({
                   ) : (
                     <Send className="w-5 h-5" />
                   )}
-                  Actualizar Cotización ({productos.length} producto
+                  {statusQuotation === "pending" ? "Actualizar Cotización" : "Enviar Borrador"} ({productos.length} producto
                   {productos.length !== 1 ? "s" : ""})
                 </Button>
               }

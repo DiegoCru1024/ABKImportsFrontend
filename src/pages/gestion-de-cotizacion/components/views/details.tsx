@@ -657,13 +657,13 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
   }, []);
 
   //* Establecer el primer servicio como seleccionado cuando se cargan los datos
-  useEffect(() => {
-    if (
-      quotationDetail?.summaryByServiceType?.[0]?.service_type &&
+  //useEffect(() => {
+    /*if (
+      quotationDetail?.content?.summaryByServiceType?.[0]?.service_type &&
       !selectedServiceType
     ) {
       setSelectedServiceType(
-        quotationDetail.summaryByServiceType[0].service_type
+        quotationDetail.content.summaryByServiceType[0].service_type
       );
       setTotalProducts(quotationDetail.products.length);
       setRespondedProducts(
@@ -674,7 +674,7 @@ const DetallesTab: React.FC<DetallesTabProps> = ({ selectedQuotationId }) => {
       setProduct(quotationDetail.products);
       setEditableProducts(quotationDetail.products);
     }
-  }, [quotationDetail, selectedServiceType, isLoading]);
+  //}, [quotationDetail, selectedServiceType, isLoading]);*/
 
   //* Inicializar productos de la tabla de costeo unitario cuando se cargan los datos
   useEffect(() => {

@@ -3,7 +3,7 @@ import { z } from "zod";
 export const productoSchema = z.object({
     name: z.string().min(1, { message: "El nombre es requerido" }),
     quantity: z.number().min(1, { message: "La cantidad es requerida" }),
-    size: z.string().min(1, { message: "El tamaño es requerido" }),
+    size: z.string().optional(),
     color: z.string().min(1, { message: "El color es requerido" }),
     url: z.string().optional(),
     comment: z.string().optional(),

@@ -4,11 +4,9 @@ import { Badge } from "@/components/ui/badge";
 import { Edit, Eye, Trash, Truck } from "lucide-react";
 import type { QuotationListItem } from "../../types/interfaces";
 
-
-  
 interface ColumnsQuotationsListProps {
-  onViewDetails: (quotationId: string,correlative:string) => void;
-  onEditQuotation: (quotationId: string,correlative:string) => void;
+  onViewDetails: (quotationId: string, correlative: string) => void;
+  onEditQuotation: (quotationId: string, correlative: string, status: string) => void;
   onDelete: (quotationId: string) => void;
 }
 
@@ -17,8 +15,6 @@ export function columnsQuotationsList({
   onEditQuotation,
   onDelete,
 }: ColumnsQuotationsListProps): ColumnDef<QuotationListItem, any>[] {
-
-
   const getStatusBadge = (status: string) => {
     switch (status.toLowerCase()) {
       case "pending":
@@ -37,6 +33,15 @@ export function columnsQuotationsList({
             className="bg-green-50 text-green-700 border-green-200"
           >
             Completado
+          </Badge>
+        );
+      case "draft":
+        return (
+          <Badge
+            variant="default"
+            className="bg-yellow-50 text-yellow-700 border-yellow-200"
+          >
+            Borrador
           </Badge>
         );
       case "cancelled":
@@ -74,9 +79,7 @@ export function columnsQuotationsList({
     }
   };
 
-
   return [
-
     {
       id: "correlative",
       accessorKey: "correlative",
@@ -88,7 +91,6 @@ export function columnsQuotationsList({
       ),
       size: 120,
     },
-
 
     {
       id: "status",
@@ -116,7 +118,9 @@ export function columnsQuotationsList({
       id: "quantityProducts",
       accessorKey: "quantityProducts",
       header: "Nro. Productos",
-      cell: ({ row }) => <div className="text-center">{row.original.quantityProducts}</div>,
+      cell: ({ row }) => (
+        <div className="text-center">{row.original.quantityProducts}</div>
+      ),
       size: 80,
     },
     {
@@ -146,7 +150,9 @@ export function columnsQuotationsList({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => onViewDetails(row.original.id, row.original.correlative)}
+            onClick={() =>
+              onViewDetails(row.original.id, row.original.correlative)
+            }
             className="h-8 w-8 p-0 text-orange-500 hover:text-orange-700"
             title="Ver detalles de respuesta"
           >
@@ -155,7 +161,9 @@ export function columnsQuotationsList({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => onEditQuotation(row.original.id, row.original.correlative)}
+            onClick={() =>
+              onEditQuotation(row.original.id, row.original.correlative, row.original.status)
+            }
             className="h-8 w-8 p-0 text-blue-500 hover:text-blue-700"
             title="Editar cotizacion"
           >

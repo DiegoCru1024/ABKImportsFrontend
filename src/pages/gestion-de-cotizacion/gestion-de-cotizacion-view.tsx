@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import {
   FileText,
-  User,
   Calendar,
   Eye,
   Package,
@@ -12,9 +11,6 @@ import {
   Download,
   ExternalLink,
   Clock,
-  MessageSquare,
-  Palette,
-  Ruler,
 } from "lucide-react";
 
 // Importar componentes modulares
@@ -32,7 +28,10 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 import { formatDate, formatDateTime } from "@/lib/format-time";
 
-import { statusFilterOptions, statusMap } from "@/pages/cotizacion-page/components/static";
+import {
+  defaultStatusConfig,
+  statusMap,
+} from "@/pages/cotizacion-page/components/static";
 
 export default function GestionDeCotizacionesView() {
   // ********Tabs**** */
@@ -41,12 +40,8 @@ export default function GestionDeCotizacionesView() {
   // ********Cotización seleccionada**** */
   const [selectedQuotationId, setSelectedQuotationId] = useState<string>("");
 
-  // ********Producto seleccionado para respuesta**** */
-  const [selectedProductId, setSelectedProductId] = useState<string>("");
-  const [selectedProductName, setSelectedProductName] = useState<string>("");
-
   // ********Estados de filtro y búsqueda**** */
-  const [statusFilter, setStatusFilter] = useState("all");
+
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
 
@@ -92,6 +87,7 @@ export default function GestionDeCotizacionesView() {
   // Actualizar datos cuando llegan del hook
   useEffect(() => {
     if (dataQuotations) {
+      console.log("dataQuotations", dataQuotations);
       setData(dataQuotations.content);
       setPageInfo({
         pageNumber:
@@ -108,58 +104,12 @@ export default function GestionDeCotizacionesView() {
     }
   }, [dataQuotations]);
 
-  // ********Funciones auxiliares**** */
-
-  // Determinar el estado de una cotización
-  const getQuotationStatus = (quote: any) => {
-    if (!quote.products || !Array.isArray(quote.products)) return "pending";
-
-    const totalProducts = quote.products.length;
-    const respondedProducts = quote.products.filter(
-      (p: any) => p.statusResponseProduct === "answered"
-    ).length;
-
-    if (respondedProducts === 0) return "pending";
-    if (respondedProducts < totalProducts) return "partial";
-    return "answered";
-  };
-
-  // Filtrar cotizaciones según el estado seleccionado
-  const filteredQuotes = data.filter((quote) => {
-    if (statusFilter === "all") return true;
-    return getQuotationStatus(quote) === statusFilter;
-  });
-
-  // Calcular conteos para los filtros
-  const getStatusCounts = () => {
-    const counts = { all: data.length, pending: 0, partial: 0, answered: 0 };
-
-    data.forEach((quote) => {
-      const status = getQuotationStatus(quote);
-      counts[status as keyof typeof counts]++;
-    });
-
-    return counts;
-  };
-
-  const statusCounts = getStatusCounts();
-
   // ********Funciones de navegación**** */
 
   // Función para manejar la vista de detalles
   const handleViewDetails = (quotationId: string) => {
     setSelectedQuotationId(quotationId);
     setMainTab("detalles");
-  };
-
-  // Función para manejar la selección de producto para respuesta
-  const handleSelectProductForResponse = (
-    productId: string,
-    productName: string
-  ) => {
-    setSelectedProductId(productId);
-    setSelectedProductName(productName);
-    setMainTab("respuesta");
   };
 
   // Función para cambiar de página
@@ -275,34 +225,6 @@ export default function GestionDeCotizacionesView() {
           </div>
         </div>
 
-        {/* Filtros de estado */}
-        <div className="mb-6">
-          <div className="flex flex-wrap gap-2">
-            {statusFilterOptions.map((opt: { key: string; label: string }) => (
-              <button
-                key={opt.key}
-                onClick={() => setStatusFilter(opt.key)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-all duration-200 ${
-                  statusFilter === opt.key
-                    ? "bg-gray-900 text-white border-gray-900 shadow-sm"
-                    : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:border-gray-300"
-                }`}
-              >
-                {opt.label}
-                <span
-                  className={`px-2 py-0.5 rounded-full text-xs ${
-                    statusFilter === opt.key
-                      ? "bg-white/20 text-white"
-                      : "bg-gray-100 text-gray-600"
-                  }`}
-                >
-                  {statusCounts[opt.key as keyof typeof statusCounts]}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
-
         {/* Estados de carga y error */}
         {isLoading && (
           <div className="space-y-4">
@@ -351,19 +273,11 @@ export default function GestionDeCotizacionesView() {
         {!isLoading && !isError && (
           <>
             <div className="space-y-4">
-              {filteredQuotes.map((quote: any) => {
-                const status = getQuotationStatus(quote);
+              {data.map((quote: any) => {
                 const statusConfig =
-                  statusMap[status as keyof typeof statusMap];
-                const totalProducts = quote.products?.length || 0;
-                const respondedProducts =
-                  quote.products?.filter(
-                    (p: any) => p.statusResponseProduct === "answered"
-                  ).length || 0;
-                const progress =
-                  totalProducts > 0
-                    ? Math.round((respondedProducts / totalProducts) * 100)
-                    : 0;
+                  statusMap[quote.status as keyof typeof statusMap] ||
+                  defaultStatusConfig;
+                const totalProducts = quote.productQuantity || 0;
 
                 return (
                   <Card
@@ -423,133 +337,30 @@ export default function GestionDeCotizacionesView() {
                             </div>
                           </div>
 
-                          <div className="text-center">
-                            <div className="text-2xl font-bold text-gray-900">
-                              {totalProducts}
-                            </div>
-                            <div className="text-sm text-gray-600">
-                              Productos
-                            </div>
-                          </div>
+
                         </div>
                       </div>
 
-                      {/* Productos */}
+                      {/* Información de productos */}
                       <div className="mb-4">
                         <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                           <Package className="w-4 h-4" />
-                          Productos ({totalProducts})
+                          Información de productos
                         </h4>
-                        <div className="flex gap-3 overflow-x-auto pb-2">
-                          {quote.products?.map((product: any) => (
-                            <div
-                              key={product.id}
-                              className="flex bg-gray-50 rounded-lg p-3 gap-3 min-w-[320px]"
-                            >
-                              {/* Imagen del producto */}
-                              {product.attachments &&
-                                product.attachments.length > 0 && (
-                                  <div className="relative w-[120px] h-[120px] group flex-shrink-0">
-                                    <img
-                                      src={
-                                        product.attachments[0] ||
-                                        "/placeholder.svg"
-                                      }
-                                      alt={product.name}
-                                      className="w-full h-full object-cover rounded cursor-pointer transition-all duration-200"
-                                      onError={(e) => {
-                                        const target =
-                                          e.target as HTMLImageElement;
-                                        target.style.display = "none";
-                                      }}
-                                    />
-                                    {/* Overlay con hover effect */}
-                                    <div
-                                      className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded flex items-center justify-center cursor-pointer"
-                                      onClick={() =>
-                                        openImageModal(
-                                          product.attachments,
-                                          product.name
-                                        )
-                                      }
-                                    >
-                                      <div className="flex flex-col items-center gap-1 text-white">
-                                        <Eye className="w-4 h-4" />
-                                        <span className="text-xs font-medium text-center">
-                                          {product.attachments.length > 1
-                                            ? `Ver ${product.attachments.length}`
-                                            : "Ver imagen"}
-                                        </span>
-                                      </div>
-                                    </div>
-                                    {/* Badge contador de imágenes */}
-                                    {product.attachments.length > 1 && (
-                                      <div className="absolute top-2 right-2 bg-gray-900 bg-opacity-80 text-white text-xs px-2 py-1 rounded-full">
-                                        +{product.attachments.length - 1}
-                                      </div>
-                                    )}
-                                  </div>
-                                )}
-
-                              {/* Información del producto */}
-                              <div className="flex-1 flex flex-col justify-between min-w-0">
-                                <div className="space-y-2">
-                                  {/* Header del producto */}
-                                  <div>
-                                    <h3 className="font-bold text-base text-gray-900 capitalize leading-tight">
-                                      {product.name}
-                                    </h3>
-                                    <div className="flex items-center gap-2 mt-1">
-                                      <Badge
-                                        variant="outline"
-                                        className="text-xs"
-                                      >
-                                        {product.quantity} unidades
-                                      </Badge>
-                                    </div>
-                                  </div>
-
-                                  {/* Especificaciones */}
-                                  <div className="space-y-1">
-                                    {product.size && (
-                                      <div className="flex items-center gap-1 text-xs">
-                                        <Ruler className="w-3 h-3 text-gray-400" />
-                                        <span className="text-gray-600">
-                                          Tamaño:
-                                        </span>
-                                        <span className="font-medium text-gray-900">
-                                          {product.size}
-                                        </span>
-                                      </div>
-                                    )}
-                                    {product.color && (
-                                      <div className="flex items-center gap-1 text-xs">
-                                        <Palette className="w-3 h-3 text-gray-400" />
-                                        <span className="text-gray-600">
-                                          Color:
-                                        </span>
-                                        <span className="font-medium text-gray-900">
-                                          {product.color}
-                                        </span>
-                                      </div>
-                                    )}
-                                  </div>
-
-                                  {/* Comentarios destacados */}
-                                  {product.comment && (
-                                    <div className="bg-blue-50 border-l-3 border-blue-400 p-2 rounded-r">
-                                      <div className="flex items-start gap-2">
-                                        <MessageSquare className="w-3 h-3 text-blue-500 mt-0.5 flex-shrink-0" />
-                                        <p className="text-xs text-blue-700 font-medium leading-tight">
-                                          {product.comment}
-                                        </p>
-                                      </div>
-                                    </div>
-                                  )}
-                                </div>
+                        <div className="bg-gray-50 rounded-lg p-4">
+                          <div className="flex items-center gap-4">
+                            <div className="text-center">
+                              <div className="text-2xl font-bold text-gray-900">
+                                {quote.productQuantity}
+                              </div>
+                              <div className="text-sm text-gray-600">
+                                Productos solicitados
                               </div>
                             </div>
-                          ))}
+                            <div className="text-sm text-gray-600">
+                              Para ver los detalles completos de los productos, haga clic en "Ver Detalles y Responder"
+                            </div>
+                          </div>
                         </div>
                       </div>
 
@@ -633,22 +444,13 @@ export default function GestionDeCotizacionesView() {
             )}
 
             {/* Mensaje cuando no hay resultados */}
-            {filteredQuotes.length === 0 && (
+            {data.length === 0 && (
               <Card>
                 <div className="p-12 text-center">
                   <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">
                     No se encontraron cotizaciones
                   </h3>
-                  <p className="text-gray-500">
-                    {statusFilter !== "all"
-                      ? `No hay cotizaciones con estado "${
-                          statusFilterOptions.find(
-                            (opt: any) => opt.key === statusFilter
-                          )?.label
-                        }"`
-                      : "Intente ajustar los filtros de búsqueda"}
-                  </p>
                 </div>
               </Card>
             )}

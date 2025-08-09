@@ -1,12 +1,8 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import type { ProductRow } from "@/pages/gestion-de-cotizacion/components/views/editableunitcosttable";
 
-
-
 // Definición de columnas dentro del componente para usar callbacks
-export function columnsUnitCost(
-  
-): ColumnDef<ProductRow, any>[] {
+export function columnsUnitCost(): ColumnDef<ProductRow, any>[] {
   return [
     {
       id: "name",
@@ -22,11 +18,13 @@ export function columnsUnitCost(
       accessorKey: "price",
       header: () => <div className="text-center">PRECIO</div>,
       cell: ({ row }) => {
-   <div className="text-center">
-    <span className="font-semibold">
-      USD {(Number(row.original.price) || 0).toFixed(2)}
-    </span>
-   </div>
+        return (
+          <div className="text-center">
+            <span className="font-semibold">
+              USD {(Number(row.original.price) || 0).toFixed(2)}
+            </span>
+          </div>
+        );
       },
       minSize: 150,
       size: 200,
@@ -38,9 +36,7 @@ export function columnsUnitCost(
       header: () => <div className="text-center">CANTIDAD</div>,
       cell: ({ row }) => (
         <div className="text-center">
-          <span className="font-semibold">
-            {row.original.quantity}
-          </span>
+          <span className="font-semibold">{row.original.quantity}</span>
         </div>
       ),
       minSize: 150,
@@ -67,7 +63,9 @@ export function columnsUnitCost(
       cell: ({ row }) => {
         return (
           <div className="text-center flex justify-center items-center">
-            <span className="font-semibold">{(Number(row.original.equivalence) || 0).toFixed(2)}%</span>
+            <span className="font-semibold">
+              {(Number(row.original.equivalence) || 0).toFixed(2)}%
+            </span>
           </div>
         );
       },

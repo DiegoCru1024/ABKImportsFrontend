@@ -16,6 +16,7 @@ import {
   Eye,
   ChartBar,
   DollarSign,
+  Link,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useGetQuotationById } from "@/hooks/use-quation";
@@ -29,12 +30,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/functions";
+import UrlImageViewerModal from "./components/UrlImageViewerModal";
 import { formatDate, formatDateTime } from "@/lib/format-time";
 
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import { columnsEditableUnitcost } from "@/pages/gestion-de-cotizacion/components/table/columnseditableunitcost";
 import type { ProductRow } from "@/pages/gestion-de-cotizacion/components/views/editableunitcosttable";
 import { columnsUnitCost } from "./components/table/columnsUnitCost";
 
@@ -70,6 +71,7 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
   const [productsList, setProductsList] = useState<ProductRow[]>([]);
 
   const [openImageModal, setOpenImageModal] = useState<boolean>(false);
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
 
   // ✅ TODA LA LÓGICA Y FUNCIONES QUE USAN LOS HOOKS TAMBIÉN VAN AQUÍ
 
@@ -99,12 +101,37 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
   };
 
   useEffect(() => {
+    // Si hay respuestas, usar los unitCostProducts de la respuesta seleccionada
+    if (
+      quotationResponses &&
+      quotationResponses.length > 0 &&
+      selectedResponseTab
+    ) {
+      const response = quotationResponses.find(
+        (r) => r.serviceType === selectedResponseTab
+      );
+      const mapped: ProductRow[] = (response?.unitCostProducts || []).map(
+        (p: any) => ({
+          id: p.id,
+          name: p.name,
+          price: Number(p.price) || 0,
+          quantity: Number(p.quantity) || 0,
+          total: Number(p.total) || 0,
+          equivalence: Number(p.equivalence) || 0,
+          importCosts: Number(p.importCosts) || 0,
+          totalCost: Number(p.totalCost) || 0,
+          unitCost: Number(p.unitCost) || 0,
+        })
+      );
+      setProductsList(mapped);
+      return;
+    }
+    // Fallback: mostrar productos de la cotización si no hay respuestas
     if (quotationDetail?.products && quotationDetail.products.length > 0) {
-      // Mapea los productos iniciales a la estructura de ProductRow
       const initialProducts = quotationDetail.products.map((p) => ({
         id: p.id,
         name: p.name,
-        price: 0, // o algún valor inicial
+        price: 0,
         quantity: p.quantity,
         total: 0,
         equivalence: 0,
@@ -115,7 +142,7 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
       const recalculated = recalculateProducts(initialProducts);
       setProductsList(recalculated);
     }
-  }, [quotationDetail?.products]);
+  }, [quotationResponses, quotationDetail?.products, selectedResponseTab]);
 
   // useEffect para establecer la primera respuesta como seleccionada
   useEffect(() => {
@@ -124,6 +151,7 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
       quotationResponses.length > 0 &&
       !selectedResponseTab
     ) {
+      console.log("Jas",JSON.stringify(quotationResponses,null,2 ));
       setSelectedResponseTab(quotationResponses[0].serviceType);
     }
   }, [quotationResponses, selectedResponseTab]);
@@ -132,7 +160,10 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
 
   // El resto de tus funciones y cálculos
   const calculateFactorM = (products: ProductRow[]): number => {
-    return 0;
+    if (products.length === 0) return 0;
+    const first = products[0];
+    if (!first.price || !first.unitCost) return 0;
+    return Number(first.price) / Number(first.unitCost);
   };
 
   const columns = columnsUnitCost();
@@ -501,10 +532,11 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
                         {/* Overlay con hover effect */}
                         <div
                           className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded flex items-center justify-center cursor-pointer"
-                          onClick={() => setOpenImageModal(true)}
-                          /*onClick={() =>
-                            openImageModal(product.attachments, product.name)
-                          }*/
+                          onClick={() => {
+                            setImageUrls(product.attachments as string[]);
+                            setModalProductName(product.name);
+                            setOpenImageModal(true);
+                          }}
                         >
                           <div className="flex flex-col items-center gap-1 text-white">
                             <Eye className="w-4 h-4" />
@@ -559,6 +591,17 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
                               </span>
                             </div>
                           )}
+                          {product.url && (
+                            <div className="flex items-center gap-1 text-xs">
+                              <Link className="w-3 h-3 text-gray-400" />
+                              <span className="text-gray-600">URL:</span>
+                              <span className="font-medium text-gray-900">
+                                <a href={product.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600">
+                                  Ver link
+                                </a>
+                              </span>
+                            </div>
+                          )}
                         </div>
 
                         {/* Comentarios destacados */}
@@ -581,6 +624,13 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
           </div>
         </div>
       </div>
+      {/* Modal visor de imágenes */}
+      <UrlImageViewerModal
+        isOpen={openImageModal}
+        onClose={() => setOpenImageModal(false)}
+        urls={imageUrls}
+        productName={modalProductName}
+      />
 
       <div className="bg-white rounded-lg border">
         <div className=" pt-4 px-4 bg-white rounded-lg border">

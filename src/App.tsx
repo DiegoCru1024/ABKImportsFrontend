@@ -22,7 +22,7 @@ import Herramientas from "./pages/herramientas";
 
 
 function App() {
-  return (
+  return ( 
     <Routes>
       {/* Layout básico para login */}
       <Route element={<BasicLayout />}>

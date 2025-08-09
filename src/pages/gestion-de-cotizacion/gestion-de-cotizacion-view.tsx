@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   FileText,
   Calendar,
@@ -40,6 +41,7 @@ import {
 } from "@/pages/cotizacion-page/components/static";
 
 export default function GestionDeCotizacionesView() {
+  const navigate = useNavigate();
   // ********Tabs**** */
   const [mainTab, setMainTab] = useState<string>("solicitudes");
 
@@ -114,13 +116,11 @@ export default function GestionDeCotizacionesView() {
 
   // Función para manejar la vista de detalles
   const handleViewDetails = (quotationId: string) => {
-    setSelectedQuotationId(quotationId);
-    setMainTab("detalles");
+    navigate(`/dashboard/gestion-de-cotizacion/respuesta/${quotationId}`);
   };
 
   const handleViewListResponses = (quotationId: string) => {
-    setSelectedQuotationId(quotationId);
-    setMainTab("listResponses");
+    navigate(`/dashboard/gestion-de-cotizacion/respuestas/${quotationId}`);
   };
 
   // Función para cambiar de página

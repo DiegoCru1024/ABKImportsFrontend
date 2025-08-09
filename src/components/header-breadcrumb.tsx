@@ -20,7 +20,15 @@ function toTitle(segment: string) {
 
 export default function HeaderConBreadcrumb() {
   const location = useLocation();
-  const segments = location.pathname.split("/").filter(Boolean);
+  let segments = location.pathname.split("/").filter(Boolean);
+  // Si la ruta termina en un ID después de "respuesta" o "respuestas",
+  // ocultamos el ID para que el último breadcrumb sea esa sección y no sea clickeable
+  if (segments.length >= 2) {
+    const penultimate = segments[segments.length - 2];
+    if (penultimate === "respuesta" || penultimate === "respuestas") {
+      segments = segments.slice(0, -1);
+    }
+  }
   let path = "";
 
   const { theme, setTheme } = useTheme();
@@ -37,20 +45,14 @@ export default function HeaderConBreadcrumb() {
           <Separator orientation="vertical" className="mr-2 h-4" />
           <Breadcrumb>
             <BreadcrumbList>
-              <BreadcrumbItem className="hidden md:block">
-                <BreadcrumbLink asChild href="/">
-                  <Link to="/dashboard">Inicio</Link>
-                </BreadcrumbLink>
-              </BreadcrumbItem>
               {segments.map((seg, i) => {
                 path += `/${seg}`;
                 const isLast = i === segments.length - 1;
                 return (
-                  <React.Fragment key={`sep-${i}`}>
-                    <BreadcrumbSeparator
-                      key={`sep-${i}`}
-                      className="hidden md:block"
-                    />
+                  <React.Fragment key={`seg-${i}`}>
+                    {i > 0 && (
+                      <BreadcrumbSeparator className="hidden md:block" />
+                    )}
                     <BreadcrumbItem key={path}>
                       {isLast ? (
                         <BreadcrumbPage>{toTitle(seg)}</BreadcrumbPage>

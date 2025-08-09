@@ -1,9 +1,11 @@
 import "./App.css";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useParams } from "react-router-dom";
 import Tracking from "@/pages/Tracking";
 
 
 import GestionDeCotizacionesView from "@/pages/gestion-de-cotizacion/gestion-de-cotizacion-view";
+import DetailsResponse from "@/pages/gestion-de-cotizacion/components/views/detailsreponse";
+import ListResponses from "@/pages/gestion-de-cotizacion/components/views/listreponses";
 import LoginPage from "@/pages/login";  
 import DashboardPage from "@/pages/dashboard";
 import BasicLayout from "@/layouts/basic-layout";
@@ -32,6 +34,15 @@ function App() {
       {/* Dashboard con sidebar */}
       <Route element={<DashboardLayout />}>
         <Route path="/dashboard" element={<DashboardPage />} />
+        {/* Rutas específicas de respuesta/lista de respuestas de cotización */}
+        <Route
+          path="/dashboard/gestion-de-cotizacion/respuesta/:quotationId"
+          element={<GestionDeCotizacionRespuestaRoute />}
+        />
+        <Route
+          path="/dashboard/gestion-de-cotizacion/respuestas/:quotationId"
+          element={<GestionDeCotizacionRespuestasRoute />}
+        />
         <Route
           path="/dashboard/inspeccion-de-mercancias"
           element={<GestionDeMercanciasView />}
@@ -93,3 +104,16 @@ function App() {
 }
 
 export default App;
+
+// Wrappers para inyectar el parámetro de ruta a los componentes existentes
+function GestionDeCotizacionRespuestaRoute() {
+  const { quotationId } = useParams();
+  if (!quotationId) return <Navigate to="/dashboard/gestion-de-cotizacion" replace />;
+  return <DetailsResponse selectedQuotationId={quotationId} />;
+}
+
+function GestionDeCotizacionRespuestasRoute() {
+  const { quotationId } = useParams();
+  if (!quotationId) return <Navigate to="/dashboard/gestion-de-cotizacion" replace />;
+  return <ListResponses selectedQuotationId={quotationId} />;
+}

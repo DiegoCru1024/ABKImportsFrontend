@@ -45,7 +45,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { formatCurrency, obtenerUser } from "@/lib/functions";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+// Tabs removidos: ahora todo se muestra en una sola vista
 
 import type { ProductoResponseIdInterface } from "@/api/interface/quotationInterface";
 import type { DetailsResponseProps } from "../utils/interface";
@@ -80,6 +80,10 @@ import { useCreateQuatitationResponse } from "@/hooks/use-quatitation-response";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import SendingModal from "@/components/sending-modal";
 import { useNavigate } from "react-router-dom";
+import ServiceConsolidationCard from "./partials/ServiceConsolidationCard";
+import ImportExpensesCard from "./partials/ImportExpensesCard";
+import ImportSummaryCard from "./partials/ImportSummaryCard";
+import TaxObligationsCard from "./partials/TaxObligationsCard";
 
 const DetailsResponse: React.FC<DetailsResponseProps> = ({ selectedQuotationId }) => {
   //* Hook para obtener los detalles de la cotización - DEBE IR PRIMERO
@@ -106,23 +110,6 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({ selectedQuotationId }
   //* Estado para el modal de envío
   const [isSendingModalOpen, setIsSendingModalOpen] = useState(false);
 
-  //* Estado para el servicio seleccionado
-  const [selectedServiceType, setSelectedServiceType] = useState<string>("");
-
-
-  //! Estado para almacenar los productos
-  const [product, setProduct] = useState<ProductoResponseIdInterface[]>([]);
-
-  //* Estados para productos editables
-  const [editableProducts, setEditableProducts] = useState<
-    ProductoResponseIdInterface[]
-  >([]);
-
-  //*Estado para obtener cantidad de productos
-  const [totalProducts, setTotalProducts] = useState(0);
-
-  //*Estado para obtener cantidad de productos respondidos
-  const [respondedProducts, setRespondedProducts] = useState(0);
 
   //* Estados para los selectores
   const [selectedTypeLoad, setSelectedTypeLoad] = useState<string>("mixto");
@@ -657,25 +644,6 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({ selectedQuotationId }
     setQuotationDate(formatDate(today.toISOString()));
   }, []);
 
-  //* Establecer el primer servicio como seleccionado cuando se cargan los datos
-  //useEffect(() => {
-    /*if (
-      quotationDetail?.content?.summaryByServiceType?.[0]?.service_type &&
-      !selectedServiceType
-    ) {
-      setSelectedServiceType(
-        quotationDetail.content.summaryByServiceType[0].service_type
-      );
-      setTotalProducts(quotationDetail.products.length);
-      setRespondedProducts(
-        quotationDetail.products
-          .map((item) => item.statusResponseProduct)
-          .filter(Boolean).length
-      );
-      setProduct(quotationDetail.products);
-      setEditableProducts(quotationDetail.products);
-    }
-  //}, [quotationDetail, selectedServiceType, isLoading]);*/
 
   //* Inicializar productos de la tabla de costeo unitario cuando se cargan los datos
   useEffect(() => {
@@ -727,12 +695,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({ selectedQuotationId }
             </div>
           </div>
 
-          <Tabs defaultValue="services" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="services">Servicios</TabsTrigger>
-              <TabsTrigger value="unitCost">Costo Unitario</TabsTrigger>
-            </TabsList>
-            <TabsContent value="services">
+          <div className="w-full">
               <div className="space-y-6 p-6 bg-white">
                 {/* Información del Cliente */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -1440,255 +1403,44 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({ selectedQuotationId }
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {/* Servicio de Carga Consolidada */}
                   <div className="space-y-4">
-                    <Card>
-                      <CardHeader className="pb-3">
-                        <CardTitle className="flex items-center gap-2 text-lg">
-                          <Plane className="h-5 w-5 text-blue-600" />
-                          {getServiceName(selectedServiceLogistic)}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        <div className="space-y-2">
-                          <div className="font-semibold text-sm mb-3">
-                            AFECTO A IGV
-                          </div>
-                          {/* Campos dinámicos según el tipo de servicio */}
-                          {Object.entries(
-                            getServiceFields(selectedServiceLogistic)
-                          ).map(([key, value]) => {
-                            const fieldNames: { [key: string]: string } = {
-                              servicioConsolidado: "SERVICIO CONSOLIDADO",
-                              separacionCarga: "SEPARACION DE CARGA",
-                              inspeccionProductos: "INSPECCION DE PRODUCTOS",
-                              gestionCertificado:
-                                "GESTION DE CERTIFICADO DE ORIGEN",
-                              inspeccionProducto: "INSPECCION DE PRODUCTO",
-                              inspeccionFabrica: "INSPECCION DE FABRICA",
-                              transporteLocal: "TRANSPORTE A LOCAL",
-                              otrosServicios: "OTROS SERVICIOS",
-                            };
-
-                            return (
-                              <div
-                                key={key}
-                                className="grid grid-cols-2 gap-2 text-sm justify-between items-center py-2"
-                              >
-                                <div>{fieldNames[key]}</div>
-
-                                <div>
-                                  <span className="relative">
-                                    <EditableNumericField
-                                      value={value}
-                                      onChange={(newValue) =>
-                                        updateDynamicValue(
-                                          key as keyof typeof dynamicValues,
-                                          newValue
-                                        )
-                                      }
-                                    />
-                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
-                                      USD
-                                    </span>
-                                  </span>
-                                </div>
-                              </div>
-                            );
-                          })}
-                          <Separator />
-                          <div className="flex justify-between items-center py-2">
-                            <span className="text-sm text-gray-600">
-                              IGV (18%)
-                            </span>
-                            <span className="font-medium">
-                              {igvServices.toFixed(2)}
-                            </span>
-                          </div>
-                          <div className="flex justify-between items-center py-2 bg-blue-50 px-3 rounded-lg">
-                            <span className="font-medium text-blue-900">
-                              Total del Servicio de Consolidación
-                            </span>
-                            <span className="font-bold text-blue-900">
-                              USD {totalServices.toFixed(2)}
-                            </span>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
+                  <ServiceConsolidationCard
+                    title={getServiceName(selectedServiceLogistic)}
+                    serviceFields={Object.fromEntries(
+                      Object.entries(getServiceFields(selectedServiceLogistic)).map(([k, v]) => [k, v ?? 0])
+                    ) as Record<string, number>}
+                    updateDynamicValue={(key, v) =>
+                      updateDynamicValue(key as keyof typeof dynamicValues, v)
+                    }
+                    igvServices={igvServices}
+                    totalServices={totalServices}
+                  />
                   </div>
                   <div className="space-y-4">
                     {/* Tax Obligations */}
-                    <Card>
-                      <CardHeader className="pb-3">
-                        <CardTitle className="flex items-center gap-2 text-lg">
-                          <Calculator className="h-5 w-5 text-green-600" />
-                          Obligaciones Fiscales
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        <div className="grid gap-3">
-                          <div className="p-4 space-y-2">
-                            <div className="font-semibold text-sm mb-3">
-                              IMPUESTOS
-                            </div>
-                            {/* AD/VALOREM */}
-                            <div className="grid grid-cols-4 gap-2 text-sm">
-                              <div>AD/VALOREM</div>
-                              <div className="text-right">
-                                <div className="flex items-center justify-end">
-                                  <EditableNumericField
-                                    value={dynamicValues.adValoremRate}
-                                    onChange={(value) =>
-                                      updateDynamicValue("adValoremRate", value)
-                                    }
-                                  />
-                                  <span className="ml-1">%</span>
-                                </div>
-                              </div>
-                              <div className="text-right">USD</div>
-                              <div className="text-right">
-                                {adValorem.toFixed(2)}
-                              </div>
-                            </div>
-
-                            {/* ANTIDUMPING - Solo para marítimo */}
-                            {isMaritimeService(selectedServiceLogistic) && (
-                              <div className="grid grid-cols-4 gap-2 text-sm">
-                                <div>ANTIDUMPING</div>
-                                <div className="text-right">
-                                  <div className="flex items-center justify-end gap-1">
-                                    <EditableNumericField
-                                      value={dynamicValues.antidumpingGobierno}
-                                      onChange={(value) =>
-                                        updateDynamicValue(
-                                          "antidumpingGobierno",
-                                          value
-                                        )
-                                      }
-                                    />
-                                    <span className="text-xs">x</span>
-                                    <EditableNumericField
-                                      value={dynamicValues.antidumpingCantidad}
-                                      onChange={(value) =>
-                                        updateDynamicValue(
-                                          "antidumpingCantidad",
-                                          value
-                                        )
-                                      }
-                                    />
-                                  </div>
-                                </div>
-                                <div className="text-right">USD</div>
-                                <div className="text-right">
-                                  {antidumping.toFixed(2)}
-                                </div>
-                              </div>
-                            )}
-
-                            {/* ISC - Solo para marítimo */}
-                            {isMaritimeService(selectedServiceLogistic) && (
-                              <div className="grid grid-cols-4 gap-2 text-sm">
-                                <div>ISC</div>
-                                <div className="text-right">
-                                  <div className="flex items-center justify-end">
-                                    <EditableNumericField
-                                      value={dynamicValues.iscRate}
-                                      onChange={(value) =>
-                                        updateDynamicValue("iscRate", value)
-                                      }
-                                    />
-                                    <span className="ml-1">%</span>
-                                  </div>
-                                </div>
-                                <div className="text-right">USD</div>
-                                <div className="text-right">
-                                  {isc.toFixed(2)}
-                                </div>
-                              </div>
-                            )}
-
-                            {/* I.G.V */}
-                            <div className="grid grid-cols-4 gap-2 text-sm">
-                              <div>IGV</div>
-                              <div className="text-right">
-                                <div className="flex items-center justify-end">
-                                  <EditableNumericField
-                                    value={dynamicValues.igvRate}
-                                    onChange={(value) =>
-                                      updateDynamicValue("igvRate", value)
-                                    }
-                                  />
-                                  <span className="ml-1">%</span>
-                                </div>
-                              </div>
-                              <div className="text-right">USD</div>
-                              <div className="text-right">
-                                {igvFiscal.toFixed(2)}
-                              </div>
-                            </div>
-
-                            {/* I.P.M */}
-                            <div className="grid grid-cols-4 gap-2 text-sm">
-                              <div>IPM</div>
-                              <div className="text-right">
-                                <div className="flex items-center justify-end">
-                                  <EditableNumericField
-                                    value={dynamicValues.ipmRate}
-                                    onChange={(value) =>
-                                      updateDynamicValue("ipmRate", value)
-                                    }
-                                  />
-                                  <span className="ml-1">%</span>
-                                </div>
-                              </div>
-                              <div className="text-right">USD</div>
-                              <div className="text-right">{ipm.toFixed(2)}</div>
-                            </div>
-
-                            {/* PERCEPCION - Solo para marítimo */}
-                            {isMaritimeService(selectedServiceLogistic) && (
-                              <div className="grid grid-cols-4 gap-2 text-sm">
-                                <div>PERCEPCION</div>
-                                <div className="text-right">
-                                  <div className="flex items-center justify-end">
-                                    <EditableNumericField
-                                      value={dynamicValues.percepcionRate}
-                                      onChange={(value) =>
-                                        updateDynamicValue(
-                                          "percepcionRate",
-                                          value
-                                        )
-                                      }
-                                    />
-                                    <span className="ml-1">%</span>
-                                  </div>
-                                </div>
-                                <div className="text-right">USD</div>
-                                <div className="text-right">
-                                  {percepcion.toFixed(2)}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                          <Separator />
-                          <div className="flex justify-between items-center py-2 bg-green-50 px-3 rounded-lg">
-                            <span className="font-medium text-green-900">
-                              Total de Derechos - Dólares
-                            </span>
-                            <span className="font-bold text-green-900">
-                              USD {totalDerechosDolares.toFixed(2)}
-                            </span>
-                          </div>
-                          <div className="flex justify-between items-center py-2 bg-green-50 px-3 rounded-lg">
-                            <span className="font-medium text-green-900">
-                              Total de Derechos - Soles
-                            </span>
-                            <span className="font-bold text-green-900">
-                              S/. {totalDerechosSoles.toFixed(2)}
-                            </span>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
+                  <TaxObligationsCard
+                    adValoremRate={dynamicValues.adValoremRate}
+                    setAdValoremRate={(v) => updateDynamicValue("adValoremRate", v)}
+                    igvRate={dynamicValues.igvRate}
+                    setIgvRate={(v) => updateDynamicValue("igvRate", v)}
+                    ipmRate={dynamicValues.ipmRate}
+                    setIpmRate={(v) => updateDynamicValue("ipmRate", v)}
+                    isMaritime={isMaritimeService(selectedServiceLogistic)}
+                    antidumpingGobierno={dynamicValues.antidumpingGobierno}
+                    setAntidumpingGobierno={(v) => updateDynamicValue("antidumpingGobierno", v)}
+                    antidumpingCantidad={dynamicValues.antidumpingCantidad}
+                    setAntidumpingCantidad={(v) => updateDynamicValue("antidumpingCantidad", v)}
+                    iscRate={dynamicValues.iscRate}
+                    setIscRate={(v) => updateDynamicValue("iscRate", v)}
+                    values={{
+                      adValorem,
+                      igvFiscal,
+                      ipm,
+                      isc,
+                      percepcion,
+                      totalDerechosDolares,
+                      totalDerechosSoles,
+                    }}
+                  />
                   </div>
                 </div>
               </div>
@@ -1697,520 +1449,42 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({ selectedQuotationId }
                 {/* Segunda sección - Gastos de Importación */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {/* Import Expenses */}
-                  <Card>
-                    <CardHeader className="pb-3">
-                      <CardTitle className="flex items-center gap-2 text-lg">
-                        <DollarSign className="h-5 w-5 text-orange-600" />
-                        Gastos de Importación
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      <div className="space-y-2">
-                        {isMaritimeService(selectedServiceLogistic) ? (
-                          // Gastos para servicios marítimos
-                          <>
-                            {/* Servicio Consolidado Marítimo */}
-
-                            <div className="flex justify-between items-center py-2">
-                              <div className="flex items-center gap-2">
-                                <Checkbox
-                                  id="servicioConsolidadoMaritimo"
-                                  className="border-red-500 border-2"
-                                  checked={
-                                    exemptionState.servicioConsolidadoMaritimo
-                                  }
-                                  onCheckedChange={(checked) =>
-                                    handleExemptionChange(
-                                      "servicioConsolidadoMaritimo",
-                                      checked as boolean
-                                    )
-                                  }
-                                />
-                                <span className="text-sm text-gray-600">
-                                  Servicio Consolidado Marítimo
-                                  {(isFirstPurchase ||
-                                    exemptionState.servicioConsolidadoMaritimo) && (
-                                    <span className="text-green-600 text-xs ml-1">
-                                      (EXONERADO)
-                                    </span>
-                                  )}
-                                </span>
-                              </div>
-
-                              <span className="font-medium">
-                                USD{" "}
-                                {applyExemption(
-                                  servicioConsolidadoMaritimoFinal,
-                                  exemptionState.servicioConsolidadoMaritimo
-                                ).toFixed(2)}
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center py-2">
-                              <div className="flex items-center gap-2">
-                                <Checkbox
-                                  id="gestionCertificado"
-                                  className="border-red-500 border-2"
-                                  checked={exemptionState.gestionCertificado}
-                                  onCheckedChange={(checked) =>
-                                    handleExemptionChange(
-                                      "gestionCertificado",
-                                      checked as boolean
-                                    )
-                                  }
-                                />
-
-                                <span className="text-sm text-gray-600">
-                                  Gestión de Certificado de Origen
-                                  {(isFirstPurchase ||
-                                    exemptionState.gestionCertificado) && (
-                                    <span className="text-green-600 text-xs ml-1">
-                                      (EXONERADO)
-                                    </span>
-                                  )}
-                                </span>
-                              </div>
-                              <span className="font-medium">
-                                USD{" "}
-                                {applyExemption(
-                                  gestionCertificadoFinal,
-                                  exemptionState.gestionCertificado
-                                ).toFixed(2)}
-                              </span>
-                            </div>
-                            {/* Servicio de Inspección */}
-                            <div className="flex justify-between items-center py-2">
-                              <div className="flex items-center gap-2">
-                                <Checkbox
-                                  id="servicioInspeccion"
-                                  className="border-red-500 border-2"
-                                  checked={exemptionState.servicioInspeccion}
-                                  onCheckedChange={(checked) =>
-                                    handleExemptionChange(
-                                      "servicioInspeccion",
-                                      checked as boolean
-                                    )
-                                  }
-                                />
-
-                                <span className="text-sm text-gray-600">
-                                  Servicio de Inspección
-                                  {(isFirstPurchase ||
-                                    exemptionState.servicioInspeccion) && (
-                                    <span className="text-green-600 text-xs ml-1">
-                                      (EXONERADO)
-                                    </span>
-                                  )}
-                                </span>
-                              </div>
-                              <span className="font-medium">
-                                USD{" "}
-                                {applyExemption(
-                                  servicioInspeccionFinal,
-                                  exemptionState.servicioInspeccion
-                                ).toFixed(2)}
-                              </span>
-                            </div>
-                            {/* Transporte Local */}
-                            <div className="flex justify-between items-center py-2">
-                              <div className="flex items-center gap-2">
-                                <Checkbox
-                                  id="transporteLocal"
-                                  className="border-red-500 border-2"
-                                  checked={exemptionState.transporteLocal}
-                                  onCheckedChange={(checked) =>
-                                    handleExemptionChange(
-                                      "transporteLocal",
-                                      checked as boolean
-                                    )
-                                  }
-                                />
-                                <span className="text-sm text-gray-600">
-                                  Transporte Local
-                                  {(isFirstPurchase ||
-                                    exemptionState.transporteLocal) && (
-                                    <span className="text-green-600 text-xs ml-1">
-                                      (EXONERADO)
-                                    </span>
-                                  )}
-                                </span>
-                              </div>
-                              <span className="font-medium">
-                                USD{" "}
-                                {applyExemption(
-                                  transporteLocalFinal,
-                                  exemptionState.transporteLocal
-                                ).toFixed(2)}
-                              </span>
-                            </div>
-                            {/* Total de Derechos */}
-                            <div className="flex justify-between items-center py-2">
-                              <div className="flex items-center gap-2">
-                                <Checkbox
-                                  id="totalDerechos"
-                                  className="border-red-500 border-2"
-                                  checked={exemptionState.totalDerechos}
-                                  onCheckedChange={(checked) =>
-                                    handleExemptionChange(
-                                      "totalDerechos",
-                                      checked as boolean
-                                    )
-                                  }
-                                />
-                                <span className="text-sm text-gray-600">
-                                  Total de Derechos
-                                  {shouldExemptTaxes && (
-                                    <span className="text-orange-600 text-xs ml-1">
-                                      (AUTO-EXONERADO: Valor &lt; $200)
-                                    </span>
-                                  )}
-                                  {!shouldExemptTaxes &&
-                                    exemptionState.totalDerechos && (
-                                      <span className="text-green-600 text-xs ml-1">
-                                        (EXONERADO)
-                                      </span>
-                                    )}
-                                  {!shouldExemptTaxes &&
-                                    !exemptionState.totalDerechos &&
-                                    isFirstPurchase && (
-                                      <span className="text-green-600 text-xs ml-1">
-                                        (-50%)
-                                      </span>
-                                    )}
-                                </span>
-                              </div>
-                              <span className="font-medium">
-                                USD {totalDerechosDolaresFinal.toFixed(2)}
-                              </span>
-                            </div>
-                          </>
-                        ) : (
-                          // Gastos para servicios aéreos
-                          <>
-                            <div className="flex justify-between items-center py-2">
-                              <div className="flex items-center gap-2">
-                                <Checkbox
-                                  id="servicioConsolidadoAereo"
-                                  className="border-red-500 border-2"
-                                  checked={
-                                    exemptionState.servicioConsolidadoAereo
-                                  }
-                                  onCheckedChange={(checked) =>
-                                    handleExemptionChange(
-                                      "servicioConsolidadoAereo",
-                                      checked as boolean
-                                    )
-                                  }
-                                />
-                                <span className="text-sm text-gray-600">
-                                  Servicio Consolidado Aéreo
-                                  {(isFirstPurchase ||
-                                    exemptionState.servicioConsolidadoAereo) && (
-                                    <span className="text-green-600 text-xs ml-1">
-                                      (EXONERADO)
-                                    </span>
-                                  )}
-                                </span>
-                              </div>
-                              <span className="font-medium">
-                                USD{" "}
-                                {applyExemption(
-                                  servicioConsolidadoFinal,
-                                  exemptionState.servicioConsolidadoAereo
-                                ).toFixed(2)}
-                              </span>
-                            </div>
-                            {/* Separación de Carga */}
-                            <div className="flex justify-between items-center py-2">
-                              <div className="flex items-center gap-2">
-                                <Checkbox
-                                  id="separacionCarga"
-                                  className="border-red-500 border-2"
-                                  checked={exemptionState.separacionCarga}
-                                  onCheckedChange={(checked) =>
-                                    handleExemptionChange(
-                                      "separacionCarga",
-                                      checked as boolean
-                                    )
-                                  }
-                                />
-                                <span className="text-sm text-gray-600">
-                                  Separación de Carga
-                                  {(isFirstPurchase ||
-                                    exemptionState.separacionCarga) && (
-                                    <span className="text-green-600 text-xs ml-1">
-                                      (EXONERADO)
-                                    </span>
-                                  )}
-                                </span>
-                              </div>
-                              <span className="font-medium">
-                                USD{" "}
-                                {applyExemption(
-                                  separacionCargaFinal,
-                                  exemptionState.separacionCarga
-                                ).toFixed(2)}
-                              </span>
-                            </div>
-                            {/* Inspección de Productos */}
-                            <div className="flex justify-between items-center py-2">
-                              <div className="flex items-center gap-2">
-                                <Checkbox
-                                  id="inspeccionProductos"
-                                  className="border-red-500 border-2"
-                                  checked={exemptionState.inspeccionProductos}
-                                  onCheckedChange={(checked) =>
-                                    handleExemptionChange(
-                                      "inspeccionProductos",
-                                      checked as boolean
-                                    )
-                                  }
-                                />
-                                <span className="text-sm text-gray-600">
-                                  Inspección de Productos
-                                  {(isFirstPurchase ||
-                                    exemptionState.inspeccionProductos) && (
-                                    <span className="text-green-600 text-xs ml-1">
-                                      (EXONERADO)
-                                    </span>
-                                  )}
-                                </span>
-                              </div>
-                              <span className="font-medium">
-                                USD{" "}
-                                {applyExemption(
-                                  inspeccionProductosFinal,
-                                  exemptionState.inspeccionProductos
-                                ).toFixed(2)}
-                              </span>
-                            </div>
-                            {/* AD/VALOREM + IGV + IPM */}
-                            <div className="flex justify-between items-center py-2">
-                              <div className="flex items-center gap-2">
-                                <Checkbox
-                                  id="obligacionesFiscales"
-                                  className="border-red-500 border-2"
-                                  checked={exemptionState.obligacionesFiscales}
-                                  onCheckedChange={(checked) =>
-                                    handleExemptionChange(
-                                      "obligacionesFiscales",
-                                      checked as boolean
-                                    )
-                                  }
-                                />
-                                <span className="text-sm text-gray-600">
-                                  AD/VALOREM + IGV + IPM
-                                  {shouldExemptTaxes && (
-                                    <span className="text-orange-600 text-xs ml-1">
-                                      (AUTO-EXONERADO: Valor &lt; $200)
-                                    </span>
-                                  )}
-                                  {!shouldExemptTaxes &&
-                                    exemptionState.obligacionesFiscales && (
-                                      <span className="text-green-600 text-xs ml-1">
-                                        (EXONERADO)
-                                      </span>
-                                    )}
-                                  {!shouldExemptTaxes &&
-                                    !exemptionState.obligacionesFiscales &&
-                                    isFirstPurchase && (
-                                      <span className="text-green-600 text-xs ml-1">
-                                        (-50%)
-                                      </span>
-                                    )}
-                                </span>
-                              </div>
-                              <span className="font-medium">
-                                USD {totalDerechosDolaresFinal.toFixed(2)}
-                              </span>
-                            </div>
-                            {/* Desaduanaje + Flete + Seguro */}
-                            <div className="flex justify-between items-center py-2">
-                              <div className="flex items-center gap-2">
-                                <Checkbox
-                                  id="desaduanajeFleteSaguro"
-                                  className="border-red-500 border-2"
-                                  checked={
-                                    exemptionState.desaduanajeFleteSaguro
-                                  }
-                                  onCheckedChange={(checked) =>
-                                    handleExemptionChange(
-                                      "desaduanajeFleteSaguro",
-                                      checked as boolean
-                                    )
-                                  }
-                                />
-                                <span className="text-sm text-gray-600">
-                                  Desaduanaje + Flete + Seguro
-                                  {exemptionState.desaduanajeFleteSaguro && (
-                                    <span className="text-green-600 text-xs ml-1">
-                                      (EXONERADO)
-                                    </span>
-                                  )}
-                                </span>
-                              </div>
-                              <span className="font-medium">
-                                USD{" "}
-                                {applyExemption(
-                                  desaduanajeFleteSaguro,
-                                  exemptionState.desaduanajeFleteSaguro
-                                ).toFixed(2)}
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center py-2">
-                              <div className="flex items-center gap-2">
-                                <Checkbox
-                                  id="transporteLocalChina"
-                                  className="border-red-500 border-2"
-                                  checked={exemptionState.transporteLocalChina}
-                                  onCheckedChange={(checked) =>
-                                    handleExemptionChange(
-                                      "transporteLocalChina",
-                                      checked as boolean
-                                    )
-                                  }
-                                />
-                                <span className="text-sm text-gray-600">
-                                  Transporte Local China
-                                  {(isFirstPurchase ||
-                                    exemptionState.transporteLocalChina) && (
-                                    <span className="text-green-600 text-xs ml-1">
-                                      (EXONERADO)
-                                    </span>
-                                  )}
-                                </span>
-                              </div>
-                              <span className="font-medium">
-                                USD{" "}
-                                {applyExemption(
-                                  dynamicValues.transporteLocalChinaEnvio,
-                                  exemptionState.transporteLocalChina
-                                ).toFixed(2)}
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center py-2">
-                              <div className="flex items-center gap-2">
-                                <Checkbox
-                                  id="transporteLocalCliente"
-                                  className="border-red-500 border-2"
-                                  checked={
-                                    exemptionState.transporteLocalCliente
-                                  }
-                                  onCheckedChange={(checked) =>
-                                    handleExemptionChange(
-                                      "transporteLocalCliente",
-                                      checked as boolean
-                                    )
-                                  }
-                                />
-                                <span className="text-sm text-gray-600">
-                                  Transporte Local Cliente
-                                  {(isFirstPurchase ||
-                                    exemptionState.transporteLocalCliente) && (
-                                    <span className="text-green-600 text-xs ml-1">
-                                      (EXONERADO)
-                                    </span>
-                                  )}
-                                </span>
-                              </div>
-                              <span className="font-medium">
-                                USD{" "}
-                                {applyExemption(
-                                  dynamicValues.transporteLocalClienteEnvio,
-                                  exemptionState.transporteLocalCliente
-                                ).toFixed(2)}
-                              </span>
-                            </div>
-                          </>
-                        )}
-                        <Separator />
-                        <div className="flex justify-between items-center py-2 bg-orange-50 px-3 rounded-lg">
-                          <span className="font-medium text-orange-900">
-                            Total Gastos de Importación
-                          </span>
-                          <span className="font-bold text-orange-900">
-                            USD {totalGastosImportacion.toFixed(2)}
-                          </span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <ImportExpensesCard
+                    isMaritime={isMaritimeService(selectedServiceLogistic)}
+                    values={{
+                      servicioConsolidadoMaritimoFinal,
+                      gestionCertificadoFinal,
+                      servicioInspeccionFinal,
+                      transporteLocalFinal,
+                      totalDerechosDolaresFinal,
+                      desaduanajeFleteSaguro,
+                      transporteLocalChinaEnvio: dynamicValues.transporteLocalChinaEnvio,
+                      transporteLocalClienteEnvio: dynamicValues.transporteLocalClienteEnvio,
+                    }}
+                    exemptionState={exemptionState as unknown as Record<string, boolean>}
+                    handleExemptionChange={(f, c) => handleExemptionChange(f as any, c)}
+                    applyExemption={applyExemption}
+                    servicioConsolidadoFinal={servicioConsolidadoFinal}
+                    separacionCargaFinal={separacionCargaFinal}
+                    inspeccionProductosFinal={inspeccionProductosFinal}
+                    shouldExemptTaxes={shouldExemptTaxes}
+                    totalGastosImportacion={totalGastosImportacion}
+                  />
 
                   {/* Resumen de Gastos de Importación */}
-                  <Card>
-                    <CardHeader className="pb-3">
-                      <CardTitle className="flex items-center gap-2 text-lg">
-                        <ChartBar className="h-5 w-5 text-orange-600" />
-                        Resumen de Gastos de Importación
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-2">
-                      <div className="space-y-2">
-                        {/* Incoterm de Importacion */}
-                        <div className="flex justify-between items-center py-2">
-                          <span className="text-lg text-gray-600">
-                            INCOTERM DE IMPORTACION
-                          </span>
-                          <span className="font-medium">
-                            {selectedIncoterm}
-                          </span>
-                        </div>
-                        {/* Valor de Compra Factura Comercial */}
-                        <div className="flex justify-between items-center py-2">
-                          <span className="text-lg text-gray-600">
-                            VALOR DE COMPRA FACTURA COMERCIAL
-                          </span>
-                          <span className="font-medium">
-                            USD {dynamicValues.comercialValue.toFixed(2)}
-                          </span>
-                        </div>
-                        {/* Total Gastos de Importacion */}
-                        <div className="flex justify-between items-center py-2">
-                          <span className="text-lg text-gray-600">
-                            TOTAL GASTOS DE IMPORTACION
-                          </span>
-                          <span className="font-medium">
-                            USD {totalGastosImportacion.toFixed(2)}
-                          </span>
-                        </div>
-                        <Separator />
-                        {/* Inversion Total de Importacion */}
-                        <div className="flex justify-between items-center py-2 bg-green-50 px-3 rounded-lg">
-                          <span className="text-lg text-green-900">
-                            INVERSION TOTAL DE IMPORTACION
-                          </span>
-                          <span className="font-medium text-green-900">
-                            USD {inversionTotal.toFixed(2)}
-                          </span>
-                        </div>
-
-                        {/* Botones de acción para DTO */}
-                        <Separator className="my-4" />
-                        <div className="flex flex-col gap-3">
-                          {shouldExemptTaxes && (
-                            <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
-                              <div className="flex items-center gap-2 text-orange-800">
-                                <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                                <span className="text-sm font-medium">
-                                  Exoneración Automática Activa
-                                </span>
-                              </div>
-                              <p className="text-xs text-orange-700 mt-1">
-                                Los impuestos están exonerados automáticamente
-                                porque el valor comercial es menor a $200.00
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <ImportSummaryCard
+                    selectedIncoterm={selectedIncoterm}
+                    comercialValue={dynamicValues.comercialValue}
+                    totalGastosImportacion={totalGastosImportacion}
+                    inversionTotal={inversionTotal}
+                    shouldExemptTaxes={shouldExemptTaxes}
+                  />
                 </div>
               </div>
-            </TabsContent>
 
-            <TabsContent value="unitCost">
+              {/* Sección de Costeo Unitario integrada en la misma vista */}
               <div className="min-h-screen ">
-                <div className="grid grid-cols-1  gap-6 ">
+                <div className="grid grid-cols-1 gap-6 ">
                   <EditableUnitCostTable
                     initialProducts={editableUnitCostProducts}
                     totalImportCosts={totalGastosImportacion}
@@ -2221,8 +1495,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({ selectedQuotationId }
                   />
                 </div>
               </div>
-            </TabsContent>
-          </Tabs>
+          </div>
           <div className="flex justify-end mt-4">
             <div className="flex gap-3">
               {/* Botón Enviar */}

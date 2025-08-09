@@ -16,13 +16,12 @@ import CreateCotizacionView from "@/pages/cotizacion-page/create-cotizacion-view
 import MisCotizacionesView from "@/pages/mis-cotizaciones/mis-cotizacion-view";
 import ShipmentDetailView from "@/pages/shipment-detail-view";
 import Calculador from "./pages/calculator";
-import Tarifas from "./pages/tarifas";
-import Educacion from "./pages/educacion";
-import Herramientas from "./pages/herramientas";
-
+import Tarifas from "./pages/Tarifas";
+import Educacion from "./pages/Educacion";
+import Herramientas from "./pages/Herramientas";
 
 function App() {
-  return ( 
+  return (  
     <Routes>
       {/* Layout básico para login */}
       <Route element={<BasicLayout />}>

@@ -186,8 +186,13 @@ function GestionDeUsuarios() {
                   contact: form.contact ? Number(form.contact) : 0,
                   type: form.type,
                 };
+                // Agregar el campo 'name' requerido por el tipo 'User'
+                const payloadConNombre = {
+                  ...payload,
+                  name: `${form.first_name} ${form.last_name}`,
+                };
                 createMutation.mutate(
-                  { data: payload },
+                  { data: payloadConNombre },
                   {
                     onSettled: () => {
                       setSending(false);

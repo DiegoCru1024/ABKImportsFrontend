@@ -184,6 +184,9 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({ selectedQuotationId }
 
   //* Estado para primera compra
   const [isFirstPurchase, setIsFirstPurchase] = useState(false);
+  const [id_asesor, setId_asesor] = useState<string | null>(null);
+  const [nombre_asesor, setNombre_asesor] = useState<string | null>(null);
+
 
   //* Estados para exoneración de conceptos de gastos de importación
   const [exemptionState, setExemptionState] = useState({
@@ -473,6 +476,15 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({ selectedQuotationId }
     setEditableUnitCostProducts(products);
   };
 
+    //********llamado a funcion para obtener datos del asesor */
+    useEffect(() => {
+      const user = obtenerUser();
+      if (user) {
+        setId_asesor(user?.id_usuario);
+        setNombre_asesor(user?.name);
+      }
+    }, []);
+
   //* Función para generar el DTO con toda la información de la respuesta
   const generateQuotationResponseDTO = () => {
     return {
@@ -497,7 +509,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({ selectedQuotationId }
         transitTime: tiempoTransito,
         naviera: naviera,
         proformaValidity: selectedProformaVigencia,
-        id_asesor: id_usuario || "",
+        id_asesor: id_asesor || "",
       },
 
       // Valores dinámicos
@@ -729,7 +741,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({ selectedQuotationId }
                           <div className="space-y-2">
                             <div>
                               <Label htmlFor="advisor">Asesor(a) : </Label>
-                              <Input id="advisor" value="PAULO" />
+                                <Input id="advisor" value={nombre_asesor || ""} />
                             </div>
                             <Label htmlFor="date">Fecha de respuesta:</Label>
                             <Input id="date" value={quotationDate} />

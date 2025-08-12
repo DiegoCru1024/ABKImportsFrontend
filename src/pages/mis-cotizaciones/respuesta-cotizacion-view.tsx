@@ -186,9 +186,137 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
   );
   const factorM = calculateFactorM(productsList);
 
+  // Función para obtener los conceptos de gastos según el tipo de servicio
+  const getImportExpenseConcepts = (serviceType: string) => {
+    const serviceTypeLower = serviceType.toLowerCase();
+    
+    // Para servicios aéreos/express y almacenaje
+    if (serviceTypeLower.includes('express') || 
+        serviceTypeLower.includes('aereo') || 
+        serviceTypeLower.includes('aéreo') ||
+        serviceTypeLower.includes('almacenaje')) {
+      return [
+        { 
+          key: 'servicioConsolidado', 
+          label: 'Servicio Consolidado Aéreo',
+          path: 'serviceCalculations.importExpenses.finalValues.servicioConsolidado'
+        },
+        { 
+          key: 'separacionCarga', 
+          label: 'Separación de Carga',
+          path: 'serviceCalculations.importExpenses.finalValues.separacionCarga'
+        },
+        { 
+          key: 'inspeccionProductos', 
+          label: 'Inspección de Productos',
+          path: 'serviceCalculations.importExpenses.finalValues.inspeccionProductos'
+        },
+        { 
+          key: 'desaduanajeFleteSaguro', 
+          label: 'Desaduanaje + Flete + Seguro',
+          path: 'serviceCalculations.importExpenses.finalValues.desaduanajeFleteSaguro'
+        },
+        { 
+          key: 'transporteLocalChina', 
+          label: 'Transporte Local China',
+          path: 'serviceCalculations.importExpenses.finalValues.transporteLocalChina'
+        },
+        { 
+          key: 'transporteLocalCliente', 
+          label: 'Transporte Local Cliente',
+          path: 'serviceCalculations.importExpenses.finalValues.transporteLocalCliente'
+        },
+        { 
+          key: 'totalDerechosDolaresFinal', 
+          label: 'AD/VALOREM + IGV + IPM',
+          path: 'serviceCalculations.fiscalObligations.totalDerechosDolaresFinal'
+        }
+      ];
+    }
+    
+    // Para servicios marítimos
+    if (serviceTypeLower.includes('maritimo') || 
+        serviceTypeLower.includes('marítimo') ||
+        serviceTypeLower.includes('grupal')) {
+      return [
+        { 
+          key: 'servicioConsolidado', 
+          label: 'Servicio Consolidado Marítimo',
+          path: 'serviceCalculations.importExpenses.finalValues.servicioConsolidado'
+        },
+        { 
+          key: 'gestionCertificado', 
+          label: 'Gestión de Certificado de Origen',
+          path: 'serviceCalculations.importExpenses.finalValues.gestionCertificado'
+        },
+        { 
+          key: 'servicioInspeccion', 
+          label: 'Servicio de Inspección',
+          path: 'serviceCalculations.importExpenses.finalValues.servicioInspeccion'
+        },
+        { 
+          key: 'transporteLocal', 
+          label: 'Transporte Local',
+          path: 'serviceCalculations.importExpenses.finalValues.transporteLocal'
+        },
+        { 
+          key: 'totalDerechosDolaresFinal', 
+          label: 'Total de Derechos',
+          path: 'serviceCalculations.fiscalObligations.totalDerechosDolaresFinal'
+        }
+      ];
+    }
+    
+    // Fallback para otros tipos de servicio
+    return [
+      { 
+        key: 'servicioConsolidado', 
+        label: 'Servicio Consolidado',
+        path: 'serviceCalculations.importExpenses.finalValues.servicioConsolidado'
+      },
+      { 
+        key: 'separacionCarga', 
+        label: 'Separación de Carga',
+        path: 'serviceCalculations.importExpenses.finalValues.separacionCarga'
+      },
+      { 
+        key: 'inspeccionProductos', 
+        label: 'Inspección de Productos',
+        path: 'serviceCalculations.importExpenses.finalValues.inspeccionProductos'
+      },
+      { 
+        key: 'gestionCertificado', 
+        label: 'Gestión de Certificado',
+        path: 'serviceCalculations.importExpenses.finalValues.gestionCertificado'
+      },
+      { 
+        key: 'desaduanajeFleteSaguro', 
+        label: 'Desaduanaje + Flete + Seguro',
+        path: 'serviceCalculations.importExpenses.finalValues.desaduanajeFleteSaguro'
+      },
+      { 
+        key: 'transporteLocalChina', 
+        label: 'Transporte Local China',
+        path: 'serviceCalculations.importExpenses.finalValues.transporteLocalChina'
+      },
+      { 
+        key: 'transporteLocalCliente', 
+        label: 'Transporte Local Cliente',
+        path: 'serviceCalculations.importExpenses.finalValues.transporteLocalCliente'
+      }
+    ];
+  };
+
+  // Función para obtener valor anidado de un objeto usando un path de string
+  const getNestedValue = (obj: any, path: string) => {
+    return path.split('.').reduce((current, key) => current?.[key], obj) || 0;
+  };
+
   // Función para renderizar las respuestas de importación
   const renderQuotationResponse = (response: any) => {
     if (!response) return null;
+
+    const concepts = getImportExpenseConcepts(response.serviceType);
 
     return (
       <div className="space-y-4">
@@ -203,90 +331,16 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="space-y-2">
-                <div className="flex justify-between items-center py-2">
-                  <span className="text-sm text-gray-600">
-                    Servicio Consolidado
-                  </span>
-                  <span className="font-medium">
-                    USD{" "}
-                    {formatCurrency(
-                      response.serviceCalculations?.importExpenses?.finalValues
-                        ?.servicioConsolidado || 0
-                    )}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center py-2">
-                  <span className="text-sm text-gray-600">
-                    Separación de Carga
-                  </span>
-                  <span className="font-medium">
-                    USD{" "}
-                    {formatCurrency(
-                      response.serviceCalculations?.importExpenses?.finalValues
-                        ?.separacionCarga || 0
-                    )}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center py-2">
-                  <span className="text-sm text-gray-600">
-                    Inspección de Productos
-                  </span>
-                  <span className="font-medium">
-                    USD{" "}
-                    {formatCurrency(
-                      response.serviceCalculations?.importExpenses?.finalValues
-                        ?.inspeccionProductos || 0
-                    )}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center py-2">
-                  <span className="text-sm text-gray-600">
-                    Gestión de Certificado
-                  </span>
-                  <span className="font-medium">
-                    USD{" "}
-                    {formatCurrency(
-                      response.serviceCalculations?.importExpenses?.finalValues
-                        ?.gestionCertificado || 0
-                    )}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center py-2">
-                  <span className="text-sm text-gray-600">
-                    Desaduanaje + Flete + Seguro
-                  </span>
-                  <span className="font-medium">
-                    USD{" "}
-                    {formatCurrency(
-                      response.serviceCalculations?.importExpenses?.finalValues
-                        ?.desaduanajeFleteSaguro || 0
-                    )}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center py-2">
-                  <span className="text-sm text-gray-600">
-                    Transporte Local China
-                  </span>
-                  <span className="font-medium">
-                    USD{" "}
-                    {formatCurrency(
-                      response.serviceCalculations?.importExpenses?.finalValues
-                        ?.transporteLocalChina || 0
-                    )}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center py-2">
-                  <span className="text-sm text-gray-600">
-                    Transporte Local Cliente
-                  </span>
-                  <span className="font-medium">
-                    USD{" "}
-                    {formatCurrency(
-                      response.serviceCalculations?.importExpenses?.finalValues
-                        ?.transporteLocalCliente || 0
-                    )}
-                  </span>
-                </div>
+                {concepts.map((concept) => (
+                  <div key={concept.key} className="flex justify-between items-center py-2">
+                    <span className="text-sm text-gray-600">
+                      {concept.label}
+                    </span>
+                    <span className="font-medium">
+                      USD {formatCurrency(getNestedValue(response, concept.path))}
+                    </span>
+                  </div>
+                ))}
 
                 <Separator />
                 <div className="flex justify-between items-center py-2 bg-orange-50 px-3 rounded-lg">
@@ -668,36 +722,26 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
                 onValueChange={setSelectedResponseTab}
                 className="w-full"
               >
-                <TabsList className="relative flex border-b border-gray-200 rounded-">
-                  {quotationResponses.map((response, index) => (
-                    <TabsTrigger
-                      key={`${response.serviceType}-${index}`}
-                      value={response.serviceType}
-                      className={`
-                        relative px-6 py-4 text-sm font-medium transition-colors
-                        ${
-                          selectedResponseTab === response.serviceType
-                            ? "text-[#d7751f]"
-                            : "text-gray-600 hover:text-gray-800"
-                        }
-                      `}
-                    >
-                      {response.serviceType}
-                      {/* Línea animada */}
-                      <span
+                <div className="relative mb-6">
+                  <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
+                    {quotationResponses.map((response, index) => (
+                      <button
+                        key={`${response.serviceType}-${index}`}
+                        onClick={() => setSelectedResponseTab(response.serviceType)}
                         className={`
-                          absolute bottom-0 left-0 h-0.5 bg-[#d7751f]
-                          transition-all duration-300
+                          relative flex-1 px-4 py-3 text-sm font-medium rounded-md transition-all duration-200
                           ${
                             selectedResponseTab === response.serviceType
-                              ? "w-full"
-                              : "w-0"
+                              ? "bg-white text-[#d7751f] shadow-sm border border-gray-200"
+                              : "text-gray-600 hover:text-gray-800 hover:bg-gray-50"
                           }
                         `}
-                      />
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
+                      >
+                        {response.serviceType}
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
                 {/* Generar un TabsContent por cada respuesta */}
                 {quotationResponses.map((response, index) => (

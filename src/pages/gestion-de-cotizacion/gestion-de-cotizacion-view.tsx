@@ -62,13 +62,7 @@ export default function GestionDeCotizacionesView() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [modalProductName, setModalProductName] = useState("");
 
-  //********llamado a funcion para obtener datos del asesor */
-  useEffect(() => {
-    const user = obtenerUser();
-    if (user) {
-      console.log("user", user);
-    }
-  }, []);
+
 
 
   // ********Datos y paginación**** */

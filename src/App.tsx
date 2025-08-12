@@ -5,6 +5,7 @@ import Tracking from "@/pages/Tracking";
 
 import GestionDeCotizacionesView from "@/pages/gestion-de-cotizacion/gestion-de-cotizacion-view";
 import DetailsResponse from "@/pages/gestion-de-cotizacion/components/views/detailsreponse";
+import EditResponse from "@/pages/gestion-de-cotizacion/components/views/editresponse";
 import ListResponses from "@/pages/gestion-de-cotizacion/components/views/listreponses";
 import LoginPage from "@/pages/login";  
 import DashboardPage from "@/pages/dashboard";
@@ -42,6 +43,10 @@ function App() {
         <Route
           path="/dashboard/gestion-de-cotizacion/respuestas/:quotationId"
           element={<GestionDeCotizacionRespuestasRoute />}
+        />
+        <Route
+          path="/dashboard/gestion-de-cotizacion/respuestas/:quotationId/editar/:responseId"
+          element={<GestionDeCotizacionEditarRespuestaRoute />}
         />
         <Route
           path="/dashboard/inspeccion-de-mercancias"
@@ -116,4 +121,13 @@ function GestionDeCotizacionRespuestasRoute() {
   const { quotationId } = useParams();
   if (!quotationId) return <Navigate to="/dashboard/gestion-de-cotizacion" replace />;
   return <ListResponses selectedQuotationId={quotationId} />;
+}
+
+function GestionDeCotizacionEditarRespuestaRoute() {
+  const { quotationId, responseId } = useParams();
+  if (!quotationId || !responseId)
+    return <Navigate to="/dashboard/gestion-de-cotizacion" replace />;
+  return (
+    <EditResponse quotationId={quotationId} quotationResponseId={responseId} />
+  );
 }

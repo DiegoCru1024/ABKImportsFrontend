@@ -1,33 +1,19 @@
+
 import React, { useState, useEffect } from "react";
 import {
   Calendar,
   Calculator,
-  FileText,
-  Clock,
-  Receipt,
-  Settings,
-  User,
-  Plus,
-  Trash2,
-  Save,
-  DollarSign,
-  Truck,
-  MessageSquare,
-  Package,
-  PackageIcon,
-  Box,
-  Boxes,
-  Edit3,
-  Check,
-  X,
-  Plane,
-  ChartBar,
-  Download,
+
+
   Send,
   Loader2,
+  PackageIcon,
+  FileText,
+  Package,
+  Truck,
 } from "lucide-react";
 
-import { useGetQuotationById } from "@/hooks/use-quation";
+
 import {
   Card,
   CardContent,
@@ -45,12 +31,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { formatCurrency, obtenerUser } from "@/lib/functions";
 
-// Tabs removidos: ahora todo se muestra en una sola vista
 
-import type { ProductoResponseIdInterface } from "@/api/interface/quotationInterface";
-import type { DetailsResponseProps } from "../utils/interface";
-
-// Importar datos estáticos
 import {
   incotermsOptions,
   serviciosLogisticos,
@@ -76,7 +57,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { useCreateQuatitationResponse } from "@/hooks/use-quatitation-response";
+import { useGetDetailsResponse, usePatchQuatitationResponse } from "@/hooks/use-quatitation-response";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import SendingModal from "@/components/sending-modal";
 import { useNavigate } from "react-router-dom";
@@ -85,616 +66,481 @@ import ImportExpensesCard from "./partials/ImportExpensesCard";
 import ImportSummaryCard from "./partials/ImportSummaryCard";
 import TaxObligationsCard from "./partials/TaxObligationsCard";
 
-const DetailsResponse: React.FC<DetailsResponseProps> = ({ selectedQuotationId }) => {
-  //* Hook para obtener los detalles de la cotización - DEBE IR PRIMERO
-  const {
-    data: quotationDetail,
-    isLoading,
-    isError,
-  } = useGetQuotationById(selectedQuotationId);
-
-  useEffect(() => {
-    //Obtener id_usuario del usuario logueado
-    const id_usuario = obtenerUser().id_usuario;
-    setId_asesor(id_usuario);
-  }, []);
-
-  //* Hook para crear respuesta de cotización
-  const createQuotationResponseMutation = useCreateQuatitationResponse();
-
-  //* Estado para la fecha de la cotización
-  const [quotationDate, setQuotationDate] = useState<string>("");
+const EditResponse = ({
+  quotationId,
+  quotationResponseId,
+}: {
+  quotationId: string;
+  quotationResponseId: string;
+}) => {
+  const { data: detailsResponse, isLoading: isLoadingDetailsResponse, isError: isErrorDetails } =
+    useGetDetailsResponse(quotationId, quotationResponseId);
 
 
-  //* Estado para el modal de envío
-  const [isSendingModalOpen, setIsSendingModalOpen] = useState(false);
-
-
-  //* Estados para los selectores
-  const [selectedTypeLoad, setSelectedTypeLoad] = useState<string>("mixto");
-  const [selectedCourier, setSelectedCourier] = useState<string>("ups");
-  const [selectedIncoterm, setSelectedIncoterm] = useState<string>("DDP");
-  const [selectedServiceLogistic, setSelectedServiceLogistic] =
-    useState<string>("Consolidado Express");
-
-  //* Estados específicos para servicios marítimos
-  const [selectedRegimen, setSelectedRegimen] = useState<string>(
-    "importacion_consumo"
-  );
-  const [selectedPaisOrigen, setSelectedPaisOrigen] = useState<string>("china");
-  const [selectedPaisDestino, setSelectedPaisDestino] =
-    useState<string>("peru");
-  const [selectedAduana, setSelectedAduana] = useState<string>("tacna");
-  const [selectedPuertoSalida, setSelectedPuertoSalida] =
-    useState<string>("shanghai");
-  const [selectedPuertoDestino, setSelectedPuertoDestino] =
-    useState<string>("callao");
-  const [selectedTipoServicio, setSelectedTipoServicio] =
-    useState<string>("directo");
-  const [tiempoTransito, setTiempoTransito] = useState<number>(0);
-  const [selectedProformaVigencia, setSelectedProformaVigencia] =
-    useState<string>("5");
-  const [naviera, setNaviera] = useState<string>("");
-
-  //* Estados para valores dinámicos editables
-  const [dynamicValues, setDynamicValues] = useState({
-    // Valores principales
-    comercialValue: 0.0,
-    flete: 0.0,
-    cajas: 0.0,
-    desaduanaje: 0.0,
-    kg: 0.0,
-    ton: 0.0,
-    kv: 0.0,
-    fob: 0.0,
-    seguro: 0.0,
-    tipoCambio: 3.7,
-
-    // Campos específicos marítimos
-    nroBultos: 0.0,
-    volumenCBM: 0.0,
-    calculoFlete: 0.0,
-
-    // Servicios de consolidación aérea
-    servicioConsolidado: 0.0,
-    separacionCarga: 0.0,
-    inspeccionProductos: 0.0,
-
-    // Servicios de consolidación marítima (cuando aplique)
-    gestionCertificado: 0.0,
-    inspeccionProducto: 0.0,
-    inspeccionFabrica: 0.0,
-    transporteLocal: 0.0,
-    otrosServicios: 0.0,
-
-    // Porcentajes de impuestos (actualizados para marítimo)
-    adValoremRate: 4.0,
-    antidumpingGobierno: 0.0,
-    antidumpingCantidad: 0.0,
-    iscRate: 0.0,
-    igvRate: 16.0,
-    ipmRate: 2.0,
-    percepcionRate: 5.0,
-
-    // Campos específicos para transporte local china
-    transporteLocalChinaEnvio: 0.0,
-    transporteLocalClienteEnvio: 0.0,
-  });
-
-  //* Estado para primera compra
-  const [isFirstPurchase, setIsFirstPurchase] = useState(false);
-  const [id_asesor, setId_asesor] = useState<string | null>(null);
-  const [nombre_asesor, setNombre_asesor] = useState<string | null>(null);
-
-
-  //* Estados para exoneración de conceptos de gastos de importación
-  const [exemptionState, setExemptionState] = useState({
-    // Servicios Aéreos
-    servicioConsolidadoAereo: false,
-    separacionCarga: false,
-    inspeccionProductos: false,
-    obligacionesFiscales: false,
-    desaduanajeFleteSaguro: false,
-    transporteLocalChina: false,
-    transporteLocalCliente: false,
-    // Servicios Marítimos
-    servicioConsolidadoMaritimo: false,
-    gestionCertificado: false,
-    servicioInspeccion: false,
-    transporteLocal: false,
-    totalDerechos: false,
-  });
-
-  //* Estado para productos editables de la tabla de costeo unitario
-  const [editableUnitCostProducts, setEditableUnitCostProducts] = useState<
-    ProductRow[]
-  >([]);
-
-  //* Función para detectar si es servicio marítimo
-  const isMaritimeService = (serviceType: string) => {
-    return (
-      serviceType === "Consolidado Maritimo" ||
-      serviceType === "Consolidado Grupal Maritimo"
+    useEffect(() => {
+      //Obtener id_usuario del usuario logueado
+      const id_usuario = obtenerUser().id_usuario;
+      setId_asesor(id_usuario);
+    }, []);
+  
+    //* Hook para crear respuesta de cotización
+    const patchQuotationResponseMutation = usePatchQuatitationResponse(quotationId, quotationResponseId);
+  
+    //* Estado para la fecha de la cotización
+    const [quotationDate, setQuotationDate] = useState<string>("");
+  
+  
+    //* Estado para el modal de envío
+    const [isSendingModalOpen, setIsSendingModalOpen] = useState(false);
+  
+  
+    //* Estados para los selectores
+    const [selectedTypeLoad, setSelectedTypeLoad] = useState<string>("mixto");
+    const [selectedCourier, setSelectedCourier] = useState<string>("ups");
+    const [selectedIncoterm, setSelectedIncoterm] = useState<string>("DDP");
+    const [selectedServiceLogistic, setSelectedServiceLogistic] =
+      useState<string>("Consolidado Express");
+  
+    //* Estados específicos para servicios marítimos
+    const [selectedRegimen, setSelectedRegimen] = useState<string>(
+      "importacion_consumo"
     );
-  };
-
-  //* Calcular flete dinámicamente para servicios marítimos
-  const calculateMaritimeFlete = () => {
-    if (isMaritimeService(selectedServiceLogistic)) {
-      const maxValue = Math.max(dynamicValues.ton, dynamicValues.volumenCBM);
-      return maxValue * dynamicValues.calculoFlete;
-    }
-    return dynamicValues.flete;
-  };
-
-  //* Lógica automática para conversión KG a TON
-  const handleKgChange = (value: number) => {
-    updateDynamicValue("kg", value);
-    // Convertir automáticamente KG a TON
-    updateDynamicValue("ton", value / 1000);
-  };
-
-  //* Calcular CIF dinámicamente
-  const maritimeFlete = calculateMaritimeFlete();
-  const cif = dynamicValues.fob + maritimeFlete + dynamicValues.seguro;
-
-  //* Función para obtener el nombre del servicio según el tipo
-  const getServiceName = (serviceType: string) => {
-    const aereoServices = [
-      "Pendiente",
-      "Consolidado Express",
-      "Consolidado Grupal Express",
-      "Almacenaje de mercancías",
-    ];
-    if (aereoServices.includes(serviceType)) {
-      return "Servicio de Carga Consolidada Aérea";
-    } else if (
-      serviceType === "Consolidado Maritimo" ||
-      serviceType === "Consolidado Grupal Maritimo"
-    ) {
-      return "Servicio de Carga Consolidada (CARGA- ADUANA)";
-    }
-    return "Servicio de Carga Consolidada Aérea"; // Por defecto
-  };
-
-  //* Función para obtener los campos del servicio según el tipo
-  const getServiceFields = (serviceType: string) => {
-    const aereoServices = [
-      "Pendiente",
-      "Consolidado Express",
-      "Consolidado Grupal Express",
-      "Almacenaje de mercancías",
-    ];
-    if (aereoServices.includes(serviceType)) {
+    const [selectedPaisOrigen, setSelectedPaisOrigen] = useState<string>("china");
+    const [selectedPaisDestino, setSelectedPaisDestino] =
+      useState<string>("peru");
+    const [selectedAduana, setSelectedAduana] = useState<string>("tacna");
+    const [selectedPuertoSalida, setSelectedPuertoSalida] =
+      useState<string>("shanghai");
+    const [selectedPuertoDestino, setSelectedPuertoDestino] =
+      useState<string>("callao");
+    const [selectedTipoServicio, setSelectedTipoServicio] =
+      useState<string>("directo");
+    const [tiempoTransito, setTiempoTransito] = useState<number>(0);
+    const [selectedProformaVigencia, setSelectedProformaVigencia] =
+      useState<string>("5");
+    const [naviera, setNaviera] = useState<string>("");
+  
+    //* Estados para valores dinámicos editables
+    const [dynamicValues, setDynamicValues] = useState({
+      // Valores principales
+      comercialValue: 0.0,
+      flete: 0.0,
+      cajas: 0.0,
+      desaduanaje: 0.0,
+      kg: 0.0,
+      ton: 0.0,
+      kv: 0.0,
+      fob: 0.0,
+      seguro: 0.0,
+      tipoCambio: 3.7,
+  
+      // Campos específicos marítimos
+      nroBultos: 0.0,
+      volumenCBM: 0.0,
+      calculoFlete: 0.0,
+  
+      // Servicios de consolidación aérea
+      servicioConsolidado: 0.0,
+      separacionCarga: 0.0,
+      inspeccionProductos: 0.0,
+  
+      // Servicios de consolidación marítima (cuando aplique)
+      gestionCertificado: 0.0,
+      inspeccionProducto: 0.0,
+      inspeccionFabrica: 0.0,
+      transporteLocal: 0.0,
+      otrosServicios: 0.0,
+  
+      // Porcentajes de impuestos (actualizados para marítimo)
+      adValoremRate: 4.0,
+      antidumpingGobierno: 0.0,
+      antidumpingCantidad: 0.0,
+      iscRate: 0.0,
+      igvRate: 16.0,
+      ipmRate: 2.0,
+      percepcionRate: 5.0,
+  
+      // Campos específicos para transporte local china
+      transporteLocalChinaEnvio: 0.0,
+      transporteLocalClienteEnvio: 0.0,
+    });
+  
+    //* Estado para primera compra
+    const [isFirstPurchase, setIsFirstPurchase] = useState(false);
+    const [id_asesor, setId_asesor] = useState<string | null>(null);
+    const [nombre_asesor, setNombre_asesor] = useState<string | null>(null);
+  
+  
+    //* Estados para exoneración de conceptos de gastos de importación
+    const [exemptionState, setExemptionState] = useState({
+      // Servicios Aéreos
+      servicioConsolidadoAereo: false,
+      separacionCarga: false,
+      inspeccionProductos: false,
+      obligacionesFiscales: false,
+      desaduanajeFleteSaguro: false,
+      transporteLocalChina: false,
+      transporteLocalCliente: false,
+      // Servicios Marítimos
+      servicioConsolidadoMaritimo: false,
+      gestionCertificado: false,
+      servicioInspeccion: false,
+      transporteLocal: false,
+      totalDerechos: false,
+    });
+  
+    //* Estado para productos editables de la tabla de costeo unitario
+    const [editableUnitCostProducts, setEditableUnitCostProducts] = useState<
+      ProductRow[]
+    >([]);
+  
+    //* Función para detectar si es servicio marítimo
+    const isMaritimeService = (serviceType: string) => {
+      return (
+        serviceType === "Consolidado Maritimo" ||
+        serviceType === "Consolidado Grupal Maritimo"
+      );
+    };
+  
+    //* Calcular flete dinámicamente para servicios marítimos
+    const calculateMaritimeFlete = () => {
+      if (isMaritimeService(selectedServiceLogistic)) {
+        const maxValue = Math.max(dynamicValues.ton, dynamicValues.volumenCBM);
+        return maxValue * dynamicValues.calculoFlete;
+      }
+      return dynamicValues.flete;
+    };
+  
+    //* Lógica automática para conversión KG a TON
+    const handleKgChange = (value: number) => {
+      updateDynamicValue("kg", value);
+      // Convertir automáticamente KG a TON
+      updateDynamicValue("ton", value / 1000);
+    };
+  
+    //* Calcular CIF dinámicamente
+    const maritimeFlete = calculateMaritimeFlete();
+    const cif = dynamicValues.fob + maritimeFlete + dynamicValues.seguro;
+  
+    //* Función para obtener el nombre del servicio según el tipo
+    const getServiceName = (serviceType: string) => {
+      const aereoServices = [
+        "Pendiente",
+        "Consolidado Express",
+        "Consolidado Grupal Express",
+        "Almacenaje de mercancías",
+      ];
+      if (aereoServices.includes(serviceType)) {
+        return "Servicio de Carga Consolidada Aérea";
+      } else if (
+        serviceType === "Consolidado Maritimo" ||
+        serviceType === "Consolidado Grupal Maritimo"
+      ) {
+        return "Servicio de Carga Consolidada (CARGA- ADUANA)";
+      }
+      return "Servicio de Carga Consolidada Aérea"; // Por defecto
+    };
+  
+    //* Función para obtener los campos del servicio según el tipo
+    const getServiceFields = (serviceType: string) => {
+      const aereoServices = [
+        "Pendiente",
+        "Consolidado Express",
+        "Consolidado Grupal Express",
+        "Almacenaje de mercancías",
+      ];
+      if (aereoServices.includes(serviceType)) {
+        return {
+          servicioConsolidado: dynamicValues.servicioConsolidado,
+          separacionCarga: dynamicValues.separacionCarga,
+          inspeccionProductos: dynamicValues.inspeccionProductos,
+        };
+      } else if (
+        serviceType === "Consolidado Maritimo" ||
+        serviceType === "Consolidado Grupal Maritimo"
+      ) {
+        return {
+          servicioConsolidado: dynamicValues.servicioConsolidado,
+          gestionCertificado: dynamicValues.gestionCertificado,
+          inspeccionProducto: dynamicValues.inspeccionProducto,
+          inspeccionFabrica: dynamicValues.inspeccionFabrica,
+          transporteLocal: dynamicValues.transporteLocal,
+          otrosServicios: dynamicValues.otrosServicios,
+        };
+      }
       return {
         servicioConsolidado: dynamicValues.servicioConsolidado,
         separacionCarga: dynamicValues.separacionCarga,
         inspeccionProductos: dynamicValues.inspeccionProductos,
       };
-    } else if (
-      serviceType === "Consolidado Maritimo" ||
-      serviceType === "Consolidado Grupal Maritimo"
-    ) {
-      return {
-        servicioConsolidado: dynamicValues.servicioConsolidado,
-        gestionCertificado: dynamicValues.gestionCertificado,
-        inspeccionProducto: dynamicValues.inspeccionProducto,
-        inspeccionFabrica: dynamicValues.inspeccionFabrica,
-        transporteLocal: dynamicValues.transporteLocal,
-        otrosServicios: dynamicValues.otrosServicios,
-      };
-    }
-    return {
-      servicioConsolidado: dynamicValues.servicioConsolidado,
-      separacionCarga: dynamicValues.separacionCarga,
-      inspeccionProductos: dynamicValues.inspeccionProductos,
     };
-  };
-
-  //* Calcular valores dinámicos
-  const serviceFields = getServiceFields(selectedServiceLogistic);
-  const subtotalServices = Object.values(serviceFields).reduce(
-    (sum, value) => sum + value,
-    0
-  );
-  //* Calcular IGV de los servicios
-  const igvServices = subtotalServices * 0.18;
-  const totalServices = subtotalServices + igvServices;
-
-  //* Función para verificar si se deben exonerar impuestos automáticamente
-  const shouldExemptTaxes = dynamicValues.comercialValue < 200;
-
-  //* Función para manejar cambios en el estado de exoneración
-  const handleExemptionChange = (
-    field: keyof typeof exemptionState,
-    checked: boolean
-  ) => {
-    setExemptionState((prev) => ({
-      ...prev,
-      [field]: checked,
-    }));
-  };
-
-  //* Función para aplicar exoneración a un valor
-  const applyExemption = (value: number, isExempted: boolean) => {
-    return isExempted ? 0 : value;
-  };
-
-  //* Cálculos de obligaciones fiscales
-  const adValorem = cif * (dynamicValues.adValoremRate / 100);
-
-  // Para servicios marítimos
-  const antidumping = isMaritimeService(selectedServiceLogistic)
-    ? dynamicValues.antidumpingGobierno * dynamicValues.antidumpingCantidad
-    : 0;
-
-  const isc = isMaritimeService(selectedServiceLogistic)
-    ? (cif + adValorem) * (dynamicValues.iscRate / 100)
-    : 0;
-
-  const baseIgvIpm = isMaritimeService(selectedServiceLogistic)
-    ? cif + adValorem + antidumping + isc
-    : cif + adValorem;
-
-  const igvFiscal = baseIgvIpm * (dynamicValues.igvRate / 100);
-  const ipm = baseIgvIpm * (dynamicValues.ipmRate / 100);
-
-  const percepcion = isMaritimeService(selectedServiceLogistic)
-    ? (cif + adValorem + antidumping + isc + igvFiscal + ipm) *
-      (dynamicValues.percepcionRate / 100)
-    : 0;
-
-  const totalDerechosDolares = isMaritimeService(selectedServiceLogistic)
-    ? adValorem + antidumping + isc + igvFiscal + ipm + percepcion
-    : adValorem + igvFiscal + ipm;
-
-  const totalDerechosSoles = totalDerechosDolares * dynamicValues.tipoCambio;
-
-  //* Cálculos de gastos de importación con lógica de primera compra
-  const servicioConsolidadoFinal = isFirstPurchase
-    ? 0
-    : dynamicValues.servicioConsolidado * 1.18;
-  const separacionCargaFinal = isFirstPurchase
-    ? 0
-    : dynamicValues.separacionCarga * 1.18;
-  const inspeccionProductosFinal = isFirstPurchase
-    ? 0
-    : dynamicValues.inspeccionProductos * 1.18;
-  const desaduanajeFleteSaguro =
-    dynamicValues.desaduanaje + maritimeFlete + dynamicValues.seguro;
-
-  // Aplicar 50% de descuento a impuestos si es primera compra
-  // Aplicar exoneración total si valor comercial < $200 o si está marcado para exoneración
-  const totalDerechosDolaresFinal =
-    shouldExemptTaxes ||
-    exemptionState.obligacionesFiscales ||
-    exemptionState.totalDerechos
-      ? 0
-      : isFirstPurchase
-      ? totalDerechosDolares * 0.5
-      : totalDerechosDolares;
-
-  // Cálculos específicos para servicios marítimos
-  const servicioConsolidadoMaritimoFinal = isMaritimeService(
-    selectedServiceLogistic
-  )
-    ? isFirstPurchase
-      ? 0
-      : dynamicValues.servicioConsolidado * 1.18
-    : 0;
-
-  const gestionCertificadoFinal = isMaritimeService(selectedServiceLogistic)
-    ? isFirstPurchase
-      ? 0
-      : dynamicValues.gestionCertificado * 1.18
-    : 0;
-
-  const servicioInspeccionFinal = isMaritimeService(selectedServiceLogistic)
-    ? isFirstPurchase
-      ? 0
-      : (dynamicValues.inspeccionProducto + dynamicValues.inspeccionFabrica) *
-        1.18
-    : 0;
-
-  const transporteLocalFinal = isMaritimeService(selectedServiceLogistic)
-    ? isFirstPurchase
-      ? 0
-      : dynamicValues.transporteLocal * 1.18
-    : 0;
-
-  const totalGastosImportacion = isMaritimeService(selectedServiceLogistic)
-    ? applyExemption(
-        servicioConsolidadoMaritimoFinal,
-        exemptionState.servicioConsolidadoMaritimo
-      ) +
-      applyExemption(
-        gestionCertificadoFinal,
-        exemptionState.gestionCertificado
-      ) +
-      applyExemption(
-        servicioInspeccionFinal,
-        exemptionState.servicioInspeccion
-      ) +
-      applyExemption(transporteLocalFinal, exemptionState.transporteLocal) +
-      totalDerechosDolaresFinal +
-      applyExemption(
-        dynamicValues.transporteLocalChinaEnvio,
-        exemptionState.transporteLocalChina
-      ) +
-      applyExemption(
-        dynamicValues.transporteLocalClienteEnvio,
-        exemptionState.transporteLocalCliente
-      )
-    : applyExemption(
-        servicioConsolidadoFinal,
-        exemptionState.servicioConsolidadoAereo
-      ) +
-      applyExemption(separacionCargaFinal, exemptionState.separacionCarga) +
-      applyExemption(
-        inspeccionProductosFinal,
-        exemptionState.inspeccionProductos
-      ) +
-      totalDerechosDolaresFinal +
-      applyExemption(
-        desaduanajeFleteSaguro,
-        exemptionState.desaduanajeFleteSaguro
-      ) +
-      applyExemption(
-        dynamicValues.transporteLocalChinaEnvio,
-        exemptionState.transporteLocalChina
-      ) +
-      applyExemption(
-        dynamicValues.transporteLocalClienteEnvio,
-        exemptionState.transporteLocalCliente
-      );
-
-  //* Inversión total
-  const inversionTotal = dynamicValues.comercialValue + totalGastosImportacion;
-
-  //* Función para actualizar valores dinámicos
-  const updateDynamicValue = (
-    key: keyof typeof dynamicValues,
-    value: number
-  ) => {
-    setDynamicValues((prev) => ({ ...prev, [key]: value }));
-  };
-
-  //* Función para manejar cambios del valor comercial desde las tablas
-  const handleCommercialValueChange = (value: number) => {
-    console.log("Estamos en el handleCommercialValueChange", value);
-    updateDynamicValue("comercialValue", value);
-  };
-
-  //* Función para manejar cambios de primera compra
-  const handleFirstPurchaseChange = (checked: boolean) => {
-    setIsFirstPurchase(checked);
-  };
-
-  //* Función para manejar cambios en los productos de la tabla de costeo unitario
-  const handleUnitCostProductsChange = (products: ProductRow[]) => {
-    setEditableUnitCostProducts(products);
-  };
-
-    //********llamado a funcion para obtener datos del asesor */
-    useEffect(() => {
-      const user = obtenerUser();
-      if (user) {
-        setId_asesor(user?.id_usuario);
-        setNombre_asesor(user?.name);
-      }
-    }, []);
-
-  //* Función para generar el DTO con toda la información de la respuesta
-  const generateQuotationResponseDTO = () => {
-    return {
-      // Información de la cotización
-      quotationInfo: {
-        quotationId: selectedQuotationId,
-        status: "ANSWERED",
-        correlative: quotationDetail?.correlative || "",
-        date: quotationDate,
-        serviceType: selectedServiceLogistic,
-        cargoType: selectedTypeLoad,
-        courier: selectedCourier,
-        incoterm: selectedIncoterm,
-        isFirstPurchase: isFirstPurchase,
-        regime: selectedRegimen,
-        originCountry: selectedPaisOrigen,
-        destinationCountry: selectedPaisDestino,
-        customs: selectedAduana,
-        originPort: selectedPuertoSalida,
-        destinationPort: selectedPuertoDestino,
-        serviceTypeDetail: selectedTipoServicio,
-        transitTime: tiempoTransito,
-        naviera: naviera,
-        proformaValidity: selectedProformaVigencia,
-        id_asesor: id_asesor || "",
-      },
-
-      // Valores dinámicos
-      dynamicValues: {
-        ...dynamicValues,
-        cif: cif,
-        shouldExemptTaxes: shouldExemptTaxes,
-      },
-
-      // Estados de exoneración
-      exemptions: exemptionState,
-
-      // Cálculos de servicios
-      serviceCalculations: {
-        // Servicios de consolidación
-        serviceFields: {
-          servicioConsolidado: serviceFields.servicioConsolidado || 0,
-          separacionCarga: serviceFields.separacionCarga || 0,
-          inspeccionProductos: serviceFields.inspeccionProductos || 0,
-        },
-        subtotalServices: subtotalServices,
-        igvServices: igvServices,
-        totalServices: totalServices,
-
-        // Obligaciones fiscales
-        fiscalObligations: {
-          adValorem: adValorem,
-          antidumping: antidumping,
-          isc: isc,
-          baseIgvIpm: baseIgvIpm,
-          igvFiscal: igvFiscal,
-          ipm: ipm,
-          percepcion: percepcion,
-          totalDerechosDolares: totalDerechosDolares,
-          totalDerechosSoles: totalDerechosSoles,
-          totalDerechosDolaresFinal: totalDerechosDolaresFinal,
-        },
-
-        // Gastos de importación
-        importExpenses: {
-          // Servicios Aéreos
-          servicioConsolidadoFinal: servicioConsolidadoFinal,
-          separacionCargaFinal: separacionCargaFinal,
-          inspeccionProductosFinal: inspeccionProductosFinal,
-
-          // Servicios Marítimos
-          servicioConsolidadoMaritimoFinal: servicioConsolidadoMaritimoFinal,
-          gestionCertificadoFinal: gestionCertificadoFinal,
-          servicioInspeccionFinal: servicioInspeccionFinal,
-          transporteLocalFinal: transporteLocalFinal,
-
-          // Comunes
-          desaduanajeFleteSaguro: desaduanajeFleteSaguro,
-
-          // Totales aplicando exoneraciones
-          finalValues: {
-            servicioConsolidado: isMaritimeService(selectedServiceLogistic)
-              ? applyExemption(
-                  servicioConsolidadoMaritimoFinal,
-                  exemptionState.servicioConsolidadoMaritimo
-                )
-              : applyExemption(
-                  servicioConsolidadoFinal,
-                  exemptionState.servicioConsolidadoAereo
-                ),
-
-            gestionCertificado: applyExemption(
-              gestionCertificadoFinal,
-              exemptionState.gestionCertificado
-            ),
-            servicioInspeccion: applyExemption(
-              servicioInspeccionFinal,
-              exemptionState.servicioInspeccion
-            ),
-            transporteLocal: applyExemption(
-              transporteLocalFinal,
-              exemptionState.transporteLocal
-            ),
-            separacionCarga: applyExemption(
-              separacionCargaFinal,
-              exemptionState.separacionCarga
-            ),
-            inspeccionProductos: applyExemption(
-              inspeccionProductosFinal,
-              exemptionState.inspeccionProductos
-            ),
-            desaduanajeFleteSaguro: applyExemption(
-              desaduanajeFleteSaguro,
-              exemptionState.desaduanajeFleteSaguro
-            ),
-            transporteLocalChina: applyExemption(
-              dynamicValues.transporteLocalChinaEnvio,
-              exemptionState.transporteLocalChina
-            ),
-            transporteLocalCliente: applyExemption(
-              dynamicValues.transporteLocalClienteEnvio,
-              exemptionState.transporteLocalCliente
-            ),
-          },
-
-          totalGastosImportacion: totalGastosImportacion,
-        },
-
-        // Totales finales
-        totals: {
-          inversionTotal: inversionTotal,
-        },
-      },
-
-      // Productos del costeo unitario
-      unitCostProducts: editableUnitCostProducts,
-    };
-  };
-
-  //* Función para enviar la respuesta al backend usando el hook
-  const handleSaveResponse = async () => {
-    try {
-      // Mostrar modal de envío
-      setIsSendingModalOpen(true);
-
-      const dto = generateQuotationResponseDTO();
-
-      console.log(
-        "Enviando respuesta al backend:",
-        JSON.stringify(dto, null, 2)
-      );
-
-      // Llamada al backend usando el hook
-      await createQuotationResponseMutation.mutateAsync({
-        data: dto,
-        quotationId: selectedQuotationId,
-      });
-      // Notificar y regresar a listado
-      // Usamos toast del sistema de notificaciones (ya importado en hooks) o un alert simple
-      console.log("Respuesta enviada correctamente");
-      window.history.back();
-    } catch (error) {
-      console.error("Error al guardar la respuesta:", error);
-    } finally {
-      // El modal se cerrará automáticamente después del progreso
-      setIsSendingModalOpen(false);
-    }
-  };
-
-  //* Obtener fecha actual de hoy
-  useEffect(() => {
-    const today = new Date();
-    setQuotationDate(formatDate(today.toISOString()));
-  }, []);
-
-
-  //* Inicializar productos de la tabla de costeo unitario cuando se cargan los datos
-  useEffect(() => {
-    if (quotationDetail?.products && editableUnitCostProducts.length === 0) {
-      const initialProducts = quotationDetail.products.map((product) => ({
-        id: product.id,
-        name: product.name,
-        price: 0,
-        quantity: product.quantity,
-        total: 0,
-        equivalence: 0,
-        importCosts: 0,
-        totalCost: 0,
-        unitCost: 0,
-      }));
-      setEditableUnitCostProducts(initialProducts);
-    }
-  }, [quotationDetail, editableUnitCostProducts.length]);
-
-
-  if (isLoading) {
-    return (
-      <div className="space-y-4 p-6">
-        <div className="animate-pulse">
-          <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
-          <div className="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
-          <div className="h-64 bg-gray-200 rounded"></div>
-        </div>
-      </div>
+  
+    //* Calcular valores dinámicos
+    const serviceFields = getServiceFields(selectedServiceLogistic);
+    const subtotalServices = Object.values(serviceFields).reduce(
+      (sum, value) => sum + value,
+      0
     );
-  }
+    //* Calcular IGV de los servicios
+    const igvServices = subtotalServices * 0.18;
+    const totalServices = subtotalServices + igvServices;
+  
+    //* Función para verificar si se deben exonerar impuestos automáticamente
+    const shouldExemptTaxes = dynamicValues.comercialValue < 200;
+  
+    //* Función para manejar cambios en el estado de exoneración
+    const handleExemptionChange = (
+      field: keyof typeof exemptionState,
+      checked: boolean
+    ) => {
+      setExemptionState((prev) => ({
+        ...prev,
+        [field]: checked,
+      }));
+    };
+  
+    //* Función para aplicar exoneración a un valor
+    const applyExemption = (value: number, isExempted: boolean) => {
+      return isExempted ? 0 : value;
+    };
+  
+    //* Cálculos de obligaciones fiscales
+    const adValorem = cif * (dynamicValues.adValoremRate / 100);
+  
+    // Para servicios marítimos
+    const antidumping = isMaritimeService(selectedServiceLogistic)
+      ? dynamicValues.antidumpingGobierno * dynamicValues.antidumpingCantidad
+      : 0;
+  
+    const isc = isMaritimeService(selectedServiceLogistic)
+      ? (cif + adValorem) * (dynamicValues.iscRate / 100)
+      : 0;
+  
+    const baseIgvIpm = isMaritimeService(selectedServiceLogistic)
+      ? cif + adValorem + antidumping + isc
+      : cif + adValorem;
+  
+    const igvFiscal = baseIgvIpm * (dynamicValues.igvRate / 100);
+    const ipm = baseIgvIpm * (dynamicValues.ipmRate / 100);
+  
+    const percepcion = isMaritimeService(selectedServiceLogistic)
+      ? (cif + adValorem + antidumping + isc + igvFiscal + ipm) *
+        (dynamicValues.percepcionRate / 100)
+      : 0;
+  
+    const totalDerechosDolares = isMaritimeService(selectedServiceLogistic)
+      ? adValorem + antidumping + isc + igvFiscal + ipm + percepcion
+      : adValorem + igvFiscal + ipm;
+  
+    const totalDerechosSoles = totalDerechosDolares * dynamicValues.tipoCambio;
+  
+    //* Cálculos de gastos de importación con lógica de primera compra
+    const servicioConsolidadoFinal = isFirstPurchase
+      ? 0
+      : dynamicValues.servicioConsolidado * 1.18;
+    const separacionCargaFinal = isFirstPurchase
+      ? 0
+      : dynamicValues.separacionCarga * 1.18;
+    const inspeccionProductosFinal = isFirstPurchase
+      ? 0
+      : dynamicValues.inspeccionProductos * 1.18;
+    const desaduanajeFleteSaguro =
+      dynamicValues.desaduanaje + maritimeFlete + dynamicValues.seguro;
+  
+    // Aplicar 50% de descuento a impuestos si es primera compra
+    // Aplicar exoneración total si valor comercial < $200 o si está marcado para exoneración
+    const totalDerechosDolaresFinal =
+      shouldExemptTaxes ||
+      exemptionState.obligacionesFiscales ||
+      exemptionState.totalDerechos
+        ? 0
+        : isFirstPurchase
+        ? totalDerechosDolares * 0.5
+        : totalDerechosDolares;
+  
+    // Cálculos específicos para servicios marítimos
+    const servicioConsolidadoMaritimoFinal = isMaritimeService(
+      selectedServiceLogistic
+    )
+      ? isFirstPurchase
+        ? 0
+        : dynamicValues.servicioConsolidado * 1.18
+      : 0;
+  
+    const gestionCertificadoFinal = isMaritimeService(selectedServiceLogistic)
+      ? isFirstPurchase
+        ? 0
+        : dynamicValues.gestionCertificado * 1.18
+      : 0;
+  
+    const servicioInspeccionFinal = isMaritimeService(selectedServiceLogistic)
+      ? isFirstPurchase
+        ? 0
+        : (dynamicValues.inspeccionProducto + dynamicValues.inspeccionFabrica) *
+          1.18
+      : 0;
+  
+    const transporteLocalFinal = isMaritimeService(selectedServiceLogistic)
+      ? isFirstPurchase
+        ? 0
+        : dynamicValues.transporteLocal * 1.18
+      : 0;
+  
+    const totalGastosImportacion = isMaritimeService(selectedServiceLogistic)
+      ? applyExemption(
+          servicioConsolidadoMaritimoFinal,
+          exemptionState.servicioConsolidadoMaritimo
+        ) +
+        applyExemption(
+          gestionCertificadoFinal,
+          exemptionState.gestionCertificado
+        ) +
+        applyExemption(
+          servicioInspeccionFinal,
+          exemptionState.servicioInspeccion
+        ) +
+        applyExemption(transporteLocalFinal, exemptionState.transporteLocal) +
+        totalDerechosDolaresFinal +
+        applyExemption(
+          dynamicValues.transporteLocalChinaEnvio,
+          exemptionState.transporteLocalChina
+        ) +
+        applyExemption(
+          dynamicValues.transporteLocalClienteEnvio,
+          exemptionState.transporteLocalCliente
+        )
+      : applyExemption(
+          servicioConsolidadoFinal,
+          exemptionState.servicioConsolidadoAereo
+        ) +
+        applyExemption(separacionCargaFinal, exemptionState.separacionCarga) +
+        applyExemption(
+          inspeccionProductosFinal,
+          exemptionState.inspeccionProductos
+        ) +
+        totalDerechosDolaresFinal +
+        applyExemption(
+          desaduanajeFleteSaguro,
+          exemptionState.desaduanajeFleteSaguro
+        ) +
+        applyExemption(
+          dynamicValues.transporteLocalChinaEnvio,
+          exemptionState.transporteLocalChina
+        ) +
+        applyExemption(
+          dynamicValues.transporteLocalClienteEnvio,
+          exemptionState.transporteLocalCliente
+        );
+  
+    //* Inversión total
+    const inversionTotal = dynamicValues.comercialValue + totalGastosImportacion;
+  
+    //* Función para actualizar valores dinámicos
+    const updateDynamicValue = (
+      key: keyof typeof dynamicValues,
+      value: number
+    ) => {
+      setDynamicValues((prev) => ({ ...prev, [key]: value }));
+    };
+  
+    //* Función para manejar cambios del valor comercial desde las tablas
+    const handleCommercialValueChange = (value: number) => {
+      console.log("Estamos en el handleCommercialValueChange", value);
+      updateDynamicValue("comercialValue", value);
+    };
+  
+    //* Función para manejar cambios de primera compra
+    const handleFirstPurchaseChange = (checked: boolean) => {
+      setIsFirstPurchase(checked);
+    };
+  
+    //* Función para manejar cambios en los productos de la tabla de costeo unitario
+    const handleUnitCostProductsChange = (products: ProductRow[]) => {
+      setEditableUnitCostProducts(products);
+    };
+  
+      //********llamado a funcion para obtener datos del asesor */
+      useEffect(() => {
+        const user = obtenerUser();
+        if (user) {
+          setId_asesor(user?.id_usuario);
+          setNombre_asesor(user?.name);
+        }
+      }, []);
+  
 
-  if (isError || !quotationDetail) {
-    // Mostrar productos de ejemplo si no hay datos de cotización
-    console.log("Mostrando productos de ejemplo");
-  }
+    //* Función para enviar la respuesta al backend usando el hook
+    const handleEditResponse = async () => {
+      try {
+        setIsSendingModalOpen(true);
+        // Construir DTO mínimo desde estados actuales
+        const dto = {
+          quotationInfo: {
+            quotationId,
+            correlative: detailsResponse?.quotationInfo?.correlative || "",
+            serviceType: detailsResponse?.quotationInfo?.serviceType || "",
+          },
+          dynamicValues: dynamicValues,
+          serviceCalculations: detailsResponse?.serviceCalculations || {},
+          unitCostProducts: editableUnitCostProducts,
+        } as any;
+
+        await patchQuotationResponseMutation.mutateAsync({ data: dto });
+        console.log("Respuesta actualizada correctamente");
+        // Volver al listado de respuestas de la misma cotización
+        window.history.back();
+      } catch (error) {
+        console.error("Error al guardar la respuesta:", error);
+      } finally {
+        setIsSendingModalOpen(false);
+      }
+    };
+  
+    //* Obtener fecha actual de hoy
+    useEffect(() => {
+      const today = new Date();
+      setQuotationDate(formatDate(today.toISOString()));
+    }, []);
+  
+  
+    //* Inicializar productos de la tabla de costeo unitario con los productos de la respuesta
+    useEffect(() => {
+      const unitProducts = detailsResponse?.unitCostProducts ?? [];
+      if (unitProducts.length > 0) {
+        const mapped = unitProducts.map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          price: Number(p.price) || 0,
+          quantity: Number(p.quantity) || 0,
+          total: Number(p.total) || 0,
+          equivalence: Number(p.equivalence) || 0,
+          importCosts: Number(p.importCosts) || 0,
+          totalCost: Number(p.totalCost) || 0,
+          unitCost: Number(p.unitCost) || 0,
+        }));
+        setEditableUnitCostProducts(mapped);
+      }
+    }, [detailsResponse]);
+  
+  
+    if (isLoadingDetailsResponse) {
+      return (
+        <div className="space-y-4 p-6">
+          <div className="animate-pulse">
+            <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
+            <div className="h-64 bg-gray-200 rounded"></div>
+          </div>
+        </div>
+      );
+    }
+  
+    if (isErrorDetails || !detailsResponse) {
+      return (
+        <div className="p-6 text-center text-red-600">No se pudo cargar la respuesta.</div>
+      );
+    }
+
 
   return (
     <div className="space-y-6 p-4 min-h-screen ">
@@ -704,7 +550,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({ selectedQuotationId }
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-4 gap-3 text-xl font-semibold">
               <PackageIcon className="w-7 h-7 text-blue-600" />
-              Cotización {quotationDetail?.correlative || "EJEMPLO-001"}
+              Cotización {detailsResponse?.quotationInfo?.correlative || ""}
             </div>
           </div>
 
@@ -1291,7 +1137,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({ selectedQuotationId }
 
                         {/* Tercera columna */}
                         <div className="space-y-2">
-                          {/* Servicio de Carga Consolidada */}
+              {/* Servicio de Carga Consolidada */}
 
                           <div className="grid grid-cols-2 gap-2 text-sm justify-between items-center py-2 ">
                             <div className="flex flex-col gap-2">
@@ -1516,10 +1362,10 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({ selectedQuotationId }
                 <ConfirmDialog
                   trigger={
                     <Button
-                      disabled={isLoading}
+                      disabled={isLoadingDetailsResponse}
                       className="bg-orange-500 hover:bg-orange-600  text-white px-8 py-2 rounded-sm shadow-md flex items-center gap-2 disabled:opacity-50"
                     >
-                      {isLoading ? (
+                      {isLoadingDetailsResponse ? (
                         <Loader2 className="w-5 h-5 animate-spin" />
                       ) : (
                         <Send className="w-5 h-5" />
@@ -1531,7 +1377,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({ selectedQuotationId }
                   description={`¿Está seguro de enviar la cotización?`}
                   confirmText="Enviar"
                   cancelText="Cancelar"
-                  onConfirm={handleSaveResponse}
+                  onConfirm={handleEditResponse}
                 />
               </div>
             </div>
@@ -1548,4 +1394,4 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({ selectedQuotationId }
   );
 };
 
-export default DetailsResponse;
+export default EditResponse;

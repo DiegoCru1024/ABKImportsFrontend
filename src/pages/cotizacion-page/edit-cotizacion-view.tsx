@@ -302,11 +302,21 @@ export default function EditCotizacionView({
       );
 
       if (statusQuotation === "pending") {
-        // 4. Actualizar cotización usando el hook
-        patchQuotationMut.mutate({ data: dataToSend });
+        patchQuotationMut.mutate({ data: dataToSend }, {
+          onSuccess: () => {
+            toast.success("Cotización actualizada. Redirigiendo...");
+            setTimeout(() => window.history.back(), 1200);
+          },
+          onError: () => toast.error("Error al actualizar la cotización"),
+        });
       } else {
-        // 4. Actualizar cotización usando el hook
-        submitDraftMut.mutate({ data: dataToSend });
+        submitDraftMut.mutate({ data: dataToSend }, {
+          onSuccess: () => {
+            toast.success("Borrador enviado. Redirigiendo...");
+            setTimeout(() => window.history.back(), 1200);
+          },
+          onError: () => toast.error("Error al enviar el borrador"),
+        });
       }
     } catch (error) {
       console.error("Error durante el proceso de actualización:", error);

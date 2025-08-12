@@ -5,6 +5,7 @@ import {
   getResponsesForUsers,
   listQuatitationResponses,
   getListResponsesByQuotationId,
+  getDetailsResponse,
   } from "@/api/quotation-responses";
 import type { QuotationResponseDTO } from "@/api/interface/quotationResponseInterfaces";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -289,5 +290,19 @@ export function useGetListResponsesByQuotationId(quotationId: string, page: numb
     queryKey: ["getListResponsesByQuotationId", quotationId, page, size],
     queryFn: () => getListResponsesByQuotationId(quotationId, page, size),
     enabled: Boolean(quotationId),
+  });
+}
+
+
+/**
+ * Hook para obtener los detalles de una respuesta de una cotización por su ID (Admin Only)
+ * @param {string} quotationId - El ID de la cotización
+ * @param {string} quotationResponseId - El ID de la respuesta
+ * @returns {useQuery} - Los detalles de la respuesta
+ */
+export function useGetDetailsResponse(quotationId: string, quotationResponseId: string) {
+  return useQuery({
+    queryKey: ["getDetailsResponse", quotationId, quotationResponseId],
+    queryFn: () => getDetailsResponse(quotationId, quotationResponseId),
   });
 }

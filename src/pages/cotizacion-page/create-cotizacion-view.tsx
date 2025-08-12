@@ -246,7 +246,10 @@ export default function CreateCotizacionView() {
         data: dataToSend,
       });
       if (response) {
-        navigate(`/dashboard/mis-cotizaciones`);
+        toast.success("Cotización creada exitosamente. Redirigiendo...");
+        setTimeout(() => {
+          navigate(`/dashboard/mis-cotizaciones`);
+        }, 1200);
       } else {
         toast.error("Error al crear la cotización");
       }

@@ -3,6 +3,7 @@ import {
   useGetListResponsesByQuotationId,
 } from "@/hooks/use-quatitation-response";
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable } from "@/components/table/data-table";
 import { columnsListResponses } from "../table/columnsListResponses";
@@ -17,6 +18,7 @@ interface ListResponsesProps {
 const ListResponses: React.FC<ListResponsesProps> = ({
   selectedQuotationId,
 }) => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -36,8 +38,8 @@ const ListResponses: React.FC<ListResponsesProps> = ({
   if (isLoading) return <div>Cargando...</div>;
   if (isError) return <div>Error al cargar las respuestas</div>;
 
-  const handleEditQuotation = (id: string) => {
-    setSelectedId(id);
+  const handleEditQuotation = (idResponse: string) => {
+    navigate(`/dashboard/gestion-de-cotizacion/respuestas/${selectedQuotationId}/editar/${idResponse}`);
   };
 
   const handleDeleteQuotation = (idResponse: string) => {

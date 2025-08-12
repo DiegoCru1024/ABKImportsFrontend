@@ -150,3 +150,24 @@ export const getListResponsesByQuotationId = async (quotationId: string, page: n
     throw error;
   }
 };
+
+/**
+ * Obtiene los detalles de una respuesta de una cotización por su ID (Admin Only)
+ * @param {string} quotationId - El ID de la cotización
+ * @param {string} quotationResponseId - El ID de la respuesta
+ * @returns {Promise<QuotationResponseDTO>} - Los detalles de la respuesta
+ */
+export const getDetailsResponse = async (quotationId: string, quotationResponseId: string) => {
+  try {
+    const response: QuotationResponseDTO = await apiFetch<QuotationResponseDTO>(
+      `/quotation-responses/details/${quotationId}/${quotationResponseId}`,
+      {
+        method: "GET",
+      }
+    );
+    return response;
+  } catch (error) {
+    console.error("Error al obtener los detalles de la respuesta:", error);
+    throw error;
+  }
+}

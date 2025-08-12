@@ -20,15 +20,18 @@ function toTitle(segment: string) {
 
 export default function HeaderConBreadcrumb() {
   const location = useLocation();
-  let segments = location.pathname.split("/").filter(Boolean);
-  // Si la ruta termina en un ID después de "respuesta" o "respuestas",
-  // ocultamos el ID para que el último breadcrumb sea esa sección y no sea clickeable
-  if (segments.length >= 2) {
-    const penultimate = segments[segments.length - 2];
-    if (penultimate === "respuesta" || penultimate === "respuestas") {
-      segments = segments.slice(0, -1);
-    }
-  }
+  const rawSegments = location.pathname.split("/").filter(Boolean);
+  // Detectar segmentos que son IDs (uuid, objectId o números largos)
+  const idPattern = /^(?:[0-9a-fA-F]{24}|[0-9a-fA-F-]{16,}|\d{6,})$/;
+
+  // Calcular el último índice visible (no ID)
+  const visibleIndices = rawSegments
+    .map((seg, i) => ({ i, seg, visible: !idPattern.test(seg) }))
+    .filter((o) => o.visible);
+  const lastVisibleIndex = visibleIndices.length
+    ? visibleIndices[visibleIndices.length - 1].i
+    : -1;
+
   let path = "";
 
   const { theme, setTheme } = useTheme();
@@ -45,9 +48,13 @@ export default function HeaderConBreadcrumb() {
           <Separator orientation="vertical" className="mr-2 h-4" />
           <Breadcrumb>
             <BreadcrumbList>
-              {segments.map((seg, i) => {
+              {rawSegments.map((seg, i) => {
+                // Saltar IDs en el breadcrumb visual, pero mantener path acumulado
+                const isId = /^(?:[0-9a-fA-F]{24}|[0-9a-fA-F-]{16,}|\d{6,})$/.test(seg);
                 path += `/${seg}`;
-                const isLast = i === segments.length - 1;
+                if (isId) return null;
+
+                const isLast = i === lastVisibleIndex;
                 return (
                   <React.Fragment key={`seg-${i}`}>
                     {i > 0 && (

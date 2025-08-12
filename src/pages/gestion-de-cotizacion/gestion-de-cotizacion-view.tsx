@@ -39,6 +39,7 @@ import {
   defaultStatusConfig,
   statusMap,
 } from "@/pages/cotizacion-page/components/static";
+import { obtenerUser } from "@/lib/functions";
 
 export default function GestionDeCotizacionesView() {
   const navigate = useNavigate();
@@ -60,6 +61,15 @@ export default function GestionDeCotizacionesView() {
   );
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [modalProductName, setModalProductName] = useState("");
+
+  //********llamado a funcion para obtener datos del asesor */
+  useEffect(() => {
+    const user = obtenerUser();
+    if (user) {
+      console.log("user", user);
+    }
+  }, []);
+
 
   // ********Datos y paginación**** */
   const [data, setData] = useState<QuotationsByUserResponseInterfaceContent[]>(

@@ -50,8 +50,14 @@ function GestionDeUsuarios() {
     if (userData) {
       setUsers(userData.content);
       setPageInfo({
-        pageNumber: userData.pageNumber,
-        pageSize: userData.pageSize,
+        pageNumber:
+          typeof userData.pageNumber === "string"
+            ? parseInt(userData.pageNumber)
+            : userData.pageNumber,
+        pageSize:
+          typeof userData.pageSize === "string"
+            ? parseInt(userData.pageSize)
+            : userData.pageSize,
         totalElements: userData.totalElements,
         totalPages: userData.totalPages,
       });
@@ -76,7 +82,17 @@ function GestionDeUsuarios() {
   const CreateUserDialog: React.FC = () => {
     const createMutation = useCreateUserProfile();
     const [open, setOpen] = useState(false);
-    const [form, setForm] = useState({ name: "", email: "", password: "" });
+    const [form, setForm] = useState({
+      first_name: "",
+      last_name: "",
+      email: "",
+      password: "",
+      dni: "",
+      company_name: "",
+      ruc: "",
+      contact: "",
+      type: "final" as "final" | "admin",
+    });
     return (
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
@@ -90,11 +106,18 @@ function GestionDeUsuarios() {
             <DialogTitle>Crear Usuario</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <Input
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              placeholder="Nombre"
-            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <Input
+                value={form.first_name}
+                onChange={(e) => setForm({ ...form, first_name: e.target.value })}
+                placeholder="Nombres"
+              />
+              <Input
+                value={form.last_name}
+                onChange={(e) => setForm({ ...form, last_name: e.target.value })}
+                placeholder="Apellidos"
+              />
+            </div>
             <Input
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
@@ -106,6 +129,41 @@ function GestionDeUsuarios() {
               onChange={(e) => setForm({ ...form, password: e.target.value })}
               placeholder="Contraseña"
             />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <Input
+                type="number"
+                value={form.dni}
+                onChange={(e) => setForm({ ...form, dni: e.target.value })}
+                placeholder="DNI"
+              />
+              <Input
+                value={form.company_name}
+                onChange={(e) => setForm({ ...form, company_name: e.target.value })}
+                placeholder="Razón Social"
+              />
+              <Input
+                type="number"
+                value={form.ruc}
+                onChange={(e) => setForm({ ...form, ruc: e.target.value })}
+                placeholder="RUC"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <Input
+                type="number"
+                value={form.contact}
+                onChange={(e) => setForm({ ...form, contact: e.target.value })}
+                placeholder="Contacto"
+              />
+              <select
+                className="h-10 px-3 rounded-md border"
+                value={form.type}
+                onChange={(e) => setForm({ ...form, type: e.target.value as "final" | "admin" })}
+              >
+                <option value="final">Final</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
           </div>
           <DialogFooter>
             <DialogClose asChild>
@@ -114,11 +172,22 @@ function GestionDeUsuarios() {
             <ConfirmDialog
               trigger={<Button>Crear</Button>}
               title="Confirmar creación de usuario"
-              description={`¿Crear usuario ${form.name}?`}
+              description={`¿Crear usuario ${form.first_name} ${form.last_name}?`}
               onConfirm={() => {
                 setSending(true);
+                const payload = {
+                  first_name: form.first_name,
+                  last_name: form.last_name,
+                  email: form.email,
+                  password: form.password,
+                  dni: form.dni ? Number(form.dni) : 0,
+                  company_name: form.company_name,
+                  ruc: form.ruc ? Number(form.ruc) : 0,
+                  contact: form.contact ? Number(form.contact) : 0,
+                  type: form.type,
+                };
                 createMutation.mutate(
-                  { data: form },
+                  { data: payload },
                   {
                     onSettled: () => {
                       setSending(false);
@@ -282,7 +351,7 @@ function GestionDeUsuarios() {
   // Manejo de búsqueda
   const handleSearch = (term: string) => {
     setSearchTerm(term);
-    setCurrentPage(0); // Resetear a la primera página
+    setCurrentPage(1); // Resetear a la primera página (1-based)
   };
 
   return (

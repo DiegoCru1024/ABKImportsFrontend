@@ -1452,12 +1452,12 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({ selectedQuotationId }
                   <ImportExpensesCard
                     isMaritime={isMaritimeService(selectedServiceLogistic)}
                     values={{
-                      servicioConsolidadoMaritimoFinal,
-                      gestionCertificadoFinal,
-                      servicioInspeccionFinal,
-                      transporteLocalFinal,
+                                  servicioConsolidadoMaritimoFinal,
+                                  gestionCertificadoFinal,
+                                  servicioInspeccionFinal,
+                                  transporteLocalFinal,
                       totalDerechosDolaresFinal,
-                      desaduanajeFleteSaguro,
+                                  desaduanajeFleteSaguro,
                       transporteLocalChinaEnvio: dynamicValues.transporteLocalChinaEnvio,
                       transporteLocalClienteEnvio: dynamicValues.transporteLocalClienteEnvio,
                     }}
@@ -1479,8 +1479,8 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({ selectedQuotationId }
                     inversionTotal={inversionTotal}
                     shouldExemptTaxes={shouldExemptTaxes}
                   />
-                </div>
-              </div>
+                        </div>
+                        </div>
 
               {/* Sección de Costeo Unitario integrada en la misma vista */}
               <div className="min-h-screen ">

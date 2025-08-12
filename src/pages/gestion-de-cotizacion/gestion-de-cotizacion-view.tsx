@@ -220,7 +220,7 @@ export default function GestionDeCotizacionesView() {
     }
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-gray-50">
+    <div className="min-h-screen bg-gray-50">
       {/* Barra de navegación superior */}
       <div className="border-b-2 px-4 py-4 backdrop-blur-sm sticky top-0 z-10 border-border/60 bg-white/80">
         <div className="container flex items-center justify-between">
@@ -243,7 +243,7 @@ export default function GestionDeCotizacionesView() {
       </div>
 
       {/* Contenido principal */}
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-4 py-6 max-w-full overflow-hidden">
         {/* Barra de búsqueda */}
         <div className="mb-6">
           <div className="relative">
@@ -313,9 +313,10 @@ export default function GestionDeCotizacionesView() {
                 return (
                   <Card
                     key={quote.id}
-                    className="hover:shadow-lg transition-shadow duration-200"
+                    className="hover:shadow-lg transition-shadow duration-200 flex flex-col"
                   >
-                    <div className="p-6">
+                    {/* Header fijo de la tarjeta */}
+                    <div className="p-6 pb-4 flex-shrink-0">
                       <div className="flex items-center justify-between mb-4">
                         {/* Info cliente */}
                         <div className="flex items-center gap-4">
@@ -369,125 +370,111 @@ export default function GestionDeCotizacionesView() {
                           </div>
                         </div>
                       </div>
+                    </div>
 
-                      {/* Información de productos */}
-            {/* Productos */}
-            <div className="mb-4">
-              <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                <Package className="w-4 h-4" />
-                Productos ({quote.products.length})
-              </h4>
-              <div className="flex gap-3 overflow-x-auto  pb-2">
-                {quote.products?.map((product: any) => (
-                  <div
-                    key={product.id}
-                    className="flex bg-gray-50 rounded-lg p-3 gap-3 min-w-[320px]"
-                  >
-                    {/* Imagen del producto */}
-                    {product.attachments && product.attachments.length > 0 && (
-                      <div className="relative w-[120px] h-[120px] group flex-shrink-0">
-                        <img
-                          src={product.attachments[0] || "/placeholder.svg"}
-                          alt={product.name}
-                          className="w-full h-full object-cover rounded cursor-pointer transition-all duration-200"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.style.display = "none";
-                          }}
-                        />
-                        {/* Overlay con hover effect */}
-                        <div
-                          className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded flex items-center justify-center cursor-pointer"
-                          //onClick={() => setOpenImageModal(true)}
-                          /*onClick={() =>
-                            openImageModal(product.attachments, product.name)
-                          }*/
-                        >
-                          <div className="flex flex-col items-center gap-1 text-white">
-                            <Eye className="w-4 h-4" />
-                            <span className="text-xs font-medium text-center">
-                              {product.attachments.length > 1
-                                ? `Ver ${product.attachments.length}`
-                                : "Ver imagen"}
-                            </span>
-                          </div>
-                        </div>
-                        {/* Badge contador de imágenes */}
-                        {product.attachments.length > 1 && (
-                          <div className="absolute top-2 right-2 bg-gray-900 bg-opacity-80 text-white text-xs px-2 py-1 rounded-full">
-                            +{product.attachments.length - 1}
-                          </div>
-                        )}
-                      </div>
-                    )}
+                    {/* Área de productos con scroll interno */}
+                    <div className="px-6 flex-1 min-h-0">
+                      <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                        <Package className="w-4 h-4" />
+                        Productos ({quote.products.length})
+                      </h4>
+                      <div className="max-h-[300px] overflow-y-auto pr-2 space-y-3">
+                        {quote.products?.map((product: any) => (
+                          <div
+                            key={product.id}
+                            className="bg-gray-50 rounded-lg p-3 w-full"
+                          >
+                            <div className="flex gap-3">
+                              {/* Imagen del producto */}
+                              {product.attachments && product.attachments.length > 0 && (
+                                <div className="relative w-[80px] h-[80px] group flex-shrink-0">
+                                  <img
+                                    src={product.attachments[0] || "/placeholder.svg"}
+                                    alt={product.name}
+                                    className="w-full h-full object-cover rounded cursor-pointer transition-all duration-200"
+                                    onError={(e) => {
+                                      const target = e.target as HTMLImageElement;
+                                      target.style.display = "none";
+                                    }}
+                                  />
+                                  {/* Badge contador de imágenes */}
+                                  {product.attachments.length > 1 && (
+                                    <div className="absolute top-1 right-1 bg-gray-900 bg-opacity-80 text-white text-xs px-1 py-0.5 rounded-full">
+                                      +{product.attachments.length - 1}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
 
-                    {/* Información del producto */}
-                    <div className="flex-1 flex flex-col justify-between min-w-0">
-                      <div className="space-y-2">
-                        {/* Header del producto */}
-                        <div>
-                          <h3 className="font-bold text-base text-gray-900 capitalize leading-tight">
-                            {product.name}
-                          </h3>
-                          <div className="flex items-center gap-2 mt-1">
-                            <Badge variant="outline" className="text-xs">
-                              {product.quantity} unidades
-                            </Badge>
-                          </div>
-                        </div>
+                              {/* Información del producto */}
+                              <div className="flex-1 min-w-0">
+                                <div className="space-y-1">
+                                  {/* Header del producto */}
+                                  <div>
+                                    <h3 className="font-bold text-sm text-gray-900 capitalize leading-tight">
+                                      {product.name}
+                                    </h3>
+                                    <div className="flex items-center gap-2 mt-1">
+                                      <Badge variant="outline" className="text-xs">
+                                        {product.quantity} unidades
+                                      </Badge>
+                                    </div>
+                                  </div>
 
-                        {/* Especificaciones */}
-                        <div className="space-y-1">
-                          {product.size && (
-                            <div className="flex items-center gap-1 text-xs">
-                              <Ruler className="w-3 h-3 text-gray-400" />
-                              <span className="text-gray-600">Tamaño:</span>
-                              <span className="font-medium text-gray-900">
-                                {product.size}
-                              </span>
-                            </div>
-                          )}
-                          {product.color && (
-                            <div className="flex items-center gap-1 text-xs">
-                              <Palette className="w-3 h-3 text-gray-400" />
-                              <span className="text-gray-600">Color:</span>
-                              <span className="font-medium text-gray-900">
-                                {product.color}
-                              </span>
-                            </div>
-                          )}
+                                  {/* Especificaciones en línea */}
+                                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
+                                    {product.size && (
+                                      <div className="flex items-center gap-1">
+                                        <Ruler className="w-3 h-3 text-gray-400" />
+                                        <span className="text-gray-600">Tamaño:</span>
+                                        <span className="font-medium text-gray-900">
+                                          {product.size}
+                                        </span>
+                                      </div>
+                                    )}
+                                    {product.color && (
+                                      <div className="flex items-center gap-1">
+                                        <Palette className="w-3 h-3 text-gray-400" />
+                                        <span className="text-gray-600">Color:</span>
+                                        <span className="font-medium text-gray-900">
+                                          {product.color}
+                                        </span>
+                                      </div>
+                                    )}
+                                    {product.url && (
+                                      <div className="flex items-center gap-1">
+                                        <Link className="w-3 h-3 text-gray-400" />
+                                        <span className="text-gray-600">URL:</span>
+                                        <span className="font-medium text-gray-900">
+                                          <a href={product.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600">
+                                            Ver link
+                                          </a>
+                                        </span>
+                                      </div>
+                                    )}
+                                  </div>
 
-                          {product.url && (
-                            <div className="flex items-center gap-1 text-xs">
-                              <Link className="w-3 h-3 text-gray-400" />
-                              <span className="text-gray-600">URL:</span>
-                              <span className="font-medium text-gray-900">
-                                <a href={product.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600">
-                                  Ver link
-                                </a>
-                              </span>
-                            </div>
-                          )}
-                         
-                        </div>
-
-                        {/* Comentarios destacados */}
-                        {product.comment && (
-                          <div className="bg-blue-50 border-l-3 border-blue-400 p-2 rounded-r">
-                            <div className="flex items-start gap-2">
-                              <MessageSquare className="w-3 h-3 text-blue-500 mt-0.5 flex-shrink-0" />
-                              <p className="text-xs text-blue-700 font-medium leading-tight">
-                                {product.comment}
-                              </p>
+                                  {/* Comentarios destacados */}
+                                  {product.comment && (
+                                    <div className="bg-blue-50 border-l-2 border-blue-400 p-2 rounded-r mt-2">
+                                      <div className="flex items-start gap-2">
+                                        <MessageSquare className="w-3 h-3 text-blue-500 mt-0.5 flex-shrink-0" />
+                                        <p className="text-xs text-blue-700 font-medium leading-tight">
+                                          {product.comment}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
                             </div>
                           </div>
-                        )}
+                        ))}
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </div>  
+
+                    {/* Footer fijo con botones */}
+                    <div className="p-6 pt-4 border-t bg-gray-50/50 flex-shrink-0">
                       {quote.status !== "pending" && quote.status !=="draft" ? (
                         <div className="flex justify-end">
                           <Button
@@ -514,7 +501,6 @@ export default function GestionDeCotizacionesView() {
                         (
                           <div className="flex justify-end">
                             <Button
-                              //onClick={() => handleViewDetails(quote.id)}
                               className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white"
                             >
                               <EyeOff className="w-4 h-4" />

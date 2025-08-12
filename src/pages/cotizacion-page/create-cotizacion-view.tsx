@@ -636,7 +636,7 @@ export default function CreateCotizacionView() {
                   }}
                   pageInfo={{
                     pageNumber: 1,
-                    pageSize: 10,
+                    pageSize: productos?.length || 100,
                     totalElements: 0,
                     totalPages: 0,
                   }}

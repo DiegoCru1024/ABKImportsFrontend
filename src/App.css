@@ -1,3 +1,12 @@
+/* Oculta barras de scroll nativas en contenedores horizontales para evitar antiestética */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
 @import "tailwindcss";
 @import "tw-animate-css";
 

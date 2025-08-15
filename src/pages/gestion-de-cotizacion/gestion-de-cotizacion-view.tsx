@@ -63,8 +63,6 @@ export default function GestionDeCotizacionesView() {
   const [modalProductName, setModalProductName] = useState("");
 
 
-
-
   // ********Datos y paginación**** */
   const [data, setData] = useState<QuotationsByUserResponseInterfaceContent[]>(
     []

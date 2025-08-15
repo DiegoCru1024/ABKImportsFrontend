@@ -230,6 +230,28 @@ export default function EditCotizacionView({
     setSelectedFiles([]);
   };
 
+  //* Función para subir archivos en lotes de 10
+  const uploadFilesInBatches = async (files: File[]): Promise<string[]> => {
+    const batchSize = 10;
+    const allUrls: string[] = [];
+    
+    for (let i = 0; i < files.length; i += batchSize) {
+      const batch = files.slice(i, i + batchSize);
+      console.log(`Subiendo lote ${Math.floor(i / batchSize) + 1}: ${batch.length} archivos`);
+      
+      try {
+        const uploadResponse = await uploadMultipleFiles(batch);
+        allUrls.push(...uploadResponse.urls);
+        console.log(`Lote ${Math.floor(i / batchSize) + 1} completado: ${uploadResponse.urls.length} URLs obtenidas`);
+      } catch (error) {
+        console.error(`Error al subir lote ${Math.floor(i / batchSize) + 1}:`, error);
+        throw error;
+      }
+    }
+    
+    return allUrls;
+  };
+
   //* Función para actualizar cotización
   const handleActualizar = async () => {
     if (productos.length === 0) {
@@ -239,57 +261,50 @@ export default function EditCotizacionView({
 
     try {
       setIsLoading(true);
-      // 1. Recopilar TODOS los archivos NUEVOS de TODOS los productos
-      const allNewFiles: File[] = [];
-      const fileIndexMap: {
-        [productIndex: number]: { start: number; count: number };
-      } = {};
+      
+      // 1. Procesar cada producto individualmente para subir archivos nuevos en lotes
+      const productosConUrls = await Promise.all(
+        productos.map(async (producto, productIndex) => {
+          console.log(`Procesando producto ${productIndex + 1}: ${producto.name}`);
+          
+          let finalAttachments = producto.attachments || [];
+          
+          // Si hay archivos nuevos para este producto, subirlos en lotes
+          if (producto.files && producto.files.length > 0) {
+            console.log(`Producto ${producto.name} tiene ${producto.files.length} archivos nuevos`);
+            
+            let newUrls: string[] = [];
+            
+            // Subir archivos nuevos del producto en lotes de 10 si hay más de 10 archivos
+            if (producto.files.length > 10) {
+              console.log(`Producto ${producto.name} tiene ${producto.files.length} archivos nuevos, subiendo en lotes...`);
+              newUrls = await uploadFilesInBatches(producto.files);
+            } else {
+              console.log(`Producto ${producto.name} tiene ${producto.files.length} archivos nuevos, subiendo en un solo lote...`);
+              const uploadResponse = await uploadMultipleFiles(producto.files);
+              newUrls = uploadResponse.urls;
+            }
+            
+            finalAttachments = newUrls;
+            console.log(`Producto ${producto.name}: ${newUrls.length} URLs nuevas obtenidas`);
+          } else {
+            console.log(`Producto ${producto.name}: manteniendo archivos existentes (${finalAttachments.length} URLs)`);
+          }
 
-      productos.forEach((producto, productIndex) => {
-        if (producto.files && producto.files.length > 0) {
-          const startIndex = allNewFiles.length;
-          allNewFiles.push(...producto.files);
-          fileIndexMap[productIndex] = {
-            start: startIndex,
-            count: producto.files.length,
+          return {
+            name: producto.name,
+            quantity: producto.quantity,
+            size: producto.size,
+            color: producto.color,
+            url: producto.url,
+            comment: producto.comment,
+            weight: producto.weight,
+            volume: producto.volume,
+            number_of_boxes: producto.number_of_boxes,
+            attachments: finalAttachments,
           };
-        }
-      });
-
-      console.log("Archivos nuevos totales a subir:", allNewFiles.length);
-
-      // 2. Subir TODOS los archivos nuevos a AWS
-      let allUploadedUrls: string[] = [];
-      if (allNewFiles.length > 0) {
-        const uploadResponse = await uploadMultipleFiles(allNewFiles);
-        allUploadedUrls = uploadResponse.urls;
-        console.log("URLs obtenidas:", allUploadedUrls);
-      }
-
-      // 3. Distribuir las URLs a cada producto según corresponda
-      const productosConUrls = productos.map((producto, productIndex) => {
-        let finalAttachments = producto.attachments || [];
-
-        // Si hay archivos nuevos para este producto, usar las nuevas URLs
-        if (fileIndexMap[productIndex]) {
-          const { start, count } = fileIndexMap[productIndex];
-          const productUrls = allUploadedUrls.slice(start, start + count);
-          finalAttachments = productUrls;
-        }
-
-        return {
-          name: producto.name,
-          quantity: producto.quantity,
-          size: producto.size,
-          color: producto.color,
-          url: producto.url,
-          comment: producto.comment,
-          weight: producto.weight,
-          volume: producto.volume,
-          number_of_boxes: producto.number_of_boxes,
-          attachments: finalAttachments,
-        };
-      });
+        })
+      );
 
       const dataToSend = {
         service_type: service,

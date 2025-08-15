@@ -178,6 +178,28 @@ export default function CreateCotizacionView() {
     setSelectedFiles([]);
   };
 
+  //* Función para subir archivos en lotes de 10
+  const uploadFilesInBatches = async (files: File[]): Promise<string[]> => {
+    const batchSize = 10;
+    const allUrls: string[] = [];
+    
+    for (let i = 0; i < files.length; i += batchSize) {
+      const batch = files.slice(i, i + batchSize);
+      console.log(`Subiendo lote ${Math.floor(i / batchSize) + 1}: ${batch.length} archivos`);
+      
+      try {
+        const uploadResponse = await uploadMultipleFiles(batch);
+        allUrls.push(...uploadResponse.urls);
+        console.log(`Lote ${Math.floor(i / batchSize) + 1} completado: ${uploadResponse.urls.length} URLs obtenidas`);
+      } catch (error) {
+        console.error(`Error al subir lote ${Math.floor(i / batchSize) + 1}:`, error);
+        throw error;
+      }
+    }
+    
+    return allUrls;
+  };
+
   //* Función para enviar o guardar como borrador cotización
   const handleSubmitQuotation = async (saveAsDraft: boolean = false) => {
     if (productos.length === 0) {
@@ -190,49 +212,41 @@ export default function CreateCotizacionView() {
     setIsLoading(true);
 
     try {
-      // 1. Recopilar TODOS los archivos de TODOS los productos
-      const allFiles: File[] = [];
-      const fileIndexMap: {
-        [productIndex: number]: { start: number; count: number };
-      } = {};
+      // 1. Procesar cada producto individualmente para subir archivos en lotes
+      const productosConUrls = await Promise.all(
+        productos.map(async (producto, productIndex) => {
+          console.log(`Procesando producto ${productIndex + 1}: ${producto.name}`);
+          console.log(`Archivos del producto: ${producto.files.length}`);
+          
+          let productUrls: string[] = [];
+          
+          // Subir archivos del producto en lotes de 10 si hay más de 10 archivos
+          if (producto.files.length > 0) {
+            if (producto.files.length > 10) {
+              console.log(`Producto ${producto.name} tiene ${producto.files.length} archivos, subiendo en lotes...`);
+              productUrls = await uploadFilesInBatches(producto.files);
+            } else {
+              console.log(`Producto ${producto.name} tiene ${producto.files.length} archivos, subiendo en un solo lote...`);
+              const uploadResponse = await uploadMultipleFiles(producto.files);
+              productUrls = uploadResponse.urls;
+            }
+            console.log(`Producto ${producto.name}: ${productUrls.length} URLs obtenidas`);
+          }
 
-      productos.forEach((producto, productIndex) => {
-        const startIndex = allFiles.length;
-        allFiles.push(...producto.files);
-        fileIndexMap[productIndex] = {
-          start: startIndex,
-          count: producto.files.length,
-        };
-      });
-
-      console.log("Archivos totales a subir:", allFiles.length);
-
-      // 2. Subir TODOS los archivos a AWS
-      let allUploadedUrls: string[] = [];
-      if (allFiles.length > 0) {
-        const uploadResponse = await uploadMultipleFiles(allFiles);
-        allUploadedUrls = uploadResponse.urls;
-        console.log("URLs obtenidas:", allUploadedUrls);
-      }
-
-      // 3. Distribuir las URLs a cada producto según corresponda
-      const productosConUrls = productos.map((producto, productIndex) => {
-        const { start, count } = fileIndexMap[productIndex];
-        const productUrls = allUploadedUrls.slice(start, start + count);
-
-        return {
-          name: producto.name,
-          quantity: producto.quantity,
-          size: producto.size,
-          color: producto.color,
-          url: producto.url,
-          comment: producto.comment,
-          weight: producto.weight,
-          volume: producto.volume,
-          number_of_boxes: producto.number_of_boxes,
-          attachments: productUrls, // URLs distribuidas
-        };
-      });
+          return {
+            name: producto.name,
+            quantity: producto.quantity,
+            size: producto.size,
+            color: producto.color,
+            url: producto.url,
+            comment: producto.comment,
+            weight: producto.weight,
+            volume: producto.volume,
+            number_of_boxes: producto.number_of_boxes,
+            attachments: productUrls,
+          };
+        })
+      );
 
       const dataToSend = {
         products: productosConUrls,
@@ -261,6 +275,7 @@ export default function CreateCotizacionView() {
         error
       );
       toast.error("Error al procesar los archivos");
+    } finally {
       setIsLoading(false);
     }
   };

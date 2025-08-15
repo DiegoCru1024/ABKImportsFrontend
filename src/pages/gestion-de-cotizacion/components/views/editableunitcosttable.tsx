@@ -1,15 +1,5 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useState, useEffect } from "react";
-import type { ProductoResponseIdInterface } from "@/api/interface/quotationInterface";
 import { columnsEditableUnitcost } from "../table/columnseditableunitcost";
 import { DataTable } from "@/components/table/data-table";
 
@@ -23,13 +13,13 @@ export interface ProductRow {
   importCosts: number;
   totalCost: number;
   unitCost: number;
+  seCotiza: boolean;
 }
 
 interface EditableUnitCostTableProps {
   totalImportCosts?: number;
   onCommercialValueChange?: (value: number) => void;
   isFirstPurchase?: boolean;
-  onFirstPurchaseChange?: (value: boolean) => void;
   initialProducts?: ProductRow[];
   onProductsChange?: (products: ProductRow[]) => void;
 }
@@ -38,7 +28,6 @@ const EditableUnitCostTable: React.FC<EditableUnitCostTableProps> = ({
   totalImportCosts = 0,
   onCommercialValueChange,
   isFirstPurchase = false,
-  onFirstPurchaseChange,
   initialProducts = [],
   onProductsChange,
 }) => {
@@ -63,16 +52,15 @@ const EditableUnitCostTable: React.FC<EditableUnitCostTableProps> = ({
     ) {
       return 0;
     }
-    return products[0].price / products[0].unitCost;
+    return products[0].unitCost / products[0].price;
   };
 
   // Recalcular todos los valores cuando cambien los productos
   const recalculateProducts = (updatedProducts: ProductRow[]) => {
-    // Calcular valor comercial total (sumatoria de todos los totales)
-    const totalCommercialValue = updatedProducts.reduce(
-      (sum, product) => sum + product.total,
-      0
-    );
+    // Calcular valor comercial total (sumatoria de todos los totales de productos que se cotizan)
+    const totalCommercialValue = updatedProducts
+      .filter((product) => product.seCotiza)
+      .reduce((sum, product) => sum + product.total, 0);
 
     const recalculatedProducts = updatedProducts.map((product) => {
       // Calcular equivalencia: (total de la fila / valor comercial) * 100
@@ -111,7 +99,7 @@ const EditableUnitCostTable: React.FC<EditableUnitCostTableProps> = ({
   const updateProduct = (
     id: string,
     field: keyof ProductRow,
-    value: number
+    value: number | boolean
   ) => {
     setProductsList((prev) => {
       const updated = prev.map((product) => {
@@ -140,8 +128,6 @@ const EditableUnitCostTable: React.FC<EditableUnitCostTableProps> = ({
     });
   };
 
-  
-
   // Generar columnas con la lógica de actualización
   const columns = columnsEditableUnitcost(updateProduct);
 
@@ -150,23 +136,19 @@ const EditableUnitCostTable: React.FC<EditableUnitCostTableProps> = ({
     setFirstPurchase(isFirstPurchase);
   }, [isFirstPurchase]);
 
-  // Calcular totales
-  const totalQuantity = productsList.reduce(
-    (sum, product) => sum + product.quantity,
-    0
-  );
-  const totalAmount = productsList.reduce(
-    (sum, product) => sum + product.total,
-    0
-  );
-  const totalImportCostsSum = productsList.reduce(
-    (sum, product) => sum + product.importCosts,
-    0
-  );
-  const grandTotal = productsList.reduce(
-    (sum, product) => sum + product.totalCost,
-    0
-  );
+  // Calcular totales (solo productos que se cotizan)
+  const totalQuantity = productsList
+    .filter((product) => product.seCotiza)
+    .reduce((sum, product) => sum + product.quantity, 0);
+  const totalAmount = productsList
+    .filter((product) => product.seCotiza)
+    .reduce((sum, product) => sum + product.total, 0);
+  const totalImportCostsSum = productsList
+    .filter((product) => product.seCotiza)
+    .reduce((sum, product) => sum + product.importCosts, 0);
+  const grandTotal = productsList
+    .filter((product) => product.seCotiza)
+    .reduce((sum, product) => sum + product.totalCost, 0);
 
   // Calcular factor M
   const factorM = calculateFactorM(productsList);
@@ -237,14 +219,14 @@ const EditableUnitCostTable: React.FC<EditableUnitCostTableProps> = ({
 
             <Card className="h-20 w-full bg-gradient-to-r from-orange-400 to-orange-300 rounded-lg text-white">
               <CardContent className="p-4 h-full flex flex-col justify-center">
-                <div className="text-3xl font-bold">{grandTotal.toFixed(2)}</div>
+                <div className="text-3xl font-bold">
+                  {grandTotal.toFixed(2)}
+                </div>
                 <div className="text-sm opacity-90">Total Costo</div>
               </CardContent>
             </Card>
           </div>
-         
         </CardContent>
-    
       </Card>
     </div>
   );

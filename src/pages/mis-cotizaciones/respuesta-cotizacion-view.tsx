@@ -121,6 +121,7 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
           importCosts: Number(p.importCosts) || 0,
           totalCost: Number(p.totalCost) || 0,
           unitCost: Number(p.unitCost) || 0,
+          seCotiza: p.seCotiza !== undefined ? p.seCotiza : true,
         })
       );
       setProductsList(mapped);
@@ -138,6 +139,7 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
         importCosts: 0,
         totalCost: 0,
         unitCost: 0,
+        seCotiza: true,
       }));
       const recalculated = recalculateProducts(initialProducts);
       setProductsList(recalculated);
@@ -312,9 +314,178 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
     return path.split('.').reduce((current, key) => current?.[key], obj) || 0;
   };
 
+  // Función para renderizar respuesta de tipo "Pendiente"
+  const renderPendingResponse = (response: any) => {
+    if (!response || !response.pendingProducts) return null;
+
+    // Calcular sumatorias para tipo "Pendiente"
+    const totalExpressAirFreight = response.pendingCalculations?.totalExpressAirFreight || 0;
+    const totalAgenteXiaoYi = response.pendingCalculations?.totalAgenteXiaoYi || 0;
+    const totalPrecioTotal = response.pendingCalculations?.totalPrecioTotal || 0;
+
+    return (
+      <div className="space-y-6">
+        {/* Resumen de totales */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {/* SHIPMENT */}
+          <Card className="bg-gradient-to-r from-yellow-400 to-yellow-300 text-white">
+            <CardContent className="p-4">
+              <div className="text-sm font-medium mb-2">SHIPMENT</div>
+              <div className="flex items-center gap-2">
+                <select className="bg-transparent border-none text-white text-sm font-medium">
+                  <option>UPS</option>
+                </select>
+                <div className="text-lg font-bold">USD 0.00</div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* EXPRESS AIR FREIGHT */}
+          <Card className="bg-gradient-to-r from-yellow-400 to-yellow-300 text-white">
+            <CardContent className="p-4">
+              <div className="text-sm font-medium mb-2">EXPRESS AIR FREIGHT</div>
+              <div className="text-lg font-bold">USD {totalExpressAirFreight.toFixed(2)}</div>
+            </CardContent>
+          </Card>
+
+          {/* TOTAL AGENTE XIAO YI */}
+          <Card className="bg-gradient-to-r from-purple-400 to-purple-300 text-white">
+            <CardContent className="p-4">
+              <div className="text-sm font-medium mb-2">TOTAL AGENTE XIAO YI</div>
+              <div className="text-lg font-bold">USD {totalAgenteXiaoYi.toFixed(2)}</div>
+            </CardContent>
+          </Card>
+
+          {/* PRECIO TOTAL */}
+          <Card className="bg-gradient-to-r from-green-400 to-green-300 text-white">
+            <CardContent className="p-4">
+              <div className="text-sm font-medium mb-2">PRECIO TOTAL</div>
+              <div className="text-lg font-bold">USD {totalPrecioTotal.toFixed(2)}</div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Tabla de productos */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg font-bold text-center">
+              PRODUCTOS - SERVICIO PENDIENTE
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-gray-50 border-b border-gray-200">
+                    <th className="p-4 text-left font-semibold text-gray-700">#</th>
+                    <th className="p-4 text-left font-semibold text-gray-700">Imagen</th>
+                    <th className="p-4 text-left font-semibold text-gray-700">Producto</th>
+                    <th className="p-4 text-center font-semibold text-gray-700">$ Precio Xiao Yi</th>
+                    <th className="p-4 text-center font-semibold text-gray-700">CBM Total</th>
+                    <th className="p-4 text-center font-semibold text-gray-700">Express</th>
+                    <th className="p-4 text-center font-semibold text-gray-700">$ Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {response.pendingProducts?.map((product: any, index: number) => (
+                    <tr
+                      key={product.id}
+                      className={`border-b border-gray-100 ${
+                        index % 2 === 0 ? "bg-white" : "bg-gray-50/30"
+                      }`}
+                    >
+                      <td className="p-4 py-6">
+                        <div className="w-8 h-8 flex items-center justify-center text-sm font-semibold">
+                          {index + 1}
+                        </div>
+                      </td>
+                      <td className="p-4 py-6">
+                        <div className="w-16 h-16 bg-gray-100 border-2 border-gray-200 rounded-xl flex items-center justify-center">
+                          <span className="text-xs text-gray-500">Imagen</span>
+                        </div>
+                      </td>
+                      <td className="p-4 py-6">
+                        <div className="space-y-2">
+                          <div className="font-medium text-gray-900">{product.name}</div>
+                          <div className="grid grid-cols-2 gap-2 text-sm">
+                            <div>
+                              <span className="text-gray-600">Cantidad:</span>
+                              <span className="ml-1 font-medium">{product.quantity}</span>
+                            </div>
+                            <div>
+                              <span className="text-gray-600">Cajas:</span>
+                              <span className="ml-1 font-medium">{product.boxes}</span>
+                            </div>
+                          </div>
+                          {product.url && (
+                            <div className="text-sm">
+                              <span className="text-gray-600">URL:</span>
+                              <a href={product.url} target="_blank" rel="noopener noreferrer" className="ml-1 text-blue-500 hover:text-blue-600">
+                                Ver link
+                              </a>
+                            </div>
+                          )}
+                          {product.size && (
+                            <div className="text-sm">
+                              <span className="text-gray-600">Tamaño:</span>
+                              <span className="ml-1 font-medium">{product.size}</span>
+                            </div>
+                          )}
+                          {product.color && (
+                            <div className="text-sm">
+                              <span className="text-gray-600">COLOR:</span>
+                              <span className="ml-1 font-medium">{product.color}</span>
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                      <td className="p-4 py-6">
+                        <div className="text-center">
+                          <div className="text-lg font-bold text-blue-800">
+                            USD {product.priceXiaoYi?.toFixed(2) || "0.00"}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="p-4 py-6">
+                        <div className="text-center">
+                          <div className="text-lg font-bold text-amber-800">
+                            CBM {product.cbmTotal?.toFixed(2) || "0.00"}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="p-4 py-6">
+                        <div className="text-center">
+                          <div className="text-lg font-bold text-orange-800">
+                            USD {product.express?.toFixed(2) || "0.00"}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="p-4 py-6">
+                        <div className="text-center">
+                          <div className="text-lg font-bold text-green-800">
+                            USD {product.total?.toFixed(2) || "0.00"}
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  };
+
   // Función para renderizar las respuestas de importación
   const renderQuotationResponse = (response: any) => {
     if (!response) return null;
+
+    // Si es tipo "Pendiente", mostrar vista específica
+    if (response.serviceType === "Pendiente") {
+      return renderPendingResponse(response);
+    }
 
     const concepts = getImportExpenseConcepts(response.serviceType);
 

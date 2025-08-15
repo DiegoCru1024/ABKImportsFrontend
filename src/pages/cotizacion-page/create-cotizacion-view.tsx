@@ -233,18 +233,18 @@ export default function CreateCotizacionView() {
             console.log(`Producto ${producto.name}: ${productUrls.length} URLs obtenidas`);
           }
 
-          return {
-            name: producto.name,
-            quantity: producto.quantity,
-            size: producto.size,
-            color: producto.color,
-            url: producto.url,
-            comment: producto.comment,
-            weight: producto.weight,
-            volume: producto.volume,
-            number_of_boxes: producto.number_of_boxes,
+        return {
+          name: producto.name,
+          quantity: producto.quantity,
+          size: producto.size,
+          color: producto.color,
+          url: producto.url,
+          comment: producto.comment,
+          weight: producto.weight,
+          volume: producto.volume,
+          number_of_boxes: producto.number_of_boxes,
             attachments: productUrls,
-          };
+        };
         })
       );
 

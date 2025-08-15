@@ -49,6 +49,10 @@ function App() {
           element={<GestionDeCotizacionEditarRespuestaRoute />}
         />
         <Route
+          path="/dashboard/gestion-de-cotizacion/respuestas/:quotationId/responder"
+          element={<GestionDeCotizacionResponderRoute />}
+        />
+        <Route
           path="/dashboard/inspeccion-de-mercancias"
           element={<GestionDeMercanciasView />}
         />
@@ -130,4 +134,10 @@ function GestionDeCotizacionEditarRespuestaRoute() {
   return (
     <EditResponse quotationId={quotationId} quotationResponseId={responseId} />
   );
+}
+
+function GestionDeCotizacionResponderRoute() {
+  const { quotationId } = useParams();
+  if (!quotationId) return <Navigate to="/dashboard/gestion-de-cotizacion" replace />;
+  return <DetailsResponse selectedQuotationId={quotationId} />;
 }

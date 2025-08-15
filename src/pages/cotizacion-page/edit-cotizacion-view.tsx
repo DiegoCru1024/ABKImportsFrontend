@@ -270,7 +270,7 @@ export default function EditCotizacionView({
           let finalAttachments = producto.attachments || [];
           
           // Si hay archivos nuevos para este producto, subirlos en lotes
-          if (producto.files && producto.files.length > 0) {
+        if (producto.files && producto.files.length > 0) {
             console.log(`Producto ${producto.name} tiene ${producto.files.length} archivos nuevos`);
             
             let newUrls: string[] = [];
@@ -289,20 +289,20 @@ export default function EditCotizacionView({
             console.log(`Producto ${producto.name}: ${newUrls.length} URLs nuevas obtenidas`);
           } else {
             console.log(`Producto ${producto.name}: manteniendo archivos existentes (${finalAttachments.length} URLs)`);
-          }
+        }
 
-          return {
-            name: producto.name,
-            quantity: producto.quantity,
-            size: producto.size,
-            color: producto.color,
-            url: producto.url,
-            comment: producto.comment,
-            weight: producto.weight,
-            volume: producto.volume,
-            number_of_boxes: producto.number_of_boxes,
-            attachments: finalAttachments,
-          };
+        return {
+          name: producto.name,
+          quantity: producto.quantity,
+          size: producto.size,
+          color: producto.color,
+          url: producto.url,
+          comment: producto.comment,
+          weight: producto.weight,
+          volume: producto.volume,
+          number_of_boxes: producto.number_of_boxes,
+          attachments: finalAttachments,
+        };
         })
       );
 

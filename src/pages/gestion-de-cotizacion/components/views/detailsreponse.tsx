@@ -508,14 +508,14 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
     }));
   };
 
-  //********llamado a funcion para obtener datos del asesor */
-  useEffect(() => {
-    const user = obtenerUser();
-    if (user) {
-      setId_asesor(user?.id_usuario);
-      setNombre_asesor(user?.name);
-    }
-  }, []);
+    //********llamado a funcion para obtener datos del asesor */
+    useEffect(() => {
+      const user = obtenerUser();
+      if (user) {
+        setId_asesor(user?.id_usuario);
+        setNombre_asesor(user?.name);
+      }
+    }, []);
 
   //* Función para generar el DTO con toda la información de la respuesta
   const generateQuotationResponseDTO = () => {
@@ -678,15 +678,15 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
       );
 
       // Llamada al backend usando el hook
-      /*await createQuotationResponseMutation.mutateAsync({
+      await createQuotationResponseMutation.mutateAsync({
         data: dto,
         quotationId: selectedQuotationId,
       });
-      */
+      
       // Notificar y regresar a listado
       // Usamos toast del sistema de notificaciones (ya importado en hooks) o un alert simple
-      /*  console.log("Respuesta enviada correctamente");
-      window.history.back();*/
+       console.log("Respuesta enviada correctamente");
+      window.history.back();
     } catch (error) {
       console.error("Error al guardar la respuesta:", error);
     } finally {
@@ -819,7 +819,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                           <div className="space-y-2">
                             <div>
                               <Label htmlFor="advisor">Asesor(a) : </Label>
-                              <Input id="advisor" value={nombre_asesor || ""} />
+                                <Input id="advisor" value={nombre_asesor || ""} />
                             </div>
                             <Label htmlFor="date">Fecha de respuesta:</Label>
                             <Input id="date" value={quotationDate} />
@@ -1320,55 +1320,55 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                 </div>
 
                 <div className="grid grid-cols-1  gap-6">
-                  {/* Tabla de productos basada en quotationDetail/products con columnas guía */}
-                  <Card className="bg-white shadow-sm border-0 ring-1 ring-slate-200/50 overflow-hidden">
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead>
-                          <tr className="bg-slate-50/80 border-b border-slate-200/60">
+                {/* Tabla de productos basada en quotationDetail/products con columnas guía */}
+                <Card className="bg-white shadow-sm border-0 ring-1 ring-slate-200/50 overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="bg-slate-50/80 border-b border-slate-200/60">
                             <th className="text-left p-4 text-sm font-semibold text-slate-700 w-16">
                               #
                             </th>
-                            <th className="text-left p-4 text-sm font-semibold text-slate-700 w-32">
-                              <div className="flex items-center gap-2">
-                                <ImageIcon className="h-4 w-4" />
-                                Imagen
-                              </div>
-                            </th>
-                            <th className="text-left p-4 text-sm font-semibold text-slate-700 min-w-64">
-                              <div className="flex items-center gap-2">
-                                <Package className="h-4 w-4" />
-                                Producto
-                              </div>
-                            </th>
-                            <th className="text-left p-4 text-sm font-semibold text-slate-700 w-40">
-                              <div className="flex items-center gap-2">
-                                <DollarSign className="h-4 w-4 text-blue-600" />
-                                Precio Xiao Yi
-                              </div>
-                            </th>
+                          <th className="text-left p-4 text-sm font-semibold text-slate-700 w-32">
+                            <div className="flex items-center gap-2">
+                              <ImageIcon className="h-4 w-4" />
+                              Imagen
+                            </div>
+                          </th>
+                          <th className="text-left p-4 text-sm font-semibold text-slate-700 min-w-64">
+                            <div className="flex items-center gap-2">
+                              <Package className="h-4 w-4" />
+                              Producto
+                            </div>
+                          </th>
+                          <th className="text-left p-4 text-sm font-semibold text-slate-700 w-40">
+                            <div className="flex items-center gap-2">
+                              <DollarSign className="h-4 w-4 text-blue-600" />
+                              Precio Xiao Yi
+                            </div>
+                          </th>
  
-                            <th className="text-left p-4 text-sm font-semibold text-slate-700 w-48">
-                              <div className="flex items-center gap-2">
+                          <th className="text-left p-4 text-sm font-semibold text-slate-700 w-48">
+                            <div className="flex items-center gap-2">
                                 <BoxesIcon className="h-4 w-4 text-green-600" />
-                                CBM Total
-                              </div>
-                            </th>
-                            <th className="text-left p-4 text-sm font-semibold text-slate-700 w-32">
-                              <div className="flex items-center gap-2">
-                                <Truck className="h-4 w-4 text-orange-600" />
-                                Express
-                              </div>
-                            </th>
-                            <th className="text-left p-4 text-sm font-semibold text-slate-700 w-40">
-                              <div className="flex items-center gap-2">
-                                <DollarSign className="h-4 w-4 text-green-600" />
-                                Total
-                              </div>
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody>
+                              CBM Total
+                            </div>
+                          </th>
+                          <th className="text-left p-4 text-sm font-semibold text-slate-700 w-32">
+                            <div className="flex items-center gap-2">
+                              <Truck className="h-4 w-4 text-orange-600" />
+                              Express
+                            </div>
+                          </th>
+                          <th className="text-left p-4 text-sm font-semibold text-slate-700 w-40">
+                            <div className="flex items-center gap-2">
+                              <DollarSign className="h-4 w-4 text-green-600" />
+                              Total
+                            </div>
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
                           {editablePendingProducts.map((product, index) => (
                             <tr
                               key={product.id}
@@ -1380,12 +1380,12 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                                 <div className="w-8 h-8 flex items-center justify-center text-sm font-semibold">
                                   {index + 1}
                                 </div>
-                              </td>
+                            </td>
                               <td className="p-4 py-6">
                                 <div className="w-16 h-16 bg-slate-100 border-2 border-slate-200 rounded-xl">
                                   Imagen
                                 </div>
-                              </td>
+                            </td>
                               {/* INFORMACIÓN DEL PRODUCTO */}
                               <td className="p-4 py-6">
                                 <div className="font-semibold text-slate-900">
@@ -1445,10 +1445,10 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                                     <Badge variant="secondary" className="uppercase">
                                       {quotationDetail?.products?.find(p => p.id === product.id)?.color || "-"}
                                     </Badge>
-                                  </div>
                                 </div>
-                              </td>
-                              <td className="p-4">
+                              </div>
+                            </td>
+                            <td className="p-4">
                                 <div className="bg-blue-50/80 rounded-lg p-3 border border-blue-200/50 flex items-center flex-col justify-center">
                                   <div className="text-xs font-medium text-blue-600 mb-1">
                                     USD
@@ -1457,9 +1457,9 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                                     value={product.priceXiaoYi}
                                     onChange={(value) => handlePendingProductChange(product.id, 'priceXiaoYi', value)}
                                   />
-                                </div>
-                              </td>
-                              <td className="p-4">
+                              </div>
+                            </td>
+                            <td className="p-4">
                                 <div className="bg-amber-50/80 rounded-lg p-3 border border-amber-200/50 flex items-center flex-col justify-center">
                                   <div className="text-xs font-medium text-amber-600 mb-1">
                                     CBM
@@ -1468,9 +1468,9 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                                     value={product.cbmTotal}
                                     onChange={(value) => handlePendingProductChange(product.id, 'cbmTotal', value)}
                                   />
-                                </div>
-                              </td>
-                              <td className="p-4">
+                              </div>
+                            </td>
+                            <td className="p-4">
                                 <div className="bg-orange-50/80 rounded-lg p-3 border border-orange-200/50 flex items-center flex-col justify-center">
                                   <div className="text-xs font-medium text-orange-600 mb-1">
                                     USD
@@ -1479,9 +1479,9 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                                     value={product.express}
                                     onChange={(value) => handlePendingProductChange(product.id, 'express', value)}
                                   />
-                                </div>
-                              </td>
-                              <td className="p-4">
+                              </div>
+                            </td>
+                            <td className="p-4">
                                 <div className="bg-green-50/80 rounded-lg p-3 border border-green-200/50 flex items-center flex-col justify-center">
                                   <div className="text-xs font-medium text-green-600 mb-1">
                                     USD
@@ -1489,35 +1489,35 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                                   <div className="text-xl font-bold text-green-800">
                                     {product.total.toFixed(2)}
                                   </div>
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </Card>
-                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </Card>
+              </div>
               </div>
             ) : (
               <>
-                <div className="space-y-6 p-6 bg-white">
-                  {/* Información del Cliente */}
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* Primera columna */}
-                    <div className="space-y-4">
-                      {/* Client Information */}
-                      <Card>
-                        <CardHeader className="pb-3">
-                          <CardTitle className="flex items-center gap-2 text-lg">
-                            <FileText className="h-5 w-5 text-blue-600" />
-                            Información del Cliente
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                          <div className="grid gap-4 grid-cols-1 md:grid-cols-2 ">
-                            <div className="space-y-2">
-                              <Label htmlFor="nombre_cliente">Nombres: </Label>
+              <div className="space-y-6 p-6 bg-white">
+                {/* Información del Cliente */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Primera columna */}
+                  <div className="space-y-4">
+                    {/* Client Information */}
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="flex items-center gap-2 text-lg">
+                          <FileText className="h-5 w-5 text-blue-600" />
+                          Información del Cliente
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="grid gap-4 grid-cols-1 md:grid-cols-2 ">
+                          <div className="space-y-2">
+                            <Label htmlFor="nombre_cliente">Nombres: </Label>
                               <Input
                                 id="nombre_cliente"
                                 className="font-medium"
@@ -1529,8 +1529,8 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                                 id="apellidos_cliente"
                                 className="font-medium"
                               />
-                              <Label htmlFor="dni_cliente">DNI: </Label>
-                              <Input id="dni_cliente" className="font-medium" />
+                            <Label htmlFor="dni_cliente">DNI: </Label>
+                            <Input id="dni_cliente" className="font-medium" />
                               <Label htmlFor="razon_social_cliente">
                                 RAZON SOCIAL:{" "}
                               </Label>
@@ -1538,8 +1538,8 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                                 id="razon_social_cliente"
                                 className="font-medium"
                               />
-                              <Label htmlFor="ruc_cliente">RUC: </Label>
-                              <Input id="ruc_cliente" className="font-medium" />
+                            <Label htmlFor="ruc_cliente">RUC: </Label>
+                            <Input id="ruc_cliente" className="font-medium" />
                               <Label htmlFor="contacto_cliente">
                                 CONTACTO:
                               </Label>
@@ -1547,700 +1547,700 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                                 id="contacto_cliente"
                                 className="font-medium"
                               />
-                            </div>
+                          </div>
 
-                            <div className="space-y-2">
-                              <div>
-                                <Label htmlFor="advisor">Asesor(a) : </Label>
+                          <div className="space-y-2">
+                            <div>
+                              <Label htmlFor="advisor">Asesor(a) : </Label>
                                 <Input
                                   id="advisor"
                                   value={nombre_asesor || ""}
                                 />
-                              </div>
-                              <Label htmlFor="date">Fecha de respuesta:</Label>
-                              <Input id="date" value={quotationDate} />
-                              <div>
+                            </div>
+                            <Label htmlFor="date">Fecha de respuesta:</Label>
+                            <Input id="date" value={quotationDate} />
+                            <div>
                                 <Label htmlFor="service">
                                   Tipo de Servicio
                                 </Label>
+                              <Select
+                                value={selectedServiceLogistic}
+                                onValueChange={setSelectedServiceLogistic}
+                              >
+                                <SelectTrigger className="w-full">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {serviciosLogisticos.map((servicio) => (
+                                    <SelectItem
+                                      key={servicio.value}
+                                      value={servicio.value}
+                                    >
+                                      {servicio.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="grid gap-4 md:grid-cols-2"></div>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* Segunda columna */}
+                  <div className="space-y-6">
+                    {/* Cargo Details */}
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="flex items-center gap-2 text-lg">
+                          <Package className="h-5 w-5 text-green-600" />
+                          Detalles de Carga
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
+                          <div>
+                            <Label htmlFor="cargoType">Tipo de Carga</Label>
+                            <Select
+                              value={selectedTypeLoad}
+                              onValueChange={setSelectedTypeLoad}
+                            >
+                              <SelectTrigger className=" w-full">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="bg-white w-full h-full">
+                                {(isMaritimeService(selectedServiceLogistic)
+                                  ? typeLoadMaritime
+                                  : typeLoad
+                                ).map((type) => (
+                                  <SelectItem
+                                    key={type.value}
+                                    value={type.value}
+                                  >
+                                    {type.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <Label htmlFor="commercialValue">
+                              Valor Comercial
+                            </Label>
+                            <div className="relative">
+                              <EditableNumericField
+                                value={Number(
+                                  dynamicValues.comercialValue.toFixed(2)
+                                )}
+                                onChange={(value) =>
+                                  updateDynamicValue("comercialValue", value)
+                                }
+                              />
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
+                                USD
+                              </span>
+                            </div>
+                          </div>
+                          <div>
+                            <Label htmlFor="boxes">
+                              {isMaritimeService(selectedServiceLogistic)
+                                ? "Nro Bultos"
+                                : "Cajas"}
+                            </Label>
+                            <EditableNumericField
+                              value={
+                                isMaritimeService(selectedServiceLogistic)
+                                  ? dynamicValues.nroBultos
+                                  : dynamicValues.cajas
+                              }
+                              onChange={(value) =>
+                                updateDynamicValue(
+                                  isMaritimeService(selectedServiceLogistic)
+                                    ? "nroBultos"
+                                    : "cajas",
+                                  value
+                                )
+                              }
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
+                          <div>
+                            <Label htmlFor="kg">Peso (KG)</Label>
+                            <EditableNumericField
+                              value={dynamicValues.kg}
+                                onChange={handleKgChange}
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="ton">Peso (TON)</Label>
+                            <EditableNumericField
+                              value={dynamicValues.ton}
+                              onChange={
+                                isMaritimeService(selectedServiceLogistic)
+                                  ? () => {}
+                                    : (value) =>
+                                        updateDynamicValue("ton", value)
+                              }
+                            />
+                          </div>
+                          {!isMaritimeService(selectedServiceLogistic) && (
+                            <div>
+                              <Label htmlFor="kv">K/V</Label>
+                              <EditableNumericField
+                                value={dynamicValues.kv}
+                                onChange={(value) =>
+                                  updateDynamicValue("kv", value)
+                                }
+                              />
+                            </div>
+                          )}
+                          {isMaritimeService(selectedServiceLogistic) && (
+                            <div>
+                                <Label htmlFor="volumenCBM">
+                                  Volumen (CBM)
+                                </Label>
+                              <EditableNumericField
+                                value={dynamicValues.volumenCBM}
+                                onChange={(value) =>
+                                  updateDynamicValue("volumenCBM", value)
+                                }
+                              />
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
+                          <div className="space-y-2">
+                            {/* Regimen */}
+                            {isMaritimeService(selectedServiceLogistic) && (
+                              <div>
+                                <Label htmlFor="regimen">Régimen</Label>
                                 <Select
-                                  value={selectedServiceLogistic}
-                                  onValueChange={setSelectedServiceLogistic}
+                                  value={selectedRegimen}
+                                  onValueChange={setSelectedRegimen}
                                 >
                                   <SelectTrigger className="w-full">
                                     <SelectValue />
                                   </SelectTrigger>
-                                  <SelectContent>
-                                    {serviciosLogisticos.map((servicio) => (
+                                  <SelectContent className="bg-white w-full h-full">
+                                    {regimenOptions.map((regimen) => (
                                       <SelectItem
-                                        key={servicio.value}
-                                        value={servicio.value}
+                                        key={regimen.value}
+                                        value={regimen.value}
                                       >
-                                        {servicio.label}
+                                        {regimen.label}
                                       </SelectItem>
                                     ))}
                                   </SelectContent>
                                 </Select>
                               </div>
-                            </div>
-                          </div>
-                          <div className="grid gap-4 md:grid-cols-2"></div>
-                        </CardContent>
-                      </Card>
-                    </div>
-
-                    {/* Segunda columna */}
-                    <div className="space-y-6">
-                      {/* Cargo Details */}
-                      <Card>
-                        <CardHeader className="pb-3">
-                          <CardTitle className="flex items-center gap-2 text-lg">
-                            <Package className="h-5 w-5 text-green-600" />
-                            Detalles de Carga
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                          <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
-                            <div>
-                              <Label htmlFor="cargoType">Tipo de Carga</Label>
-                              <Select
-                                value={selectedTypeLoad}
-                                onValueChange={setSelectedTypeLoad}
-                              >
-                                <SelectTrigger className=" w-full">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent className="bg-white w-full h-full">
-                                  {(isMaritimeService(selectedServiceLogistic)
-                                    ? typeLoadMaritime
-                                    : typeLoad
-                                  ).map((type) => (
-                                    <SelectItem
-                                      key={type.value}
-                                      value={type.value}
-                                    >
-                                      {type.label}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div>
-                              <Label htmlFor="commercialValue">
-                                Valor Comercial
-                              </Label>
-                              <div className="relative">
-                                <EditableNumericField
-                                  value={Number(
-                                    dynamicValues.comercialValue.toFixed(2)
-                                  )}
-                                  onChange={(value) =>
-                                    updateDynamicValue("comercialValue", value)
-                                  }
-                                />
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
-                                  USD
-                                </span>
-                              </div>
-                            </div>
-                            <div>
-                              <Label htmlFor="boxes">
-                                {isMaritimeService(selectedServiceLogistic)
-                                  ? "Nro Bultos"
-                                  : "Cajas"}
-                              </Label>
-                              <EditableNumericField
-                                value={
-                                  isMaritimeService(selectedServiceLogistic)
-                                    ? dynamicValues.nroBultos
-                                    : dynamicValues.cajas
-                                }
-                                onChange={(value) =>
-                                  updateDynamicValue(
-                                    isMaritimeService(selectedServiceLogistic)
-                                      ? "nroBultos"
-                                      : "cajas",
-                                    value
-                                  )
-                                }
-                              />
-                            </div>
-                          </div>
-
-                          <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
-                            <div>
-                              <Label htmlFor="kg">Peso (KG)</Label>
-                              <EditableNumericField
-                                value={dynamicValues.kg}
-                                onChange={handleKgChange}
-                              />
-                            </div>
-                            <div>
-                              <Label htmlFor="ton">Peso (TON)</Label>
-                              <EditableNumericField
-                                value={dynamicValues.ton}
-                                onChange={
-                                  isMaritimeService(selectedServiceLogistic)
-                                    ? () => {}
-                                    : (value) =>
-                                        updateDynamicValue("ton", value)
-                                }
-                              />
-                            </div>
-                            {!isMaritimeService(selectedServiceLogistic) && (
-                              <div>
-                                <Label htmlFor="kv">K/V</Label>
-                                <EditableNumericField
-                                  value={dynamicValues.kv}
-                                  onChange={(value) =>
-                                    updateDynamicValue("kv", value)
-                                  }
-                                />
-                              </div>
                             )}
+                            {/* Pais de Origen */}
                             {isMaritimeService(selectedServiceLogistic) && (
                               <div>
-                                <Label htmlFor="volumenCBM">
-                                  Volumen (CBM)
+                                <Label htmlFor="paisOrigen">
+                                  País de Origen
                                 </Label>
-                                <EditableNumericField
-                                  value={dynamicValues.volumenCBM}
-                                  onChange={(value) =>
-                                    updateDynamicValue("volumenCBM", value)
-                                  }
+                                <Select
+                                  value={selectedPaisOrigen}
+                                  onValueChange={setSelectedPaisOrigen}
+                                >
+                                  <SelectTrigger className="w-full">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent className="bg-white w-full h-full">
+                                    {paisesOrigen.map((pais) => (
+                                      <SelectItem
+                                        key={pais.value}
+                                        value={pais.value}
+                                      >
+                                        {pais.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            )}
+                            {/* Pais de Destino */}
+                            {isMaritimeService(selectedServiceLogistic) && (
+                              <div>
+                                <Label htmlFor="paisDestino">
+                                  País de Destino
+                                </Label>
+                                <Select
+                                  value={selectedPaisDestino}
+                                  onValueChange={setSelectedPaisDestino}
+                                >
+                                  <SelectTrigger className="w-full">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent className="bg-white w-full h-full">
+                                    {paisesDestino.map((pais) => (
+                                      <SelectItem
+                                        key={pais.value}
+                                        value={pais.value}
+                                      >
+                                        {pais.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            )}
+                            {/* Aduana */}
+                            {isMaritimeService(selectedServiceLogistic) && (
+                              <div>
+                                <Label htmlFor="aduana">Aduana</Label>
+                                <Select
+                                  value={selectedAduana}
+                                  onValueChange={setSelectedAduana}
+                                >
+                                  <SelectTrigger className="w-full">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent className="bg-white w-full h-full">
+                                    {aduana.map((aduan) => (
+                                      <SelectItem
+                                        key={aduan.value}
+                                        value={aduan.value}
+                                      >
+                                        {aduan.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            )}
+                            {/* Naviera */}
+                            {isMaritimeService(selectedServiceLogistic) && (
+                              <div>
+                                <Label htmlFor="naviera">Naviera</Label>
+                                <Input
+                                  id="naviera"
+                                  value={naviera}
+                                  onChange={(e) => setNaviera(e.target.value)}
                                 />
                               </div>
                             )}
                           </div>
+                          <div className="space-y-2">
+                            {/* Puerto de salida */}
+                            {isMaritimeService(selectedServiceLogistic) && (
+                              <div>
+                                <Label htmlFor="puertoSalida">
+                                  Puerto de Salida
+                                </Label>
+                                <Select
+                                  value={selectedPuertoSalida}
+                                  onValueChange={setSelectedPuertoSalida}
+                                >
+                                  <SelectTrigger className="w-full">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent className="bg-white w-full h-full">
+                                    {puertosSalida.map((puerto) => (
+                                      <SelectItem
+                                        key={puerto.value}
+                                        value={puerto.value}
+                                      >
+                                        {puerto.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            )}
+                            {/* Puerto de destino */}
+                            {isMaritimeService(selectedServiceLogistic) && (
+                              <div>
+                                <Label htmlFor="puertoDestino">
+                                  Puerto de Destino
+                                </Label>
+                                <Select
+                                  value={selectedPuertoDestino}
+                                  onValueChange={setSelectedPuertoDestino}
+                                >
+                                  <SelectTrigger className="w-full">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {puertosDestino.map((puerto) => (
+                                      <SelectItem
+                                        key={puerto.value}
+                                        value={puerto.value}
+                                      >
+                                        {puerto.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            )}
 
-                          <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
-                            <div className="space-y-2">
-                              {/* Regimen */}
-                              {isMaritimeService(selectedServiceLogistic) && (
-                                <div>
-                                  <Label htmlFor="regimen">Régimen</Label>
-                                  <Select
-                                    value={selectedRegimen}
-                                    onValueChange={setSelectedRegimen}
-                                  >
-                                    <SelectTrigger className="w-full">
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent className="bg-white w-full h-full">
-                                      {regimenOptions.map((regimen) => (
-                                        <SelectItem
-                                          key={regimen.value}
-                                          value={regimen.value}
-                                        >
-                                          {regimen.label}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                              )}
-                              {/* Pais de Origen */}
-                              {isMaritimeService(selectedServiceLogistic) && (
-                                <div>
-                                  <Label htmlFor="paisOrigen">
-                                    País de Origen
-                                  </Label>
-                                  <Select
-                                    value={selectedPaisOrigen}
-                                    onValueChange={setSelectedPaisOrigen}
-                                  >
-                                    <SelectTrigger className="w-full">
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent className="bg-white w-full h-full">
-                                      {paisesOrigen.map((pais) => (
-                                        <SelectItem
-                                          key={pais.value}
-                                          value={pais.value}
-                                        >
-                                          {pais.label}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                              )}
-                              {/* Pais de Destino */}
-                              {isMaritimeService(selectedServiceLogistic) && (
-                                <div>
-                                  <Label htmlFor="paisDestino">
-                                    País de Destino
-                                  </Label>
-                                  <Select
-                                    value={selectedPaisDestino}
-                                    onValueChange={setSelectedPaisDestino}
-                                  >
-                                    <SelectTrigger className="w-full">
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent className="bg-white w-full h-full">
-                                      {paisesDestino.map((pais) => (
-                                        <SelectItem
-                                          key={pais.value}
-                                          value={pais.value}
-                                        >
-                                          {pais.label}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                              )}
-                              {/* Aduana */}
-                              {isMaritimeService(selectedServiceLogistic) && (
-                                <div>
-                                  <Label htmlFor="aduana">Aduana</Label>
-                                  <Select
-                                    value={selectedAduana}
-                                    onValueChange={setSelectedAduana}
-                                  >
-                                    <SelectTrigger className="w-full">
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent className="bg-white w-full h-full">
-                                      {aduana.map((aduan) => (
-                                        <SelectItem
-                                          key={aduan.value}
-                                          value={aduan.value}
-                                        >
-                                          {aduan.label}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                              )}
-                              {/* Naviera */}
-                              {isMaritimeService(selectedServiceLogistic) && (
-                                <div>
-                                  <Label htmlFor="naviera">Naviera</Label>
-                                  <Input
-                                    id="naviera"
-                                    value={naviera}
-                                    onChange={(e) => setNaviera(e.target.value)}
-                                  />
-                                </div>
-                              )}
-                            </div>
-                            <div className="space-y-2">
-                              {/* Puerto de salida */}
-                              {isMaritimeService(selectedServiceLogistic) && (
-                                <div>
-                                  <Label htmlFor="puertoSalida">
-                                    Puerto de Salida
-                                  </Label>
-                                  <Select
-                                    value={selectedPuertoSalida}
-                                    onValueChange={setSelectedPuertoSalida}
-                                  >
-                                    <SelectTrigger className="w-full">
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent className="bg-white w-full h-full">
-                                      {puertosSalida.map((puerto) => (
-                                        <SelectItem
-                                          key={puerto.value}
-                                          value={puerto.value}
-                                        >
-                                          {puerto.label}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                              )}
-                              {/* Puerto de destino */}
-                              {isMaritimeService(selectedServiceLogistic) && (
-                                <div>
-                                  <Label htmlFor="puertoDestino">
-                                    Puerto de Destino
-                                  </Label>
-                                  <Select
-                                    value={selectedPuertoDestino}
-                                    onValueChange={setSelectedPuertoDestino}
-                                  >
-                                    <SelectTrigger className="w-full">
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {puertosDestino.map((puerto) => (
-                                        <SelectItem
-                                          key={puerto.value}
-                                          value={puerto.value}
-                                        >
-                                          {puerto.label}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                              )}
-
-                              {/* T. Servicio */}
-                              {isMaritimeService(selectedServiceLogistic) && (
-                                <div>
-                                  <Label htmlFor="tipoServicio">
-                                    T. Servicio
-                                  </Label>
-                                  <Select
-                                    value={selectedTipoServicio}
-                                    onValueChange={setSelectedTipoServicio}
-                                  >
-                                    <SelectTrigger className="w-full">
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {tipoServicio.map((tipo) => (
-                                        <SelectItem
-                                          key={tipo.value}
-                                          value={tipo.value}
-                                        >
-                                          {tipo.label}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                              )}
-                              {/* Tiempo Transito */}
-                              {isMaritimeService(selectedServiceLogistic) && (
-                                <div>
-                                  <Label htmlFor="tiempoTransito">
-                                    T. Tránsito
-                                  </Label>
-                                  <EditableNumericField
-                                    value={tiempoTransito}
+                            {/* T. Servicio */}
+                            {isMaritimeService(selectedServiceLogistic) && (
+                              <div>
+                                <Label htmlFor="tipoServicio">
+                                  T. Servicio
+                                </Label>
+                                <Select
+                                  value={selectedTipoServicio}
+                                  onValueChange={setSelectedTipoServicio}
+                                >
+                                  <SelectTrigger className="w-full">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {tipoServicio.map((tipo) => (
+                                      <SelectItem
+                                        key={tipo.value}
+                                        value={tipo.value}
+                                      >
+                                        {tipo.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            )}
+                            {/* Tiempo Transito */}
+                            {isMaritimeService(selectedServiceLogistic) && (
+                              <div>
+                                <Label htmlFor="tiempoTransito">
+                                  T. Tránsito
+                                </Label>
+                                <EditableNumericField
+                                  value={tiempoTransito}
                                     onChange={(value) =>
                                       setTiempoTransito(value)
                                     }
-                                  />
-                                </div>
-                              )}
-
-                              {/* Proforma Vigencia */}
-                              {isMaritimeService(selectedServiceLogistic) && (
-                                <div>
-                                  <Label htmlFor="proformaVigencia">
-                                    Proforma Vigencia
-                                  </Label>
-                                  <Select
-                                    value={selectedProformaVigencia}
-                                    onValueChange={setSelectedProformaVigencia}
-                                  >
-                                    <SelectTrigger className="w-full">
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {proformaVigencia.map((vigencia) => (
-                                        <SelectItem
-                                          key={vigencia.value}
-                                          value={vigencia.value}
-                                        >
-                                          {vigencia.label}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Primera Compra */}
-                          <div className="flex items-center gap-2">
-                            <div className="flex items-center space-x-2">
-                              <Checkbox
-                                id="firstPurchase"
-                                checked={isFirstPurchase}
-                                onCheckedChange={handleFirstPurchaseChange}
-                              />
-                              <Badge
-                                variant="secondary"
-                                className="bg-blue-50 text-blue-700"
-                              >
-                                Es Primera Compra
-                              </Badge>
-                              {isFirstPurchase && (
-                                <span className="text-xs text-green-600 font-semibold ml-2">
-                                  (Servicios exonerados y 50% descuento en
-                                  impuestos)
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </div>
-                  <div>
-                    {/* Shipping Details */}
-                    <Card>
-                      <CardHeader className="pb-3">
-                        <CardTitle className="flex items-center gap-2 text-lg">
-                          <Truck className="h-5 w-5 text-purple-600" />
-                          Detalles de Envío
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
-                          {/* Primera columna */}
-                          <div className="space-y-2">
-                            {/* Courier */}
-                            <div>
-                              <Label htmlFor="courier">Courier</Label>
-                              <Select
-                                value={selectedCourier}
-                                onValueChange={setSelectedCourier}
-                              >
-                                <SelectTrigger className="w-full">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent className="bg-white w-full h-full">
-                                  {courier.map((courierOption) => (
-                                    <SelectItem
-                                      key={courierOption.value}
-                                      value={courierOption.value}
-                                    >
-                                      {courierOption.label}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            {/* Incoterm */}
-                            <div>
-                              <Label htmlFor="incoterm">Incoterm</Label>
-                              <Select
-                                value={selectedIncoterm}
-                                onValueChange={setSelectedIncoterm}
-                              >
-                                <SelectTrigger className="w-full">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {incotermsOptions.map((incoterm) => (
-                                    <SelectItem
-                                      key={incoterm.value}
-                                      value={incoterm.value}
-                                    >
-                                      {incoterm.label}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-
-                            {/* Flete / Cálculo Flete */}
-                            <div>
-                              <Label htmlFor="freight">
-                                {isMaritimeService(selectedServiceLogistic)
-                                  ? "Cálculo Flete"
-                                  : "Flete"}
-                              </Label>
-                              <div className="relative">
-                                <EditableNumericField
-                                  value={
-                                    isMaritimeService(selectedServiceLogistic)
-                                      ? dynamicValues.calculoFlete
-                                      : dynamicValues.flete
-                                  }
-                                  onChange={(value) =>
-                                    updateDynamicValue(
-                                      isMaritimeService(selectedServiceLogistic)
-                                        ? "calculoFlete"
-                                        : "flete",
-                                      value
-                                    )
-                                  }
                                 />
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
-                                  USD
-                                </span>
-                              </div>
-                            </div>
-                            {/* Desaduanaje */}
-
-                            {!isMaritimeService(selectedServiceLogistic) && (
-                              <div>
-                                <Label htmlFor="customs">Desaduanaje</Label>
-                                <div className="relative">
-                                  <EditableNumericField
-                                    value={dynamicValues.desaduanaje}
-                                    onChange={(value) =>
-                                      updateDynamicValue("desaduanaje", value)
-                                    }
-                                  />
-                                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
-                                    USD
-                                  </span>
-                                </div>
                               </div>
                             )}
 
-                            {/* Moneda */}
-                            <div>
-                              <Label htmlFor="currency">Moneda</Label>
-                              <Select defaultValue="usd">
-                                <SelectTrigger className="w-full">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="usd">DÓLARES</SelectItem>
-                                  <SelectItem value="pen">SOLES</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            {/* Tipo de Cambio */}
-                            <div>
-                              <Label htmlFor="exchangeRate">
-                                Tipo de Cambio
-                              </Label>
-                              <EditableNumericField
-                                value={dynamicValues.tipoCambio}
-                                onChange={(value) =>
-                                  updateDynamicValue("tipoCambio", value)
-                                }
-                              />
-                            </div>
+                            {/* Proforma Vigencia */}
+                            {isMaritimeService(selectedServiceLogistic) && (
+                              <div>
+                                <Label htmlFor="proformaVigencia">
+                                  Proforma Vigencia
+                                </Label>
+                                <Select
+                                  value={selectedProformaVigencia}
+                                  onValueChange={setSelectedProformaVigencia}
+                                >
+                                  <SelectTrigger className="w-full">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {proformaVigencia.map((vigencia) => (
+                                      <SelectItem
+                                        key={vigencia.value}
+                                        value={vigencia.value}
+                                      >
+                                        {vigencia.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            )}
                           </div>
+                        </div>
 
-                          {/* Tercera columna */}
-                          <div className="space-y-2">
-                            {/* Servicio de Carga Consolidada */}
-
-                            <div className="grid grid-cols-2 gap-2 text-sm justify-between items-center py-2 ">
-                              <div className="flex flex-col gap-2">
-                                <Label htmlFor="exchangeRate">
-                                  Transporte Local China
-                                </Label>
-                                <EditableNumericField
-                                  value={
-                                    dynamicValues.transporteLocalChinaEnvio
-                                  }
-                                  onChange={(value) =>
-                                    updateDynamicValue(
-                                      "transporteLocalChinaEnvio",
-                                      value
-                                    )
-                                  }
-                                />
-                              </div>
-                              <div className="flex flex-col gap-2">
-                                <Label htmlFor="exchangeRate">
-                                  Transporte Local Cliente
-                                </Label>
-                                <EditableNumericField
-                                  value={
-                                    dynamicValues.transporteLocalClienteEnvio
-                                  }
-                                  onChange={(value) =>
-                                    updateDynamicValue(
-                                      "transporteLocalClienteEnvio",
-                                      value
-                                    )
-                                  }
-                                />
-                              </div>
-                            </div>
-                            <Separator />
-                            <div className="space-y-3">
-                              {/* FOB */}
-                              <div className="grid grid-cols-2 gap-2 text-sm justify-between items-center py-2">
-                                <div>FOB</div>
-                                <div>
-                                  <span className="relative">
-                                    <EditableNumericField
-                                      value={dynamicValues.fob}
-                                      onChange={(newValue) =>
-                                        updateDynamicValue(
-                                          "fob" as keyof typeof dynamicValues,
-                                          newValue
-                                        )
-                                      }
-                                    />
-                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
-                                      USD
-                                    </span>
-                                  </span>
-                                </div>
-                              </div>
-                              {/* Flete */}
-                              <div className="grid grid-cols-2 gap-2 text-sm justify-between items-center py-2">
-                                <div>FLETE</div>
-                                <div>
-                                  <span className="relative">
-                                    <EditableNumericField
-                                      value={
-                                        isMaritimeService(
-                                          selectedServiceLogistic
-                                        )
-                                          ? maritimeFlete
-                                          : dynamicValues.flete
-                                      }
-                                      onChange={(value) =>
-                                        updateDynamicValue(
-                                          isMaritimeService(
-                                            selectedServiceLogistic
-                                          )
-                                            ? "calculoFlete"
-                                            : "flete",
-                                          value
-                                        )
-                                      }
-                                    />
-                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
-                                      USD
-                                    </span>
-                                  </span>
-                                </div>
-                              </div>
-                              {/* Seguro */}
-                              <div className="grid grid-cols-2 gap-2 text-sm justify-between items-center py-2">
-                                <div>SEGURO</div>
-                                <div>
-                                  <span className="relative">
-                                    <EditableNumericField
-                                      value={dynamicValues.seguro}
-                                      onChange={(newValue) =>
-                                        updateDynamicValue(
-                                          "seguro" as keyof typeof dynamicValues,
-                                          newValue
-                                        )
-                                      }
-                                    />
-                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
-                                      USD
-                                    </span>
-                                  </span>
-                                </div>
-                              </div>
-
-                              <Separator />
-
-                              <div className="grid grid-cols-2 gap-2 text-sm rounded-lg bg-green-200 p-2">
-                                <div className="font-semibold">CIF</div>
-                                <div className="text-center font-semibold">
-                                  USD {cif.toFixed(2)}
-                                </div>
-                              </div>
-                            </div>
+                        {/* Primera Compra */}
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center space-x-2">
+                            <Checkbox
+                              id="firstPurchase"
+                              checked={isFirstPurchase}
+                              onCheckedChange={handleFirstPurchaseChange}
+                            />
+                            <Badge
+                              variant="secondary"
+                              className="bg-blue-50 text-blue-700"
+                            >
+                              Es Primera Compra
+                            </Badge>
+                            {isFirstPurchase && (
+                              <span className="text-xs text-green-600 font-semibold ml-2">
+                                (Servicios exonerados y 50% descuento en
+                                impuestos)
+                              </span>
+                            )}
                           </div>
                         </div>
                       </CardContent>
                     </Card>
                   </div>
                 </div>
+                <div>
+                  {/* Shipping Details */}
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="flex items-center gap-2 text-lg">
+                        <Truck className="h-5 w-5 text-purple-600" />
+                        Detalles de Envío
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
+                        {/* Primera columna */}
+                        <div className="space-y-2">
+                          {/* Courier */}
+                          <div>
+                            <Label htmlFor="courier">Courier</Label>
+                            <Select
+                              value={selectedCourier}
+                              onValueChange={setSelectedCourier}
+                            >
+                              <SelectTrigger className="w-full">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="bg-white w-full h-full">
+                                {courier.map((courierOption) => (
+                                  <SelectItem
+                                    key={courierOption.value}
+                                    value={courierOption.value}
+                                  >
+                                    {courierOption.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          {/* Incoterm */}
+                          <div>
+                            <Label htmlFor="incoterm">Incoterm</Label>
+                            <Select
+                              value={selectedIncoterm}
+                              onValueChange={setSelectedIncoterm}
+                            >
+                              <SelectTrigger className="w-full">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {incotermsOptions.map((incoterm) => (
+                                  <SelectItem
+                                    key={incoterm.value}
+                                    value={incoterm.value}
+                                  >
+                                    {incoterm.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
 
-                <div className="space-y-6 p-6 bg-white">
+                          {/* Flete / Cálculo Flete */}
+                          <div>
+                            <Label htmlFor="freight">
+                              {isMaritimeService(selectedServiceLogistic)
+                                ? "Cálculo Flete"
+                                : "Flete"}
+                            </Label>
+                            <div className="relative">
+                              <EditableNumericField
+                                value={
+                                  isMaritimeService(selectedServiceLogistic)
+                                    ? dynamicValues.calculoFlete
+                                    : dynamicValues.flete
+                                }
+                                onChange={(value) =>
+                                  updateDynamicValue(
+                                    isMaritimeService(selectedServiceLogistic)
+                                      ? "calculoFlete"
+                                      : "flete",
+                                    value
+                                  )
+                                }
+                              />
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
+                                USD
+                              </span>
+                            </div>
+                          </div>
+                          {/* Desaduanaje */}
+
+                          {!isMaritimeService(selectedServiceLogistic) && (
+                            <div>
+                              <Label htmlFor="customs">Desaduanaje</Label>
+                              <div className="relative">
+                                <EditableNumericField
+                                  value={dynamicValues.desaduanaje}
+                                  onChange={(value) =>
+                                    updateDynamicValue("desaduanaje", value)
+                                  }
+                                />
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
+                                  USD
+                                </span>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Moneda */}
+                          <div>
+                            <Label htmlFor="currency">Moneda</Label>
+                            <Select defaultValue="usd">
+                              <SelectTrigger className="w-full">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="usd">DÓLARES</SelectItem>
+                                <SelectItem value="pen">SOLES</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          {/* Tipo de Cambio */}
+                          <div>
+                              <Label htmlFor="exchangeRate">
+                                Tipo de Cambio
+                              </Label>
+                            <EditableNumericField
+                              value={dynamicValues.tipoCambio}
+                              onChange={(value) =>
+                                updateDynamicValue("tipoCambio", value)
+                              }
+                            />
+                          </div>
+                        </div>
+
+                        {/* Tercera columna */}
+                        <div className="space-y-2">
+                          {/* Servicio de Carga Consolidada */}
+
+                          <div className="grid grid-cols-2 gap-2 text-sm justify-between items-center py-2 ">
+                            <div className="flex flex-col gap-2">
+                              <Label htmlFor="exchangeRate">
+                                Transporte Local China
+                              </Label>
+                              <EditableNumericField
+                                  value={
+                                    dynamicValues.transporteLocalChinaEnvio
+                                  }
+                                onChange={(value) =>
+                                  updateDynamicValue(
+                                    "transporteLocalChinaEnvio",
+                                    value
+                                  )
+                                }
+                              />
+                            </div>
+                            <div className="flex flex-col gap-2">
+                              <Label htmlFor="exchangeRate">
+                                Transporte Local Cliente
+                              </Label>
+                              <EditableNumericField
+                                value={
+                                  dynamicValues.transporteLocalClienteEnvio
+                                }
+                                onChange={(value) =>
+                                  updateDynamicValue(
+                                    "transporteLocalClienteEnvio",
+                                    value
+                                  )
+                                }
+                              />
+                            </div>
+                          </div>
+                          <Separator />
+                          <div className="space-y-3">
+                            {/* FOB */}
+                            <div className="grid grid-cols-2 gap-2 text-sm justify-between items-center py-2">
+                              <div>FOB</div>
+                              <div>
+                                <span className="relative">
+                                  <EditableNumericField
+                                    value={dynamicValues.fob}
+                                    onChange={(newValue) =>
+                                      updateDynamicValue(
+                                        "fob" as keyof typeof dynamicValues,
+                                        newValue
+                                      )
+                                    }
+                                  />
+                                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
+                                    USD
+                                  </span>
+                                </span>
+                              </div>
+                            </div>
+                            {/* Flete */}
+                            <div className="grid grid-cols-2 gap-2 text-sm justify-between items-center py-2">
+                              <div>FLETE</div>
+                              <div>
+                                <span className="relative">
+                                  <EditableNumericField
+                                    value={
+                                        isMaritimeService(
+                                          selectedServiceLogistic
+                                        )
+                                        ? maritimeFlete
+                                        : dynamicValues.flete
+                                    }
+                                    onChange={(value) =>
+                                      updateDynamicValue(
+                                        isMaritimeService(
+                                          selectedServiceLogistic
+                                        )
+                                          ? "calculoFlete"
+                                          : "flete",
+                                        value
+                                      )
+                                    }
+                                  />
+                                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
+                                    USD
+                                  </span>
+                                </span>
+                              </div>
+                            </div>
+                            {/* Seguro */}
+                            <div className="grid grid-cols-2 gap-2 text-sm justify-between items-center py-2">
+                              <div>SEGURO</div>
+                              <div>
+                                <span className="relative">
+                                  <EditableNumericField
+                                    value={dynamicValues.seguro}
+                                    onChange={(newValue) =>
+                                      updateDynamicValue(
+                                        "seguro" as keyof typeof dynamicValues,
+                                        newValue
+                                      )
+                                    }
+                                  />
+                                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
+                                    USD
+                                  </span>
+                                </span>
+                              </div>
+                            </div>
+
+                            <Separator />
+
+                            <div className="grid grid-cols-2 gap-2 text-sm rounded-lg bg-green-200 p-2">
+                              <div className="font-semibold">CIF</div>
+                              <div className="text-center font-semibold">
+                                USD {cif.toFixed(2)}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+
+              <div className="space-y-6 p-6 bg-white">
                   {/* Servicio de Carga Consolidada */}
                   <div className="space-y-4">
-                    <ServiceConsolidationCard
-                      title={getServiceName(selectedServiceLogistic)}
+                <ServiceConsolidationCard
+                  title={getServiceName(selectedServiceLogistic)}
                       serviceFields={
                         Object.fromEntries(
                           Object.entries(
@@ -2248,61 +2248,61 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                           ).map(([k, v]) => [k, v ?? 0])
                         ) as Record<string, number>
                       }
-                      updateDynamicValue={(key, v) =>
-                        updateDynamicValue(key as keyof typeof dynamicValues, v)
-                      }
-                      igvServices={igvServices}
-                      totalServices={totalServices}
-                    />
+                  updateDynamicValue={(key, v) =>
+                    updateDynamicValue(key as keyof typeof dynamicValues, v)
+                  }
+                  igvServices={igvServices}
+                  totalServices={totalServices}
+                />
                   </div>
                   <div className="space-y-4">
                     {/* Tax Obligations */}
-                    <TaxObligationsCard
-                      adValoremRate={dynamicValues.adValoremRate}
+                <TaxObligationsCard
+                  adValoremRate={dynamicValues.adValoremRate}
                       setAdValoremRate={(v) =>
                         updateDynamicValue("adValoremRate", v)
                       }
-                      igvRate={dynamicValues.igvRate}
-                      setIgvRate={(v) => updateDynamicValue("igvRate", v)}
-                      ipmRate={dynamicValues.ipmRate}
-                      setIpmRate={(v) => updateDynamicValue("ipmRate", v)}
-                      isMaritime={isMaritimeService(selectedServiceLogistic)}
-                      antidumpingGobierno={dynamicValues.antidumpingGobierno}
+                  igvRate={dynamicValues.igvRate}
+                  setIgvRate={(v) => updateDynamicValue("igvRate", v)}
+                  ipmRate={dynamicValues.ipmRate}
+                  setIpmRate={(v) => updateDynamicValue("ipmRate", v)}
+                  isMaritime={isMaritimeService(selectedServiceLogistic)}
+                  antidumpingGobierno={dynamicValues.antidumpingGobierno}
                       setAntidumpingGobierno={(v) =>
                         updateDynamicValue("antidumpingGobierno", v)
                       }
-                      antidumpingCantidad={dynamicValues.antidumpingCantidad}
+                  antidumpingCantidad={dynamicValues.antidumpingCantidad}
                       setAntidumpingCantidad={(v) =>
                         updateDynamicValue("antidumpingCantidad", v)
                       }
-                      iscRate={dynamicValues.iscRate}
-                      setIscRate={(v) => updateDynamicValue("iscRate", v)}
-                      values={{
-                        adValorem,
-                        igvFiscal,
-                        ipm,
-                        isc,
-                        percepcion,
-                        totalDerechosDolares,
-                        totalDerechosSoles,
-                      }}
-                    />
-                  </div>
+                  iscRate={dynamicValues.iscRate}
+                  setIscRate={(v) => updateDynamicValue("iscRate", v)}
+                  values={{
+                    adValorem,
+                    igvFiscal,
+                    ipm,
+                    isc,
+                    percepcion,
+                    totalDerechosDolares,
+                    totalDerechosSoles,
+                  }}
+                />
                 </div>
+              </div>
 
-                <div className="space-y-6 p-6 bg-white">
-                  {/* Segunda sección - Gastos de Importación */}
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* Import Expenses */}
-                    <ImportExpensesCard
-                      isMaritime={isMaritimeService(selectedServiceLogistic)}
-                      values={{
-                        servicioConsolidadoMaritimoFinal,
-                        gestionCertificadoFinal,
-                        servicioInspeccionFinal,
-                        transporteLocalFinal,
-                        totalDerechosDolaresFinal,
-                        desaduanajeFleteSaguro,
+              <div className="space-y-6 p-6 bg-white">
+                {/* Segunda sección - Gastos de Importación */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Import Expenses */}
+                  <ImportExpensesCard
+                    isMaritime={isMaritimeService(selectedServiceLogistic)}
+                    values={{
+                                  servicioConsolidadoMaritimoFinal,
+                                  gestionCertificadoFinal,
+                                  servicioInspeccionFinal,
+                                  transporteLocalFinal,
+                      totalDerechosDolaresFinal,
+                                  desaduanajeFleteSaguro,
                         transporteLocalChinaEnvio:
                           dynamicValues.transporteLocalChinaEnvio,
                         transporteLocalClienteEnvio:
@@ -2314,37 +2314,37 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                       handleExemptionChange={(f, c) =>
                         handleExemptionChange(f as any, c)
                       }
-                      applyExemption={applyExemption}
-                      servicioConsolidadoFinal={servicioConsolidadoFinal}
-                      separacionCargaFinal={separacionCargaFinal}
-                      inspeccionProductosFinal={inspeccionProductosFinal}
-                      shouldExemptTaxes={shouldExemptTaxes}
-                      totalGastosImportacion={totalGastosImportacion}
-                    />
+                    applyExemption={applyExemption}
+                    servicioConsolidadoFinal={servicioConsolidadoFinal}
+                    separacionCargaFinal={separacionCargaFinal}
+                    inspeccionProductosFinal={inspeccionProductosFinal}
+                    shouldExemptTaxes={shouldExemptTaxes}
+                    totalGastosImportacion={totalGastosImportacion}
+                  />
 
-                    {/* Resumen de Gastos de Importación */}
-                    <ImportSummaryCard
-                      selectedIncoterm={selectedIncoterm}
-                      comercialValue={dynamicValues.comercialValue}
-                      totalGastosImportacion={totalGastosImportacion}
-                      inversionTotal={inversionTotal}
-                      shouldExemptTaxes={shouldExemptTaxes}
-                    />
-                  </div>
-                </div>
+                  {/* Resumen de Gastos de Importación */}
+                  <ImportSummaryCard
+                    selectedIncoterm={selectedIncoterm}
+                    comercialValue={dynamicValues.comercialValue}
+                    totalGastosImportacion={totalGastosImportacion}
+                    inversionTotal={inversionTotal}
+                    shouldExemptTaxes={shouldExemptTaxes}
+                  />
+                        </div>
+                        </div>
 
-                {/* Sección de Costeo Unitario integrada en la misma vista */}
-                <div className="min-h-screen ">
-                  <div className="grid grid-cols-1 gap-6 ">
-                    <EditableUnitCostTable
-                      initialProducts={editableUnitCostProducts}
-                      totalImportCosts={totalGastosImportacion}
-                      onCommercialValueChange={handleCommercialValueChange}
-                      isFirstPurchase={isFirstPurchase}
-                      onProductsChange={handleUnitCostProductsChange}
-                    />
-                  </div>
+              {/* Sección de Costeo Unitario integrada en la misma vista */}
+              <div className="min-h-screen ">
+                <div className="grid grid-cols-1 gap-6 ">
+                  <EditableUnitCostTable
+                    initialProducts={editableUnitCostProducts}
+                    totalImportCosts={totalGastosImportacion}
+                    onCommercialValueChange={handleCommercialValueChange}
+                    isFirstPurchase={isFirstPurchase}
+                    onProductsChange={handleUnitCostProductsChange}
+                  />
                 </div>
+              </div>
               </>
             )}
           </div>

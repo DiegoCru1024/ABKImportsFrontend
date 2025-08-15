@@ -685,7 +685,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
       
       // Notificar y regresar a listado
       // Usamos toast del sistema de notificaciones (ya importado en hooks) o un alert simple
-       console.log("Respuesta enviada correctamente");
+      console.log("Respuesta enviada correctamente");
       window.history.back();
     } catch (error) {
       console.error("Error al guardar la respuesta:", error);

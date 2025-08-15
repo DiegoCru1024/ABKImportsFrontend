@@ -5,7 +5,6 @@ import Tracking from "@/pages/Tracking";
 
 import GestionDeCotizacionesView from "@/pages/gestion-de-cotizacion/gestion-de-cotizacion-view";
 import DetailsResponse from "@/pages/gestion-de-cotizacion/components/views/detailsreponse";
-import EditResponse from "@/pages/gestion-de-cotizacion/components/views/editresponse";
 import ListResponses from "@/pages/gestion-de-cotizacion/components/views/listreponses";
 import LoginPage from "@/pages/login";  
 import DashboardPage from "@/pages/dashboard";
@@ -22,6 +21,7 @@ import Calculador from "./pages/calculator";
 import Tarifas from "./pages/Tarifas";
 import Educacion from "./pages/Educacion";
 import Herramientas from "./pages/Herramientas";
+import EditResponse from './pages/gestion-de-cotizacion/components/views/editresponse';
 
 function App() {
   return (  

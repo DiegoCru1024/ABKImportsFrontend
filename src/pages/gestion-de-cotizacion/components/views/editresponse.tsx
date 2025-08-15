@@ -189,10 +189,24 @@ const EditResponse = ({
       totalDerechos: false,
     });
   
-    //* Estado para productos editables de la tabla de costeo unitario
-    const [editableUnitCostProducts, setEditableUnitCostProducts] = useState<
-      ProductRow[]
-    >([]);
+      //* Estado para productos editables de la tabla de costeo unitario
+  const [editableUnitCostProducts, setEditableUnitCostProducts] = useState<
+    ProductRow[]
+  >([]);
+
+  //* Estado para productos editables del tipo "Pendiente"
+  const [editablePendingProducts, setEditablePendingProducts] = useState<
+    Array<{
+      id: string;
+      name: string;
+      quantity: number;
+      boxes: number;
+      priceXiaoYi: number;
+      cbmTotal: number;
+      express: number;
+      total: number;
+    }>
+  >([]);
   
     //* Función para detectar si es servicio marítimo
     const isMaritimeService = (serviceType: string) => {
@@ -275,15 +289,21 @@ const EditResponse = ({
       };
     };
   
-    //* Calcular valores dinámicos
-    const serviceFields = getServiceFields(selectedServiceLogistic);
-    const subtotalServices = Object.values(serviceFields).reduce(
-      (sum, value) => sum + value,
-      0
-    );
-    //* Calcular IGV de los servicios
-    const igvServices = subtotalServices * 0.18;
-    const totalServices = subtotalServices + igvServices;
+      //* Calcular valores dinámicos
+  const serviceFields = getServiceFields(selectedServiceLogistic);
+  const subtotalServices = Object.values(serviceFields).reduce(
+    (sum, value) => sum + value,
+    0
+  );
+
+  //* Calcular sumatorias para tipo "Pendiente"
+  const totalExpressAirFreight = editablePendingProducts.reduce((sum, product) => sum + product.express, 0);
+  const totalAgenteXiaoYi = editablePendingProducts.reduce((sum, product) => sum + (product.priceXiaoYi * product.quantity), 0);
+  const totalPrecioTotal = totalExpressAirFreight + totalAgenteXiaoYi;
+  
+  //* Calcular IGV de los servicios
+  const igvServices = subtotalServices * 0.18;
+  const totalServices = subtotalServices + igvServices;
   
     //* Función para verificar si se deben exonerar impuestos automáticamente
     const shouldExemptTaxes = dynamicValues.comercialValue < 200;
@@ -454,10 +474,27 @@ const EditResponse = ({
       setIsFirstPurchase(checked);
     };
   
-    //* Función para manejar cambios en los productos de la tabla de costeo unitario
-    const handleUnitCostProductsChange = (products: ProductRow[]) => {
-      setEditableUnitCostProducts(products);
-    };
+      //* Función para manejar cambios en los productos de la tabla de costeo unitario
+  const handleUnitCostProductsChange = (products: ProductRow[]) => {
+    setEditableUnitCostProducts(products);
+  };
+
+  //* Función para manejar cambios en los productos del tipo "Pendiente"
+  const handlePendingProductChange = (productId: string, field: string, value: number) => {
+    setEditablePendingProducts(prev => prev.map(product => {
+      if (product.id === productId) {
+        const updatedProduct = { ...product, [field]: value };
+        
+        // Calcular el total: (precioXiaoYi * quantity) + express
+        if (field === 'priceXiaoYi' || field === 'quantity' || field === 'express') {
+          updatedProduct.total = (updatedProduct.priceXiaoYi * updatedProduct.quantity) + updatedProduct.express;
+        }
+        
+        return updatedProduct;
+      }
+      return product;
+    }));
+  };
   
       //********llamado a funcion para obtener datos del asesor */
       useEffect(() => {
@@ -473,16 +510,70 @@ const EditResponse = ({
     const handleEditResponse = async () => {
       try {
         setIsSendingModalOpen(true);
-        // Construir DTO mínimo desde estados actuales
+        // Construir DTO completo desde estados actuales
         const dto = {
           quotationInfo: {
             quotationId,
             correlative: detailsResponse?.quotationInfo?.correlative || "",
-            serviceType: detailsResponse?.quotationInfo?.serviceType || "",
+            serviceType: selectedServiceLogistic,
+            cargoType: selectedTypeLoad,
+            courier: selectedCourier,
+            incoterm: selectedIncoterm,
+            isFirstPurchase: isFirstPurchase,
+            regime: selectedRegimen,
+            originCountry: selectedPaisOrigen,
+            destinationCountry: selectedPaisDestino,
+            customs: selectedAduana,
+            originPort: selectedPuertoSalida,
+            destinationPort: selectedPuertoDestino,
+            serviceTypeDetail: selectedTipoServicio,
+            transitTime: tiempoTransito,
+            naviera: naviera,
+            proformaValidity: selectedProformaVigencia,
+            id_asesor: id_asesor || "",
           },
-          dynamicValues: dynamicValues,
-          serviceCalculations: detailsResponse?.serviceCalculations || {},
+          dynamicValues: {
+            ...dynamicValues,
+            cif: cif,
+            shouldExemptTaxes: shouldExemptTaxes,
+          },
+          exemptions: exemptionState,
+          serviceCalculations: {
+            serviceFields: {
+              servicioConsolidado: serviceFields.servicioConsolidado || 0,
+              separacionCarga: serviceFields.separacionCarga || 0,
+              inspeccionProductos: serviceFields.inspeccionProductos || 0,
+            },
+            subtotalServices: subtotalServices,
+            igvServices: igvServices,
+            totalServices: totalServices,
+            fiscalObligations: {
+              adValorem: adValorem,
+              antidumping: antidumping,
+              isc: isc,
+              baseIgvIpm: baseIgvIpm,
+              igvFiscal: igvFiscal,
+              ipm: ipm,
+              percepcion: percepcion,
+              totalDerechosDolares: totalDerechosDolares,
+              totalDerechosSoles: totalDerechosSoles,
+              totalDerechosDolaresFinal: totalDerechosDolaresFinal,
+            },
+            importExpenses: {
+              totalGastosImportacion: totalGastosImportacion,
+            },
+            totals: {
+              inversionTotal: inversionTotal,
+            },
+          },
           unitCostProducts: editableUnitCostProducts,
+          // Productos del tipo "Pendiente"
+          pendingProducts: editablePendingProducts,
+          pendingCalculations: {
+            totalExpressAirFreight,
+            totalAgenteXiaoYi,
+            totalPrecioTotal,
+          },
         } as any;
 
         await patchQuotationResponseMutation.mutateAsync({ data: dto });
@@ -517,13 +608,59 @@ const EditResponse = ({
           importCosts: Number(p.importCosts) || 0,
           totalCost: Number(p.totalCost) || 0,
           unitCost: Number(p.unitCost) || 0,
+          seCotiza: p.seCotiza !== undefined ? p.seCotiza : true,
         }));
         setEditableUnitCostProducts(mapped);
       }
-    }, [detailsResponse]);
-  
-  
-    if (isLoadingDetailsResponse) {
+        }, [detailsResponse]);
+
+  //* Inicializar productos editables del tipo "Pendiente" con los datos de la respuesta
+  useEffect(() => {
+    const pendingProducts = detailsResponse?.pendingProducts ?? [];
+    if (pendingProducts.length > 0) {
+      setEditablePendingProducts(pendingProducts);
+    }
+  }, [detailsResponse]);
+
+  //* Inicializar valores desde la respuesta existente
+  useEffect(() => {
+    if (detailsResponse) {
+      // Inicializar selectores
+      if (detailsResponse.quotationInfo?.serviceType) {
+        setSelectedServiceLogistic(detailsResponse.quotationInfo.serviceType);
+      }
+      if (detailsResponse.quotationInfo?.cargoType) {
+        setSelectedTypeLoad(detailsResponse.quotationInfo.cargoType);
+      }
+      if (detailsResponse.quotationInfo?.courier) {
+        setSelectedCourier(detailsResponse.quotationInfo.courier);
+      }
+      if (detailsResponse.quotationInfo?.incoterm) {
+        setSelectedIncoterm(detailsResponse.quotationInfo.incoterm);
+      }
+      if (detailsResponse.quotationInfo?.isFirstPurchase !== undefined) {
+        setIsFirstPurchase(detailsResponse.quotationInfo.isFirstPurchase);
+      }
+      
+      // Inicializar valores dinámicos
+      if (detailsResponse.dynamicValues) {
+        setDynamicValues(prev => ({
+          ...prev,
+          ...detailsResponse.dynamicValues
+        }));
+      }
+
+      // Inicializar estados de exoneración
+      if (detailsResponse.exemptions) {
+        setExemptionState(prev => ({
+          ...prev,
+          ...detailsResponse.exemptions
+        }));
+      }
+    }
+  }, [detailsResponse]);
+
+  if (isLoadingDetailsResponse) {
       return (
         <div className="space-y-4 p-6">
           <div className="animate-pulse">
@@ -555,7 +692,8 @@ const EditResponse = ({
           </div>
 
           <div className="w-full">
-              <div className="space-y-6 p-6 bg-white">
+            {selectedServiceLogistic === "Pendiente" ? (
+                <div className="space-y-6 p-6 bg-white">
                 {/* Información del Cliente */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {/* Primera columna */}
@@ -1005,6 +1143,238 @@ const EditResponse = ({
                     </Card>
                   </div>
                 </div>
+
+                {/* Resumen tipo guía: Shipment (Courier), Express Air Freight, Total Agente Xiao Yi, Precio Total */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-0 mb-6">
+                  <Card className="bg-white shadow-sm border-0 ring-1 ring-slate-200/50 rounded-r-none">
+                    <CardContent className="p-0">
+                      <div className="bg-yellow-400 px-4 py-3 border-b border-yellow-500">
+                        <h3 className="text-sm font-bold text-black text-center">
+                          SHIPMENT
+                        </h3>
+                      </div>
+                      <div className="p-4 text-center">
+                        <Select
+                          value={selectedCourier}
+                          onValueChange={setSelectedCourier}
+                        >
+                          <SelectTrigger className="w-full justify-center">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {courier.map((c) => (
+                              <SelectItem key={c.value} value={c.value}>
+                                {c.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-white shadow-sm border-0 ring-1 ring-slate-200/50 rounded-none border-l-0">
+                    <CardContent className="p-0">
+                      <div className="bg-amber-200 px-4 py-3 border-b border-amber-300">
+                        <h3 className="text-sm font-bold text-black text-center">
+                          EXPRESS AIR FREIGHT
+                        </h3>
+                      </div>
+                      <div className="p-4 text-center space-y-1">
+                        <div className="text-xs text-amber-600 font-medium">
+                          USD
+                        </div>
+                        <div className="text-lg font-bold text-slate-900">
+                          {totalExpressAirFreight.toFixed(2)}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-white shadow-sm border-0 ring-1 ring-slate-200/50 rounded-none border-l-0">
+                    <CardContent className="p-0">
+                      <div className="bg-purple-300 px-4 py-3 border-b border-purple-400">
+                        <h3 className="text-sm font-bold text-black text-center">
+                          TOTAL AGENTE XIAO YI
+                        </h3>
+                      </div>
+                      <div className="p-4 text-center space-y-1">
+                        <div className="text-xs text-purple-600 font-medium">
+                          USD
+                        </div>
+                        <div className="text-lg font-bold text-slate-900">
+                          {totalAgenteXiaoYi.toFixed(2)}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-white shadow-sm border-0 ring-1 ring-slate-200/50 rounded-l-none border-l-0">
+                    <CardContent className="p-0">
+                      <div className="bg-green-200 px-4 py-3 border-b border-green-300">
+                        <h3 className="text-sm font-bold text-black text-center">
+                          PRECIO TOTAL
+                        </h3>
+                      </div>
+                      <div className="p-4 text-center space-y-1">
+                        <div className="text-xs text-green-600 font-medium">
+                          USD
+                        </div>
+                        <div className="text-lg font-bold text-slate-900">
+                          {totalPrecioTotal.toFixed(2)}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Tabla de productos para tipo "Pendiente" */}
+                <div className="grid grid-cols-1  gap-6">
+                <Card className="bg-white shadow-sm border-0 ring-1 ring-slate-200/50 overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="bg-slate-50/80 border-b border-slate-200/60">
+                            <th className="text-left p-4 text-sm font-semibold text-slate-700 w-16">
+                              #
+                            </th>
+                          <th className="text-left p-4 text-sm font-semibold text-slate-700 w-32">
+                            <div className="flex items-center gap-2">
+                              Imagen
+                            </div>
+                          </th>
+                          <th className="text-left p-4 text-sm font-semibold text-slate-700 min-w-64">
+                            <div className="flex items-center gap-2">
+                              <Package className="h-4 w-4" />
+                              Producto
+                            </div>
+                          </th>
+                          <th className="text-left p-4 text-sm font-semibold text-slate-700 w-40">
+                            <div className="flex items-center gap-2">
+                              Precio Xiao Yi
+                            </div>
+                          </th>
+ 
+                          <th className="text-left p-4 text-sm font-semibold text-slate-700 w-48">
+                            <div className="flex items-center gap-2">
+                              CBM Total
+                            </div>
+                          </th>
+                          <th className="text-left p-4 text-sm font-semibold text-slate-700 w-32">
+                            <div className="flex items-center gap-2">
+                              <Truck className="h-4 w-4 text-orange-600" />
+                              Express
+                            </div>
+                          </th>
+                          <th className="text-left p-4 text-sm font-semibold text-slate-700 w-40">
+                            <div className="flex items-center gap-2">
+                              Total
+                            </div>
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                          {editablePendingProducts.map((product, index) => (
+                            <tr
+                              key={product.id}
+                              className={`border-b border-slate-100 ${
+                                index % 2 === 0 ? "bg-white" : "bg-slate-50/30"
+                              }`}
+                            >
+                              <td className="p-4 py-6">
+                                <div className="w-8 h-8 flex items-center justify-center text-sm font-semibold">
+                                  {index + 1}
+                                </div>
+                            </td>
+                              <td className="p-4 py-6">
+                                <div className="w-16 h-16 bg-slate-100 border-2 border-slate-200 rounded-xl">
+                                  Imagen
+                                </div>
+                            </td>
+                              {/* INFORMACIÓN DEL PRODUCTO */}
+                              <td className="p-4 py-6">
+                                <div className="font-semibold text-slate-900">
+                                  {product.name}
+                                </div>
+                                <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
+                                  <div className="flex items-center gap-2">
+                                    <Badge className="text-center text-xs font-medium text-amber-800 bg-amber-50 border border-amber-200 rounded-lg py-1 mt-1">
+                                      Cantidad
+                                    </Badge>
+                                    <div className="text-center">
+                                      <EditableNumericField
+                                        value={product.quantity}
+                                        onChange={(value) => handlePendingProductChange(product.id, 'quantity', value)}
+                                      />
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <Badge className="text-center text-xs font-medium text-red-800 bg-red-50 border border-red-200 rounded-lg py-1 mt-1">
+                                      Cajas
+                                    </Badge>
+                                    <div className="text-center">
+                                      <EditableNumericField
+                                        value={product.boxes}
+                                        onChange={(value) => handlePendingProductChange(product.id, 'boxes', value)}
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                            </td>
+                            <td className="p-4">
+                                <div className="bg-blue-50/80 rounded-lg p-3 border border-blue-200/50 flex items-center flex-col justify-center">
+                                  <div className="text-xs font-medium text-blue-600 mb-1">
+                                    USD
+                                  </div>
+                                  <EditableNumericField
+                                    value={product.priceXiaoYi}
+                                    onChange={(value) => handlePendingProductChange(product.id, 'priceXiaoYi', value)}
+                                  />
+                              </div>
+                            </td>
+                            <td className="p-4">
+                                <div className="bg-amber-50/80 rounded-lg p-3 border border-amber-200/50 flex items-center flex-col justify-center">
+                                  <div className="text-xs font-medium text-amber-600 mb-1">
+                                    CBM
+                                  </div>
+                                  <EditableNumericField
+                                    value={product.cbmTotal}
+                                    onChange={(value) => handlePendingProductChange(product.id, 'cbmTotal', value)}
+                                  />
+                              </div>
+                            </td>
+                            <td className="p-4">
+                                <div className="bg-orange-50/80 rounded-lg p-3 border border-orange-200/50 flex items-center flex-col justify-center">
+                                  <div className="text-xs font-medium text-orange-600 mb-1">
+                                    USD
+                                  </div>
+                                  <EditableNumericField
+                                    value={product.express}
+                                    onChange={(value) => handlePendingProductChange(product.id, 'express', value)}
+                                  />
+                              </div>
+                            </td>
+                            <td className="p-4">
+                                <div className="bg-green-50/80 rounded-lg p-3 border border-green-200/50 flex items-center flex-col justify-center">
+                                  <div className="text-xs font-medium text-green-600 mb-1">
+                                    USD
+                                  </div>
+                                  <div className="text-xl font-bold text-green-800">
+                                    {product.total.toFixed(2)}
+                                  </div>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </Card>
+              </div>
+              </div>
+            ) : (
+              <>
+              <div className="space-y-6 p-6 bg-white">
                 <div>
                   {/* Shipping Details */}
                   <Card>
@@ -1349,11 +1719,12 @@ const EditResponse = ({
                     totalImportCosts={totalGastosImportacion}
                     onCommercialValueChange={handleCommercialValueChange}
                     isFirstPurchase={isFirstPurchase}
-                    onFirstPurchaseChange={handleFirstPurchaseChange}
                     onProductsChange={handleUnitCostProductsChange}
                   />
                 </div>
               </div>
+              </>
+            )}
           </div>
           <div className="flex justify-end mt-4">
             <div className="flex gap-3">

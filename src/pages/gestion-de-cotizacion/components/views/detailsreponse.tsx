@@ -704,11 +704,12 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
   //* Inicializar productos de la tabla de costeo unitario cuando se cargan los datos
   useEffect(() => {
     if (quotationDetail?.products && editableUnitCostProducts.length === 0) {
+      console.log("quotationDetail.products", JSON.stringify(quotationDetail.products, null, 2));
       const initialProducts = quotationDetail.products.map((product) => ({
         id: product.id,
         name: product.name,
         price: 0,
-        quantity: product.quantity,
+        quantity: Number(product.quantity) || 0,
         total: 0,
         equivalence: 0,
         importCosts: 0,
@@ -819,10 +820,10 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                           <div className="space-y-2">
                             <div>
                               <Label htmlFor="advisor">Asesor(a) : </Label>
-                                <Input id="advisor" value={nombre_asesor || ""} />
+                                <Input id="advisor" value={nombre_asesor || ""} readOnly />
                             </div>
                             <Label htmlFor="date">Fecha de respuesta:</Label>
-                            <Input id="date" value={quotationDate} />
+                            <Input id="date" value={quotationDate} readOnly />
                             <div>
                               <Label htmlFor="service">Tipo de Servicio</Label>
                               <Select
@@ -1555,10 +1556,11 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                                 <Input
                                   id="advisor"
                                   value={nombre_asesor || ""}
+                                  readOnly
                                 />
                             </div>
                             <Label htmlFor="date">Fecha de respuesta:</Label>
-                            <Input id="date" value={quotationDate} />
+                            <Input id="date" value={quotationDate} readOnly />
                             <div>
                                 <Label htmlFor="service">
                                   Tipo de Servicio

@@ -15,6 +15,7 @@ export const productoSchema = z.object({
     name: z.string().min(1, { message: "El nombre es requerido" }),
     url: z.string().optional(),
     comment: z.string().optional(),
+    quantityTotal: z.number().min(0, { message: "La cantidad debe ser mayor o igual a 0" }),
     weight: z.number().optional(),
     volume: z.number().optional(),
     number_of_boxes: z.number().optional(),

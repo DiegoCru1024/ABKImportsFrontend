@@ -60,7 +60,7 @@ const EditableUnitCostTable: React.FC<EditableUnitCostTableProps> = ({
     // Calcular valor comercial total (sumatoria de todos los totales de productos que se cotizan)
     const totalCommercialValue = updatedProducts
       .filter((product) => product.seCotiza)
-      .reduce((sum, product) => sum + product.total, 0);
+      .reduce((sum, product) => sum + (product.total || 0), 0) || 0;
 
     const recalculatedProducts = updatedProducts.map((product) => {
       // Calcular equivalencia: (total de la fila / valor comercial) * 100
@@ -89,7 +89,8 @@ const EditableUnitCostTable: React.FC<EditableUnitCostTableProps> = ({
 
     // Notificar cambio del valor comercial total al componente padre
     if (onCommercialValueChange) {
-      onCommercialValueChange(totalCommercialValue);
+      const validCommercialValue = Number.isFinite(totalCommercialValue) ? totalCommercialValue : 0;
+      onCommercialValueChange(validCommercialValue);
     }
 
     return recalculatedProducts;

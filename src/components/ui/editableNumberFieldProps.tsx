@@ -17,15 +17,16 @@ export const EditableNumericField: React.FC<EditableNumericFieldProps> = ({
   disabled = false,
 }) => {
   // Estado local para manejar el string del input mientras se edita
-  const [inputValue, setInputValue] = useState<string>(value.toString());
+  const [inputValue, setInputValue] = useState<string>(value?.toString() || "0");
 
   // Sincroniza el estado local si el valor externo (prop) cambia
   useEffect(() => {
     // Solo actualiza si el valor numérico no coincide, para evitar loops
-    if (Number.parseFloat(inputValue) !== value) {
-      setInputValue(value.toString());
+    const currentValue = value ?? 0;
+    if (Number.parseFloat(inputValue) !== currentValue) {
+      setInputValue(currentValue.toString());
     }
-  }, [value]);
+  }, [value, inputValue]);
 
   // Maneja el cambio en cada pulsación de tecla
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

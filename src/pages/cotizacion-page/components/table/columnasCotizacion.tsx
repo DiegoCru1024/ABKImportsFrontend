@@ -1,7 +1,8 @@
-import type { Producto } from "@/pages/cotizacion-page/utils/interface";
+import type { ProductWithVariants } from "@/pages/cotizacion-page/utils/schema";
 import type { ColumnDef } from "@tanstack/react-table";
 import { EyeIcon, Trash, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import ImageViewerModal from "@/pages/cotizacion-page/components/ImageViewerModal";
 
@@ -14,37 +15,53 @@ interface ColumnasCotizacionProps {
 export function columnasCotizacion({
   handleEliminar,
   handleEditar,
-}: ColumnasCotizacionProps): ColumnDef<Producto, any>[] {
+}: ColumnasCotizacionProps): ColumnDef<ProductWithVariants & { files?: File[] }, any>[] {
   return [
     {
       id: "name",
       accessorKey: "name",
       header: "Nombre",
-      cell: ({ row }) => <div>{row.original.name}</div>,
+      cell: ({ row }) => <div className="font-medium">{row.original.name}</div>,
       minSize: 150,
       size: 200,
       maxSize: 250,
     },
     {
-      id: "quantity",
-      accessorKey: "quantity",
-      header: "Cantidad",
-      cell: ({ row }) => <div>{row.original.quantity}</div>,
-      size: 50,
-    },
-    {
-      id: "size",
-      accessorKey: "size",
-      header: "Tamaño",
-      cell: ({ row }) => <div>{row.original.size}</div>,
-      size: 50,
-    },
-    {
-      id: "color",
-      accessorKey: "color",
-      header: "Color",
-      cell: ({ row }) => <div>{row.original.color}</div>,
-      size: 100,
+      id: "variants",
+      accessorKey: "variants",
+      header: "Variantes",
+      cell: ({ row }) => {
+        const variants = row.original.variants || [];
+        const totalQuantity = variants.reduce((sum, variant) => sum + variant.quantity, 0);
+        
+        return (
+          <div className="space-y-1">
+            <div className="font-semibold text-orange-600">
+              Total: {totalQuantity} unidades
+            </div>
+            <div className="space-y-1 max-h-32 overflow-y-auto">
+              {variants.map((variant, index) => (
+                <div key={variant.id} className="text-xs bg-gray-50 p-2 rounded border">
+                  <div className="grid grid-cols-2 gap-1">
+                    {variant.size && <span><strong>Tamaño:</strong> {variant.size}</span>}
+                    {variant.presentation && <span><strong>Presentación:</strong> {variant.presentation}</span>}
+                    {variant.model && <span><strong>Modelo:</strong> {variant.model}</span>}
+                    {variant.color && <span><strong>Color:</strong> {variant.color}</span>}
+                  </div>
+                  <div className="mt-1">
+                    <Badge variant="secondary" className="text-xs">
+                      Cantidad: {variant.quantity}
+                    </Badge>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      },
+      minSize: 250,
+      size: 300,
+      maxSize: 350,
     },
     {
       id: "url",
@@ -75,13 +92,13 @@ export function columnasCotizacion({
       accessorKey: "comment",
       header: "Comentario",
       cell: ({ row }) => (
-        <div className="whitespace-normal break-words w-[250px]">
-          {row.original.comment}
+        <div className="whitespace-normal break-words w-[200px]">
+          {row.original.comment || <span className="text-gray-400 text-sm">Sin comentario</span>}
         </div>
       ),
       minSize: 120,
       size: 150,
-      maxSize: 250,
+      maxSize: 200,
     },
     {
       id: "attachments",

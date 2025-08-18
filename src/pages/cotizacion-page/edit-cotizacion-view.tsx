@@ -16,6 +16,7 @@ import {
   Edit2,
   ArrowLeft,
   Undo2,
+  Minus,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
@@ -50,9 +51,10 @@ import { toast } from "sonner";
 import SendingModal from "@/components/sending-modal";
 
 import { Label } from "@/components/ui/label";
-import { productoSchema } from "@/pages/cotizacion-page/utils/schema";
+import { productoSchema, type ProductVariant, type ProductWithVariants } from "@/pages/cotizacion-page/utils/schema";
 import { columnasCotizacion } from "@/pages/cotizacion-page/components/table/columnasCotizacion";
 import { servicios } from "@/pages/cotizacion-page/components/data/static";
+import type { QuotationDTO } from "@/pages/cotizacion-page/utils/interface";
 
 interface EditCotizacionViewProps {
   quotationId: string;
@@ -65,13 +67,25 @@ export default function EditCotizacionView({
   onBack,
   statusQuotation
 }: EditCotizacionViewProps) {
-  const [productos, setProductos] = useState<any[]>([]);
+  const [productos, setProductos] = useState<(ProductWithVariants & { files?: File[] })[]>([]);
   const [service, setService] = useState("pending");
   const [resetCounter, setResetCounter] = useState(0);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  
+  // Estados para las variantes
+  const [variants, setVariants] = useState<ProductVariant[]>([
+    {
+      id: Date.now().toString(),
+      size: "",
+      presentation: "",
+      model: "",
+      color: "",
+      quantity: 0,
+    },
+  ]);
 
   console.log("statusQuotation", statusQuotation);
 
@@ -86,17 +100,51 @@ export default function EditCotizacionView({
     resolver: zodResolver(productoSchema),
     defaultValues: {
       name: "",
-      quantity: 1,
-      size: "",
-      color: "",
       url: "",
       comment: "",
       weight: 0,
       volume: 0,
       number_of_boxes: 0,
+      variants: [
+        {
+          id: Date.now().toString(),
+          size: "",
+          presentation: "",
+          model: "",
+          color: "",
+          quantity: 0,
+        },
+      ],
       attachments: [],
     },
   });
+
+  // Funciones para manejar variantes
+  const addVariant = () => {
+    const newVariant: ProductVariant = {
+      id: Date.now().toString(),
+      size: "",
+      presentation: "",
+      model: "",
+      color: "",
+      quantity: 0,
+    };
+    setVariants([...variants, newVariant]);
+  };
+
+  const removeVariant = (id: string) => {
+    if (variants.length > 1) {
+      setVariants(variants.filter((variant) => variant.id !== id));
+    }
+  };
+
+  const updateVariant = (id: string, field: keyof ProductVariant, value: string | number) => {
+    setVariants(variants.map((variant) => (variant.id === id ? { ...variant, [field]: value } : variant)));
+  };
+
+  const getTotalQuantity = () => {
+    return variants.reduce((total, variant) => total + variant.quantity, 0);
+  };
 
   // Cargar datos de la cotización cuando se obtienen
   useEffect(() => {
@@ -107,16 +155,23 @@ export default function EditCotizacionView({
       setService(quotationData.service_type || "Pendiente");
 
       // Mapear productos de la cotización
-      const mappedProducts = quotationData.products.map((product) => ({
+      const mappedProducts = quotationData.products.map((product: any) => ({
         name: product.name,
-        quantity: product.quantity,
-        size: product.size,
-        color: product.color,
         url: product.url || "",
         comment: product.comment || "",
         weight: Number(product.weight) || 0,
         volume: Number(product.volume) || 0,
         number_of_boxes: product.number_of_boxes || 0,
+        variants: product.variants || [
+          {
+            id: product.id || null,
+            size: product.size || "",
+            presentation: "",
+            model: "",
+            color: product.color || "",
+            quantity: product.quantity || 0,
+          }
+        ], // Convertir datos legacy a formato de variantes
         attachments: product.attachments || [],
         files: [], // Los archivos originales no están disponibles, solo las URLs
       }));
@@ -136,14 +191,15 @@ export default function EditCotizacionView({
 
     // Cargar datos del producto en el formulario
     form.setValue("name", producto.name);
-    form.setValue("quantity", producto.quantity);
-    form.setValue("size", producto.size);
-    form.setValue("color", producto.color);
-    form.setValue("url", producto.url);
-    form.setValue("comment", producto.comment);
+    form.setValue("url", producto.url || "");
+    form.setValue("comment", producto.comment || "");
     form.setValue("weight", producto.weight || 0);
     form.setValue("volume", producto.volume || 0);
     form.setValue("number_of_boxes", producto.number_of_boxes || 0);
+    form.setValue("variants", producto.variants || []);
+
+    // Establecer variantes
+    setVariants(producto.variants || []);
 
     // Establecer archivos seleccionados (vacío porque no tenemos los archivos originales)
     setSelectedFiles([]);
@@ -157,6 +213,16 @@ export default function EditCotizacionView({
   const handleCancelarEdicion = () => {
     form.reset();
     setSelectedFiles([]);
+    setVariants([
+      {
+        id: Date.now().toString(),
+        size: "",
+        presentation: "",
+        model: "",
+        color: "",
+        quantity: 0,
+      },
+    ]);
     setEditingIndex(null);
     setIsEditing(false);
     setResetCounter((prev) => prev + 1);
@@ -165,6 +231,13 @@ export default function EditCotizacionView({
   //* Función para agregar o actualizar producto
   const handleAgregar = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    // Validar que haya al menos una variante con cantidad mayor a 0
+    const totalQuantity = getTotalQuantity();
+    if (totalQuantity === 0) {
+      toast.error("Debe agregar al menos una variante con cantidad mayor a 0.");
+      return;
+    }
 
     // Validar formulario antes de proceder
     const isValid = await form.trigger();
@@ -183,16 +256,14 @@ export default function EditCotizacionView({
 
     // Obtener los valores del formulario
     const values = form.getValues();
-    const productData: any = {
+    const productData: ProductWithVariants & { files?: File[] } = {
       name: values.name,
-      quantity: values.quantity,
-      size: values.size,
-      color: values.color,
       url: values.url || "",
       comment: values.comment || "",
       weight: values.weight || 0,
       volume: values.volume || 0,
       number_of_boxes: values.number_of_boxes || 0,
+      variants: variants.filter(v => v.quantity > 0), // Solo incluir variantes con cantidad > 0
       attachments: [], // Se llenará al enviar
       files: selectedFiles, // Guardar archivos originales
     };
@@ -228,6 +299,16 @@ export default function EditCotizacionView({
     form.reset();
     setResetCounter((prev) => prev + 1);
     setSelectedFiles([]);
+    setVariants([
+      {
+        id: Date.now().toString(),
+        size: "",
+        presentation: "",
+        model: "",
+        color: "",
+        quantity: 0,
+      },
+    ]);
   };
 
   //* Función para subir archivos en lotes de 10
@@ -293,14 +374,19 @@ export default function EditCotizacionView({
 
         return {
           name: producto.name,
-          quantity: producto.quantity,
-          size: producto.size,
-          color: producto.color,
-          url: producto.url,
-          comment: producto.comment,
-          weight: producto.weight,
-          volume: producto.volume,
-          number_of_boxes: producto.number_of_boxes,
+          url: producto.url || "",
+          comment: producto.comment || "",
+          weight: producto.weight || 0,
+          volume: producto.volume || 0,
+          number_of_boxes: producto.number_of_boxes || 0,
+          variants: producto.variants.map(variant => ({
+            id: variant.id,
+            size: variant.size || "",
+            presentation: variant.presentation || "",
+            model: variant.model || "",
+            color: variant.color || "",
+            quantity: variant.quantity,
+          })),
           attachments: finalAttachments,
         };
         })
@@ -445,7 +531,8 @@ export default function EditCotizacionView({
 
               <Form {...form}>
                 <form onSubmit={handleAgregar}>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                  {/* Información básica del producto */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     <div>
                       <FormField
                         control={form.control}
@@ -459,7 +546,7 @@ export default function EditCotizacionView({
                             <FormControl>
                               <Input
                                 {...field}
-                                placeholder="Ej: Monitor, Teclado, Mouse..."
+                                placeholder="Ej: Anillo, Monitor, Teclado..."
                                 className="mt-1"
                               />
                             </FormControl>
@@ -470,84 +557,19 @@ export default function EditCotizacionView({
                     </div>
 
                     <div>
-                      <FormField
-                        control={form.control}
-                        name="quantity"
-                        render={({ field }) => (
-                          <FormItem>
-                            <Label className="flex items-center gap-2 text-orange-600 font-medium">
-                              <span className="text-lg">#</span>
-                              Cantidad
-                            </Label>
-                            <FormControl>
-                              <Input
-                                {...field}
-                                type="number"
-                                min="1"
-                                className="mt-1"
-                                onChange={(e) => {
-                                  const value =
-                                    e.target.value === ""
-                                      ? 1
-                                      : Number(e.target.value);
-                                  field.onChange(value);
-                                }}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    <div>
-                      <FormField
-                        control={form.control}
-                        name="size"
-                        render={({ field }) => (
-                          <FormItem>
-                            <Label className="flex items-center gap-2 text-orange-600 font-medium">
-                              <span className="text-lg">📏</span>
-                              Tamaño
-                            </Label>
-                            <FormControl>
-                              <Input
-                                {...field}
-                                placeholder="Ej: 10x10x10 cm"
-                                className="mt-1"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    <div>
-                      <FormField
-                        control={form.control}
-                        name="color"
-                        render={({ field }) => (
-                          <FormItem>
-                            <Label className="flex items-center gap-2 text-orange-600 font-medium">
-                              <span className="text-lg">🎨</span>
-                              Color
-                            </Label>
-                            <FormControl>
-                              <Input
-                                {...field}
-                                placeholder="Ej: Rojo, Azul, Verde..."
-                                className="mt-1"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
+                      <Label className="flex items-center gap-2 text-orange-600 font-medium">
+                        <span className="text-lg">#</span>
+                        Cantidad Total
+                      </Label>
+                      <Input 
+                        value={getTotalQuantity()} 
+                        readOnly 
+                        className="bg-gray-100 font-semibold text-lg mt-1" 
                       />
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
                     <div>
                       <FormField
                         control={form.control}
@@ -585,7 +607,7 @@ export default function EditCotizacionView({
                               <Textarea
                                 {...field}
                                 placeholder="Ej: Producto en buen estado, etc."
-                                className="mt-1"
+                                className="mt-1 min-h-[80px]"
                                 rows={3}
                               />
                             </FormControl>
@@ -593,6 +615,91 @@ export default function EditCotizacionView({
                           </FormItem>
                         )}
                       />
+                    </div>
+                  </div>
+
+                  {/* Sección de Variantes */}
+                  <div className="mb-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold text-orange-600">Variantes del Producto</h3>
+                      <Button 
+                        type="button"
+                        onClick={addVariant} 
+                        className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600"
+                      >
+                        <Plus className="w-4 h-4" />
+                        Agregar Variante
+                      </Button>
+                    </div>
+
+                    <div className="border rounded-lg overflow-hidden">
+                      <div className="bg-gray-100 dark:bg-gray-800 grid grid-cols-12 gap-2 p-3 text-sm font-medium">
+                        <div className="col-span-2">Tamaño</div>
+                        <div className="col-span-2">Presentación</div>
+                        <div className="col-span-2">Modelo</div>
+                        <div className="col-span-2">Color</div>
+                        <div className="col-span-2">Cantidad</div>
+                        <div className="col-span-2">Acciones</div>
+                      </div>
+
+                      {variants.map((variant) => (
+                        <div key={variant.id} className="grid grid-cols-12 gap-2 p-3 border-t">
+                          <div className="col-span-2">
+                            <Input
+                              placeholder="Grande"
+                              value={variant.size || ""}
+                              onChange={(e) => updateVariant(variant.id, "size", e.target.value)}
+                              className="text-sm"
+                            />
+                          </div>
+                          <div className="col-span-2">
+                            <Input
+                              placeholder="Color morado"
+                              value={variant.presentation || ""}
+                              onChange={(e) => updateVariant(variant.id, "presentation", e.target.value)}
+                              className="text-sm"
+                            />
+                          </div>
+                          <div className="col-span-2">
+                            <Input
+                              placeholder="Ave"
+                              value={variant.model || ""}
+                              onChange={(e) => updateVariant(variant.id, "model", e.target.value)}
+                              className="text-sm"
+                            />
+                          </div>
+                          <div className="col-span-2">
+                            <Input
+                              placeholder="Verde"
+                              value={variant.color || ""}
+                              onChange={(e) => updateVariant(variant.id, "color", e.target.value)}
+                              className="text-sm"
+                            />
+                          </div>
+                          <div className="col-span-2">
+                            <Input
+                              type="number"
+                              placeholder="5"
+                              min="0"
+                              value={variant.quantity || ""}
+                              onChange={(e) => updateVariant(variant.id, "quantity", Number.parseInt(e.target.value) || 0)}
+                              className="text-sm"
+                            />
+                          </div>
+                          <div className="col-span-2">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => removeVariant(variant.id)}
+                              disabled={variants.length === 1}
+                              className="w-full"
+                            >
+                              <Minus className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
 
@@ -672,7 +779,7 @@ export default function EditCotizacionView({
                   <div className="mb-6">
                     <Label className="flex items-center gap-2 text-orange-600 font-medium mb-3">
                       <span className="text-lg">📁</span>
-                      Archivos
+                      Imágenes
                     </Label>
 
                     <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4">

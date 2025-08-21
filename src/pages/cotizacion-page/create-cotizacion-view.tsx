@@ -342,11 +342,14 @@ export default function CreateCotizacionView() {
             );
           }
 
+          // Calcular el total de cantidad para este producto específico
+          const productTotalQuantity = producto.variants.reduce((sum, variant) => sum + variant.quantity, 0);
+          
           return {
             name: producto.name,
             url: producto.url || "",
             comment: producto.comment || "",
-            quantityTotal: producto.quantityTotal || 0,
+            quantityTotal: productTotalQuantity,
             weight: producto.weight || 0,
             volume: producto.volume || 0,
             number_of_boxes: producto.number_of_boxes || 0,
@@ -371,17 +374,16 @@ export default function CreateCotizacionView() {
 
       console.log("Datos a enviar:", JSON.stringify(dataToSend, null, 2));
 
-      /*const response = await createQuotationMut.mutateAsync({
+      const response = await createQuotationMut.mutateAsync({
         data: dataToSend,
       });
       if (response) {
-        toast.success("Cotización creada exitosamente. Redirigiendo...");
         setTimeout(() => {
           navigate(`/dashboard/mis-cotizaciones`);
         }, 1200);
       } else {
         toast.error("Error al crear la cotización");
-      }*/
+      }
     } catch (error) {
       console.error(
         "Error durante el proceso de " +
@@ -464,7 +466,9 @@ export default function CreateCotizacionView() {
                     <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500">
                       <Edit2 className="h-4 w-4 text-white" />
                     </div>
-                    <span className="font-semibold text-lg">Editando producto</span>
+                    <span className="font-semibold text-lg">
+                      Editando producto
+                    </span>
                   </div>
                   <p className="text-sm text-blue-600 dark:text-blue-400 mt-2 ml-11">
                     Está editando el producto. Los cambios se aplicarán al
@@ -741,7 +745,7 @@ export default function CreateCotizacionView() {
                           ))}
                         </div>
                       </div>
-                      
+
                       {/* Total de cantidad */}
                       <div className="flex items-center justify-end gap-4 p-4 bg-gradient-to-r from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 rounded-lg border border-orange-200">
                         <Label className="flex items-center gap-2 text-orange-700 dark:text-orange-300 font-bold text-lg">

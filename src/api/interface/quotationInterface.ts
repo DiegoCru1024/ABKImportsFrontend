@@ -26,10 +26,19 @@ export interface ProductoResponseIdInterface {
   weight: string;
   volume: string;
   number_of_boxes: number;
+  variants: VariantResponseIdInterface[];
   attachments: string[];
 
 }
 
+export interface VariantResponseIdInterface {
+  id: string;
+  size: string;
+  presentation: string;
+  model: string;
+  color: string;
+  quantity: number;
+}
 
 /**
  * Interfaz para la respuesta de las cotizaciones por el usuario

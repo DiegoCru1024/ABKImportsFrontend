@@ -50,21 +50,27 @@ import SendingModal from "@/components/sending-modal";
 import { useNavigate } from "react-router-dom";
 
 import { Label } from "@/components/ui/label";
-import { productoSchema, type ProductVariant, type ProductWithVariants } from "@/pages/cotizacion-page/utils/schema";
+import {
+  productoSchema,
+  type ProductVariant,
+  type ProductWithVariants,
+} from "@/pages/cotizacion-page/utils/schema";
 import { columnasCotizacion } from "@/pages/cotizacion-page/components/table/columnasCotizacion";
 import { servicios } from "@/pages/cotizacion-page/components/data/static";
 import type { QuotationDTO } from "@/pages/cotizacion-page/utils/interface";
 
 export default function CreateCotizacionView() {
   const navigate = useNavigate();
-  const [productos, setProductos] = useState<(ProductWithVariants & { files?: File[] })[]>([]);
+  const [productos, setProductos] = useState<
+    (ProductWithVariants & { files?: File[] })[]
+  >([]);
   const [service, setService] = useState("pending");
   const [resetCounter, setResetCounter] = useState(0);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  
+
   // Estados para las variantes
   const [variants, setVariants] = useState<ProductVariant[]>([
     {
@@ -122,8 +128,16 @@ export default function CreateCotizacionView() {
     }
   };
 
-  const updateVariant = (id: string, field: keyof ProductVariant, value: string | number) => {
-    setVariants(variants.map((variant) => (variant.id === id ? { ...variant, [field]: value } : variant)));
+  const updateVariant = (
+    id: string,
+    field: keyof ProductVariant,
+    value: string | number
+  ) => {
+    setVariants(
+      variants.map((variant) =>
+        variant.id === id ? { ...variant, [field]: value } : variant
+      )
+    );
   };
 
   const getTotalQuantity = () => {
@@ -215,7 +229,7 @@ export default function CreateCotizacionView() {
       weight: values.weight || 0,
       volume: values.volume || 0,
       number_of_boxes: values.number_of_boxes || 0,
-      variants: variants.filter(v => v.quantity > 0), // Solo incluir variantes con cantidad > 0
+      variants: variants.filter((v) => v.quantity > 0), // Solo incluir variantes con cantidad > 0
       attachments: [], // Vacío por ahora, se llenará al enviar
       files: selectedFiles, // Guardar archivos originales
     };
@@ -258,21 +272,32 @@ export default function CreateCotizacionView() {
   const uploadFilesInBatches = async (files: File[]): Promise<string[]> => {
     const batchSize = 10;
     const allUrls: string[] = [];
-    
+
     for (let i = 0; i < files.length; i += batchSize) {
       const batch = files.slice(i, i + batchSize);
-      console.log(`Subiendo lote ${Math.floor(i / batchSize) + 1}: ${batch.length} archivos`);
-      
+      console.log(
+        `Subiendo lote ${Math.floor(i / batchSize) + 1}: ${
+          batch.length
+        } archivos`
+      );
+
       try {
         const uploadResponse = await uploadMultipleFiles(batch);
         allUrls.push(...uploadResponse.urls);
-        console.log(`Lote ${Math.floor(i / batchSize) + 1} completado: ${uploadResponse.urls.length} URLs obtenidas`);
+        console.log(
+          `Lote ${Math.floor(i / batchSize) + 1} completado: ${
+            uploadResponse.urls.length
+          } URLs obtenidas`
+        );
       } catch (error) {
-        console.error(`Error al subir lote ${Math.floor(i / batchSize) + 1}:`, error);
+        console.error(
+          `Error al subir lote ${Math.floor(i / batchSize) + 1}:`,
+          error
+        );
         throw error;
       }
     }
-    
+
     return allUrls;
   };
 
@@ -291,42 +316,50 @@ export default function CreateCotizacionView() {
       // 1. Procesar cada producto individualmente para subir archivos en lotes
       const productosConUrls = await Promise.all(
         productos.map(async (producto, productIndex) => {
-          console.log(`Procesando producto ${productIndex + 1}: ${producto.name}`);
+          console.log(
+            `Procesando producto ${productIndex + 1}: ${producto.name}`
+          );
           console.log(`Archivos del producto: ${producto.files?.length}`);
-          
+
           let productUrls: string[] = [];
-          
+
           // Subir archivos del producto en lotes de 10 si hay más de 10 archivos
           if (producto.files && producto.files.length > 0) {
             if (producto.files.length > 10) {
-              console.log(`Producto ${producto.name} tiene ${producto.files.length} archivos, subiendo en lotes...`);
+              console.log(
+                `Producto ${producto.name} tiene ${producto.files.length} archivos, subiendo en lotes...`
+              );
               productUrls = await uploadFilesInBatches(producto.files);
             } else {
-              console.log(`Producto ${producto.name} tiene ${producto.files.length} archivos, subiendo en un solo lote...`);
+              console.log(
+                `Producto ${producto.name} tiene ${producto.files.length} archivos, subiendo en un solo lote...`
+              );
               const uploadResponse = await uploadMultipleFiles(producto.files);
               productUrls = uploadResponse.urls;
             }
-            console.log(`Producto ${producto.name}: ${productUrls.length} URLs obtenidas`);
+            console.log(
+              `Producto ${producto.name}: ${productUrls.length} URLs obtenidas`
+            );
           }
 
-        return {
-          name: producto.name,
-          url: producto.url || "",
-          comment: producto.comment || "",
-          quantityTotal: producto.quantityTotal || 0,
-          weight: producto.weight || 0,
-          volume: producto.volume || 0,
-          number_of_boxes: producto.number_of_boxes || 0,
-          variants: producto.variants.map(variant => ({
-            id: null,
-            size: variant.size || "",
-            presentation: variant.presentation || "",
-            model: variant.model || "",
-            color: variant.color || "",
-            quantity: variant.quantity,
-          })),
-          attachments: productUrls,
-        };
+          return {
+            name: producto.name,
+            url: producto.url || "",
+            comment: producto.comment || "",
+            quantityTotal: producto.quantityTotal || 0,
+            weight: producto.weight || 0,
+            volume: producto.volume || 0,
+            number_of_boxes: producto.number_of_boxes || 0,
+            variants: producto.variants.map((variant) => ({
+              id: null,
+              size: variant.size || "",
+              presentation: variant.presentation || "",
+              model: variant.model || "",
+              color: variant.color || "",
+              quantity: variant.quantity,
+            })),
+            attachments: productUrls,
+          };
         })
       );
 
@@ -338,7 +371,7 @@ export default function CreateCotizacionView() {
 
       console.log("Datos a enviar:", JSON.stringify(dataToSend, null, 2));
 
-      const response = await createQuotationMut.mutateAsync({
+      /*const response = await createQuotationMut.mutateAsync({
         data: dataToSend,
       });
       if (response) {
@@ -348,7 +381,7 @@ export default function CreateCotizacionView() {
         }, 1200);
       } else {
         toast.error("Error al crear la cotización");
-      }
+      }*/
     } catch (error) {
       console.error(
         "Error durante el proceso de " +
@@ -379,30 +412,30 @@ export default function CreateCotizacionView() {
     <div className="min-h-screen bg-gradient-to-br from-orange-500/5 via-background to-orange-400/10">
       {/* Top Navigation Bar */}
       <div className="border-t border-border/60 bg-background/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="w-full  px-4 py-4 border-b border-border/60 flex items-center justify-between">
-          <div className="flex items-center space-x-4 ">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-500 hover:bg-orange-600">
+        <div className="w-full px-6 py-6 border-b border-border/60 flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-500 hover:bg-orange-600 transition-colors duration-200 shadow-lg">
               <FileText className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                 Cotización de productos
               </h1>
-              <p className="text-sm font-normal text-gray-500 dark:text-gray-400">
+              <p className="text-sm font-normal text-gray-500 dark:text-gray-400 mt-1">
                 Cotiza los productos que deseas enviar, y envíalos para que los
                 revisemos y te ofrezcamos el mejor precio.
               </p>
             </div>
           </div>
-          <div className="rounded-md flex items-center gap-2 ">
-            <h3 className="text-lg text-orange-600  font-semibold dark:text-white">
-              TIPO DE SERVICIO :
+          <div className="flex items-center gap-3">
+            <h3 className="text-lg text-orange-600 font-semibold dark:text-white">
+              TIPO DE SERVICIO:
             </h3>
             <Select
               onValueChange={(value) => setService(value)}
               defaultValue={service}
             >
-              <SelectTrigger>
+              <SelectTrigger className="w-48">
                 <SelectValue placeholder="Seleccione" />
               </SelectTrigger>
               <SelectContent>
@@ -419,19 +452,21 @@ export default function CreateCotizacionView() {
         </div>
       </div>
 
-      <div className="w-full p-2">
-        <div className="grid grid-cols-1 gap-6">
+      <div className="w-full p-6">
+        <div className="grid grid-cols-1 gap-8">
           {/* Add Product Form */}
-          <Card>
-            <CardContent className="p-6">
+          <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+            <CardContent className="p-8">
               {/* Indicador de modo edición */}
               {isEditing && (
-                <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                  <div className="flex items-center gap-2 text-blue-700 dark:text-blue-300">
-                    <Edit2 className="h-5 w-5" />
-                    <span className="font-medium">Editando producto</span>
+                <div className="mb-8 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-xl">
+                  <div className="flex items-center gap-3 text-blue-700 dark:text-blue-300">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500">
+                      <Edit2 className="h-4 w-4 text-white" />
+                    </div>
+                    <span className="font-semibold text-lg">Editando producto</span>
                   </div>
-                  <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
+                  <p className="text-sm text-blue-600 dark:text-blue-400 mt-2 ml-11">
                     Está editando el producto. Los cambios se aplicarán al
                     guardar.
                   </p>
@@ -439,259 +474,297 @@ export default function CreateCotizacionView() {
               )}
 
               <Form {...form}>
-                <form onSubmit={handleAgregar}>
+                <form onSubmit={handleAgregar} className="space-y-8">
                   {/* Información básica del producto */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                    <div>
-                      <FormField
-                        control={form.control}
-                        name="name"
-                        render={({ field }) => (
-                          <FormItem>
-                            <Label className="flex items-center gap-2 text-orange-600 font-medium">
-                              <span className="text-lg">🔍</span>
-                              Nombre del Producto
-                            </Label>
-                            <FormControl>
-                              <Input
-                                {...field}
-                                placeholder="Ej: Anillo, Monitor, Teclado..."
-                                className="mt-1"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Columna izquierda - Información básica */}
+                    <div className="space-y-6">
+                      <div className="space-y-4">
+                        <FormField
+                          control={form.control}
+                          name="name"
+                          render={({ field }) => (
+                            <FormItem>
+                              <Label className="flex items-center gap-2 text-orange-600 font-semibold text-base">
+                                <span className="text-xl">🔍</span>
+                                Nombre del Producto
+                              </Label>
+                              <FormControl>
+                                <Input
+                                  {...field}
+                                  placeholder="Ej: Anillo de plata"
+                                  className="mt-2 h-12 text-base border-2 border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all duration-200"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
 
-                    <div>
-                      <Label className="flex items-center gap-2 text-orange-600 font-medium">
-                        <span className="text-lg">#</span>
-                        Cantidad Total
-                      </Label>
-                      <Input 
-                        value={getTotalQuantity()} 
-                        readOnly 
-                        className="bg-gray-100 font-semibold text-lg mt-1" 
-                      />
-                    </div>
-                  </div>
+                        <FormField
+                          control={form.control}
+                          name="url"
+                          render={({ field }) => (
+                            <FormItem>
+                              <Label className="flex items-center gap-2 text-orange-600 font-semibold text-base">
+                                <span className="text-xl">🔗</span>
+                                URL del Producto
+                              </Label>
+                              <FormControl>
+                                <Input
+                                  {...field}
+                                  placeholder="https://temu.com/producto/123"
+                                  className="mt-2 h-12 text-base border-2 border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all duration-200"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
 
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-                    <div>
-                      <FormField
-                        control={form.control}
-                        name="url"
-                        render={({ field }) => (
-                          <FormItem>
-                            <Label className="flex items-center gap-2 text-orange-600 font-medium">
-                              <span className="text-lg">🔗</span>
-                              URL
-                            </Label>
-                            <FormControl>
-                              <Input
-                                {...field}
-                                placeholder="https://temu.com/producto/123"
-                                className="mt-1"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    <div>
-                      <FormField
-                        control={form.control}
-                        name="comment"
-                        render={({ field }) => (
-                          <FormItem>
-                            <Label className="flex items-center gap-2 text-orange-600 font-medium">
-                              <span className="text-lg">💬</span>
-                              Comentario
-                            </Label>
-                            <FormControl>
-                              <Textarea
-                                {...field}
-                                placeholder="Ej: Producto en buen estado, etc."
-                                className="mt-1 min-h-[80px]"
-                                rows={3}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Sección de Variantes */}
-                  <div className="mb-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-semibold text-orange-600">Variantes del Producto</h3>
-                      <Button 
-                        type="button"
-                        onClick={addVariant} 
-                        className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600"
-                      >
-                        <Plus className="w-4 h-4" />
-                        Agregar Variante
-                      </Button>
-                    </div>
-
-                    <div className="border rounded-lg overflow-hidden">
-                      <div className="bg-gray-100 dark:bg-gray-800 grid grid-cols-12 gap-2 p-3 text-sm font-medium">
-                        <div className="col-span-2">Tamaño</div>
-                        <div className="col-span-2">Presentación</div>
-                        <div className="col-span-2">Modelo</div>
-                        <div className="col-span-2">Color</div>
-                        <div className="col-span-2">Cantidad</div>
-                        <div className="col-span-2">Acciones</div>
+                        <FormField
+                          control={form.control}
+                          name="comment"
+                          render={({ field }) => (
+                            <FormItem>
+                              <Label className="flex items-center gap-2 text-orange-600 font-semibold text-base">
+                                <span className="text-xl">💬</span>
+                                Comentarios
+                              </Label>
+                              <FormControl>
+                                <Textarea
+                                  {...field}
+                                  placeholder="Ej: Producto en buen estado, especificaciones especiales, etc."
+                                  className="mt-2 min-h-[100px] text-base border-2 border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all duration-200 resize-none"
+                                  rows={4}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
                       </div>
 
-                      {variants.map((variant) => (
-                        <div key={variant.id} className="grid grid-cols-12 gap-2 p-3 border-t">
-                          <div className="col-span-2">
-                            <Input
-                              placeholder="7*7 cm"
-                              value={variant.size || ""}
-                              onChange={(e) => updateVariant(variant.id, "size", e.target.value)}
-                              className="text-sm"
+                      {/* Campos adicionales para Almacenaje de Mercancia */}
+                      {service === "Almacenaje de Mercancia" && (
+                        <div className="space-y-4 pt-4 border-t border-gray-200">
+                          <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-200 flex items-center gap-2">
+                            <span className="text-xl">📦</span>
+                            Información de Almacenaje
+                          </h4>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <FormField
+                              control={form.control}
+                              name="weight"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <Label className="flex items-center gap-2 text-orange-600 font-medium text-sm">
+                                    <span className="text-lg">⚖️</span>
+                                    Peso (Kg)
+                                  </Label>
+                                  <FormControl>
+                                    <Input
+                                      {...field}
+                                      type="number"
+                                      className="mt-2 h-11 text-base border-2 border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all duration-200"
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
                             />
-                          </div>
-                          <div className="col-span-2">
-                            <Input
-                              placeholder="Pack de 10"
-                              value={variant.presentation || ""}
-                              onChange={(e) => updateVariant(variant.id, "presentation", e.target.value)}
-                              className="text-sm"
+
+                            <FormField
+                              control={form.control}
+                              name="volume"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <Label className="flex items-center gap-2 text-orange-600 font-medium text-sm">
+                                    <span className="text-lg">📦</span>
+                                    Volumen
+                                  </Label>
+                                  <FormControl>
+                                    <Input
+                                      {...field}
+                                      type="number"
+                                      className="mt-2 h-11 text-base border-2 border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all duration-200"
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
                             />
-                          </div>
-                          <div className="col-span-2">
-                            <Input
-                              placeholder="Ave"
-                              value={variant.model || ""}
-                              onChange={(e) => updateVariant(variant.id, "model", e.target.value)}
-                              className="text-sm"
+
+                            <FormField
+                              control={form.control}
+                              name="number_of_boxes"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <Label className="flex items-center gap-2 text-orange-600 font-medium text-sm">
+                                    <span className="text-lg">📦</span>
+                                    Nro. cajas
+                                  </Label>
+                                  <FormControl>
+                                    <Input
+                                      {...field}
+                                      type="number"
+                                      className="mt-2 h-11 text-base border-2 border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all duration-200"
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
                             />
-                          </div>
-                          <div className="col-span-2">
-                            <Input
-                              placeholder="Verde"
-                              value={variant.color || ""}
-                              onChange={(e) => updateVariant(variant.id, "color", e.target.value)}
-                              className="text-sm"
-                            />
-                          </div>
-                          <div className="col-span-2">
-                            <Input
-                              type="number"
-                              placeholder="5"
-                              min="0"
-                              value={variant.quantity || ""}
-                              onChange={(e) => updateVariant(variant.id, "quantity", Number.parseInt(e.target.value) || 0)}
-                              className="text-sm"
-                            />
-                          </div>
-                          <div className="col-span-2">
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => removeVariant(variant.id)}
-                              disabled={variants.length === 1}
-                              className="w-full"
-                            >
-                              <Minus className="w-4 h-4" />
-                            </Button>
                           </div>
                         </div>
-                      ))}
+                      )}
+                    </div>
+
+                    {/* Sección de Variantes */}
+                    <div className="lg:col-span-2 space-y-6">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-xl font-bold text-orange-600 flex items-center gap-2">
+                          <span className="text-2xl">🎨</span>
+                          Variantes del Producto
+                        </h3>
+                        <Button
+                          type="button"
+                          onClick={addVariant}
+                          className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg shadow-md transition-all duration-200 hover:shadow-lg"
+                        >
+                          <Plus className="w-5 h-5" />
+                          Agregar Variante
+                        </Button>
+                      </div>
+
+                      <div className="border-2 border-gray-200 rounded-xl overflow-hidden shadow-sm">
+                        <div className="bg-gradient-to-r from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 grid grid-cols-12 gap-3 p-4 text-sm font-semibold text-orange-700 dark:text-orange-300">
+                          <div className="col-span-2">Tamaño</div>
+                          <div className="col-span-2">Presentación</div>
+                          <div className="col-span-2">Modelo</div>
+                          <div className="col-span-2">Color</div>
+                          <div className="col-span-2">Cantidad</div>
+                          <div className="col-span-2">Acciones</div>
+                        </div>
+
+                        <div className="space-y-2 p-2">
+                          {variants.map((variant, index) => (
+                            <div
+                              key={variant.id}
+                              className="grid grid-cols-12 gap-3 p-4 border border-gray-100 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors duration-200"
+                            >
+                              <div className="col-span-2">
+                                <Input
+                                  placeholder="7*7 cm"
+                                  value={variant.size || ""}
+                                  onChange={(e) =>
+                                    updateVariant(
+                                      variant.id,
+                                      "size",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="text-sm h-10 border-2 border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all duration-200"
+                                />
+                              </div>
+                              <div className="col-span-2">
+                                <Input
+                                  placeholder="Pack de 10"
+                                  value={variant.presentation || ""}
+                                  onChange={(e) =>
+                                    updateVariant(
+                                      variant.id,
+                                      "presentation",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="text-sm h-10 border-2 border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all duration-200"
+                                />
+                              </div>
+                              <div className="col-span-2">
+                                <Input
+                                  placeholder="Ave"
+                                  value={variant.model || ""}
+                                  onChange={(e) =>
+                                    updateVariant(
+                                      variant.id,
+                                      "model",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="text-sm h-10 border-2 border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all duration-200"
+                                />
+                              </div>
+                              <div className="col-span-2">
+                                <Input
+                                  placeholder="Verde"
+                                  value={variant.color || ""}
+                                  onChange={(e) =>
+                                    updateVariant(
+                                      variant.id,
+                                      "color",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="text-sm h-10 border-2 border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all duration-200"
+                                />
+                              </div>
+                              <div className="col-span-2">
+                                <Input
+                                  type="number"
+                                  placeholder="5"
+                                  min="0"
+                                  value={variant.quantity || ""}
+                                  onChange={(e) =>
+                                    updateVariant(
+                                      variant.id,
+                                      "quantity",
+                                      Number.parseInt(e.target.value) || 0
+                                    )
+                                  }
+                                  className="text-sm h-10 border-2 border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all duration-200"
+                                />
+                              </div>
+                              <div className="col-span-2 flex items-center justify-center">
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => removeVariant(variant.id)}
+                                  disabled={variants.length === 1}
+                                  className="w-12 h-10 border-2 border-red-200 hover:border-red-300 hover:bg-red-50 transition-all duration-200"
+                                >
+                                  <Minus className="w-4 h-4 text-red-600 font-bold" />
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      {/* Total de cantidad */}
+                      <div className="flex items-center justify-end gap-4 p-4 bg-gradient-to-r from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 rounded-lg border border-orange-200">
+                        <Label className="flex items-center gap-2 text-orange-700 dark:text-orange-300 font-bold text-lg">
+                          <span className="text-xl">📊</span>
+                          Cantidad Total:
+                        </Label>
+                        <Input
+                          value={getTotalQuantity()}
+                          readOnly
+                          className="w-24 h-12 bg-white font-bold text-lg text-center border-2 border-orange-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-200"
+                        />
+                      </div>
                     </div>
                   </div>
 
-                  {/* Campos adicionales para Almacenaje de Mercancia */}
-                  {service === "Almacenaje de Mercancia" && (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                      <div>
-                        <FormField
-                          control={form.control}
-                          name="weight"
-                          render={({ field }) => (
-                            <FormItem>
-                              <Label className="flex items-center gap-2 text-orange-600 font-medium">
-                                <span className="text-lg">⚖️</span>
-                                Peso (Kg)
-                              </Label>
-                              <FormControl>
-                                <Input
-                                  {...field}
-                                  type="number"
-                                  className="mt-1"
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                      <div>
-                        <FormField
-                          control={form.control}
-                          name="volume"
-                          render={({ field }) => (
-                            <FormItem>
-                              <Label className="flex items-center gap-2 text-orange-600 font-medium">
-                                <span className="text-lg">📦</span>
-                                Volumen
-                              </Label>
-                              <FormControl>
-                                <Input
-                                  {...field}
-                                  type="number"
-                                  className="mt-1"
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                      <div>
-                        <FormField
-                          control={form.control}
-                          name="number_of_boxes"
-                          render={({ field }) => (
-                            <FormItem>
-                              <Label className="flex items-center gap-2 text-orange-600 font-medium">
-                                <span className="text-lg">📦</span>
-                                Nro. cajas
-                              </Label>
-                              <FormControl>
-                                <Input
-                                  {...field}
-                                  type="number"
-                                  className="mt-1"
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                    </div>
-                  )}
-
                   {/* File Upload Section */}
-                  <div className="mb-6">
-                    <Label className="flex items-center gap-2 text-orange-600 font-medium mb-3">
-                      <span className="text-lg">📁</span>
-                      Imágenes
+                  <div className="space-y-4">
+                    <Label className="flex items-center gap-2 text-orange-600 font-semibold text-lg">
+                      <span className="text-xl">📁</span>
+                      Imágenes del Producto
                     </Label>
 
-                    <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4">
+                    <div className="border-2 border-dashed border-orange-300 rounded-xl p-6 bg-gradient-to-r from-orange-50 to-orange-100 dark:from-orange-900/10 dark:to-orange-800/10 hover:border-orange-400 transition-colors duration-200">
                       <FileUploadComponent
                         onFilesChange={setSelectedFiles}
                         resetCounter={resetCounter}
@@ -699,30 +772,31 @@ export default function CreateCotizacionView() {
                     </div>
                   </div>
 
-                  <div className="flex justify-end gap-2">
+                  {/* Botones de acción del formulario */}
+                  <div className="flex justify-end gap-4 pt-6 border-t border-gray-200">
                     {isEditing && (
                       <Button
                         type="button"
                         variant="outline"
                         onClick={handleCancelarEdicion}
-                        className="text-gray-600 border-gray-300 hover:bg-gray-50"
+                        className="text-gray-600 border-2 border-gray-300 hover:bg-gray-50 hover:border-gray-400 px-8 py-3 rounded-lg transition-all duration-200"
                       >
-                        Cancelar
+                        Cancelar Edición
                       </Button>
                     )}
                     <Button
                       type="submit"
-                      className="bg-orange-600 hover:bg-orange-700 text-white"
+                      className="bg-orange-600 hover:bg-orange-700 text-white px-8 py-3 rounded-lg shadow-md transition-all duration-200 hover:shadow-lg flex items-center gap-2"
                       disabled={!form.watch("name")?.trim()}
                     >
                       {isEditing ? (
                         <>
-                          <Edit2 className="w-4 h-4 mr-2" />
+                          <Edit2 className="w-5 h-5" />
                           Actualizar Producto
                         </>
                       ) : (
                         <>
-                          <Plus className="w-4 h-4 mr-2" />
+                          <Plus className="w-5 h-5" />
                           Agregar Producto
                         </>
                       )}
@@ -734,17 +808,17 @@ export default function CreateCotizacionView() {
           </Card>
 
           {/* Tabla de productos */}
-          <div className="w-full p-1 pt-6">
-            <div className="overflow-hidden rounded-sm bg-white dark:bg-gray-900">
-              <div className="border-b border-gray-200 dark:border-gray-700 px-4 py-3">
-                <h3 className="flex items-center font-semibold text-gray-900 dark:text-white">
-                  <PackageOpen className="mr-2 h-5 w-5 text-orange-500" />
+          <div className="w-full">
+            <div className="overflow-hidden rounded-xl bg-white dark:bg-gray-900 shadow-lg border border-gray-200">
+              <div className="border-b border-gray-200 dark:border-gray-700 px-6 py-4 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700">
+                <h3 className="flex items-center font-bold text-gray-900 dark:text-white text-lg">
+                  <PackageOpen className="mr-3 h-6 w-6 text-orange-500" />
                   <span className="text-gray-900 dark:text-white">
                     Productos Cotizados ({productos.length})
                   </span>
                 </h3>
               </div>
-              <div className="w-full overflow-x-auto border-b border-gray-200 dark:border-gray-700 px-4 py-3 bg-white dark:bg-gray-900">
+              <div className="w-full overflow-x-auto px-6 py-4 bg-white dark:bg-gray-900">
                 <DataTable
                   columns={columns}
                   data={productos}
@@ -769,19 +843,19 @@ export default function CreateCotizacionView() {
             </div>
           </div>
 
-          {/* Botones de acción */}
-          <div className="flex justify-end gap-2 mt-8">
+          {/* Botones de acción finales */}
+          <div className="flex justify-end gap-4 pt-8">
             {/* Botón Guardar como borrador */}
             <Button
               variant="secondary"
               onClick={handleGuardarBorrador}
               disabled={isLoading || productos.length === 0}
-              className="bg-orange-500 hover:bg-orange-600  text-white px-8 py-2 rounded-full shadow-md flex items-center gap-2 disabled:opacity-50"
+              className="bg-orange-500 hover:bg-orange-600 text-white px-10 py-4 rounded-xl shadow-lg flex items-center gap-3 disabled:opacity-50 transition-all duration-200 hover:shadow-xl"
             >
               {isLoading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
-                <File className="w-4 h-4" />
+                <File className="w-5 h-5" />
               )}
               Guardar como borrador
             </Button>
@@ -791,12 +865,12 @@ export default function CreateCotizacionView() {
               trigger={
                 <Button
                   disabled={isLoading || productos.length === 0}
-                  className="bg-orange-500 hover:bg-orange-600  text-white px-8 py-2 rounded-full shadow-md flex items-center gap-2 disabled:opacity-50"
+                  className="bg-orange-500 hover:bg-orange-600 text-white px-10 py-4 rounded-xl shadow-lg flex items-center gap-3 disabled:opacity-50 transition-all duration-200 hover:shadow-xl"
                 >
                   {isLoading ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <Loader2 className="w-6 h-6 animate-spin" />
                   ) : (
-                    <Send className="w-5 h-5" />
+                    <Send className="w-6 h-6" />
                   )}
                   Enviar ({productos.length} producto
                   {productos.length !== 1 ? "s" : ""})

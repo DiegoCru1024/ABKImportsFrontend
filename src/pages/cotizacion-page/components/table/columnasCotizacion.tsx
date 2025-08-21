@@ -3,8 +3,9 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { EyeIcon, Trash, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useState } from "react";
-import ImageViewerModal from "@/pages/cotizacion-page/components/ImageViewerModal";
+import ImageCarouselModal from "@/components/ImageCarouselModal";
 
 interface ColumnasCotizacionProps {
   handleEliminar: (index: number) => void;
@@ -35,27 +36,52 @@ export function columnasCotizacion({
         const totalQuantity = variants.reduce((sum, variant) => sum + variant.quantity, 0);
         
         return (
-          <div className="space-y-1">
+          <div className="space-y-2">
             <div className="font-semibold text-orange-600">
               Total: {totalQuantity} unidades
             </div>
-            <div className="space-y-1 max-h-32 overflow-y-auto">
+            <Accordion type="multiple" className="w-full">
               {variants.map((variant, index) => (
-                <div key={variant.id} className="text-xs bg-gray-50 p-2 rounded border">
-                  <div className="grid grid-cols-2 gap-1">
-                    {variant.size && <span><strong>Tamaño:</strong> {variant.size}</span>}
-                    {variant.presentation && <span><strong>Presentación:</strong> {variant.presentation}</span>}
-                    {variant.model && <span><strong>Modelo:</strong> {variant.model}</span>}
-                    {variant.color && <span><strong>Color:</strong> {variant.color}</span>}
-                  </div>
-                  <div className="mt-1">
-                    <Badge variant="secondary" className="text-xs">
-                      Cantidad: {variant.quantity}
-                    </Badge>
-                  </div>
-                </div>
+                <AccordionItem key={variant.id} value={`variant-${index}`} className="border rounded-md mb-1">
+                  <AccordionTrigger className="px-3 py-2 text-sm hover:no-underline">
+                    <div className="flex items-center justify-between w-full">
+                      <span className="font-medium">
+                        Variante {index + 1}
+                        {variant.size && ` - ${variant.size}`}
+                        {variant.model && ` - ${variant.model}`}
+                      </span>
+                      <Badge variant="secondary" className="text-xs ml-2">
+                        {variant.quantity} unidades
+                      </Badge>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-3 pb-3">
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      {variant.size && (
+                        <div>
+                          <span className="font-semibold">Tamaño:</span> {variant.size}
+                        </div>
+                      )}
+                      {variant.presentation && (
+                        <div>
+                          <span className="font-semibold">Presentación:</span> {variant.presentation}
+                        </div>
+                      )}
+                      {variant.model && (
+                        <div>
+                          <span className="font-semibold">Modelo:</span> {variant.model}
+                        </div>
+                      )}
+                      {variant.color && (
+                        <div>
+                          <span className="font-semibold">Color:</span> {variant.color}
+                        </div>
+                      )}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
               ))}
-            </div>
+            </Accordion>
           </div>
         );
       },
@@ -125,7 +151,7 @@ export function columnasCotizacion({
                 <EyeIcon className="w-4 h-4 text-blue-500" />
               </Button>
 
-              <ImageViewerModal
+              <ImageCarouselModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 files={files}

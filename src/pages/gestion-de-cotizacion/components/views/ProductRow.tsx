@@ -58,6 +58,14 @@ const ProductRow: React.FC<ProductRowProps> = ({
   const variants = variantsData;
   const hasMultipleVariants = variants.length > 1;
 
+  // Debug: Ver qué datos tiene el producto
+  console.log("ProductRow - Product data:", {
+    id: product.id,
+    name: product.name,
+    attachments: product.attachments,
+    hasAttachments: product.attachments && product.attachments.length > 0
+  });
+
   // Calcular totales
   const totalQuantity = variants.reduce((sum: number, v: any) => sum + (v.quantity || 0), 0);
   const totalExpress = variants.reduce((sum: number, v: any) => sum + (v.express || 0), 0);
@@ -96,7 +104,7 @@ const ProductRow: React.FC<ProductRowProps> = ({
                     alt={product.name}
                     className="w-full h-full object-cover"
                   />
-                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 flex items-center justify-center">
+                  <div className="absolute inset-0  bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 flex items-center justify-center">
                     <Button
                       variant="ghost"
                       size="sm"

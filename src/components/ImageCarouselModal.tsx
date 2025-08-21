@@ -62,17 +62,37 @@ const ImageCarouselModal: React.FC<ImageCarouselModalProps> = ({
 
   // Obtener nombre de archivo desde URL
   const getFileNameFromUrl = (url: string) => {
+    if (!url || typeof url !== 'string') {
+      console.warn("ImageCarouselModal - Invalid URL:", url);
+      return 'archivo';
+    }
+    
     try {
       const urlObj = new URL(url);
       const pathname = urlObj.pathname;
-      return pathname.split('/').pop() || 'archivo';
-    } catch {
+      const fileName = pathname.split('/').pop();
+      
+      if (fileName && fileName.includes('.')) {
+        return fileName;
+      }
+      
+      // Si no hay extensión, intentar extraer del query string o usar un nombre por defecto
+      return fileName || 'imagen';
+    } catch (error) {
+      console.warn("ImageCarouselModal - Error parsing URL:", url, error);
       return 'archivo';
     }
   };
 
   // Procesar archivos al montar el componente
   useEffect(() => {
+    console.log("ImageCarouselModal - Received data:", {
+      files: files.length,
+      attachments: attachments,
+      productName,
+      attachmentsLength: attachments.length
+    });
+
     const processedFiles: FileItem[] = [];
 
     // Procesar archivos File
@@ -90,16 +110,29 @@ const ImageCarouselModal: React.FC<ImageCarouselModalProps> = ({
 
     // Procesar URLs de attachments
     attachments.forEach((url, index) => {
+      console.log(`Processing attachment ${index}:`, url);
+      
+      if (!url || typeof url !== 'string') {
+        console.warn(`Skipping invalid attachment ${index}:`, url);
+        return;
+      }
+      
       const name = getFileNameFromUrl(url);
+      const isImage = isImageFile('', name);
+      
+      console.log(`Attachment ${index} processed:`, { name, isImage, url });
+      
       processedFiles.push({
         id: `attachment-${index}`,
         name,
         url,
         type: '',
-        isImage: isImageFile('', name),
+        isImage,
         icon: getFileIcon('', name),
       });
     });
+
+    console.log("ImageCarouselModal - Processed files:", processedFiles);
 
     setAllFiles(processedFiles);
     setCurrentIndex(0);
@@ -178,7 +211,7 @@ const ImageCarouselModal: React.FC<ImageCarouselModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl max-h-[90vh] p-0" showCloseButton={false}>
+      <DialogContent className="max-w-xl md:max-w-3xl max-h-[90vh] p-0" showCloseButton={false}>
         {/* Header */}
         <DialogHeader className="p-6 pb-2">
           <DialogTitle className="flex items-center justify-between">

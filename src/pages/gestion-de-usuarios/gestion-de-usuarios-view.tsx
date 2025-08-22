@@ -1,363 +1,28 @@
-import React, { useState, useMemo, useEffect } from "react";
-import { PlusIcon, UserIcon, Users, UserCheck, Shield } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import React from "react";
+import { UserIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/table/data-table";
-import { useGetAllUserProfileWithPagination } from "@/hooks/use-user-hook";
-import type { ColumnDef } from "@tanstack/react-table";
-import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
-import {
-  Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogHeader,
-  DialogFooter,
-  DialogTitle,
-  DialogClose,
-} from "@/components/ui/dialog";
-import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import SendingModal from "@/components/sending-modal";
-import {
-  useCreateUserProfile,
-  useUpdateUserProfile,
-  useDeleteUserProfile,
-} from "@/hooks/use-user-hook";
-import type { UserProfile } from "@/api/apiUser";
+import { useUserManagement } from "./hooks/useUserManagement";
+import { columnsUsuarios } from "./components/columsUsuarios";
+
+import DeleteUserDialog from "./components/DeleteUserDialog";
+import CreateUserDialog from "./components/CreateUserDialog";
+import UserStats from "./components/UserStats";
+import EditUserDialog from "./components/EditUserDialog";
+import ChangePasswordDialog from "./components/ChangePasswordDialog";
 
 function GestionDeUsuarios() {
-  const [users, setUsers] = useState<UserProfile[]>([]);
-  const [pageInfo, setPageInfo] = useState({
-    pageNumber: 1,
-    pageSize: 10,
-    totalElements: 0,
-    totalPages: 0,
-  });
-  const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-  const [sending, setSending] = useState(false);
-
-  // Hook para obtener los usuarios con paginación
   const {
-    data: userData,
+    users,
+    pageInfo,
+    searchTerm,
     isLoading,
     error,
-  } = useGetAllUserProfileWithPagination(searchTerm, currentPage, pageSize);
+    handlePageChange,
+    handleSearch,
+  } = useUserManagement();
 
-  useEffect(() => {
-    if (userData) {
-      setUsers(userData.content);
-      setPageInfo({
-        pageNumber:
-          typeof userData.pageNumber === "string"
-            ? parseInt(userData.pageNumber)
-            : userData.pageNumber,
-        pageSize:
-          typeof userData.pageSize === "string"
-            ? parseInt(userData.pageSize)
-            : userData.pageSize,
-        totalElements: userData.totalElements,
-        totalPages: userData.totalPages,
-      });
-    }
-  }, [userData]);
-  // Datos de los usuarios y información de paginación
-
-  // Estadísticas calculadas
-  const stats = useMemo(() => {
-    const totalUsers = userData?.totalElements || 0;
-    //const activeUsers = users.filter((user: UserProfile) => user.type === "active").length;
-    //const adminUsers = users.filter((user: UserProfile) => user.type === "admin").length;
-
-    return {
-      total: totalUsers,
-      //active: activeUsers,
-      //admins: adminUsers,
-    };
-  }, [users, userData?.totalElements]);
-
-  // Crear usuario dialog
-  const CreateUserDialog: React.FC = () => {
-    const createMutation = useCreateUserProfile();
-    const [open, setOpen] = useState(false);
-    const [form, setForm] = useState({
-      first_name: "",
-      last_name: "",
-      email: "",
-      password: "",
-      dni: "",
-      company_name: "",
-      ruc: "",
-      contact: "",
-      type: "final" as "final" | "admin",
-    });
-    return (
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger asChild>
-          <Button className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-full shadow-md flex items-center gap-2">
-            <PlusIcon className="h-4 w-4" />
-            Crear usuario
-          </Button>
-        </DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Crear Usuario</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <Input
-                value={form.first_name}
-                onChange={(e) => setForm({ ...form, first_name: e.target.value })}
-                placeholder="Nombres"
-              />
-              <Input
-                value={form.last_name}
-                onChange={(e) => setForm({ ...form, last_name: e.target.value })}
-                placeholder="Apellidos"
-              />
-            </div>
-            <Input
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              placeholder="Email"
-            />
-            <Input
-              type="password"
-              value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
-              placeholder="Contraseña"
-            />
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <Input
-                type="number"
-                value={form.dni}
-                onChange={(e) => setForm({ ...form, dni: e.target.value })}
-                placeholder="DNI"
-              />
-              <Input
-                value={form.company_name}
-                onChange={(e) => setForm({ ...form, company_name: e.target.value })}
-                placeholder="Razón Social"
-              />
-              <Input
-                type="number"
-                value={form.ruc}
-                onChange={(e) => setForm({ ...form, ruc: e.target.value })}
-                placeholder="RUC"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <Input
-                type="number"
-                value={form.contact}
-                onChange={(e) => setForm({ ...form, contact: e.target.value })}
-                placeholder="Contacto"
-              />
-              <select
-                className="h-10 px-3 rounded-md border"
-                value={form.type}
-                onChange={(e) => setForm({ ...form, type: e.target.value as "final" | "admin" })}
-              >
-                <option value="final">Final</option>
-                <option value="admin">Admin</option>
-              </select>
-            </div>
-          </div>
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline">Cancelar</Button>
-            </DialogClose>
-            <ConfirmDialog
-              trigger={<Button>Crear</Button>}
-              title="Confirmar creación de usuario"
-              description={`¿Crear usuario ${form.first_name} ${form.last_name}?`}
-              onConfirm={() => {
-                setSending(true);
-                const payload = {
-                  first_name: form.first_name,
-                  last_name: form.last_name,
-                  email: form.email,
-                  password: form.password,
-                  dni: form.dni ? Number(form.dni) : 0,
-                  company_name: form.company_name,
-                  ruc: form.ruc ? Number(form.ruc) : 0,
-                  contact: form.contact ? Number(form.contact) : 0,
-                  type: form.type,
-                };
-                // Agregar el campo 'name' requerido por el tipo 'User'
-                const payloadConNombre = {
-                  ...payload,
-                  name: `${form.first_name} ${form.last_name}`,
-                };
-                createMutation.mutate(
-                  { data: payloadConNombre },
-                  {
-                    onSettled: () => {
-                      setSending(false);
-                      setOpen(false);
-                    },
-                  }
-                );
-              }}
-            />
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    );
-  };
-
-  // Editar usuario dialog
-  const EditUserDialog: React.FC<{ user: UserProfile }> = ({ user }) => {
-    const updateMutation = useUpdateUserProfile(user.id);
-    const [open, setOpen] = useState(false);
-    const [form, setForm] = useState({
-      name: user.name,
-      email: user.email,
-      password: "",
-    });
-    return (
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger asChild>
-          <Button variant="ghost" size="sm">
-            Editar
-          </Button>
-        </DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Editar Usuario</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <Input
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              placeholder="Nombre"
-            />
-            <Input
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              placeholder="Email"
-            />
-            <Input
-              type="password"
-              value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
-              placeholder="Contraseña"
-            />
-          </div>
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline">Cancelar</Button>
-            </DialogClose>
-            <ConfirmDialog
-              trigger={<Button>Actualizar</Button>}
-              title="Confirmar actualización de usuario"
-              description={`¿Actualizar usuario ${user.name}?`}
-              onConfirm={() => {
-                setSending(true);
-                updateMutation.mutate(form, {
-                  onSettled: () => {
-                    setSending(false);
-                    setOpen(false);
-                  },
-                });
-              }}
-            />
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    );
-  };
-
-  // Eliminar usuario dialog
-  const DeleteUserDialog: React.FC<{ user: UserProfile }> = ({ user }) => {
-    const deleteMutation = useDeleteUserProfile(user.id);
-    return (
-      <ConfirmDialog
-        trigger={
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-red-600 hover:text-red-700"
-          >
-            Eliminar
-          </Button>
-        }
-        title="Confirmar eliminación de usuario"
-        description={`¿Eliminar usuario ${user.name}?`}
-        confirmText="Eliminar"
-        onConfirm={() => {
-          setSending(true);
-          deleteMutation.mutate(undefined, {
-            onSettled: () => setSending(false),
-          });
-        }}
-      />
-    );
-  };
-
-  // Definición de columnas para la tabla
-  const columns: ColumnDef<UserProfile>[] = [
-    {
-      accessorKey: "name",
-      header: "Usuario",
-      cell: ({ row }) => {
-        return (
-          <div className="flex items-center space-x-2">
-            <div className="h-8 w-8 rounded-full bg-orange-100 flex items-center justify-center">
-              <UserIcon className="h-4 w-4 text-orange-600" />
-            </div>
-            <span className="font-medium">{row.getValue("name")}</span>
-          </div>
-        );
-      },
-    },
-    {
-      accessorKey: "email",
-      header: "Email",
-      cell: ({ row }) => (
-        <span className="text-muted-foreground">{row.getValue("email")}</span>
-      ),
-    },
-    {
-      accessorKey: "type",
-      header: "Rol",
-      cell: ({ row }) => {
-        const type = row.getValue("type") as string;
-        return (
-          <Badge className="bg-orange-100 text-orange-600 font-medium capitalize">
-            {type}
-          </Badge>
-        );
-      },
-    },
-    {
-      id: "actions",
-      header: "Acciones",
-      cell: ({ row }) => {
-        const user = row.original as UserProfile;
-        return (
-          <div className="flex items-center space-x-2">
-            <EditUserDialog user={user} />
-            <DeleteUserDialog user={user} />
-          </div>
-        );
-      },
-    },
-  ];
-
-  // Manejo de cambio de página
-  const handlePageChange = (page: number, size: number) => {
-    setCurrentPage(page);
-    setPageSize(size);
-  };
-
-  // Manejo de búsqueda
-  const handleSearch = (term: string) => {
-    setSearchTerm(term);
-    setCurrentPage(1); // Resetear a la primera página (1-based)
-  };
+  const columns = columnsUsuarios(EditUserDialog, DeleteUserDialog, ChangePasswordDialog);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-500/5 via-background to-orange-400/10">
@@ -386,55 +51,17 @@ function GestionDeUsuarios() {
       {/* Contenido principal */}
       <div className="p-6">
         {/* Tarjetas de estadísticas */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Total Usuarios
-              </CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.total}</div>
-              <p className="text-xs text-muted-foreground">
-                usuarios registrados
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Usuarios Activos
-              </CardTitle>
-              <UserCheck className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.total}</div>
-              <p className="text-xs text-muted-foreground">usuarios activos</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Administradores
-              </CardTitle>
-              <Shield className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.total}</div>
-              <p className="text-xs text-muted-foreground">
-                con permisos de admin
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+        <UserStats 
+          users={users} 
+          totalUsers={pageInfo.totalElements} 
+        />
 
         {/* Tabla de usuarios */}
-        <Card>
+        <Card className="shadow-lg">
           <CardHeader>
-            <CardTitle>Lista de Usuarios</CardTitle>
+            <CardTitle className="text-xl font-semibold text-gray-900">
+              Lista de Usuarios
+            </CardTitle>
             <p className="text-sm text-muted-foreground">
               Todos los usuarios registrados en el sistema
             </p>
@@ -468,7 +95,6 @@ function GestionDeUsuarios() {
             />
           </CardContent>
         </Card>
-        <SendingModal isOpen={sending} onClose={() => setSending(false)} />
       </div>
     </div>
   );

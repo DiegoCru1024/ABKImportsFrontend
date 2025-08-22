@@ -1,37 +1,17 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  getCurrentUserProfile,
-  getAllUserProfile,
   getUserProfileById,
   updateUserProfile,
   deleteUserProfile,
   registerUser,
   getAllUserProfileWithPagination,
+  changePassword,
 } from "@/api/apiUser";
 import { toast } from "sonner";
-import type { User } from "@/api/interface/user";
+import type { CreateUpdateUser } from "@/api/interface/user";
 
-/**
- * Hook para obtener el perfil del usuario actual
- * @returns {useQuery} - Perfil del usuario actual
- */
-export function useGetCurrentUserProfile() {
-  return useQuery({
-    queryKey: ["currentUserProfile"],
-    queryFn: getCurrentUserProfile,
-  });
-}
 
-/**
- * Hook para obtener todos los usuarios
- * @returns {useQuery} - Todos los usuarios
- */
-export function useGetAllUserProfile() {
-  return useQuery({
-    queryKey: ["allUserProfile"],
-    queryFn: getAllUserProfile,
-  });
-}
+
 
 /**
  * Hook para obtener el perfil de un usuario por su ID
@@ -54,7 +34,7 @@ export function useGetUserProfileById(id: number) {
  */
 export function useGetAllUserProfileWithPagination(searchTerm: string, page: number, size: number) {
   return useQuery({
-    queryKey: ["allUserProfileWithPagination"],
+    queryKey: ["allUserProfileWithPagination", searchTerm, page, size],
     queryFn: () => getAllUserProfileWithPagination(searchTerm, page, size),
   });
 }
@@ -67,7 +47,7 @@ export function useCreateUserProfile() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ data }: { data: User }) => registerUser(data),
+    mutationFn: ({ data }: { data: CreateUpdateUser }) => registerUser(data),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["allUserProfileWithPagination"],
@@ -87,18 +67,19 @@ export function useCreateUserProfile() {
 
 /**
  * Hook para actualizar el perfil de un usuario
- * @param {number} id - El ID del usuario
+ * @param {string} id - El ID del usuario
  * @returns {useMutation} - El perfil del usuario actualizado
  */
-export function useUpdateUserProfile(id: number) {
+export function useUpdateUserProfile(id: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (user: User) => updateUserProfile(id, user),
+    mutationFn: (user: CreateUpdateUser) => updateUserProfile(id, user),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["allUserProfileWithPagination"],
       });
+      toast.success("Usuario actualizado exitosamente");
     },
     onError: (error: any) => {
       console.error("Error al actualizar el usuario:", error);
@@ -113,18 +94,18 @@ export function useUpdateUserProfile(id: number) {
 
 /**
  * Hook para eliminar el perfil de un usuario
- * @param {number} id - El ID del usuario
  * @returns {useMutation} - El perfil del usuario eliminado
  */
-export function useDeleteUserProfile(id: number) {
+export function useDeleteUserProfile() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: () => deleteUserProfile(id),
+    mutationFn: (id: string) => deleteUserProfile(id),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["allUserProfileWithPagination"],
       });
+      toast.success("Usuario eliminado exitosamente");
     },
     onError: (error: any) => {
       console.error("Error al eliminar el usuario:", error);
@@ -132,6 +113,24 @@ export function useDeleteUserProfile(id: number) {
         toast.error(`Error: ${error.message}`);
       } else {
         toast.error("Error desconocido al eliminar el usuario");
+      }
+    },
+  });
+}
+
+
+export function useChangePassword(id: string) {
+  return useMutation({
+    mutationFn: (password: string) => changePassword(Number(id), password),
+    onSuccess: () => {
+      toast.success("Contraseña cambiada exitosamente");
+    },
+    onError: (error: any) => {
+      console.error("Error al cambiar la contraseña:", error);
+      if (error instanceof Error) {
+        toast.error(`Error: ${error.message}`);
+      } else {
+        toast.error("Error desconocido al cambiar la contraseña");
       }
     },
   });

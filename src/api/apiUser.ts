@@ -1,10 +1,11 @@
 import { API_URL } from "../../config";
 import { apiFetch } from "./apiFetch";
-import type { User } from "./interface/user";
+import type {
+  CreateUpdateUser,
+  UserProfileWithPagination,
+} from "./interface/user";
 
-
-
-export const registerUser = async (user: User) => {
+export const registerUser = async (user: CreateUpdateUser) => {
   try {
     return await apiFetch("/users", {
       method: "POST",
@@ -32,8 +33,6 @@ export const getCurrentUserProfile = async () => {
  * @returns {Promise<any>} - Los usuarios
  */
 export const getAllUserProfile = async () => {
-
-
   try {
     return await apiFetch("/users", {
       method: "GET",
@@ -44,46 +43,32 @@ export const getAllUserProfile = async () => {
   }
 };
 
-
-export interface UserProfileWithPagination {
-  content: UserProfile[];
-  pageNumber: number;
-  pageSize: number;
-  totalElements: number;
-  totalPages: number;
-}
-
-export interface UserProfile {
-  id: number;
-  name: string;
-  email: string;
-  type: string;
-}
-
 /**
  * Obtiene todos los usuarios con paginacion   (admin)
  * @returns {Promise<any>} - Los usuarios
  */
-export const getAllUserProfileWithPagination = async (searchTerm: string, page: number, size: number) => {
-
-  const url = new URL(
-    "/users",
-    API_URL
-  )
+export const getAllUserProfileWithPagination = async (
+  searchTerm: string,
+  page: number,
+  size: number
+) => {
+  let url = "/users";
+  const params = new URLSearchParams();
+  
   if (searchTerm) {
-    url.searchParams.append("searchTerm", searchTerm.toString());
+    params.append("searchTerm", searchTerm);
+  }
+  params.append("page", page.toString());
+  params.append("size", size.toString());
+
+  if (params.toString()) {
+    url += `?${params.toString()}`;
   }
 
-  url.searchParams.append("page", page.toString());
-  url.searchParams.append("size", size.toString());
-
   try {
-    const response: UserProfileWithPagination = await apiFetch(
-      `/users?${url.toString()}`,
-      {
-        method: "GET",
-      }
-    );
+    const response: UserProfileWithPagination = await apiFetch(url, {
+      method: "GET",
+    });
     return response;
   } catch (error) {
     console.error("Error al obtener los usuarios:", error);
@@ -107,7 +92,7 @@ export const getUserProfileById = async (id: number) => {
   }
 };
 
-export const updateUserProfile = async (id: number, user: User) => {
+export const updateUserProfile = async (id: string, user: CreateUpdateUser) => {
   try {
     return await apiFetch(`/users/${id}`, {
       method: "PATCH",
@@ -119,7 +104,7 @@ export const updateUserProfile = async (id: number, user: User) => {
   }
 };
 
-export const deleteUserProfile = async (id: number) => {
+export const deleteUserProfile = async (id: string) => {
   try {
     return await apiFetch(`/users/${id}`, {
       method: "DELETE",
@@ -130,3 +115,14 @@ export const deleteUserProfile = async (id: number) => {
   }
 };
 
+export const changePassword = async (id: number, password: string) => {
+  try {
+    return await apiFetch(`/users/${id}/change-password`, {
+      method: "PATCH",
+      body: JSON.stringify(password),
+    });
+  } catch (error) {
+    console.error("Error al cambiar la contraseña del usuario:", error);
+    throw error;
+  }
+};

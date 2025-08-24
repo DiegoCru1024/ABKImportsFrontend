@@ -59,6 +59,12 @@ export const useUserManagement = () => {
     setCurrentPage(1); // Resetear a la primera página
   };
 
+  // Función para limpiar el buscador
+  const clearSearch = () => {
+    setSearchTerm("");
+    setCurrentPage(1);
+  };
+
   return {
     users,
     pageInfo,
@@ -69,5 +75,6 @@ export const useUserManagement = () => {
     error,
     handlePageChange,
     handleSearch,
+    clearSearch,
   };
 };

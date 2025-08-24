@@ -19,10 +19,11 @@ import type { UserProfile } from "@/api/interface/user";
 
 interface ChangePasswordDialogProps {
   user: UserProfile;
+  onOpen?: () => void;
 }
 
-const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({ user }) => {
-  const changePasswordMutation = useChangePassword(Number(user.id));
+const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({ user, onOpen }) => {
+  const changePasswordMutation = useChangePassword(String(user.id));
   const [open, setOpen] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [newPassword, setNewPassword] = useState("");
@@ -57,8 +58,15 @@ const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({ user }) => 
 
   const isFormValid = newPassword.length >= 6 && newPassword === confirmPassword;
 
+  const handleOpenChange = (newOpen: boolean) => {
+    setOpen(newOpen);
+    if (newOpen && onOpen) {
+      onOpen();
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button variant="ghost" size="icon" title="Cambiar contraseña">
           <Lock className="h-4 w-4 text-blue-600" />
@@ -81,15 +89,19 @@ const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({ user }) => 
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="new_password">Nueva Contraseña *</Label>
+              <Label htmlFor="change_password_new">Nueva Contraseña *</Label>
               <div className="relative">
                 <Input
-                  id="new_password"
+                  id="change_password_new"
                   type={showPassword ? "text" : "password"}
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="Mínimo 6 caracteres"
                   className="focus:ring-orange-500 focus:border-orange-500 pr-10"
+                  autoComplete="off"
+                  autoCorrect="off"
+                  autoCapitalize="off"
+                  spellCheck="false"
                 />
                 <button
                   type="button"
@@ -102,14 +114,18 @@ const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({ user }) => 
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="confirm_password">Confirmar Contraseña *</Label>
+              <Label htmlFor="change_password_confirm">Confirmar Contraseña *</Label>
               <Input
-                id="confirm_password"
+                id="change_password_confirm"
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Repita la nueva contraseña"
                 className="focus:ring-orange-500 focus:border-orange-500"
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck="false"
               />
             </div>
 

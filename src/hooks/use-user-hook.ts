@@ -121,7 +121,7 @@ export function useDeleteUserProfile() {
 
 export function useChangePassword(id: string) {
   return useMutation({
-    mutationFn: (password: string) => changePassword(Number(id), password),
+    mutationFn: (password: string) => changePassword(id, password),
     onSuccess: () => {
       toast.success("Contraseña cambiada exitosamente");
     },

@@ -115,11 +115,11 @@ export const deleteUserProfile = async (id: string) => {
   }
 };
 
-export const changePassword = async (id: number, password: string) => {
+export const changePassword = async (id: string, password: string) => {
   try {
-    return await apiFetch(`/users/${id}/change-password`, {
+    return await apiFetch(`/users/${id}/password`, {
       method: "PATCH",
-      body: JSON.stringify(password),
+      body: JSON.stringify({ password }),
     });
   } catch (error) {
     console.error("Error al cambiar la contraseña del usuario:", error);

@@ -38,9 +38,10 @@ interface EditUserForm {
 
 interface EditUserDialogProps {
   user: UserProfile;
+  onOpen?: () => void;
 }
 
-const EditUserDialog: React.FC<EditUserDialogProps> = ({ user }) => {
+const EditUserDialog: React.FC<EditUserDialogProps> = ({ user, onOpen }) => {
   const updateMutation = useUpdateUserProfile(String(user.id));
   const changePasswordMutation = useChangePassword(String(user.id));
 
@@ -130,8 +131,15 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({ user }) => {
     (form.email?.trim() || "").length > 0;
   const isPasswordFormValid = newPassword.length >= 6;
 
+  const handleOpenChange = (newOpen: boolean) => {
+    setOpen(newOpen);
+    if (newOpen && onOpen) {
+      onOpen();
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button
           variant="ghost"
@@ -314,15 +322,19 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({ user }) => {
               </h3>
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="new_password">Nueva Contraseña *</Label>
+                  <Label htmlFor="edit_user_new_password">Nueva Contraseña *</Label>
                   <div className="relative">
                     <Input
-                      id="new_password"
+                      id="edit_user_new_password"
                       type={showPassword ? "text" : "password"}
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                       placeholder="Mínimo 6 caracteres"
                       className="focus:ring-orange-500 focus:border-orange-500 pr-10"
+                      autoComplete="off"
+                      autoCorrect="off"
+                      autoCapitalize="off"
+                      spellCheck="false"
                     />
                     <button
                       type="button"

@@ -32,7 +32,7 @@ interface CreateUserForm {
   company_name: string;
   ruc: string;
   contact: string;
-  type: "final" | "admin";
+  type: "final" | "admin" | "temporal" | "guest";
 }
 
 const CreateUserDialog: React.FC = () => {
@@ -254,6 +254,8 @@ const CreateUserDialog: React.FC = () => {
                   <SelectContent>
                     <SelectItem value="final">Usuario Final</SelectItem>
                     <SelectItem value="admin">Administrador</SelectItem>
+                    <SelectItem value="temporal">Temporal</SelectItem>
+                    <SelectItem value="guest">Invitado</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

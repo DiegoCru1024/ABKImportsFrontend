@@ -27,9 +27,25 @@ export function DataTableToolbar<TData>({
 }: DataTableToolbarProps<TData>) {
   const [debounceTimeout, setDebounceTimeout] =
     React.useState<NodeJS.Timeout | null>(null);
+  const [inputValue, setInputValue] = React.useState(searchTerm);
+  const inputRef = React.useRef<HTMLInputElement>(null);
+
+  // Sincronizar el valor del input con el searchTerm cuando cambie
+  React.useEffect(() => {
+    setInputValue(searchTerm);
+  }, [searchTerm]);
+
+  // Limpiar el input cuando se monta el componente para evitar autocompletado
+  React.useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.value = "";
+      setInputValue("");
+    }
+  }, []);
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
+    setInputValue(value); // Actualizar el estado local inmediatamente
 
     // Debounce para evitar llamadas excesivas al API
     if (debounceTimeout) {
@@ -43,16 +59,38 @@ export function DataTableToolbar<TData>({
     setDebounceTimeout(timeout);
   };
 
+  const handleInputFocus = () => {
+    // Limpiar cualquier autocompletado cuando el usuario hace focus
+    if (inputRef.current && inputRef.current.value !== inputValue) {
+      inputRef.current.value = inputValue;
+    }
+  };
+
+  const handleInputBlur = () => {
+    // Asegurar que el valor del input coincida con el estado
+    if (inputRef.current && inputRef.current.value !== inputValue) {
+      inputRef.current.value = inputValue;
+    }
+  };
+
   return (
     <div className="flex items-center justify-between">
       <div className="flex flex-1 items-center gap-2">
         {showSearch && (
           <div className="relative">
             <Input
+              ref={inputRef}
               placeholder="Buscar"
-              defaultValue={searchTerm} // Mostramos el término actual
+              value={inputValue}
               onChange={handleInputChange}
+              onFocus={handleInputFocus}
+              onBlur={handleInputBlur}
               className="h-8 w-48 md:w-72"
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="off"
+              spellCheck="false"
+              data-form-type="other"
             />
             <Search className="absolute right-2 top-1.5 h-4 w-4 text-muted-foreground" />
           </div>

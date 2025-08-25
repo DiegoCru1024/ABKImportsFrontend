@@ -788,11 +788,6 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
     );
   }
 
-  if (isError || !quotationDetail) {
-    // Mostrar productos de ejemplo si no hay datos de cotización
-    console.log("Mostrando productos de ejemplo");
-  }
-
   return (
     <div className="space-y-6 p-4 min-h-screen ">
       {/* Header Bento Grid */}
@@ -812,9 +807,9 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                 <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
                   {/* Información del Cliente */}
                   <div className="xl:col-span-2">
-                    <Card className="shadow-lg border-0">
-                      <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100 border-b border-blue-200">
-                        <CardTitle className="flex items-center gap-3 text-xl text-blue-800">
+                    <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200 shadow-lg">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-3 text-xl text-green-800">
                           <FileText className="h-6 w-6" />
                           Información del Cliente
                         </CardTitle>
@@ -959,22 +954,6 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                           </div>
                         </div>
 
-                        <div className="bg-white rounded-lg p-4 border border-blue-200">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
-                              <User className="h-5 w-5 text-white" />
-                            </div>
-                            <div>
-                              <div className="text-sm font-semibold text-gray-800">
-                                Kevin Cordova
-                              </div>
-                              <div className="text-xs text-gray-600">
-                                supplychain@abkimp...
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
                         <div className="space-y-2">
                           <Label
                             htmlFor="service"
@@ -1007,143 +986,154 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                 </div>
 
                 {/* Tabla de productos mejorada */}
-                <Card className="bg-white shadow-xl border-0 overflow-hidden">
-                  <CardHeader className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
-                    <CardTitle className="flex items-center gap-3 text-xl text-gray-800">
-                      <Package className="h-6 w-6 text-blue-600" />
-                      Gestión de Productos
-                    </CardTitle>
-                    <CardDescription className="text-gray-600">
-                      Administre los productos de la cotización con sus
-                      variantes y configuraciones
-                    </CardDescription>
+                <Card className="bg-white shadow-lg border border-gray-100 overflow-hidden rounded-2xl">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg shadow-sm">
+                          <Package className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                          <CardTitle className="text-xl font-semibold text-slate-800">
+                            Gestión de Productos
+                          </CardTitle>
+                          <CardDescription className="text-slate-600 mt-1">
+                            Administre los productos de la cotización con sus
+                            variantes y configuraciones
+                          </CardDescription>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
+                          {quotationDetail?.products?.length || 0} productos
+                        </div>
+                      </div>
+                    </div>
                   </CardHeader>
-                  {/* Header con indicadores mejorado */}
-                  <div className="bg-gradient-to-br from-orange-500 via-orange-600 to-orange-700 text-white rounded-2xl shadow-xl p-8">
-                    <div className="text-center mb-8">
-                      <h2 className="text-3xl font-bold mb-2">
-                        RESUMEN DE COTIZACIÓN
-                      </h2>
-                    </div>
+                  <CardContent>
+                    {/* Header con indicadores mejorado */}
+                    <div className="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 border border-slate-200/60 rounded-xl p-6">
+                      <div className="text-center mb-6">
+                        <h2 className="text-2xl font-bold text-slate-800 mb-2">
+                          Resumen de Cotización
+                        </h2>
+                        <p className="text-slate-600 text-sm">
+                          Información general de la cotización actual
+                        </p>
+                      </div>
 
-                    {/* Indicadores principales con mejor diseño */}
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-                      <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 text-center border border-white/20 hover:bg-white/20 transition-all duration-300">
-                        <div className="text-2xl font-bold mb-1">
-                          {quotationDetail?.products?.reduce(
-                            (sum, p) => sum + (Number(p.quantity) || 0),
-                            0
-                          ) || 0}
+                      {/* Indicadores principales con mejor diseño */}
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 items-center justify-center">
+                        {/* Pirmer indicador */}
+                        <div className="bg-white rounded-lg p-4 text-center border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200">
+                          <div className="text-xl font-bold text-slate-800 mb-1">
+                            {quotationDetail?.products?.length || 0}
+                          </div>
+                          <div className="text-xs font-medium text-slate-600">
+                            N° PRODUCTOS
+                          </div>
                         </div>
-                        <div className="text-sm font-medium text-red-100">
-                          N° BULTOS
+                        {/* Segundo indicador */}
+                        <div className="bg-white rounded-lg p-4 text-center border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200">
+                          <div className="text-xl font-bold text-slate-800 mb-1">
+                            {quotationDetail?.products
+                              ?.reduce(
+                                (sum, p) => sum + (Number(p.volume) || 0),
+                                0
+                              )
+                              .toFixed(2) || 0}
+                          </div>
+                          <div className="text-xs font-medium text-slate-600">
+                            CBM TOTAL
+                          </div>
                         </div>
-                      </div>
-                      <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 text-center border border-white/20 hover:bg-white/20 transition-all duration-300">
-                        <div className="text-2xl font-bold mb-1">
-                          {quotationDetail?.products?.length || 0}
+                        {/* Tercer indicador */}
+                        <div className="bg-white rounded-lg p-4 text-center border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200">
+                          <div className="text-xl font-bold text-slate-800 mb-1">
+                            {quotationDetail?.products
+                              ?.reduce(
+                                (sum, p) => sum + (Number(p.weight) || 0),
+                                0
+                              )
+                              .toFixed(1) || 0}
+                          </div>
+                          <div className="text-xs font-medium text-slate-600">
+                            PESO (KG)
+                          </div>
                         </div>
-                        <div className="text-sm font-medium text-red-100">
-                          N° PRODUCTOS
+                        {/* Cuarto indicador */}
+                        <div className="bg-white rounded-lg p-4 text-center border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200">
+                          <div className="text-xl font-bold text-emerald-600 mb-1">
+                            ${totalExpressAirFreight.toFixed(2)}
+                          </div>
+                          <div className="text-xs font-medium text-slate-600">
+                            EXPRESS
+                          </div>
                         </div>
-                      </div>
-                      <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 text-center border border-white/20 hover:bg-white/20 transition-all duration-300">
-                        <div className="text-2xl font-bold mb-1">
-                          {quotationDetail?.products
-                            ?.reduce(
-                              (sum, p) => sum + (Number(p.volume) || 0),
-                              0
-                            )
-                            .toFixed(2) || 0}
-                        </div>
-                        <div className="text-sm font-medium text-red-100">
-                          CBM TOTAL
-                        </div>
-                      </div>
-                      <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 text-center border border-white/20 hover:bg-white/20 transition-all duration-300">
-                        <div className="text-2xl font-bold mb-1">
-                          {quotationDetail?.products
-                            ?.reduce(
-                              (sum, p) => sum + (Number(p.weight) || 0),
-                              0
-                            )
-                            .toFixed(1) || 0}
-                        </div>
-                        <div className="text-sm font-medium text-red-100">
-                          PESO (KG)
-                        </div>
-                      </div>
-                      <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 text-center border border-white/20 hover:bg-white/20 transition-all duration-300">
-                        <div className="text-2xl font-bold mb-1">
-                          ${totalExpressAirFreight.toFixed(2)}
-                        </div>
-                        <div className="text-sm font-medium text-red-100">
-                          EXPRESS
-                        </div>
-                      </div>
-                      <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 text-center border border-white/20 hover:bg-white/20 transition-all duration-300">
-                        <div className="text-2xl font-bold mb-1">
-                          ${totalPrecioTotal.toFixed(2)}
-                        </div>
-                        <div className="text-sm font-medium text-red-100">
-                          TOTAL
+                        {/* Quinto indicador */}
+                        <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg p-4 text-center shadow-sm hover:shadow-md transition-all duration-200">
+                          <div className="text-xl font-bold text-white mb-1">
+                            ${totalPrecioTotal.toFixed(2)}
+                          </div>
+                          <div className="text-xs font-medium text-emerald-100">
+                            TOTAL
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-
+                  </CardContent>
                   <div className="overflow-x-auto">
                     <table className="w-full min-w-max">
                       <thead>
-                        <tr className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-200">
-                          <th className="text-left p-6 text-sm font-bold text-blue-800 w-16">
-                            #
+                        <tr className="bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200">
+                          <th className="text-left p-4 text-xs font-semibold text-slate-700 uppercase tracking-wider w-16">
+                            Nro.
                           </th>
-                          <th className="text-left p-6 text-sm font-bold text-blue-800 w-40">
+                          <th className="text-left p-4 text-xs font-semibold text-slate-700 uppercase tracking-wider w-40">
                             <div className="flex items-center gap-2">
-                              <ImageIcon className="h-5 w-5" />
+                              <ImageIcon className="h-4 w-4 text-slate-600" />
                               Imagen & URL
                             </div>
                           </th>
-                          <th className="text-left p-6 text-sm font-bold text-blue-800 min-w-72">
+                          <th className="text-left p-4 text-xs font-semibold text-slate-700 uppercase tracking-wider min-w-72">
                             <div className="flex items-center gap-2">
-                              <Package className="h-5 w-5" />
+                              <Package className="h-4 w-4 text-slate-600" />
                               Producto & Variantes
                             </div>
                           </th>
-                          <th className="text-left p-6 text-sm font-bold text-blue-800 w-48">
+                          <th className="text-left p-4 text-xs font-semibold text-slate-700 uppercase tracking-wider w-48">
                             <div className="flex items-center gap-2">
-                              <ListIcon className="h-5 w-5 text-green-600" />
+                              <ListIcon className="h-4 w-4 text-emerald-600" />
                               Packing List
                             </div>
                           </th>
-                          <th className="text-left p-6 text-sm font-bold text-blue-800 w-52">
+                          <th className="text-left p-4 text-xs font-semibold text-slate-700 uppercase tracking-wider w-52">
                             <div className="flex items-center gap-2">
-                              <Truck className="h-5 w-5 text-purple-600" />
+                              <Truck className="h-4 w-4 text-indigo-600" />
                               Manipulación de Carga
                             </div>
                           </th>
-                          <th className="text-left p-6 text-sm font-bold text-blue-800 w-44">
+                          <th className="text-left p-4 text-xs font-semibold text-slate-700 uppercase tracking-wider w-44">
                             <div className="flex items-center gap-2">
-                              <LinkIcon className="h-5 w-5 text-amber-600" />
+                              <LinkIcon className="h-4 w-4 text-amber-600" />
                               URL Fantasma
                             </div>
                           </th>
-                          <th className="text-left p-6 text-sm font-bold text-blue-800 w-32">
+                          <th className="text-left p-4 text-xs font-semibold text-slate-700 uppercase tracking-wider w-32">
                             <div className="flex items-center gap-2">
-                              <DollarSign className="h-5 w-5 text-green-600" />
+                              <DollarSign className="h-4 w-4 text-emerald-600" />
                               Precio
                             </div>
                           </th>
-                          <th className="text-left p-6 text-sm font-bold text-blue-800 w-32">
+                          <th className="text-left p-4 text-xs font-semibold text-slate-700 uppercase tracking-wider w-32">
                             <div className="flex items-center gap-2">
-                              <Truck className="h-5 w-5 text-orange-600" />
+                              <Truck className="h-4 w-4 text-orange-600" />
                               Express
                             </div>
                           </th>
-                          <th className="text-left p-6 text-sm font-bold text-blue-800 w-40">
+                          <th className="text-left p-4 text-xs font-semibold text-slate-700 uppercase tracking-wider w-40">
                             <div className="flex items-center gap-2">
-                              <DollarSign className="h-5 w-5 text-emerald-600" />
+                              <DollarSign className="h-4 w-4 text-emerald-600" />
                               Total
                             </div>
                           </th>

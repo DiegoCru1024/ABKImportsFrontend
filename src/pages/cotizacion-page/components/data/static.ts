@@ -6,27 +6,27 @@ export const servicios = [
   },
   {
     id: 2,
-    value: "Consolidado Express",
+    value: "consolidated-express",
     label: "Consolidado Express",
   },
   {
     id: 3,
-    value: "Consolidado Grupal Express",
+    value: "consolidated-express-group",
     label: "Consolidado Grupal Express",
   },
   {
     id: 4,
-    value: "Consolidado Maritimo",
+    value: "consolidated-maritime",
     label: "Consolidado Maritimo",
   },
   {
     id: 5,
-    value: "Consolidado Grupal Maritimo",
+    value: "consolidated-maritime-group",
     label: "Consolidado Grupal Maritimo",
   },
   {
     id: 6,
-    value: "Almacenaje de Mercancia",
+    value: "storage-of-merchandise",
     label: "Almacenaje de Mercancia",
   },
 ];

@@ -19,6 +19,18 @@ export function columnasCotizacion({
 }: ColumnasCotizacionProps): ColumnDef<ProductWithVariants & { files?: File[] }, any>[] {
   return [
     {
+      id: "item",
+      header: "Item",
+      cell: ({ row }) => (
+        <div className="font-semibold text-center text-gray-700 dark:text-gray-300">
+          {row.index + 1}
+        </div>
+      ),
+      minSize: 60,
+      size: 80,
+      maxSize: 100,
+    },
+    {
       id: "name",
       accessorKey: "name",
       header: "Nombre",

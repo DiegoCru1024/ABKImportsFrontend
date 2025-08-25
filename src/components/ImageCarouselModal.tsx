@@ -86,12 +86,12 @@ const ImageCarouselModal: React.FC<ImageCarouselModalProps> = ({
 
   // Procesar archivos al montar el componente
   useEffect(() => {
-    console.log("ImageCarouselModal - Received data:", {
+    /*console.log("ImageCarouselModal - Received data:", {
       files: files.length,
       attachments: attachments,
       productName,
       attachmentsLength: attachments.length
-    });
+    });*/
 
     const processedFiles: FileItem[] = [];
 
@@ -110,7 +110,7 @@ const ImageCarouselModal: React.FC<ImageCarouselModalProps> = ({
 
     // Procesar URLs de attachments
     attachments.forEach((url, index) => {
-      console.log(`Processing attachment ${index}:`, url);
+      //console.log(`Processing attachment ${index}:`, url);
       
       if (!url || typeof url !== 'string') {
         console.warn(`Skipping invalid attachment ${index}:`, url);
@@ -120,7 +120,7 @@ const ImageCarouselModal: React.FC<ImageCarouselModalProps> = ({
       const name = getFileNameFromUrl(url);
       const isImage = isImageFile('', name);
       
-      console.log(`Attachment ${index} processed:`, { name, isImage, url });
+      //console.log(`Attachment ${index} processed:`, { name, isImage, url });
       
       processedFiles.push({
         id: `attachment-${index}`,
@@ -132,7 +132,7 @@ const ImageCarouselModal: React.FC<ImageCarouselModalProps> = ({
       });
     });
 
-    console.log("ImageCarouselModal - Processed files:", processedFiles);
+    //console.log("ImageCarouselModal - Processed files:", processedFiles);
 
     setAllFiles(processedFiles);
     setCurrentIndex(0);

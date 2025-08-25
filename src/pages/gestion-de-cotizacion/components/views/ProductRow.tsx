@@ -223,10 +223,11 @@ const ProductRow: React.FC<ProductRowProps> = ({
 
         {/* Columna Packing List */}
         <td className="p-4">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
+          <div className="space-y-2 grid grid-cols-2 gap-2">
+
+            <div className="flex flex-col items-center gap-2">
               <Badge className="text-xs font-medium text-red-800 bg-red-50 border border-red-200">
-                n° Cajas
+                Nro. Cajas
               </Badge>
               <div className="w-16">
                 <Input
@@ -238,7 +239,8 @@ const ProductRow: React.FC<ProductRowProps> = ({
                 />
               </div>
             </div>
-            <div className="flex items-center gap-2">
+
+            <div className="flex flex-col items-center gap-2">
               <Badge className="text-xs font-medium text-blue-800 bg-blue-50 border border-blue-200">
                 CBM
               </Badge>
@@ -252,7 +254,7 @@ const ProductRow: React.FC<ProductRowProps> = ({
                 />
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col items-center gap-2">
               <Badge className="text-xs font-medium text-green-800 bg-green-50 border border-green-200">
                 PESO KG
               </Badge>
@@ -266,7 +268,7 @@ const ProductRow: React.FC<ProductRowProps> = ({
                 />
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col items-center gap-2">
               <Badge className="text-xs font-medium text-purple-800 bg-purple-50 border border-purple-200">
                 PESO TON
               </Badge>
@@ -401,13 +403,13 @@ const ProductRow: React.FC<ProductRowProps> = ({
             <div className="bg-gray-50 border-t">
               {/* Variants Header */}
               <div className="grid grid-cols-8 gap-2 p-3 bg-gray-100 text-xs font-semibold text-gray-600">
-                <div className="text-center">PRESENTACIÓN</div>
-                <div className="text-center">MODELO</div>
-                <div className="text-center">COLOR</div>
+                <div className="text-center">Presentación</div>
+                <div className="text-center">Modelo</div>
+                <div className="text-center">Color</div>
                 <div className="text-center">Tamaño</div>
-                <div className="text-center text-orange-500"># Variante</div>
-                <div className="text-center">XPRESS</div>
-                <div className="text-center text-green-600">$Precio</div>
+                <div className="text-center text-orange-500">Cantidad</div>
+                <div className="text-center">Express</div>
+                <div className="text-center text-green-600">$Precio Unitario</div>
                 <div></div>
               </div>
 

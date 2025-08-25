@@ -1,5 +1,5 @@
 import "./App.css";
-import { Routes, Route, Navigate, useParams } from "react-router-dom";
+import { Routes, Route, Navigate, useParams, useSearchParams } from "react-router-dom";
 import Tracking from "@/pages/Tracking";
 
 
@@ -15,6 +15,7 @@ import GestionDeTracking from "@/pages/gestion-de-tracking";
 import GestionDeMercanciasView from "@/pages/gestion-de-mercancia/gestion-de-mercancias-view";
 import InspectionDetailView from "@/pages/gestion-de-mercancia/inspection-detail-view";
 import CreateCotizacionView from "@/pages/cotizacion-page/create-cotizacion-view";
+import EditCotizacionView from "@/pages/cotizacion-page/edit-cotizacion-view";
 import MisCotizacionesView from "@/pages/mis-cotizaciones/mis-cotizacion-view";
 import ShipmentDetailView from "@/pages/shipment-detail-view";
 import Calculador from "./pages/calculator";
@@ -104,6 +105,10 @@ function App() {
           path="/dashboard/mis-cotizaciones"
           element={<MisCotizacionesView />}
         />
+        <Route
+          path="/dashboard/editar/:quotationId"
+          element={<EditarCotizacionRoute />}
+        />
       </Route>
 
       {/* Cualquier otra ruta redirige al login */}
@@ -140,4 +145,22 @@ function GestionDeCotizacionResponderRoute() {
   const { quotationId } = useParams();
   if (!quotationId) return <Navigate to="/dashboard/gestion-de-cotizacion" replace />;
   return <DetailsResponse selectedQuotationId={quotationId} />;
+}
+
+function EditarCotizacionRoute() {
+  const { quotationId } = useParams();
+  const [searchParams] = useSearchParams();
+  
+  if (!quotationId) return <Navigate to="/dashboard/mis-cotizaciones" replace />;
+  
+  // Obtener el status desde los parámetros de la URL, por defecto "pending"
+  const statusQuotation = searchParams.get("status") || "pending";
+  
+  return (
+    <EditCotizacionView
+      quotationId={quotationId}
+      onBack={() => window.history.back()}
+      statusQuotation={statusQuotation}
+    />
+  );
 }

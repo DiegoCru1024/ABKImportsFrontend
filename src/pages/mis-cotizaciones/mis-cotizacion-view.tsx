@@ -6,13 +6,12 @@ import { DataTable } from "@/components/table/data-table";
 import { useGetQuotationsListWithPagination } from "@/hooks/use-quation";
 import { columnsQuotationsList } from "./components/table/columnsQuotationsList";
 import ResponseCotizacionView from "./respuesta-cotizacion-view";
-import EditCotizacionView from "../cotizacion-page/edit-cotizacion-view";
 import ConfirmationModal from "@/components/modal-confirmation";
 import SendingModal from "@/components/sending-modal";
 import { useDeleteQuotation } from "@/hooks/use-quation";
 import { useNavigate } from "react-router-dom";
 
-type ViewType = "list" | "details" | "edit";
+type ViewType = "list" | "details";
 
 export default function MisCotizacionesView() {
   const navigate = useNavigate();
@@ -20,7 +19,6 @@ export default function MisCotizacionesView() {
   const [data, setData] = useState<any[]>([]);
   const [selectedQuotationId, setSelectedQuotationId] = useState<string>("");
   const [selectedCorrelative, setSelectedCorrelative] = useState<string>("");
-  const [statusQuotation, setStatusQuotation] = useState<string>("");
   const [isOpen, setIsOpen] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [quotationToDelete, setQuotationToDelete] = useState<string>("");
@@ -84,10 +82,8 @@ export default function MisCotizacionesView() {
     correlative: string,
     status: string
   ) => {
-    setSelectedQuotationId(quotationId);
-    setSelectedCorrelative(correlative);
-    setCurrentView("edit");
-    setStatusQuotation(status);
+    // Redirigir a la nueva ruta de edición con el status como parámetro
+    navigate(`/dashboard/editar/${quotationId}?status=${status}`);
   };
 
   const handleBackToList = () => {
@@ -320,16 +316,7 @@ export default function MisCotizacionesView() {
     );
   }
 
-  // Vista de edición
-  if (currentView === "edit" && selectedQuotationId) {
-    return (
-      <EditCotizacionView
-        quotationId={selectedQuotationId}
-        onBack={handleBackToList}
-        statusQuotation={statusQuotation}
-      />
-    );
-  }
+
 
   return null;
 }

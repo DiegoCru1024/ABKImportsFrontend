@@ -226,6 +226,9 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
     }>
   >([]);
 
+  //* Estado para productos con variantes editables
+  const [editableProductsWithVariants, setEditableProductsWithVariants] = useState<any[]>([]);
+
   //* Función para detectar si es servicio marítimo
   const isMaritimeService = (serviceType: string) => {
     return (
@@ -322,6 +325,54 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
     0
   );
   const totalPrecioTotal = totalExpressAirFreight + totalAgenteXiaoYi;
+
+  //* Calcular totales dinámicos para productos con variantes
+  const calculateDynamicTotals = () => {
+    if (!quotationDetail?.products) return { totalCBM: 0, totalWeight: 0, totalExpress: 0, totalPrice: 0 };
+
+    let totalCBM = 0;
+    let totalWeight = 0;
+    let totalExpress = 0;
+    let totalPrice = 0;
+
+    // Usar productos editables si están disponibles, sino usar los originales
+    const productsToCalculate = editableProductsWithVariants.length > 0 
+      ? editableProductsWithVariants 
+      : quotationDetail.products;
+
+    productsToCalculate.forEach((product: any) => {
+      // Sumar CBM y peso del producto desde los campos editables
+      const editableProduct = editablePendingProducts.find(p => p.id === product.id);
+      if (editableProduct) {
+        totalCBM += Number(editableProduct.cbm) || 0;
+        totalWeight += Number(editableProduct.weight) || 0;
+      } else {
+        // Fallback a los valores originales si no hay producto editable
+        totalCBM += Number(product.volume) || 0;
+        totalWeight += Number(product.weight) || 0;
+      }
+
+      // Calcular totales de precio y express basado en variantes
+      const variants = product.variants || [];
+      if (variants.length === 1) {
+        // Producto con una sola variante
+        const variant = variants[0];
+        totalExpress += Number(variant.express) || 0;
+        totalPrice += (Number(variant.price) || 0) * (Number(variant.quantity) || 0);
+      } else if (variants.length > 1) {
+        // Producto con múltiples variantes
+        variants.forEach((variant: any) => {
+          totalExpress += Number(variant.express) || 0;
+          totalPrice += (Number(variant.price) || 0) * (Number(variant.quantity) || 0);
+        });
+      }
+    });
+
+    return { totalCBM, totalWeight, totalExpress, totalPrice };
+  };
+
+  const { totalCBM, totalWeight, totalExpress, totalPrice } = calculateDynamicTotals();
+  const totalGeneral = totalPrice + totalExpress;
   //* Calcular IGV de los servicios
   const igvServices = subtotalServices * 0.18;
   const totalServices = subtotalServices + igvServices;
@@ -524,18 +575,38 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
               updatedProduct.express;
           }
 
-          // Manejar campos de variantes
-          if (field.startsWith("variant_")) {
-            console.log("Actualizando variante:", field, value);
-            // Los campos de variantes se manejan directamente en el estado local del ProductRow
-            // Aquí solo actualizamos el producto principal si es necesario
-          }
-
           return updatedProduct;
         }
         return product;
       })
     );
+
+    // Manejar cambios en variantes para actualizar el estado local
+    if (field.startsWith("variant_")) {
+      const parts = field.split("_");
+      const variantIndex = parseInt(parts[1]);
+      const variantField = parts[2];
+      
+      setEditableProductsWithVariants((prev) =>
+        prev.map((product) => {
+          if (product.id === productId) {
+            const updatedVariants = [...(product.variants || [])];
+            if (updatedVariants[variantIndex]) {
+              updatedVariants[variantIndex] = {
+                ...updatedVariants[variantIndex],
+                [variantField]: value
+              };
+            }
+            
+            return {
+              ...product,
+              variants: updatedVariants
+            };
+          }
+          return product;
+        })
+      );
+    }
   };
 
   //********llamado a funcion para obtener datos del asesor */
@@ -775,6 +846,21 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
       setEditablePendingProducts(initialPendingProducts);
     }
   }, [quotationDetail, editablePendingProducts.length]);
+
+  //* Inicializar productos con variantes editables
+  useEffect(() => {
+    if (quotationDetail?.products && editableProductsWithVariants.length === 0) {
+      const initialProductsWithVariants = quotationDetail.products.map((product: any) => ({
+        ...product,
+        variants: product.variants?.map((variant: any) => ({
+          ...variant,
+          price: variant.price || 0,
+          express: variant.express || 0,
+        })) || []
+      }));
+      setEditableProductsWithVariants(initialProductsWithVariants);
+    }
+  }, [quotationDetail, editableProductsWithVariants.length]);
 
   if (isLoading) {
     return (
@@ -1022,64 +1108,54 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                         </p>
                       </div>
 
-                      {/* Indicadores principales con mejor diseño */}
-                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 items-center justify-center">
-                        {/* Pirmer indicador */}
-                        <div className="bg-white rounded-lg p-4 text-center border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200">
-                          <div className="text-xl font-bold text-slate-800 mb-1">
-                            {quotationDetail?.products?.length || 0}
-                          </div>
-                          <div className="text-xs font-medium text-slate-600">
-                            N° PRODUCTOS
-                          </div>
-                        </div>
-                        {/* Segundo indicador */}
-                        <div className="bg-white rounded-lg p-4 text-center border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200">
-                          <div className="text-xl font-bold text-slate-800 mb-1">
-                            {quotationDetail?.products
-                              ?.reduce(
-                                (sum, p) => sum + (Number(p.volume) || 0),
-                                0
-                              )
-                              .toFixed(2) || 0}
-                          </div>
-                          <div className="text-xs font-medium text-slate-600">
-                            CBM TOTAL
-                          </div>
-                        </div>
-                        {/* Tercer indicador */}
-                        <div className="bg-white rounded-lg p-4 text-center border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200">
-                          <div className="text-xl font-bold text-slate-800 mb-1">
-                            {quotationDetail?.products
-                              ?.reduce(
-                                (sum, p) => sum + (Number(p.weight) || 0),
-                                0
-                              )
-                              .toFixed(1) || 0}
-                          </div>
-                          <div className="text-xs font-medium text-slate-600">
-                            PESO (KG)
-                          </div>
-                        </div>
-                        {/* Cuarto indicador */}
-                        <div className="bg-white rounded-lg p-4 text-center border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200">
-                          <div className="text-xl font-bold text-emerald-600 mb-1">
-                            ${totalExpressAirFreight.toFixed(2)}
-                          </div>
-                          <div className="text-xs font-medium text-slate-600">
-                            EXPRESS
-                          </div>
-                        </div>
-                        {/* Quinto indicador */}
-                        <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg p-4 text-center shadow-sm hover:shadow-md transition-all duration-200">
-                          <div className="text-xl font-bold text-white mb-1">
-                            ${totalPrecioTotal.toFixed(2)}
-                          </div>
-                          <div className="text-xs font-medium text-emerald-100">
-                            TOTAL
-                          </div>
-                        </div>
-                      </div>
+                                             {/* Indicadores principales con mejor diseño */}
+                       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 items-center justify-center max-w-4xl mx-auto">
+                         {/* Primer indicador */}
+                         <div className="bg-white rounded-lg p-4 text-center border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200">
+                           <div className="text-xl font-bold text-slate-800 mb-1">
+                             {quotationDetail?.products?.length || 0}
+                           </div>
+                           <div className="text-xs font-medium text-slate-600">
+                             N° PRODUCTOS
+                           </div>
+                         </div>
+                         {/* Segundo indicador */}
+                         <div className="bg-white rounded-lg p-4 text-center border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200">
+                           <div className="text-xl font-bold text-slate-800 mb-1">
+                             {totalCBM.toFixed(2)}
+                           </div>
+                           <div className="text-xs font-medium text-slate-600">
+                             CBM TOTAL
+                           </div>
+                         </div>
+                         {/* Tercer indicador */}
+                         <div className="bg-white rounded-lg p-4 text-center border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200">
+                           <div className="text-xl font-bold text-slate-800 mb-1">
+                             {totalWeight.toFixed(1)}
+                           </div>
+                           <div className="text-xs font-medium text-slate-600">
+                             PESO (KG)
+                           </div>
+                         </div>
+                         {/* Cuarto indicador */}
+                         <div className="bg-white rounded-lg p-4 text-center border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200">
+                           <div className="text-xl font-bold text-emerald-600 mb-1">
+                             ${totalExpress.toFixed(2)}
+                           </div>
+                           <div className="text-xs font-medium text-slate-600">
+                             EXPRESS
+                           </div>
+                         </div>
+                         {/* Quinto indicador */}
+                         <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg p-4 text-center shadow-sm hover:shadow-md transition-all duration-200">
+                           <div className="text-xl font-bold text-white mb-1">
+                             ${totalGeneral.toFixed(2)}
+                           </div>
+                           <div className="text-xs font-medium text-emerald-100">
+                             TOTAL
+                           </div>
+                         </div>
+                       </div>
                     </div>
                   </CardContent>
                   <div className="overflow-x-auto">
@@ -1140,16 +1216,28 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                         </tr>
                       </thead>
                       <tbody>
-                        {quotationDetail?.products?.map((product, index) => (
-                          <ProductRow
-                            key={product.id}
-                            product={product}
-                            index={index}
-                            quotationDetail={quotationDetail}
-                            onProductChange={handlePendingProductChange}
-                            editableProducts={editablePendingProducts}
-                          />
-                        ))}
+                        {editableProductsWithVariants.length > 0 
+                          ? editableProductsWithVariants.map((product, index) => (
+                              <ProductRow
+                                key={product.id}
+                                product={product}
+                                index={index}
+                                quotationDetail={quotationDetail}
+                                onProductChange={handlePendingProductChange}
+                                editableProducts={editablePendingProducts}
+                              />
+                            ))
+                          : quotationDetail?.products?.map((product, index) => (
+                              <ProductRow
+                                key={product.id}
+                                product={product}
+                                index={index}
+                                quotationDetail={quotationDetail}
+                                onProductChange={handlePendingProductChange}
+                                editableProducts={editablePendingProducts}
+                              />
+                            ))
+                        }
                       </tbody>
                     </table>
                   </div>

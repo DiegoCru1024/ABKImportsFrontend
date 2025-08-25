@@ -1,19 +1,30 @@
 import React, { useState } from "react";
-import { 
-  Eye, 
-  Link as LinkIcon, 
-  MessageSquare, 
-  ChevronDown, 
+import {
+  Eye,
+  Link as LinkIcon,
+  MessageSquare,
+  ChevronDown,
   ChevronUp,
   Check,
-  X
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { EditableNumericField } from "@/components/ui/editableNumberFieldProps";
 import ImageCarouselModal from "@/components/ImageCarouselModal";
@@ -32,7 +43,7 @@ const ProductRow: React.FC<ProductRowProps> = ({
   index,
   quotationDetail,
   onProductChange,
-  editableProducts
+  editableProducts,
 }) => {
   const [showVariants, setShowVariants] = useState(false);
   const [showImageModal, setShowImageModal] = useState(false);
@@ -43,18 +54,20 @@ const ProductRow: React.FC<ProductRowProps> = ({
   const [isFragile, setIsFragile] = useState(false);
   const [isStackable, setIsStackable] = useState(false);
   const [loadType, setLoadType] = useState("GENERAL");
-  
+
   // Estado local para manejar las variantes
   const [variantsData, setVariantsData] = useState(() => {
-    const initialVariants = (product.variants || []).map((variant: any, idx: number) => ({
-      ...variant,
-      price: variant.price || 0,
-      express: variant.express || 0
-    }));
+    const initialVariants = (product.variants || []).map(
+      (variant: any, idx: number) => ({
+        ...variant,
+        price: variant.price || 0,
+        express: variant.express || 0,
+      })
+    );
     return initialVariants;
   });
 
-  const editableProduct = editableProducts.find(p => p.id === product.id);
+  const editableProduct = editableProducts.find((p) => p.id === product.id);
   const variants = variantsData;
   const hasMultipleVariants = variants.length > 1;
 
@@ -63,30 +76,58 @@ const ProductRow: React.FC<ProductRowProps> = ({
     id: product.id,
     name: product.name,
     attachments: product.attachments,
-    hasAttachments: product.attachments && product.attachments.length > 0
+    hasAttachments: product.attachments && product.attachments.length > 0,
   });
 
   // Calcular totales
-  const totalQuantity = variants.reduce((sum: number, v: any) => sum + (v.quantity || 0), 0);
-  const totalExpress = variants.reduce((sum: number, v: any) => sum + (v.express || 0), 0);
-  const totalPrice = variants.reduce((sum: number, v: any) => sum + (v.price || 0), 0);
+  const totalQuantity = variants.reduce(
+    (sum: number, v: any) => sum + (v.quantity || 0),
+    0
+  );
 
   // Función para manejar cambios en las variantes
-  const handleVariantChange = (variantIndex: number, field: string, value: number) => {
-    setVariantsData((prev: any[]) => 
-      prev.map((variant: any, idx: number) => 
+  const handleVariantChange = (
+    variantIndex: number,
+    field: string,
+    value: number
+  ) => {
+    setVariantsData((prev: any[]) =>
+      prev.map((variant: any, idx: number) =>
         idx === variantIndex ? { ...variant, [field]: value } : variant
       )
     );
-    
+
     // También notificar al componente padre
     onProductChange(product.id, `variant_${variantIndex}_${field}`, value);
   };
 
+  // Calcular totales dinámicos para productos con múltiples variantes
+  const calculateProductTotals = () => {
+    if (hasMultipleVariants) {
+      // Para productos con múltiples variantes
+      const totalExpress = variants.reduce((sum: number, v: any) => sum + (v.express || 0), 0);
+      const totalPrice = variants.reduce((sum: number, v: any) => sum + ((v.price || 0) * (v.quantity || 0)), 0);
+      return { totalExpress, totalPrice };
+    } else {
+      // Para productos con una sola variante
+      const variant = variants[0];
+      const totalPrice = (variant?.price || 0) * (variant?.quantity || 0);
+      const totalExpress = variant?.express || 0;
+      return { totalExpress, totalPrice };
+    }
+  };
+
+  const { totalExpress, totalPrice } = calculateProductTotals();
+  const productTotal = totalPrice + totalExpress;
+
   return (
     <>
       {/* Fila principal del producto */}
-      <tr className={`border-b border-gray-100 ${index % 2 === 0 ? "bg-white" : "bg-gray-50/30"}`}>
+      <tr
+        className={`border-b border-gray-100 ${
+          index % 2 === 0 ? "bg-white" : "bg-gray-50/30"
+        }`}
+      >
         <td className="p-4 py-6">
           <div className="w-8 h-8 flex items-center justify-center text-sm font-semibold">
             {index + 1}
@@ -96,7 +137,7 @@ const ProductRow: React.FC<ProductRowProps> = ({
         {/* Columna Imagen */}
         <td className="p-4 py-6">
           <div className="space-y-2">
-            <div className="relative w-16 h-16 bg-gray-100 border-2 border-gray-200 rounded-xl overflow-hidden group">
+            <div className="relative w-30 h-24 bg-gray-100 border-2 border-gray-200 rounded-xl overflow-hidden group">
               {product.attachments && product.attachments.length > 0 ? (
                 <>
                   <img
@@ -125,17 +166,15 @@ const ProductRow: React.FC<ProductRowProps> = ({
             {/* URL del producto */}
             {product.url && (
               <div className="flex items-center gap-2">
-                <Badge className="text-xs font-medium text-green-800 bg-green-50 border border-green-200">
-                  URL
-                </Badge>
-                <a
-                  href={product.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs text-blue-600 hover:underline truncate"
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full h-8 text-xs"
+                  onClick={() => window.open(product.url, "_blank")}
                 >
+                  <LinkIcon className="h-3 w-3 mr-1" />
                   Ver link
-                </a>
+                </Button>
               </div>
             )}
 
@@ -155,7 +194,7 @@ const ProductRow: React.FC<ProductRowProps> = ({
         <td className="p-4 py-6">
           <div className="space-y-3">
             <div className="font-semibold text-gray-900">{product.name}</div>
-            
+
             {/* Si tiene múltiples variantes, mostrar resumen */}
             {hasMultipleVariants ? (
               <div className="space-y-2">
@@ -169,19 +208,18 @@ const ProductRow: React.FC<ProductRowProps> = ({
                     onClick={() => setShowVariants(!showVariants)}
                     className="h-6 w-6 p-0"
                   >
-                    {showVariants ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                    {showVariants ? (
+                      <ChevronUp className="h-20 w-20 text-blue-600 font-bold" />
+                    ) : (
+                      <ChevronDown className="h-20 w-20 text-blue-600 font-bold" />
+                    )}
                   </Button>
                 </div>
               </div>
             ) : (
               /* Si tiene una sola variante, mostrar detalles directamente */
               <div className="grid grid-cols-2 gap-2 text-sm">
-                <div className="flex items-center gap-2">
-                  <Badge className="text-xs font-medium text-amber-800 bg-amber-50 border border-amber-200">
-                    Cantidad
-                  </Badge>
-                  <span className="font-medium">{totalQuantity}</span>
-                </div>
+                {/* Modelo */}
                 {variants[0]?.model && (
                   <div className="flex items-center gap-2">
                     <Badge className="text-xs font-medium text-purple-800 bg-purple-50 border border-purple-200">
@@ -190,6 +228,7 @@ const ProductRow: React.FC<ProductRowProps> = ({
                     <span className="font-medium">{variants[0].model}</span>
                   </div>
                 )}
+                {/* Color */}
                 {variants[0]?.color && (
                   <div className="flex items-center gap-2">
                     <Badge className="text-xs font-medium text-amber-800 bg-amber-50 border border-amber-200">
@@ -200,6 +239,7 @@ const ProductRow: React.FC<ProductRowProps> = ({
                     </Badge>
                   </div>
                 )}
+                {/* Tamaño */}
                 {variants[0]?.size && (
                   <div className="flex items-center gap-2">
                     <Badge className="text-xs font-medium text-purple-800 bg-purple-50 border border-purple-200">
@@ -208,14 +248,55 @@ const ProductRow: React.FC<ProductRowProps> = ({
                     <span className="font-medium">{variants[0].size}</span>
                   </div>
                 )}
+                {/* Presentación */}
                 {variants[0]?.presentation && (
                   <div className="flex items-center gap-2">
                     <Badge className="text-xs font-medium text-blue-800 bg-blue-50 border border-blue-200">
                       Presentación
                     </Badge>
-                    <span className="font-medium">{variants[0].presentation}</span>
+                    <span className="font-medium">
+                      {variants[0].presentation}
+                    </span>
                   </div>
                 )}
+
+                {/* Cantidad */}
+                <div className="flex items-center gap-2">
+                  <Badge className="text-xs font-medium text-amber-800 bg-amber-50 border border-amber-200">
+                    Cantidad
+                  </Badge>
+                  <span className="font-medium">{totalQuantity}</span>
+                </div>
+                {/* Express */}
+                <div className="flex items-center gap-2">
+                  <Badge className="text-xs font-medium text-amber-800 bg-amber-50 border border-amber-200">
+                    Express
+                  </Badge>
+                  <Input
+                    type="number"
+                    value={variants[0]?.express || 0}
+                    onChange={(e) =>
+                      handleVariantChange(0, "express", Number(e.target.value))
+                    }
+                    className="w-16 h-6 text-xs text-center"
+                    placeholder="0"
+                  />
+                </div>
+                {/* Precio Unitario */}
+                <div className="flex items-center gap-2">
+                  <Badge className="text-xs font-medium text-amber-800 bg-amber-50 border border-amber-200">
+                    Precio Unitario
+                  </Badge>
+                  <Input
+                    type="number"
+                    value={variants[0]?.price || 0}
+                    onChange={(e) =>
+                      handleVariantChange(0, "price", Number(e.target.value))
+                    }
+                    className="w-16 h-6 text-xs text-center"
+                    placeholder="0"
+                  />
+                </div>
               </div>
             )}
           </div>
@@ -224,7 +305,6 @@ const ProductRow: React.FC<ProductRowProps> = ({
         {/* Columna Packing List */}
         <td className="p-4">
           <div className="space-y-2 grid grid-cols-2 gap-2">
-
             <div className="flex flex-col items-center gap-2">
               <Badge className="text-xs font-medium text-red-800 bg-red-50 border border-red-200">
                 Nro. Cajas
@@ -233,7 +313,9 @@ const ProductRow: React.FC<ProductRowProps> = ({
                 <Input
                   type="number"
                   value={editableProduct?.boxes || 0}
-                  onChange={(e) => onProductChange(product.id, "boxes", Number(e.target.value))}
+                  onChange={(e) =>
+                    onProductChange(product.id, "boxes", Number(e.target.value))
+                  }
                   className="text-center font-semibold px-3 py-1 w-full h-9 text-sm"
                   placeholder="0"
                 />
@@ -248,7 +330,9 @@ const ProductRow: React.FC<ProductRowProps> = ({
                 <Input
                   type="number"
                   value={editableProduct?.cbm || 0}
-                  onChange={(e) => onProductChange(product.id, "cbm", Number(e.target.value))}
+                  onChange={(e) =>
+                    onProductChange(product.id, "cbm", Number(e.target.value))
+                  }
                   className="text-center font-semibold px-3 py-1 w-full h-9 text-sm"
                   placeholder="0"
                 />
@@ -262,7 +346,13 @@ const ProductRow: React.FC<ProductRowProps> = ({
                 <Input
                   type="number"
                   value={editableProduct?.weight || 0}
-                  onChange={(e) => onProductChange(product.id, "weight", Number(e.target.value))}
+                  onChange={(e) =>
+                    onProductChange(
+                      product.id,
+                      "weight",
+                      Number(e.target.value)
+                    )
+                  }
                   className="text-center font-semibold px-3 py-1 w-full h-9 text-sm"
                   placeholder="0"
                 />
@@ -276,7 +366,13 @@ const ProductRow: React.FC<ProductRowProps> = ({
                 <Input
                   type="number"
                   value={(editableProduct?.weight || 0) / 1000}
-                  onChange={(e) => onProductChange(product.id, "weight", Number(e.target.value) * 1000)}
+                  onChange={(e) =>
+                    onProductChange(
+                      product.id,
+                      "weight",
+                      Number(e.target.value) * 1000
+                    )
+                  }
                   className="text-center font-semibold px-3 py-1 w-full h-9 text-sm"
                   placeholder="0"
                 />
@@ -294,24 +390,34 @@ const ProductRow: React.FC<ProductRowProps> = ({
                 checked={isFragile}
                 onCheckedChange={(checked) => setIsFragile(checked as boolean)}
               />
-              <Label htmlFor={`fragile-${product.id}`} className="text-sm font-medium text-gray-700">
+              <Label
+                htmlFor={`fragile-${product.id}`}
+                className="text-sm font-medium text-gray-700"
+              >
                 Producto Frágil
               </Label>
             </div>
-            
+
             <div className="flex items-center space-x-2">
               <Checkbox
                 id={`stackable-${product.id}`}
                 checked={isStackable}
-                onCheckedChange={(checked) => setIsStackable(checked as boolean)}
+                onCheckedChange={(checked) =>
+                  setIsStackable(checked as boolean)
+                }
               />
-              <Label htmlFor={`stackable-${product.id}`} className="text-sm font-medium text-gray-700">
+              <Label
+                htmlFor={`stackable-${product.id}`}
+                className="text-sm font-medium text-gray-700"
+              >
                 Producto Apilable
               </Label>
             </div>
 
             <div className="space-y-2">
-              <Label className="text-sm font-medium text-gray-700">Tipo de Carga</Label>
+              <Label className="text-sm font-medium text-gray-700">
+                Tipo de Carga
+              </Label>
               <Select value={loadType} onValueChange={setLoadType}>
                 <SelectTrigger className="w-full h-8 text-xs">
                   <SelectValue />
@@ -340,7 +446,7 @@ const ProductRow: React.FC<ProductRowProps> = ({
                 variant="outline"
                 size="sm"
                 className="w-full h-8 text-xs"
-                onClick={() => window.open(ghostUrl, '_blank')}
+                onClick={() => window.open(ghostUrl, "_blank")}
               >
                 <LinkIcon className="h-3 w-3 mr-1" />
                 Ver link
@@ -353,13 +459,21 @@ const ProductRow: React.FC<ProductRowProps> = ({
         <td className="p-4">
           <div className="bg-blue-50/80 rounded-lg p-3 border border-blue-200/50 flex items-center flex-col justify-center">
             <div className="text-xs font-medium text-blue-600 mb-1">USD</div>
-            <Input
-              type="number"
-              value={editableProduct?.price || 0}
-              onChange={(e) => onProductChange(product.id, "price", Number(e.target.value))}
-              className="text-center font-semibold px-3 py-1 w-full h-9 text-sm"
-              placeholder="0"
-            />
+            {hasMultipleVariants ? (
+              <div className="text-center font-semibold px-3 py-1 w-full h-9 text-sm flex items-center justify-center">
+                {totalPrice.toFixed(2)}
+              </div>
+            ) : (
+              <Input
+                type="number"
+                value={variants[0]?.price || 0}
+                onChange={(e) =>
+                  handleVariantChange(0, "price", Number(e.target.value))
+                }
+                className="text-center font-semibold px-3 py-1 w-full h-9 text-sm"
+                placeholder="0"
+              />
+            )}
           </div>
         </td>
 
@@ -367,27 +481,38 @@ const ProductRow: React.FC<ProductRowProps> = ({
         <td className="p-4">
           <div className="bg-orange-50/80 rounded-lg p-3 border border-orange-200/50 flex items-center flex-col justify-center">
             <div className="text-xs font-medium text-orange-600 mb-1">USD</div>
-            <Input
-              type="number"
-              value={editableProduct?.express || 0}
-              onChange={(e) => onProductChange(product.id, "express", Number(e.target.value))}
-              className="text-center font-semibold px-3 py-1 w-full h-9 text-sm"
-              placeholder="0"
-            />
+            {hasMultipleVariants ? (
+              <div className="text-center font-semibold px-3 py-1 w-full h-9 text-sm flex items-center justify-center">
+                {totalExpress.toFixed(2)}
+              </div>
+            ) : (
+              <Input
+                type="number"
+                value={variants[0]?.express || 0}
+                onChange={(e) =>
+                  handleVariantChange(0, "express", Number(e.target.value))
+                }
+                className="text-center font-semibold px-3 py-1 w-full h-9 text-sm"
+                placeholder="0"
+              />
+            )}
           </div>
         </td>
 
         {/* Columna Total */}
         <td className="p-4">
-          <div className="bg-green-50/80 rounded-lg p-3 border border-green-200/50 flex items-center flex-col justify-center">
-            <div className="text-xs font-medium text-green-600 mb-1">USD</div>
-            <div className="text-xl font-bold text-green-800">
-              {((editableProduct?.price || 0) + (editableProduct?.express || 0)).toFixed(2)}
+          <div className="flex flex-col items-center gap-2">
+            <div className="bg-green-50/80 rounded-lg p-3 border border-green-200/50 flex items-center flex-col justify-center">
+              <div className="text-xs font-medium text-green-600 mb-1">USD</div>
+              <div className="text-center font-semibold px-3 py-1 w-full h-9 text-sm">
+                {productTotal.toFixed(2)}
+              </div>
             </div>
+
             <Button
               variant="ghost"
               size="sm"
-              className="h-6 w-6 p-0 mt-1 text-gray-600 hover:text-gray-800"
+              className="h-6 w-6 p-0 mt-1 text-green-600 items-center justify-center hover:text-green-800"
               onClick={() => setShowAdminCommentModal(true)}
             >
               <MessageSquare className="h-4 w-4" />
@@ -409,7 +534,9 @@ const ProductRow: React.FC<ProductRowProps> = ({
                 <div className="text-center">Tamaño</div>
                 <div className="text-center text-orange-500">Cantidad</div>
                 <div className="text-center">Express</div>
-                <div className="text-center text-green-600">$Precio Unitario</div>
+                <div className="text-center text-green-600">
+                  $Precio Unitario
+                </div>
                 <div></div>
               </div>
 
@@ -419,54 +546,86 @@ const ProductRow: React.FC<ProductRowProps> = ({
                   key={variant.id}
                   className="grid grid-cols-8 gap-2 p-3 items-center border-b border-gray-200 last:border-b-0"
                 >
+                  {/* Presentación */}
                   <div className="text-center">
-                    <Badge variant="outline" className="bg-green-100 text-green-800 text-xs">
+                    <Badge
+                      variant="outline"
+                      className="bg-green-100 text-green-800 text-xs"
+                    >
                       {variant.presentation || "PACK"}
                     </Badge>
                   </div>
+                  {/* Modelo */}
                   <div className="text-center">
-                    <Badge variant="outline" className="bg-blue-100 text-blue-800 text-xs">
+                    <Badge
+                      variant="outline"
+                      className="bg-blue-100 text-blue-800 text-xs"
+                    >
                       {variant.model || "UNICO"}
                     </Badge>
                   </div>
+                  {/* Color */}
                   <div className="text-center">
-                    <Badge variant="outline" className="bg-red-100 text-red-800 text-xs">
+                    <Badge
+                      variant="outline"
+                      className="bg-red-100 text-red-800 text-xs"
+                    >
                       {variant.color || "ROJO"}
                     </Badge>
                   </div>
+                  {/* Tamaño */}
                   <div className="text-center">
-                    <Badge variant="outline" className="bg-purple-100 text-purple-800 text-xs">
+                    <Badge
+                      variant="outline"
+                      className="bg-purple-100 text-purple-800 text-xs"
+                    >
                       {variant.size || "7*7CM"}
                     </Badge>
                   </div>
+                  {/* Cantidad */}
                   <div className="text-center">
                     <div className="w-12 h-8 bg-white border rounded flex items-center justify-center mx-auto">
-                      <span className="text-sm font-medium">{variantIndex + 1}</span>
+                      <span className="text-sm font-medium">
+                        {variant.quantity || 0}
+                      </span>
                     </div>
                   </div>
+                  {/* Express */}
                   <div className="text-center">
                     <div className="w-16 h-8 bg-white border rounded flex items-center justify-center mx-auto">
                       <Input
                         type="number"
                         value={variant.express || 0}
-                        onChange={(e) => handleVariantChange(variantIndex, "express", Number(e.target.value))}
+                        onChange={(e) =>
+                          handleVariantChange(
+                            variantIndex,
+                            "express",
+                            Number(e.target.value)
+                          )
+                        }
                         className="text-center font-semibold px-3 py-1 w-full h-9 text-sm border-0"
                         placeholder="0"
                       />
                     </div>
                   </div>
+                  {/* Precio Unitario */}
                   <div className="text-center">
                     <div className="w-16 h-8 bg-white border rounded flex items-center justify-center mx-auto">
                       <Input
                         type="number"
                         value={variant.price || 0}
-                        onChange={(e) => handleVariantChange(variantIndex, "price", Number(e.target.value))}
+                        onChange={(e) =>
+                          handleVariantChange(
+                            variantIndex,
+                            "price",
+                            Number(e.target.value)
+                          )
+                        }
                         className="text-center font-semibold px-3 py-1 w-full h-9 text-sm border-0"
                         placeholder="0"
                       />
                     </div>
                   </div>
-                  <div></div>
                 </div>
               ))}
             </div>
@@ -511,7 +670,10 @@ const ProductRow: React.FC<ProductRowProps> = ({
       </Dialog>
 
       {/* Dialog para comentario del administrador */}
-      <Dialog open={showAdminCommentModal} onOpenChange={setShowAdminCommentModal}>
+      <Dialog
+        open={showAdminCommentModal}
+        onOpenChange={setShowAdminCommentModal}
+      >
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -542,7 +704,10 @@ const ProductRow: React.FC<ProductRowProps> = ({
               <Button
                 onClick={() => {
                   // Aquí puedes agregar la lógica para guardar el comentario
-                  console.log("Comentario del administrador guardado:", adminComment);
+                  console.log(
+                    "Comentario del administrador guardado:",
+                    adminComment
+                  );
                   setShowAdminCommentModal(false);
                 }}
               >

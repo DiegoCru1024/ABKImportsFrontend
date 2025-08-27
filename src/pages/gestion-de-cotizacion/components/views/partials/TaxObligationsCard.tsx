@@ -98,8 +98,8 @@ export default function TaxObligationsCard({
   ];
 
   return (
-    <Card className="shadow-lg border-0 bg-gradient-to-br from-green-50 to-emerald-50">
-      <CardHeader className="pb-4 bg-gradient-to-r from-green-100 to-emerald-100 text-green-900 rounded-t-lg border-b border-green-200">
+    <Card className="shadow-lg border-1 border-green-200 bg-gradient-to-br from-green-50 to-emerald-50">
+      <CardHeader >
         <CardTitle className="flex items-center gap-3 text-xl font-bold">
           <div className="p-2 bg-green-200 rounded-lg">
             <Calculator className="h-6 w-6 text-green-700" />

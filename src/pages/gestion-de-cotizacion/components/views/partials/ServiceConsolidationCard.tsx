@@ -49,8 +49,8 @@ export default function ServiceConsolidationCard({
   };
 
   return (
-    <Card className="shadow-lg border-0 bg-gradient-to-br from-blue-50 to-indigo-50">
-      <CardHeader className="pb-4 bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-900 rounded-t-lg border-b border-blue-200">
+    <Card className="shadow-lg border-1 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50">
+      <CardHeader >
         <CardTitle className="flex items-center gap-3 text-xl font-bold">
           <div className="p-2 bg-blue-200 rounded-lg">
             <Plane className="h-6 w-6 text-blue-700" />

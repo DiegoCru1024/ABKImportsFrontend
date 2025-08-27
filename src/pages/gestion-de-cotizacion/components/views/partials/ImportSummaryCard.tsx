@@ -47,8 +47,8 @@ export default function ImportSummaryCard({
   ];
 
   return (
-    <Card className="shadow-lg border-0 bg-gradient-to-br from-purple-50 to-indigo-50">
-      <CardHeader className="pb-4 bg-gradient-to-r from-purple-100 to-indigo-100 text-purple-900 rounded-t-lg border-b border-purple-200">
+    <Card className="shadow-lg border-1 border-purple-200 bg-gradient-to-br from-purple-50 to-indigo-50">
+      <CardHeader >
         <CardTitle className="flex items-center gap-3 text-xl font-bold">
           <div className="p-2 bg-purple-200 rounded-lg">
             <ChartBar className="h-6 w-6 text-purple-700" />

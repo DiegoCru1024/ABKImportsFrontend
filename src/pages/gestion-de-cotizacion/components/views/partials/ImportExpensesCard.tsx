@@ -131,8 +131,8 @@ export default function ImportExpensesCard({
   const expenses = isMaritime ? maritimeExpenses : airExpenses;
 
   return (
-    <Card className="shadow-lg border-0 bg-gradient-to-br from-orange-50 to-amber-50">
-      <CardHeader className="pb-4 bg-gradient-to-r from-orange-100 to-amber-100 text-orange-900 rounded-t-lg border-b border-orange-200">
+    <Card className="shadow-lg border-1 border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50">
+      <CardHeader >
         <CardTitle className="flex items-center gap-3 text-xl font-bold">
           <div className="p-2 bg-orange-200 rounded-lg">
             <DollarSign className="h-6 w-6 text-orange-700" />

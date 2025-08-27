@@ -1572,7 +1572,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                   </div>
 
                   {/* Segunda columna */}
-                  <div className="space-y-6 gap-4">
+                  <div className="space-y-6 gap-4 grid grid-cols-1 lg:grid-cols-2">
                     {/* Cargo Details */}
                     <Card className="shadow-lg border-1 border-green-200 bg-gradient-to-br from-green-50 to-emerald-50">
                       <CardHeader>
@@ -2062,12 +2062,9 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                         </div>
                       </CardContent>
                     </Card>
-                  </div>
-                </div>
-                <div className="space-y-6 gap-4 py-4">
-                  <div>
-                    {/* Shipping Details */}
-                    <Card className="shadow-lg border-1 bg-gradient-to-br border-purple-200 from-purple-50 to-indigo-50">
+
+                     {/* Shipping Details */}
+                     <Card className="shadow-lg border-1 bg-gradient-to-br border-purple-200 from-purple-50 to-indigo-50">
                       <CardHeader>
                         <CardTitle className="flex items-center gap-3 text-xl font-bold">
                           <div className="p-2 bg-purple-200 rounded-lg">
@@ -2425,8 +2422,13 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                     </Card>
                   </div>
                 </div>
+                <div className="space-y-6 gap-4 py-4">
+                  <div>
+                   
+                  </div>
+                </div>
 
-                <div className="space-y-6 p-6 bg-white">
+                <div className="space-y-6 p-6 bg-white grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {/* Servicio de Carga Consolidada */}
                   <div className="space-y-4">
                     <ServiceConsolidationCard

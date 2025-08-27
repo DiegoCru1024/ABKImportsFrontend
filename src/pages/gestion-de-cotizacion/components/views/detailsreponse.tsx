@@ -864,7 +864,6 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
   //* Función para generar el DTO con toda la información de la respuesta
   const generateQuotationResponseDTO = () => {
     return {
-      // Información de la cotización
       quotationInfo: {
         quotationId: selectedQuotationId,
         status: "ANSWERED",
@@ -887,130 +886,110 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
         proformaValidity: selectedProformaVigencia,
         id_asesor: id_asesor || "",
       },
-
-      // Valores dinámicos
-      dynamicValues: {
-        ...dynamicValues,
-        cif: cif,
-        shouldExemptTaxes: shouldExemptTaxes,
-      },
-
-      // Estados de exoneración
-      exemptions: exemptionState,
-
-      // Cálculos de servicios
-      serviceCalculations: {
-        // Servicios de consolidación
-        serviceFields: {
-          servicioConsolidado: serviceFields.servicioConsolidado || 0,
-          separacionCarga: serviceFields.separacionCarga || 0,
-          inspeccionProductos: serviceFields.inspeccionProductos || 0,
+      calculations: {
+        dynamicValues: {
+          comercialValue: dynamicValues.comercialValue,
+          flete: dynamicValues.flete,
+          cajas: dynamicValues.cajas,
+          desaduanaje: dynamicValues.desaduanaje,
+          kg: dynamicValues.kg,
+          ton: dynamicValues.ton,
+          kv: dynamicValues.kv,
+          fob: dynamicValues.fob,
+          seguro: dynamicValues.seguro,
+          tipoCambio: dynamicValues.tipoCambio,
+          nroBultos: dynamicValues.nroBultos,
+          volumenCBM: dynamicValues.volumenCBM,
+          calculoFlete: dynamicValues.calculoFlete,
+          servicioConsolidado: dynamicValues.servicioConsolidado,
+          separacionCarga: dynamicValues.separacionCarga,
+          inspeccionProductos: dynamicValues.inspeccionProductos,
+          gestionCertificado: dynamicValues.gestionCertificado,
+          inspeccionProducto: dynamicValues.inspeccionProducto,
+          inspeccionFabrica: dynamicValues.inspeccionFabrica,
+          transporteLocal: dynamicValues.transporteLocal,
+          otrosServicios: dynamicValues.otrosServicios,
+          adValoremRate: dynamicValues.adValoremRate,
+          antidumpingGobierno: dynamicValues.antidumpingGobierno,
+          antidumpingCantidad: dynamicValues.antidumpingCantidad,
+          iscRate: dynamicValues.iscRate,
+          igvRate: dynamicValues.igvRate,
+          ipmRate: dynamicValues.ipmRate,
+          percepcionRate: dynamicValues.percepcionRate,
+          transporteLocalChinaEnvio: dynamicValues.transporteLocalChinaEnvio,
+          transporteLocalClienteEnvio: dynamicValues.transporteLocalClienteEnvio,
+          cif: cif,
+          shouldExemptTaxes: shouldExemptTaxes,
         },
-        subtotalServices: subtotalServices,
-        igvServices: igvServices,
-        totalServices: totalServices,
-
-        // Obligaciones fiscales
-        fiscalObligations: {
-          adValorem: adValorem,
-          antidumping: antidumping,
-          isc: isc,
-          baseIgvIpm: baseIgvIpm,
-          igvFiscal: igvFiscal,
-          ipm: ipm,
-          percepcion: percepcion,
-          totalDerechosDolares: totalDerechosDolares,
-          totalDerechosSoles: totalDerechosSoles,
-          totalDerechosDolaresFinal: totalDerechosDolaresFinal,
+        exemptions: {
+          servicioConsolidadoAereo: exemptionState.servicioConsolidadoAereo,
+          servicioConsolidadoMaritimo: exemptionState.servicioConsolidadoMaritimo,
+          separacionCarga: exemptionState.separacionCarga,
+          inspeccionProductos: exemptionState.inspeccionProductos,
+          obligacionesFiscales: exemptionState.obligacionesFiscales,
+          desaduanajeFleteSaguro: exemptionState.desaduanajeFleteSaguro,
+          transporteLocalChina: exemptionState.transporteLocalChina,
+          transporteLocalCliente: exemptionState.transporteLocalCliente,
+          gestionCertificado: exemptionState.gestionCertificado,
+          servicioInspeccion: exemptionState.servicioInspeccion,
+          transporteLocal: exemptionState.transporteLocal,
+          totalDerechos: exemptionState.totalDerechos,
         },
-
-        // Gastos de importación
-        importExpenses: {
-          // Servicios Aéreos
-          servicioConsolidadoFinal: servicioConsolidadoFinal,
-          separacionCargaFinal: separacionCargaFinal,
-          inspeccionProductosFinal: inspeccionProductosFinal,
-
-          // Servicios Marítimos
-          servicioConsolidadoMaritimoFinal: servicioConsolidadoMaritimoFinal,
-          gestionCertificadoFinal: gestionCertificadoFinal,
-          servicioInspeccionFinal: servicioInspeccionFinal,
-          transporteLocalFinal: transporteLocalFinal,
-
-          // Comunes
-          desaduanajeFleteSaguro: desaduanajeFleteSaguro,
-
-          // Totales aplicando exoneraciones
-          finalValues: {
-            servicioConsolidado: isMaritimeService(selectedServiceLogistic)
-              ? applyExemption(
-                  servicioConsolidadoMaritimoFinal,
-                  exemptionState.servicioConsolidadoMaritimo
-                )
-              : applyExemption(
-                  servicioConsolidadoFinal,
-                  exemptionState.servicioConsolidadoAereo
-                ),
-
-            gestionCertificado: applyExemption(
-              gestionCertificadoFinal,
-              exemptionState.gestionCertificado
-            ),
-            servicioInspeccion: applyExemption(
-              servicioInspeccionFinal,
-              exemptionState.servicioInspeccion
-            ),
-            transporteLocal: applyExemption(
-              transporteLocalFinal,
-              exemptionState.transporteLocal
-            ),
-            separacionCarga: applyExemption(
-              separacionCargaFinal,
-              exemptionState.separacionCarga
-            ),
-            inspeccionProductos: applyExemption(
-              inspeccionProductosFinal,
-              exemptionState.inspeccionProductos
-            ),
-            desaduanajeFleteSaguro: applyExemption(
-              desaduanajeFleteSaguro,
-              exemptionState.desaduanajeFleteSaguro
-            ),
-            transporteLocalChina: applyExemption(
-              dynamicValues.transporteLocalChinaEnvio,
-              exemptionState.transporteLocalChina
-            ),
-            transporteLocalCliente: applyExemption(
-              dynamicValues.transporteLocalClienteEnvio,
-              exemptionState.transporteLocalCliente
-            ),
+        serviceCalculations: {
+          serviceFields: {
+            servicioConsolidado: serviceFields.servicioConsolidado || 0,
+            separacionCarga: serviceFields.separacionCarga || 0,
+            inspeccionProductos: serviceFields.inspeccionProductos || 0,
           },
-
-          totalGastosImportacion: totalGastosImportacion,
+          subtotalServices: subtotalServices,
+          igvServices: igvServices,
+          totalServices: totalServices,
+          fiscalObligations: {
+            adValorem: adValorem,
+            totalDerechosDolares: totalDerechosDolares,
+          },
+          importExpenses: {
+            servicioConsolidadoFinal: servicioConsolidadoFinal,
+            separacionCargaFinal: separacionCargaFinal,
+            totalGastosImportacion: totalGastosImportacion,
+          },
+          totals: {
+            inversionTotal: inversionTotal,
+          },
         },
-
-        // Totales finales
-        totals: {
-          inversionTotal: inversionTotal,
-        },
       },
+      products: quotationDetail?.products?.map((product: any) => {
+        // Buscar el producto editable correspondiente
+        const editableProduct = editableUnitCostProducts.find(
+          (ep) => ep.id === product.id
+        );
 
-      // Productos del costeo unitario
-      unitCostProducts: editableUnitCostProducts,
+        return {
+          originalProductId: product.id,
+          name: product.name,
+          adminComment: product.adminComment || "",
+          seCotizaProducto: productQuotationState[product.id] !== false,
+          variants: (product.variants || []).map((variant: any) => {
+            // Buscar la variante editable correspondiente
+            const editableVariant = editableProduct?.variants?.find(
+              (ev) => ev.id === variant.id
+            );
 
-      // Productos del tipo "Pendiente"
-      pendingProducts: editablePendingProducts,
-      pendingCalculations: {
-        totalExpressAirFreight,
-        totalAgenteXiaoYi,
-        totalPrecioTotal,
-      },
-
-      // Estados de cotización
-      quotationStates: {
-        productQuotationState,
-        variantQuotationState,
-      },
+            return {
+              originalVariantId: variant.id,
+              size: variant.size || "N/A",
+              presentation: variant.presentation || "Unidad",
+              model: variant.model || "",
+              color: variant.color || "",
+              quantity: Number(variant.quantity) || 0,
+              price: editableVariant?.price || 0,
+              unitCost: editableVariant?.unitCost || 0,
+              importCosts: editableVariant?.importCosts || 0,
+              seCotizaVariante: variantQuotationState[product.id]?.[variant.id] !== false,
+            };
+          }),
+        };
+      }) || [],
     };
   };
 
@@ -1028,15 +1007,15 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
       );
 
       // Llamada al backend usando el hook
-      await createQuotationResponseMutation.mutateAsync({
+      /*await createQuotationResponseMutation.mutateAsync({
         data: dto,
         quotationId: selectedQuotationId,
-      });
+      });*/
 
       // Notificar y regresar a listado
       // Usamos toast del sistema de notificaciones (ya importado en hooks) o un alert simple
       console.log("Respuesta enviada correctamente");
-      window.history.back();
+      //window.history.back();
     } catch (error) {
       console.error("Error al guardar la respuesta:", error);
     } finally {

@@ -126,26 +126,47 @@ export interface ServiceCalculations {
   };
 }
 
-export interface UnitCostProducts {
-  id: string;
+export interface ProductsQuotationResponseDTO {
+  originalProductId: string;
   name: string;
-  price: number;
-  quantity: number;
-  total: number;
-  equivalence: number;
-  importCosts: number;
-  totalCost: number;
-  unitCost: number;
+  adminComment: string;
+  seCotizaProducto: boolean;
+  variants: VariantQuotationResponseDTO[];
 }
 
-//!INTERFACES PARA CREAR UNA RESPUESTA DE UNA COTIZACIÓN
-export interface QuotationResponseDTO {
-  quotationInfo: QuotationInfo;
-  dynamicValues: dynamicValues;
-  exemptions: Exemptions;
-  serviceCalculations: ServiceCalculations;
-  unitCostProducts: UnitCostProducts[];
+export interface VariantQuotationResponseDTO {
+  originalVariantId: string;
+  size: string;
+  presentation: string;
+  model: string;
+  color: string;
+  quantity: number;
+  price: number;
+  unitCost: number;
+  importCosts: number;
+  seCotizaVariante: boolean;
 }
+
+
+export interface Calculations {
+  serviceCalculations: ServiceCalculations;
+  exemptions: Exemptions;
+  dynamicValues: dynamicValues;
+}
+
+
+//!INTERFACES PARA CREAR UNA RESPUESTA DE UNA COTIZACIÓN
+export interface QuotationCreateUpdateResponseDTO {
+  quotationInfo: QuotationInfo;
+  calculations: Calculations;
+  products: ProductsQuotationResponseDTO[];
+}
+
+
+
+//*****************************************************************************************************/
+//********************* INTERFACES PARA LISTAR LAS RESPUESTAS DE UNA COTIZACIÓN ***********************
+//*****************************************************************************************************/
 
 export interface contentQuotationResponseDTO {
   id_quotation_response: string;
@@ -154,14 +175,12 @@ export interface contentQuotationResponseDTO {
   response_date: string;
 }
 
-
 //!Interfaz para listar las respuestas del administrador y sean vistas por el usuario
 export interface QuotationGetResponsesForUsersDTO {
   serviceType: string;
   serviceCalculations: ServiceCalculations;
-  unitCostProducts: UnitCostProducts[];
+  products: ProductsQuotationResponseDTO[];
 }
-
 
 //!Interfaz para listar las respuestas de una cotización
 export interface QuotationResponseListDTO {

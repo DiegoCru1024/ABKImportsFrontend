@@ -1,8 +1,9 @@
 import { apiFetch } from "./apiFetch";
 import type {
-  QuotationResponseDTO,
+
   QuotationGetResponsesForUsersDTO,
   QuotationResponseListDTO,
+  QuotationCreateUpdateResponseDTO,
 } from "./interface/quotationResponseInterfaces";
 
 /**
@@ -12,7 +13,7 @@ import type {
  * @returns {Promise<any>} - La respuesta de la cotización
  */
 export const createQuatitationResponse = async (
-  data: QuotationResponseDTO,
+  data: QuotationCreateUpdateResponseDTO,
   quotationId: string
 ) => {
   try {
@@ -57,7 +58,7 @@ export const deleteQuatitationResponse = async (id: string) => {
 export const patchQuatitationResponse = async (
   quotationId: string,
   quotationResponseId: string,
-  data: QuotationResponseDTO
+  data: QuotationCreateUpdateResponseDTO
 ) => {
   try {
     const response = await apiFetch(
@@ -155,11 +156,11 @@ export const getListResponsesByQuotationId = async (quotationId: string, page: n
  * Obtiene los detalles de una respuesta de una cotización por su ID (Admin Only)
  * @param {string} quotationId - El ID de la cotización
  * @param {string} quotationResponseId - El ID de la respuesta
- * @returns {Promise<QuotationResponseDTO>} - Los detalles de la respuesta
+ * @returns {Promise<QuotationCreateUpdateResponseDTO>} - Los detalles de la respuesta
  */
 export const getDetailsResponse = async (quotationId: string, quotationResponseId: string) => {
   try {
-    const response: QuotationResponseDTO = await apiFetch<QuotationResponseDTO>(
+    const response: QuotationCreateUpdateResponseDTO = await apiFetch<QuotationCreateUpdateResponseDTO>(
       `/quotation-responses/details/${quotationId}/${quotationResponseId}`,
       {
         method: "GET",

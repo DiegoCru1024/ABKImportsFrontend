@@ -36,6 +36,10 @@ interface ProductRowProps {
   quotationDetail: any;
   onProductChange: (productId: string, field: string, value: number) => void;
   editableProducts: any[];
+  productQuotationState?: Record<string, boolean>;
+  variantQuotationState?: Record<string, Record<string, boolean>>;
+  onProductQuotationChange?: (productId: string, checked: boolean) => void;
+  onVariantQuotationChange?: (productId: string, variantId: string, checked: boolean) => void;
 }
 
 const ProductRow: React.FC<ProductRowProps> = ({
@@ -44,6 +48,10 @@ const ProductRow: React.FC<ProductRowProps> = ({
   quotationDetail,
   onProductChange,
   editableProducts,
+  productQuotationState = {},
+  variantQuotationState = {},
+  onProductQuotationChange,
+  onVariantQuotationChange,
 }) => {
   const [showVariants, setShowVariants] = useState(false);
   const [showImageModal, setShowImageModal] = useState(false);
@@ -517,6 +525,52 @@ const ProductRow: React.FC<ProductRowProps> = ({
             >
               <MessageSquare className="h-4 w-4" />
             </Button>
+          </div>
+        </td>
+
+        {/* Columna Cotizar */}
+        <td className="p-4">
+          <div className="flex flex-col items-center gap-2">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id={`quote-product-${product.id}`}
+                checked={productQuotationState[product.id] !== false}
+                onCheckedChange={(checked) => 
+                  onProductQuotationChange?.(product.id, checked as boolean)
+                }
+                className="text-green-600"
+              />
+              <Label
+                htmlFor={`quote-product-${product.id}`}
+                className="text-sm font-medium text-gray-700"
+              >
+                Producto
+              </Label>
+            </div>
+
+            {/* Checkboxes para variantes si hay múltiples */}
+            {hasMultipleVariants && (
+              <div className="space-y-1">
+                {variants.map((variant: any) => (
+                  <div key={variant.id} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`quote-variant-${variant.id}`}
+                      checked={variantQuotationState[product.id]?.[variant.id] !== false}
+                      onCheckedChange={(checked) => 
+                        onVariantQuotationChange?.(product.id, variant.id, checked as boolean)
+                      }
+                      className="text-blue-600"
+                    />
+                    <Label
+                      htmlFor={`quote-variant-${variant.id}`}
+                      className="text-xs font-medium text-gray-600"
+                    >
+                      {variant.presentation || variant.model || 'Variante'}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </td>
       </tr>

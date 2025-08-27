@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { columnsEditableUnitcost } from "../table/columnseditableunitcost";
 import { DataTable } from "@/components/table/data-table";
 
-export interface ProductRow {
+export interface ProductVariant {
   id: string;
   name: string;
   price: number;
@@ -16,12 +16,31 @@ export interface ProductRow {
   seCotiza: boolean;
 }
 
+export interface ProductRow {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+  total: number;
+  equivalence: number;
+  importCosts: number;
+  totalCost: number;
+  unitCost: number;
+  seCotiza: boolean;
+  variants?: ProductVariant[];
+}
+
 interface EditableUnitCostTableProps {
   totalImportCosts?: number;
   onCommercialValueChange?: (value: number) => void;
   isFirstPurchase?: boolean;
   initialProducts?: ProductRow[];
   onProductsChange?: (products: ProductRow[]) => void;
+  // Nuevas props para manejar cotización de variantes
+  productQuotationState?: Record<string, boolean>;
+  variantQuotationState?: Record<string, Record<string, boolean>>;
+  onProductQuotationChange?: (productId: string, checked: boolean) => void;
+  onVariantQuotationChange?: (productId: string, variantId: string, checked: boolean) => void;
 }
 
 const EditableUnitCostTable: React.FC<EditableUnitCostTableProps> = ({
@@ -30,6 +49,10 @@ const EditableUnitCostTable: React.FC<EditableUnitCostTableProps> = ({
   isFirstPurchase = false,
   initialProducts = [],
   onProductsChange,
+  productQuotationState = {},
+  variantQuotationState = {},
+  onProductQuotationChange,
+  onVariantQuotationChange,
 }) => {
   // Estado para primera compra
   const [firstPurchase, setFirstPurchase] = useState(isFirstPurchase);
@@ -57,34 +80,165 @@ const EditableUnitCostTable: React.FC<EditableUnitCostTableProps> = ({
 
   // Recalcular todos los valores cuando cambien los productos
   const recalculateProducts = (updatedProducts: ProductRow[]) => {
-    // Calcular valor comercial total (sumatoria de todos los totales de productos que se cotizan)
-    const totalCommercialValue = updatedProducts
-      .filter((product) => product.seCotiza)
-      .reduce((sum, product) => sum + (product.total || 0), 0) || 0;
+    // Crear una lista plana de todos los productos y variantes que se cotizan
+    const allItems: Array<{ id: string; total: number; isVariant: boolean; productId?: string }> = [];
+    
+    updatedProducts.forEach((product) => {
+      // Verificar si el producto se cotiza
+      const productShouldQuote = productQuotationState[product.id] !== undefined 
+        ? productQuotationState[product.id] 
+        : product.seCotiza;
+      
+      if (productShouldQuote) {
+        // Si el producto tiene variantes, agregar las variantes que se cotizan
+        if (product.variants && product.variants.length > 0) {
+          product.variants.forEach((variant) => {
+            const variantShouldQuote = variantQuotationState[product.id]?.[variant.id] !== undefined
+              ? variantQuotationState[product.id][variant.id]
+              : variant.seCotiza;
+            
+            if (variantShouldQuote) {
+              allItems.push({
+                id: variant.id,
+                total: variant.total || 0,
+                isVariant: true,
+                productId: product.id
+              });
+            }
+          });
+        } else {
+          // Si no tiene variantes, agregar el producto principal
+          allItems.push({
+            id: product.id,
+            total: product.total || 0,
+            isVariant: false
+          });
+        }
+      }
+    });
+
+    // Calcular valor comercial total (sumatoria de todos los totales de productos/variantes que se cotizan)
+    const totalCommercialValue = allItems.reduce((sum, item) => sum + (item.total || 0), 0) || 0;
 
     const recalculatedProducts = updatedProducts.map((product) => {
-      // Calcular equivalencia: (total de la fila / valor comercial) * 100
-      const equivalence =
-        totalCommercialValue > 0
-          ? (product.total / totalCommercialValue) * 100
-          : 0;
+      // Verificar si el producto se cotiza
+      const productShouldQuote = productQuotationState[product.id] !== undefined 
+        ? productQuotationState[product.id] 
+        : product.seCotiza;
 
-      // Calcular gastos de importación: totalGastosImportacion * (equivalencia / 100)
-      const importCosts = (equivalence / 100) * totalImportCosts;
+      if (product.variants && product.variants.length > 0) {
+        // Producto con variantes
+        const recalculatedVariants = product.variants.map((variant) => {
+          const variantShouldQuote = variantQuotationState[product.id]?.[variant.id] !== undefined
+            ? variantQuotationState[product.id][variant.id]
+            : variant.seCotiza;
 
-      // Calcular costo total: total + gastos de importación
-      const totalCost = product.total + importCosts;
+          if (variantShouldQuote) {
+            // Calcular equivalencia: (total de la variante / valor comercial) * 100
+            const equivalence =
+              totalCommercialValue > 0
+                ? (variant.total / totalCommercialValue) * 100
+                : 0;
 
-      // Calcular costo unitario: costo total / cantidad
-      const unitCost = product.quantity > 0 ? totalCost / product.quantity : 0;
+            // Calcular gastos de importación: totalGastosImportacion * (equivalencia / 100)
+            const importCosts = (equivalence / 100) * totalImportCosts;
 
-      return {
-        ...product,
-        equivalence: Math.round(equivalence * 100) / 100, // Redondear a 2 decimales
-        importCosts: Math.round(importCosts * 100) / 100,
-        totalCost: Math.round(totalCost * 100) / 100,
-        unitCost: Math.round(unitCost * 100) / 100,
-      };
+            // Calcular costo total: total + gastos de importación
+            const totalCost = variant.total + importCosts;
+
+            // Calcular costo unitario: costo total / cantidad
+            const unitCost = variant.quantity > 0 ? totalCost / variant.quantity : 0;
+
+            return {
+              ...variant,
+              equivalence: Math.round(equivalence * 100) / 100,
+              importCosts: Math.round(importCosts * 100) / 100,
+              totalCost: Math.round(totalCost * 100) / 100,
+              unitCost: Math.round(unitCost * 100) / 100,
+              seCotiza: variantShouldQuote,
+            };
+          } else {
+            return {
+              ...variant,
+              equivalence: 0,
+              importCosts: 0,
+              totalCost: 0,
+              unitCost: 0,
+              seCotiza: false,
+            };
+          }
+        });
+
+        // Calcular totales del producto basado en sus variantes
+        const productTotal = recalculatedVariants
+          .filter(v => v.seCotiza)
+          .reduce((sum, variant) => sum + variant.total, 0);
+        
+        const productEquivalence = recalculatedVariants
+          .filter(v => v.seCotiza)
+          .reduce((sum, variant) => sum + variant.equivalence, 0);
+        
+        const productImportCosts = recalculatedVariants
+          .filter(v => v.seCotiza)
+          .reduce((sum, variant) => sum + variant.importCosts, 0);
+        
+        const productTotalCost = recalculatedVariants
+          .filter(v => v.seCotiza)
+          .reduce((sum, variant) => sum + variant.totalCost, 0);
+        
+        const productQuantity = recalculatedVariants
+          .filter(v => v.seCotiza)
+          .reduce((sum, variant) => sum + variant.quantity, 0);
+        
+        const productUnitCost = productQuantity > 0 ? productTotalCost / productQuantity : 0;
+
+        return {
+          ...product,
+          variants: recalculatedVariants,
+          total: Math.round(productTotal * 100) / 100,
+          equivalence: Math.round(productEquivalence * 100) / 100,
+          importCosts: Math.round(productImportCosts * 100) / 100,
+          totalCost: Math.round(productTotalCost * 100) / 100,
+          unitCost: Math.round(productUnitCost * 100) / 100,
+          seCotiza: productShouldQuote,
+        };
+      } else {
+        // Producto sin variantes
+        if (productShouldQuote) {
+          // Calcular equivalencia: (total de la fila / valor comercial) * 100
+          const equivalence =
+            totalCommercialValue > 0
+              ? (product.total / totalCommercialValue) * 100
+              : 0;
+
+          // Calcular gastos de importación: totalGastosImportacion * (equivalencia / 100)
+          const importCosts = (equivalence / 100) * totalImportCosts;
+
+          // Calcular costo total: total + gastos de importación
+          const totalCost = product.total + importCosts;
+
+          // Calcular costo unitario: costo total / cantidad
+          const unitCost = product.quantity > 0 ? totalCost / product.quantity : 0;
+
+          return {
+            ...product,
+            equivalence: Math.round(equivalence * 100) / 100,
+            importCosts: Math.round(importCosts * 100) / 100,
+            totalCost: Math.round(totalCost * 100) / 100,
+            unitCost: Math.round(unitCost * 100) / 100,
+            seCotiza: productShouldQuote,
+          };
+        } else {
+          return {
+            ...product,
+            equivalence: 0,
+            importCosts: 0,
+            totalCost: 0,
+            unitCost: 0,
+            seCotiza: false,
+          };
+        }
+      }
     });
 
     // Notificar cambio del valor comercial total al componente padre
@@ -129,8 +283,59 @@ const EditableUnitCostTable: React.FC<EditableUnitCostTableProps> = ({
     });
   };
 
+  // Actualizar variante y recalcular
+  const updateVariant = (
+    productId: string,
+    variantId: string,
+    field: keyof ProductVariant,
+    value: number | boolean
+  ) => {
+    setProductsList((prev) => {
+      const updated = prev.map((product) => {
+        if (product.id === productId && product.variants) {
+          const updatedVariants = product.variants.map((variant) => {
+            if (variant.id === variantId) {
+              const updatedVariant = { ...variant, [field]: value };
+
+              // Recalcular total cuando cambie precio o cantidad
+              if (field === "price" || field === "quantity") {
+                updatedVariant.total =
+                  updatedVariant.price * updatedVariant.quantity;
+              }
+
+              return updatedVariant;
+            }
+            return variant;
+          });
+
+          return {
+            ...product,
+            variants: updatedVariants,
+          };
+        }
+        return product;
+      });
+
+      const recalculated = recalculateProducts(updated);
+
+      // Notificar cambios al componente padre
+      if (onProductsChange) {
+        onProductsChange(recalculated);
+      }
+
+      return recalculated;
+    });
+  };
+
   // Generar columnas con la lógica de actualización
-  const columns = columnsEditableUnitcost(updateProduct);
+  const columns = columnsEditableUnitcost(
+    updateProduct, 
+    updateVariant,
+    productQuotationState,
+    variantQuotationState,
+    onProductQuotationChange,
+    onVariantQuotationChange
+  );
 
   // Actualizar estado de primera compra cuando cambie el prop
   useEffect(() => {

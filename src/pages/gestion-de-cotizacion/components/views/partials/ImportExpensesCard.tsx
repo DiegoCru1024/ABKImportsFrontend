@@ -2,7 +2,8 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
-import { DollarSign } from "lucide-react";
+import { DollarSign, Ship, Plane, Truck, FileText, Shield, CheckCircle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 export interface ImportExpensesCardProps {
   isMaritime: boolean;
@@ -38,172 +39,242 @@ export default function ImportExpensesCard({
   shouldExemptTaxes,
   totalGastosImportacion,
 }: ImportExpensesCardProps) {
+  const getExpenseIcon = (id: string) => {
+    switch (id) {
+      case 'servicioConsolidadoMaritimo':
+      case 'servicioConsolidadoAereo':
+        return isMaritime ? <Ship className="h-4 w-4 text-blue-500" /> : <Plane className="h-4 w-4 text-blue-500" />;
+      case 'gestionCertificado':
+        return <FileText className="h-4 w-4 text-green-500" />;
+      case 'servicioInspeccion':
+        return <Shield className="h-4 w-4 text-purple-500" />;
+      case 'transporteLocal':
+      case 'transporteLocalChina':
+      case 'transporteLocalCliente':
+        return <Truck className="h-4 w-4 text-orange-500" />;
+      case 'separacionCarga':
+        return <DollarSign className="h-4 w-4 text-indigo-500" />;
+      case 'inspeccionProductos':
+        return <Shield className="h-4 w-4 text-red-500" />;
+      case 'desaduanajeFleteSaguro':
+        return <DollarSign className="h-4 w-4 text-teal-500" />;
+      default:
+        return <DollarSign className="h-4 w-4 text-gray-500" />;
+    }
+  };
+
+  const getExpenseCategory = (id: string) => {
+    if (id.includes('transporte')) return 'Transporte';
+    if (id.includes('servicio') || id.includes('consolidado')) return 'Servicio';
+    if (id.includes('inspeccion')) return 'Inspección';
+    if (id.includes('gestion') || id.includes('certificado')) return 'Gestión';
+    if (id.includes('separacion') || id.includes('desaduanaje')) return 'Aduana';
+    return 'Otros';
+  };
+
+  const maritimeExpenses = [
+    {
+      id: "servicioConsolidadoMaritimo",
+      label: "Servicio Consolidado Marítimo",
+      value: values.servicioConsolidadoMaritimoFinal,
+    },
+    {
+      id: "gestionCertificado",
+      label: "Gestión de Certificado de Origen",
+      value: values.gestionCertificadoFinal,
+    },
+    {
+      id: "servicioInspeccion",
+      label: "Servicio de Inspección",
+      value: values.servicioInspeccionFinal,
+    },
+    {
+      id: "transporteLocal",
+      label: "Transporte Local",
+      value: values.transporteLocalFinal,
+    },
+  ];
+
+  const airExpenses = [
+    {
+      id: "servicioConsolidadoAereo",
+      label: "Servicio Consolidado Aéreo",
+      value: servicioConsolidadoFinal,
+    },
+    {
+      id: "separacionCarga",
+      label: "Separación de Carga",
+      value: separacionCargaFinal,
+    },
+    {
+      id: "inspeccionProductos",
+      label: "Inspección de Productos",
+      value: inspeccionProductosFinal,
+    },
+    {
+      id: "desaduanajeFleteSaguro",
+      label: "Desaduanaje + Flete + Seguro",
+      value: values.desaduanajeFleteSaguro,
+    },
+    {
+      id: "transporteLocalChina",
+      label: "Transporte Local China",
+      value: values.transporteLocalChinaEnvio,
+    },
+    {
+      id: "transporteLocalCliente",
+      label: "Transporte Local Cliente",
+      value: values.transporteLocalClienteEnvio,
+    },
+  ];
+
+  const expenses = isMaritime ? maritimeExpenses : airExpenses;
+
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <DollarSign className="h-5 w-5 text-orange-600" />
-          Gastos de Importación
+    <Card className="shadow-lg border-0 bg-gradient-to-br from-orange-50 to-amber-50">
+      <CardHeader className="pb-4 bg-gradient-to-r from-orange-100 to-amber-100 text-orange-900 rounded-t-lg border-b border-orange-200">
+        <CardTitle className="flex items-center gap-3 text-xl font-bold">
+          <div className="p-2 bg-orange-200 rounded-lg">
+            <DollarSign className="h-6 w-6 text-orange-700" />
+          </div>
+          <div>
+            <div>Gastos de Importación</div>
+            <div className="text-sm font-normal text-orange-700">
+              {isMaritime ? 'Servicios Marítimos' : 'Servicios Aéreos'}
+            </div>
+          </div>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3">
-        <div className="space-y-2">
-          {isMaritime ? (
-            <>
-              {/* Marítimo */}
-              {[
-                {
-                  id: "servicioConsolidadoMaritimo",
-                  label: "Servicio Consolidado Marítimo",
-                  value: values.servicioConsolidadoMaritimoFinal,
-                },
-                {
-                  id: "gestionCertificado",
-                  label: "Gestión de Certificado de Origen",
-                  value: values.gestionCertificadoFinal,
-                },
-                {
-                  id: "servicioInspeccion",
-                  label: "Servicio de Inspección",
-                  value: values.servicioInspeccionFinal,
-                },
-                {
-                  id: "transporteLocal",
-                  label: "Transporte Local",
-                  value: values.transporteLocalFinal,
-                },
-              ].map(({ id, label, value }) => (
-                <div key={id} className="flex justify-between items-center py-2">
-                  <div className="flex items-center gap-2">
-                    <Checkbox
-                      id={id}
-                      className="border-red-500 border-2"
-                      checked={exemptionState[id]}
-                      onCheckedChange={(checked) =>
-                        handleExemptionChange(id, checked as boolean)
-                      }
-                    />
-                    <span className="text-sm text-gray-600">
-                      {label}
-                      {(exemptionState[id]) && (
-                        <span className="text-green-600 text-xs ml-1">(EXONERADO)</span>
-                      )}
-                    </span>
+      <CardContent className="space-y-4 p-6">
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 mb-4">
+            <Badge variant="secondary" className="bg-orange-100 text-orange-800 border-orange-200">
+              GASTOS
+            </Badge>
+            <span className="text-sm text-gray-600">
+              {isMaritime ? 'Servicios marítimos y logísticos' : 'Servicios aéreos y logísticos'}
+            </span>
+          </div>
+          
+          <div className="space-y-3">
+            {expenses.map(({ id, label, value }) => (
+              <div
+                key={id}
+                className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-100 hover:border-orange-200 transition-all duration-200 hover:shadow-sm"
+              >
+                <div className="flex items-center gap-3 flex-1">
+                  <div className="p-2 bg-gray-50 rounded-lg">
+                    {getExpenseIcon(id)}
                   </div>
-                  <span className="font-medium">
-                    USD {applyExemption(value, exemptionState[id]).toFixed(2)}
-                  </span>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id={id}
+                        className="border-orange-500 border-2 data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500"
+                        checked={exemptionState[id]}
+                        onCheckedChange={(checked) =>
+                          handleExemptionChange(id, checked as boolean)
+                        }
+                      />
+                      <div>
+                        <div className="font-medium text-gray-900 text-sm">
+                          {label}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {getExpenseCategory(id)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              ))}
+                
+                <div className="flex items-center gap-3">
+                  {(exemptionState[id] || (shouldExemptTaxes && !isMaritime)) && (
+                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 text-xs">
+                      <CheckCircle className="h-3 w-3 mr-1" />
+                      EXONERADO
+                    </Badge>
+                  )}
+                  <div className="text-right min-w-[100px]">
+                    <div className="font-semibold text-gray-900">
+                      USD {applyExemption(value, exemptionState[id]).toFixed(2)}
+                    </div>
+                    {exemptionState[id] && (
+                      <div className="text-xs text-green-600 font-medium">
+                        Original: {value.toFixed(2)}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
 
-              {/* Total de Derechos */}
-              <div className="flex justify-between items-center py-2">
+            {/* Total de Derechos */}
+            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-50 rounded-lg">
+                  <DollarSign className="h-4 w-4 text-blue-500" />
+                </div>
                 <div className="flex items-center gap-2">
                   <Checkbox
                     id="totalDerechos"
-                    className="border-red-500 border-2"
+                    className="border-blue-500 border-2 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500"
                     checked={exemptionState.totalDerechos}
                     onCheckedChange={(checked) =>
                       handleExemptionChange("totalDerechos", checked as boolean)
                     }
                   />
-                  <span className="text-sm text-gray-600">
-                    Total de Derechos
-                  </span>
-                </div>
-                <span className="font-medium">
-                  USD {values.totalDerechosDolaresFinal.toFixed(2)}
-                </span>
-              </div>
-            </>
-          ) : (
-            <>
-              {/* Aéreo */}
-              {[
-                {
-                  id: "servicioConsolidadoAereo",
-                  label: "Servicio Consolidado Aéreo",
-                  value: servicioConsolidadoFinal,
-                },
-                {
-                  id: "separacionCarga",
-                  label: "Separación de Carga",
-                  value: separacionCargaFinal,
-                },
-                {
-                  id: "inspeccionProductos",
-                  label: "Inspección de Productos",
-                  value: inspeccionProductosFinal,
-                },
-                {
-                  id: "desaduanajeFleteSaguro",
-                  label: "Desaduanaje + Flete + Seguro",
-                  value: values.desaduanajeFleteSaguro,
-                },
-                {
-                  id: "transporteLocalChina",
-                  label: "Transporte Local China",
-                  value: values.transporteLocalChinaEnvio,
-                },
-                {
-                  id: "transporteLocalCliente",
-                  label: "Transporte Local Cliente",
-                  value: values.transporteLocalClienteEnvio,
-                },
-              ].map(({ id, label, value }) => (
-                <div key={id} className="flex justify-between items-center py-2">
-                  <div className="flex items-center gap-2">
-                    <Checkbox
-                      id={id}
-                      className="border-red-500 border-2"
-                      checked={exemptionState[id]}
-                      onCheckedChange={(checked) =>
-                        handleExemptionChange(id, checked as boolean)
-                      }
-                    />
-                    <span className="text-sm text-gray-600">
-                      {label}
-                      {(shouldExemptTaxes || exemptionState[id]) && (
-                        <span className="text-green-600 text-xs ml-1">(EXONERADO)</span>
-                      )}
-                    </span>
+                  <div>
+                    <div className="font-medium text-gray-900 text-sm">
+                      Total de Derechos
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      Impuestos y aranceles
+                    </div>
                   </div>
-                  <span className="font-medium">
-                    USD {applyExemption(value, exemptionState[id]).toFixed(2)}
-                  </span>
                 </div>
-              ))}
-
-              {/* Total de Derechos */}
-              <div className="flex justify-between items-center py-2">
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    id="obligacionesFiscales"
-                    className="border-red-500 border-2"
-                    checked={exemptionState.obligacionesFiscales}
-                    onCheckedChange={(checked) =>
-                      handleExemptionChange(
-                        "obligacionesFiscales",
-                        checked as boolean
-                      )
-                    }
-                  />
-                  <span className="text-sm text-gray-600">AD/VALOREM + IGV + IPM</span>
-                </div>
-                <span className="font-medium">
-                  USD {values.totalDerechosDolaresFinal.toFixed(2)}
-                </span>
               </div>
-            </>
-          )}
-          <Separator />
-          <div className="flex justify-between items-center py-2 bg-orange-50 px-3 rounded-lg">
-            <span className="font-medium text-orange-900">
-              Total Gastos de Importación
-            </span>
-            <span className="font-bold text-orange-900">
-              USD {totalGastosImportacion.toFixed(2)}
-            </span>
+              
+              <div className="flex items-center gap-3">
+                {exemptionState.totalDerechos && (
+                  <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 text-xs">
+                    <CheckCircle className="h-3 w-3 mr-1" />
+                    EXONERADO
+                  </Badge>
+                )}
+                <div className="text-right min-w-[100px]">
+                  <div className="font-semibold text-gray-900">
+                    USD {values.totalDerechosDolaresFinal.toFixed(2)}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <Separator className="my-4" />
+          
+          <div className="flex justify-between items-center p-4 bg-gradient-to-r from-orange-200 to-amber-200 text-orange-900 rounded-lg shadow-md">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-orange-300 rounded-lg">
+                <DollarSign className="h-5 w-5 text-orange-800" />
+              </div>
+              <div>
+                <div className="font-bold text-lg">
+                  Total Gastos de Importación
+                </div>
+                <div className="text-sm opacity-90">
+                  Incluye todos los servicios
+                </div>
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="font-bold text-2xl">
+                USD {totalGastosImportacion.toFixed(2)}
+              </div>
+              <div className="text-sm opacity-90">
+                Total consolidado
+              </div>
+            </div>
           </div>
         </div>
       </CardContent>

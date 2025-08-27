@@ -21,6 +21,7 @@ import {
   Image as ImageIcon,
   ListIcon,
   MessageCircleMore,
+  Check,
 } from "lucide-react";
 import {
   Dialog,
@@ -227,7 +228,18 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
   >([]);
 
   //* Estado para productos con variantes editables
-  const [editableProductsWithVariants, setEditableProductsWithVariants] = useState<any[]>([]);
+  const [editableProductsWithVariants, setEditableProductsWithVariants] =
+    useState<any[]>([]);
+
+  //* Estado para controlar qué productos se cotizan
+  const [productQuotationState, setProductQuotationState] = useState<
+    Record<string, boolean>
+  >({});
+
+  //* Estado para controlar qué variantes se cotizan
+  const [variantQuotationState, setVariantQuotationState] = useState<
+    Record<string, Record<string, boolean>>
+  >({});
 
   //* Función para detectar si es servicio marítimo
   const isMaritimeService = (serviceType: string) => {
@@ -328,7 +340,8 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
 
   //* Calcular totales dinámicos para productos con variantes
   const calculateDynamicTotals = () => {
-    if (!quotationDetail?.products) return { totalCBM: 0, totalWeight: 0, totalExpress: 0, totalPrice: 0 };
+    if (!quotationDetail?.products)
+      return { totalCBM: 0, totalWeight: 0, totalExpress: 0, totalPrice: 0 };
 
     let totalCBM = 0;
     let totalWeight = 0;
@@ -336,42 +349,63 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
     let totalPrice = 0;
 
     // Usar productos editables si están disponibles, sino usar los originales
-    const productsToCalculate = editableProductsWithVariants.length > 0 
-      ? editableProductsWithVariants 
-      : quotationDetail.products;
+    const productsToCalculate =
+      editableProductsWithVariants.length > 0
+        ? editableProductsWithVariants
+        : quotationDetail.products;
 
     productsToCalculate.forEach((product: any) => {
-      // Sumar CBM y peso del producto desde los campos editables
-      const editableProduct = editablePendingProducts.find(p => p.id === product.id);
-      if (editableProduct) {
-        totalCBM += Number(editableProduct.cbm) || 0;
-        totalWeight += Number(editableProduct.weight) || 0;
-      } else {
-        // Fallback a los valores originales si no hay producto editable
-        totalCBM += Number(product.volume) || 0;
-        totalWeight += Number(product.weight) || 0;
-      }
+      // Verificar si el producto está marcado para cotizar (por defecto true si no está definido)
+      const isProductQuoted = productQuotationState[product.id] !== false;
 
-      // Calcular totales de precio y express basado en variantes
-      const variants = product.variants || [];
-      if (variants.length === 1) {
-        // Producto con una sola variante
-        const variant = variants[0];
-        totalExpress += Number(variant.express) || 0;
-        totalPrice += (Number(variant.price) || 0) * (Number(variant.quantity) || 0);
-      } else if (variants.length > 1) {
-        // Producto con múltiples variantes
-        variants.forEach((variant: any) => {
-          totalExpress += Number(variant.express) || 0;
-          totalPrice += (Number(variant.price) || 0) * (Number(variant.quantity) || 0);
-        });
+      if (isProductQuoted) {
+        // Sumar CBM y peso del producto desde los campos editables
+        const editableProduct = editablePendingProducts.find(
+          (p) => p.id === product.id
+        );
+        if (editableProduct) {
+          totalCBM += Number(editableProduct.cbm) || 0;
+          totalWeight += Number(editableProduct.weight) || 0;
+        } else {
+          // Fallback a los valores originales si no hay producto editable
+          totalCBM += Number(product.volume) || 0;
+          totalWeight += Number(product.weight) || 0;
+        }
+
+        // Calcular totales de precio y express basado en variantes
+        const variants = product.variants || [];
+        if (variants.length === 1) {
+          // Producto con una sola variante
+          const variant = variants[0];
+          // Verificar si la variante está marcada para cotizar
+          const isVariantQuoted =
+            variantQuotationState[product.id]?.[variant.id] !== false;
+          if (isVariantQuoted) {
+            totalExpress += Number(variant.express) || 0;
+            totalPrice +=
+              (Number(variant.price) || 0) * (Number(variant.quantity) || 0);
+          }
+        } else if (variants.length > 1) {
+          // Producto con múltiples variantes
+          variants.forEach((variant: any) => {
+            // Verificar si la variante está marcada para cotizar
+            const isVariantQuoted =
+              variantQuotationState[product.id]?.[variant.id] !== false;
+            if (isVariantQuoted) {
+              totalExpress += Number(variant.express) || 0;
+              totalPrice +=
+                (Number(variant.price) || 0) * (Number(variant.quantity) || 0);
+            }
+          });
+        }
       }
     });
 
     return { totalCBM, totalWeight, totalExpress, totalPrice };
   };
 
-  const { totalCBM, totalWeight, totalExpress, totalPrice } = calculateDynamicTotals();
+  const { totalCBM, totalWeight, totalExpress, totalPrice } =
+    calculateDynamicTotals();
   const totalGeneral = totalPrice + totalExpress;
   //* Calcular IGV de los servicios
   const igvServices = subtotalServices * 0.18;
@@ -551,6 +585,32 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
     setEditableUnitCostProducts(products);
   };
 
+  //* Función para manejar cambios en el estado de cotización de productos
+  const handleProductQuotationChange = (
+    productId: string,
+    checked: boolean
+  ) => {
+    setProductQuotationState((prev) => ({
+      ...prev,
+      [productId]: checked,
+    }));
+  };
+
+  //* Función para manejar cambios en el estado de cotización de variantes
+  const handleVariantQuotationChange = (
+    productId: string,
+    variantId: string,
+    checked: boolean
+  ) => {
+    setVariantQuotationState((prev) => ({
+      ...prev,
+      [productId]: {
+        ...prev[productId],
+        [variantId]: checked,
+      },
+    }));
+  };
+
   //* Función para manejar cambios en los productos del tipo "Pendiente"
   const handlePendingProductChange = (
     productId: string,
@@ -586,7 +646,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
       const parts = field.split("_");
       const variantIndex = parseInt(parts[1]);
       const variantField = parts[2];
-      
+
       setEditableProductsWithVariants((prev) =>
         prev.map((product) => {
           if (product.id === productId) {
@@ -594,13 +654,13 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
             if (updatedVariants[variantIndex]) {
               updatedVariants[variantIndex] = {
                 ...updatedVariants[variantIndex],
-                [variantField]: value
+                [variantField]: value,
               };
             }
-            
+
             return {
               ...product,
-              variants: updatedVariants
+              variants: updatedVariants,
             };
           }
           return product;
@@ -617,6 +677,189 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
       setNombre_asesor(user?.name);
     }
   }, []);
+
+  //* Función para renderizar la tabla de productos
+  const renderProductsTable = () => (
+    <Card className="bg-white shadow-lg border border-gray-100 overflow-hidden rounded-2xl">
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg shadow-sm">
+              <Package className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <CardTitle className="text-xl font-semibold text-slate-800">
+                Gestión de Productos
+              </CardTitle>
+              <CardDescription className="text-slate-600 mt-1">
+                Administre los productos de la cotización con sus variantes y
+                configuraciones
+              </CardDescription>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
+              {quotationDetail?.products?.length || 0} productos
+            </div>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {/* Header con indicadores mejorado */}
+        <div className="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 border border-slate-200/60 rounded-xl p-6">
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold text-slate-800 mb-2">
+              Resumen de Cotización
+            </h2>
+            <p className="text-slate-600 text-sm">
+              Información general de la cotización actual
+            </p>
+          </div>
+
+          {/* Indicadores principales con mejor diseño */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 items-center justify-center max-w-4xl mx-auto">
+            {/* Primer indicador */}
+            <div className="bg-white rounded-lg p-4 text-center border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200">
+              <div className="text-xl font-bold text-slate-800 mb-1">
+                {quotationDetail?.products?.length || 0}
+              </div>
+              <div className="text-xs font-medium text-slate-600">
+                N° PRODUCTOS
+              </div>
+            </div>
+            {/* Segundo indicador */}
+            <div className="bg-white rounded-lg p-4 text-center border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200">
+              <div className="text-xl font-bold text-slate-800 mb-1">
+                {totalCBM.toFixed(2)}
+              </div>
+              <div className="text-xs font-medium text-slate-600">
+                CBM TOTAL
+              </div>
+            </div>
+            {/* Tercer indicador */}
+            <div className="bg-white rounded-lg p-4 text-center border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200">
+              <div className="text-xl font-bold text-slate-800 mb-1">
+                {totalWeight.toFixed(1)}
+              </div>
+              <div className="text-xs font-medium text-slate-600">
+                PESO (KG)
+              </div>
+            </div>
+            {/* Cuarto indicador */}
+            <div className="bg-white rounded-lg p-4 text-center border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200">
+              <div className="text-xl font-bold text-emerald-600 mb-1">
+                ${totalExpress.toFixed(2)}
+              </div>
+              <div className="text-xs font-medium text-slate-600">EXPRESS</div>
+            </div>
+            {/* Quinto indicador */}
+            <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg p-4 text-center shadow-sm hover:shadow-md transition-all duration-200">
+              <div className="text-xl font-bold text-white mb-1">
+                ${totalGeneral.toFixed(2)}
+              </div>
+              <div className="text-xs font-medium text-emerald-100">TOTAL</div>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-max">
+          <thead>
+            <tr className="bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200">
+              <th className="text-left p-4 text-xs font-semibold text-slate-700 uppercase tracking-wider w-16">
+                Nro.
+              </th>
+              <th className="text-left p-4 text-xs font-semibold text-slate-700 uppercase tracking-wider w-40">
+                <div className="flex items-center gap-2">
+                  <ImageIcon className="h-4 w-4 text-slate-600" />
+                  Imagen & URL
+                </div>
+              </th>
+              <th className="text-left p-4 text-xs font-semibold text-slate-700 uppercase tracking-wider min-w-72">
+                <div className="flex items-center gap-2">
+                  <Package className="h-4 w-4 text-slate-600" />
+                  Producto & Variantes
+                </div>
+              </th>
+              <th className="text-left p-4 text-xs font-semibold text-slate-700 uppercase tracking-wider w-48">
+                <div className="flex items-center gap-2">
+                  <ListIcon className="h-4 w-4 text-emerald-600" />
+                  Packing List
+                </div>
+              </th>
+              <th className="text-left p-4 text-xs font-semibold text-slate-700 uppercase tracking-wider w-52">
+                <div className="flex items-center gap-2">
+                  <Truck className="h-4 w-4 text-indigo-600" />
+                  Manipulación de Carga
+                </div>
+              </th>
+              <th className="text-left p-4 text-xs font-semibold text-slate-700 uppercase tracking-wider w-44">
+                <div className="flex items-center gap-2">
+                  <LinkIcon className="h-4 w-4 text-amber-600" />
+                  URL Fantasma
+                </div>
+              </th>
+              <th className="text-left p-4 text-xs font-semibold text-slate-700 uppercase tracking-wider w-32">
+                <div className="flex items-center gap-2">
+                  <DollarSign className="h-4 w-4 text-emerald-600" />
+                  Precio
+                </div>
+              </th>
+              <th className="text-left p-4 text-xs font-semibold text-slate-700 uppercase tracking-wider w-32">
+                <div className="flex items-center gap-2">
+                  <Truck className="h-4 w-4 text-orange-600" />
+                  Express
+                </div>
+              </th>
+              <th className="text-left p-4 text-xs font-semibold text-slate-700 uppercase tracking-wider w-40">
+                <div className="flex items-center gap-2">
+                  <DollarSign className="h-4 w-4 text-emerald-600" />
+                  Total
+                </div>
+              </th>
+              <th className="text-left p-4 text-xs font-semibold text-slate-700 uppercase tracking-wider w-24">
+                <div className="flex items-center gap-2">
+                  <Check className="h-4 w-4 text-green-600" />
+                  Cotizar
+                </div>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {editableProductsWithVariants.length > 0
+              ? editableProductsWithVariants.map((product, index) => (
+                  <ProductRow
+                    key={product.id}
+                    product={product}
+                    index={index}
+                    quotationDetail={quotationDetail}
+                    onProductChange={handlePendingProductChange}
+                    editableProducts={editablePendingProducts}
+                    productQuotationState={productQuotationState}
+                    variantQuotationState={variantQuotationState}
+                    onProductQuotationChange={handleProductQuotationChange}
+                    onVariantQuotationChange={handleVariantQuotationChange}
+                  />
+                ))
+              : quotationDetail?.products?.map((product, index) => (
+                  <ProductRow
+                    key={product.id}
+                    product={product}
+                    index={index}
+                    quotationDetail={quotationDetail}
+                    onProductChange={handlePendingProductChange}
+                    editableProducts={editablePendingProducts}
+                    productQuotationState={productQuotationState}
+                    variantQuotationState={variantQuotationState}
+                    onProductQuotationChange={handleProductQuotationChange}
+                    onVariantQuotationChange={handleVariantQuotationChange}
+                  />
+                ))}
+          </tbody>
+        </table>
+      </div>
+    </Card>
+  );
 
   //* Función para generar el DTO con toda la información de la respuesta
   const generateQuotationResponseDTO = () => {
@@ -762,6 +1005,12 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
         totalAgenteXiaoYi,
         totalPrecioTotal,
       },
+
+      // Estados de cotización
+      quotationStates: {
+        productQuotationState,
+        variantQuotationState,
+      },
     };
   };
 
@@ -809,7 +1058,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
         "quotationDetail.products",
         JSON.stringify(quotationDetail.products, null, 2)
       );
-      const initialProducts = quotationDetail.products.map((product) => ({
+      const initialProducts = quotationDetail.products.map((product: any) => ({
         id: product.id,
         name: product.name,
         price: 0,
@@ -820,6 +1069,20 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
         totalCost: 0,
         unitCost: 0,
         seCotiza: true, // Por defecto todos los productos se cotizan
+        // Incluir variantes si existen
+        variants:
+          product.variants?.map((variant: any) => ({
+            id: variant.id,
+            name: variant.name,
+            price: 0,
+            quantity: Number(variant.quantity) || 0,
+            total: 0,
+            equivalence: 0,
+            importCosts: 0,
+            totalCost: 0,
+            unitCost: 0,
+            seCotiza: true, // Por defecto todas las variantes se cotizan
+          })) || [],
       }));
       setEditableUnitCostProducts(initialProducts);
     }
@@ -849,16 +1112,46 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
 
   //* Inicializar productos con variantes editables
   useEffect(() => {
-    if (quotationDetail?.products && editableProductsWithVariants.length === 0) {
-      const initialProductsWithVariants = quotationDetail.products.map((product: any) => ({
-        ...product,
-        variants: product.variants?.map((variant: any) => ({
-          ...variant,
-          price: variant.price || 0,
-          express: variant.express || 0,
-        })) || []
-      }));
+    if (
+      quotationDetail?.products &&
+      editableProductsWithVariants.length === 0
+    ) {
+      const initialProductsWithVariants = quotationDetail.products.map(
+        (product: any) => ({
+          ...product,
+          variants:
+            product.variants?.map((variant: any) => ({
+              ...variant,
+              price: variant.price || 0,
+              express: variant.express || 0,
+            })) || [],
+        })
+      );
       setEditableProductsWithVariants(initialProductsWithVariants);
+
+      // Inicializar estados de cotización
+      const initialProductQuotationState: Record<string, boolean> = {};
+      const initialVariantQuotationState: Record<
+        string,
+        Record<string, boolean>
+      > = {};
+
+      quotationDetail.products.forEach((product: any) => {
+        // Por defecto, todos los productos se cotizan
+        initialProductQuotationState[product.id] = true;
+
+        // Inicializar estado de cotización para variantes
+        if (product.variants && product.variants.length > 0) {
+          initialVariantQuotationState[product.id] = {};
+          product.variants.forEach((variant: any) => {
+            // Por defecto, todas las variantes se cotizan
+            initialVariantQuotationState[product.id][variant.id] = true;
+          });
+        }
+      });
+
+      setProductQuotationState(initialProductQuotationState);
+      setVariantQuotationState(initialVariantQuotationState);
     }
   }, [quotationDetail, editableProductsWithVariants.length]);
 
@@ -875,21 +1168,41 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
   }
 
   return (
-    <div className="space-y-6 p-4 min-h-screen ">
-      {/* Header Bento Grid */}
+    <div className="space-y-6 p-4 min-h-screen">
+      {/* Header Principal */}
       <div className="relative h-full w-full grid grid-cols-1 gap-4">
         <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-4 gap-3 text-xl font-semibold">
-              <PackageIcon className="w-7 h-7 text-blue-600" />
-              Cotización {quotationDetail?.correlative || "EJEMPLO-001"}
+          {/* Header con información de la cotización */}
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center space-x-4 gap-3">
+              <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-sm">
+                <PackageIcon className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-slate-800">
+                  Cotización {quotationDetail?.correlative || "EJEMPLO-001"}
+                </h1>
+                <p className="text-slate-600 text-sm mt-1">
+                  Gestión de respuesta y configuración de servicios
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <Badge
+                variant="outline"
+                className="bg-blue-50 text-blue-700 border-blue-200"
+              >
+                {selectedServiceLogistic === "Pendiente"
+                  ? "Vista Administrativa"
+                  : "Vista Completa"}
+              </Badge>
             </div>
           </div>
 
           <div className="w-full">
             {selectedServiceLogistic === "Pendiente" ? (
               <div className="space-y-8">
-                {/* Información del Cliente mejorada */}
+                {/* Sección de Información del Cliente - Homologada */}
                 <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
                   {/* Información del Cliente */}
                   <div className="xl:col-span-2">
@@ -1072,718 +1385,731 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                 </div>
 
                 {/* Tabla de productos mejorada */}
-                <Card className="bg-white shadow-lg border border-gray-100 overflow-hidden rounded-2xl">
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg shadow-sm">
-                          <Package className="h-5 w-5 text-white" />
-                        </div>
-                        <div>
-                          <CardTitle className="text-xl font-semibold text-slate-800">
-                            Gestión de Productos
-                          </CardTitle>
-                          <CardDescription className="text-slate-600 mt-1">
-                            Administre los productos de la cotización con sus
-                            variantes y configuraciones
-                          </CardDescription>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
-                          {quotationDetail?.products?.length || 0} productos
-                        </div>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    {/* Header con indicadores mejorado */}
-                    <div className="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 border border-slate-200/60 rounded-xl p-6">
-                      <div className="text-center mb-6">
-                        <h2 className="text-2xl font-bold text-slate-800 mb-2">
-                          Resumen de Cotización
-                        </h2>
-                        <p className="text-slate-600 text-sm">
-                          Información general de la cotización actual
-                        </p>
-                      </div>
-
-                                             {/* Indicadores principales con mejor diseño */}
-                       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 items-center justify-center max-w-4xl mx-auto">
-                         {/* Primer indicador */}
-                         <div className="bg-white rounded-lg p-4 text-center border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200">
-                           <div className="text-xl font-bold text-slate-800 mb-1">
-                             {quotationDetail?.products?.length || 0}
-                           </div>
-                           <div className="text-xs font-medium text-slate-600">
-                             N° PRODUCTOS
-                           </div>
-                         </div>
-                         {/* Segundo indicador */}
-                         <div className="bg-white rounded-lg p-4 text-center border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200">
-                           <div className="text-xl font-bold text-slate-800 mb-1">
-                             {totalCBM.toFixed(2)}
-                           </div>
-                           <div className="text-xs font-medium text-slate-600">
-                             CBM TOTAL
-                           </div>
-                         </div>
-                         {/* Tercer indicador */}
-                         <div className="bg-white rounded-lg p-4 text-center border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200">
-                           <div className="text-xl font-bold text-slate-800 mb-1">
-                             {totalWeight.toFixed(1)}
-                           </div>
-                           <div className="text-xs font-medium text-slate-600">
-                             PESO (KG)
-                           </div>
-                         </div>
-                         {/* Cuarto indicador */}
-                         <div className="bg-white rounded-lg p-4 text-center border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200">
-                           <div className="text-xl font-bold text-emerald-600 mb-1">
-                             ${totalExpress.toFixed(2)}
-                           </div>
-                           <div className="text-xs font-medium text-slate-600">
-                             EXPRESS
-                           </div>
-                         </div>
-                         {/* Quinto indicador */}
-                         <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg p-4 text-center shadow-sm hover:shadow-md transition-all duration-200">
-                           <div className="text-xl font-bold text-white mb-1">
-                             ${totalGeneral.toFixed(2)}
-                           </div>
-                           <div className="text-xs font-medium text-emerald-100">
-                             TOTAL
-                           </div>
-                         </div>
-                       </div>
-                    </div>
-                  </CardContent>
-                  <div className="overflow-x-auto">
-                    <table className="w-full min-w-max">
-                      <thead>
-                        <tr className="bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200">
-                          <th className="text-left p-4 text-xs font-semibold text-slate-700 uppercase tracking-wider w-16">
-                            Nro.
-                          </th>
-                          <th className="text-left p-4 text-xs font-semibold text-slate-700 uppercase tracking-wider w-40">
-                            <div className="flex items-center gap-2">
-                              <ImageIcon className="h-4 w-4 text-slate-600" />
-                              Imagen & URL
-                            </div>
-                          </th>
-                          <th className="text-left p-4 text-xs font-semibold text-slate-700 uppercase tracking-wider min-w-72">
-                            <div className="flex items-center gap-2">
-                              <Package className="h-4 w-4 text-slate-600" />
-                              Producto & Variantes
-                            </div>
-                          </th>
-                          <th className="text-left p-4 text-xs font-semibold text-slate-700 uppercase tracking-wider w-48">
-                            <div className="flex items-center gap-2">
-                              <ListIcon className="h-4 w-4 text-emerald-600" />
-                              Packing List
-                            </div>
-                          </th>
-                          <th className="text-left p-4 text-xs font-semibold text-slate-700 uppercase tracking-wider w-52">
-                            <div className="flex items-center gap-2">
-                              <Truck className="h-4 w-4 text-indigo-600" />
-                              Manipulación de Carga
-                            </div>
-                          </th>
-                          <th className="text-left p-4 text-xs font-semibold text-slate-700 uppercase tracking-wider w-44">
-                            <div className="flex items-center gap-2">
-                              <LinkIcon className="h-4 w-4 text-amber-600" />
-                              URL Fantasma
-                            </div>
-                          </th>
-                          <th className="text-left p-4 text-xs font-semibold text-slate-700 uppercase tracking-wider w-32">
-                            <div className="flex items-center gap-2">
-                              <DollarSign className="h-4 w-4 text-emerald-600" />
-                              Precio
-                            </div>
-                          </th>
-                          <th className="text-left p-4 text-xs font-semibold text-slate-700 uppercase tracking-wider w-32">
-                            <div className="flex items-center gap-2">
-                              <Truck className="h-4 w-4 text-orange-600" />
-                              Express
-                            </div>
-                          </th>
-                          <th className="text-left p-4 text-xs font-semibold text-slate-700 uppercase tracking-wider w-40">
-                            <div className="flex items-center gap-2">
-                              <DollarSign className="h-4 w-4 text-emerald-600" />
-                              Total
-                            </div>
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {editableProductsWithVariants.length > 0 
-                          ? editableProductsWithVariants.map((product, index) => (
-                              <ProductRow
-                                key={product.id}
-                                product={product}
-                                index={index}
-                                quotationDetail={quotationDetail}
-                                onProductChange={handlePendingProductChange}
-                                editableProducts={editablePendingProducts}
-                              />
-                            ))
-                          : quotationDetail?.products?.map((product, index) => (
-                              <ProductRow
-                                key={product.id}
-                                product={product}
-                                index={index}
-                                quotationDetail={quotationDetail}
-                                onProductChange={handlePendingProductChange}
-                                editableProducts={editablePendingProducts}
-                              />
-                            ))
-                        }
-                      </tbody>
-                    </table>
-                  </div>
-                </Card>
+                {renderProductsTable()}
               </div>
             ) : (
               <>
-                <div className="space-y-6 p-6 bg-white overflow-x-auto">
-                  {/* Información del Cliente */}
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* Primera columna */}
-                    <div className="space-y-4">
-                      {/* Client Information */}
-                      <Card>
-                        <CardHeader className="pb-3">
-                          <CardTitle className="flex items-center gap-2 text-lg">
-                            <FileText className="h-5 w-5 text-blue-600" />
+                <div className="space-y-8">
+                  {/* Sección de Información del Cliente - Homologada */}
+                  <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+                    {/* Información del Cliente */}
+                    <div className="xl:col-span-2">
+                      <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200 shadow-lg">
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-3 text-xl text-green-800">
+                            <FileText className="h-6 w-6" />
                             Información del Cliente
                           </CardTitle>
                         </CardHeader>
-                        <CardContent className="space-y-4">
-                          <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
-                            <div className="space-y-2">
-                              <Label htmlFor="nombre_cliente">Nombres: </Label>
-                              <Input
-                                id="nombre_cliente"
-                                className="font-medium"
-                              />
-                              <Label htmlFor="apellidos_cliente">
-                                Apellidos:{" "}
-                              </Label>
-                              <Input
-                                id="apellidos_cliente"
-                                className="font-medium"
-                              />
-                              <Label htmlFor="dni_cliente">DNI: </Label>
-                              <Input id="dni_cliente" className="font-medium" />
-                              <Label htmlFor="razon_social_cliente">
-                                RAZON SOCIAL:{" "}
-                              </Label>
-                              <Input
-                                id="razon_social_cliente"
-                                className="font-medium"
-                              />
-                              <Label htmlFor="ruc_cliente">RUC: </Label>
-                              <Input id="ruc_cliente" className="font-medium" />
-                              <Label htmlFor="contacto_cliente">
-                                CONTACTO:
-                              </Label>
-                              <Input
-                                id="contacto_cliente"
-                                className="font-medium"
-                              />
+                        <CardContent className="p-6">
+                          <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
+                            <div className="space-y-4">
+                              <div className="space-y-2">
+                                <Label
+                                  htmlFor="nombre_cliente"
+                                  className="text-sm font-semibold text-gray-700"
+                                >
+                                  Nombres
+                                </Label>
+                                <Input
+                                  id="nombre_cliente"
+                                  className="font-medium border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                                  placeholder="Ingrese nombres"
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label
+                                  htmlFor="apellidos_cliente"
+                                  className="text-sm font-semibold text-gray-700"
+                                >
+                                  Apellidos
+                                </Label>
+                                <Input
+                                  id="apellidos_cliente"
+                                  className="font-medium border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                                  placeholder="Ingrese apellidos"
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label
+                                  htmlFor="dni_cliente"
+                                  className="text-sm font-semibold text-gray-700"
+                                >
+                                  DNI
+                                </Label>
+                                <Input
+                                  id="dni_cliente"
+                                  className="font-medium border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                                  placeholder="12345678"
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label
+                                  htmlFor="razon_social_cliente"
+                                  className="text-sm font-semibold text-gray-700"
+                                >
+                                  Razón Social
+                                </Label>
+                                <Input
+                                  id="razon_social_cliente"
+                                  className="font-medium border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                                  placeholder="Empresa S.A.C."
+                                />
+                              </div>
                             </div>
-
-                            <div className="space-y-2">
-                              <div>
-                                <Label htmlFor="advisor">Asesor(a) : </Label>
+                            <div className="space-y-4">
+                              <div className="space-y-2">
+                                <Label
+                                  htmlFor="ruc_cliente"
+                                  className="text-sm font-semibold text-gray-700"
+                                >
+                                  RUC
+                                </Label>
+                                <Input
+                                  id="ruc_cliente"
+                                  className="font-medium border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                                  placeholder="20123456789"
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label
+                                  htmlFor="contacto_cliente"
+                                  className="text-sm font-semibold text-gray-700"
+                                >
+                                  Contacto
+                                </Label>
+                                <Input
+                                  id="contacto_cliente"
+                                  className="font-medium border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                                  placeholder="+51 999 999 999"
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label
+                                  htmlFor="advisor"
+                                  className="text-sm font-semibold text-gray-700"
+                                >
+                                  Asesor(a)
+                                </Label>
                                 <Input
                                   id="advisor"
                                   value={nombre_asesor || ""}
                                   readOnly
+                                  className="font-medium bg-gray-50 border-gray-300"
                                 />
                               </div>
-                              <Label htmlFor="date">Fecha de respuesta:</Label>
-                              <Input id="date" value={quotationDate} readOnly />
-                              <div>
-                                <Label htmlFor="service">
-                                  Tipo de Servicio
+                              <div className="space-y-2">
+                                <Label
+                                  htmlFor="date"
+                                  className="text-sm font-semibold text-gray-700"
+                                >
+                                  Fecha de Respuesta
+                                </Label>
+                                <Input
+                                  id="date"
+                                  value={quotationDate}
+                                  readOnly
+                                  className="font-medium bg-gray-50 border-gray-300"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+
+                    {/* Panel de configuración de servicio */}
+                    <div className="xl:col-span-1">
+                      <Card className="bg-gradient-to-br from-blue-50 to-indigo-100 border-blue-200 shadow-lg">
+                        <CardHeader className="pb-4">
+                          <CardTitle className="flex items-center gap-2 text-lg text-blue-800">
+                            <Settings className="h-5 w-5" />
+                            Configuración de Servicio
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <div className="bg-white/80 rounded-lg p-4 border border-blue-200">
+                            <div className="text-blue-700 text-sm font-medium mb-3">
+                              ⚙️ Configure los parámetros del servicio logístico
+                            </div>
+                            <div className="text-emerald-600 text-sm font-medium mb-3">
+                              📊 Vista completa con todos los cálculos
+                            </div>
+                            <div className="text-purple-600 text-sm font-bold">
+                              🚢 Servicios Aéreos y Marítimos
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label
+                              htmlFor="service"
+                              className="text-sm font-semibold text-gray-700"
+                            >
+                              Tipo de Servicio
+                            </Label>
+                            <Select
+                              value={selectedServiceLogistic}
+                              onValueChange={setSelectedServiceLogistic}
+                            >
+                              <SelectTrigger className="w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {serviciosLogisticos.map((servicio) => (
+                                  <SelectItem
+                                    key={servicio.value}
+                                    value={servicio.value}
+                                  >
+                                    {servicio.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </div>
+
+                  {/* Segunda columna */}
+                  <div className="space-y-6 gap-4">
+                    {/* Cargo Details */}
+                    <Card className="shadow-lg border-1 border-green-200 bg-gradient-to-br from-green-50 to-emerald-50">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-3 text-xl font-bold">
+                          <div className="p-2 bg-green-200 rounded-lg">
+                            <Package className="h-6 w-6 text-green-700" />
+                          </div>
+                          <div>
+                            <div>Detalles de Carga</div>
+                            <div className="text-sm font-normal text-green-700">
+                              Información de la mercancía
+                            </div>
+                          </div>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4 p-6">
+                        <div className="flex items-center gap-2 mb-4">
+                          <Badge
+                            variant="secondary"
+                            className="bg-green-100 text-green-800 border-green-200"
+                          >
+                            CARGA
+                          </Badge>
+                          <span className="text-sm text-gray-600">
+                            Especificaciones de la mercancía
+                          </span>
+                        </div>
+
+                        <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
+                          <div className="space-y-2">
+                            <Label
+                              htmlFor="cargoType"
+                              className="text-sm font-medium text-gray-700"
+                            >
+                              Tipo de Carga
+                            </Label>
+                            <Select
+                              value={selectedTypeLoad}
+                              onValueChange={setSelectedTypeLoad}
+                            >
+                              <SelectTrigger className="w-full bg-white border-gray-200 hover:border-green-300 focus:border-green-500 transition-colors">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="bg-white w-full h-full">
+                                {(isMaritimeService(selectedServiceLogistic)
+                                  ? typeLoadMaritime
+                                  : typeLoad
+                                ).map((type) => (
+                                  <SelectItem
+                                    key={type.value}
+                                    value={type.value}
+                                  >
+                                    {type.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label
+                              htmlFor="commercialValue"
+                              className="text-sm font-medium text-gray-700"
+                            >
+                              Valor Comercial
+                            </Label>
+                            <div className="relative">
+                              <Input
+                                type="number"
+                                id="commercialValue"
+                                value={Number(
+                                  dynamicValues.comercialValue.toFixed(2)
+                                )}
+                                onChange={(e) =>
+                                  updateDynamicValue(
+                                    "comercialValue",
+                                    Number(e.target.value)
+                                  )
+                                }
+                                className="text-center font-semibold px-3 py-2 w-full h-10 text-sm bg-white border-gray-200 hover:border-green-300 focus:border-green-500 transition-colors"
+                                placeholder="0"
+                              />
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 font-medium">
+                                USD
+                              </span>
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <Label
+                              htmlFor="boxes"
+                              className="text-sm font-medium text-gray-700"
+                            >
+                              {isMaritimeService(selectedServiceLogistic)
+                                ? "Nro Bultos"
+                                : "Cajas"}
+                            </Label>
+                            <Input
+                              type="number"
+                              id="boxes"
+                              value={
+                                isMaritimeService(selectedServiceLogistic)
+                                  ? dynamicValues.nroBultos
+                                  : dynamicValues.cajas
+                              }
+                              onChange={(e) =>
+                                updateDynamicValue(
+                                  isMaritimeService(selectedServiceLogistic)
+                                    ? "nroBultos"
+                                    : "cajas",
+                                  Number(e.target.value)
+                                )
+                              }
+                              className="text-center font-semibold px-3 py-2 w-full h-10 text-sm bg-white border-gray-200 hover:border-green-300 focus:border-green-500 transition-colors"
+                              placeholder="0"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
+                          <div className="space-y-2">
+                            <Label
+                              htmlFor="kg"
+                              className="text-sm font-medium text-gray-700"
+                            >
+                              Peso (KG)
+                            </Label>
+                            <Input
+                              type="number"
+                              id="kg"
+                              value={dynamicValues.kg}
+                              onChange={(e) =>
+                                handleKgChange(Number(e.target.value))
+                              }
+                              className="text-center font-semibold px-3 py-2 w-full h-10 text-sm bg-white border-gray-200 hover:border-green-300 focus:border-green-500 transition-colors"
+                              placeholder="0"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label
+                              htmlFor="ton"
+                              className="text-sm font-medium text-gray-700"
+                            >
+                              Peso (TON)
+                            </Label>
+                            <Input
+                              type="number"
+                              id="ton"
+                              value={dynamicValues.ton}
+                              onChange={(e) =>
+                                isMaritimeService(selectedServiceLogistic)
+                                  ? () => {}
+                                  : updateDynamicValue(
+                                      "ton",
+                                      Number(e.target.value)
+                                    )
+                              }
+                              className="text-center font-semibold px-3 py-2 w-full h-10 text-sm bg-white border-gray-200 hover:border-green-300 focus:border-green-500 transition-colors"
+                              placeholder="0"
+                            />
+                          </div>
+                          {!isMaritimeService(selectedServiceLogistic) && (
+                            <div className="space-y-2">
+                              <Label
+                                htmlFor="kv"
+                                className="text-sm font-medium text-gray-700"
+                              >
+                                K/V
+                              </Label>
+                              <Input
+                                type="number"
+                                id="kv"
+                                value={dynamicValues.kv}
+                                onChange={(e) =>
+                                  updateDynamicValue(
+                                    "kv",
+                                    Number(e.target.value)
+                                  )
+                                }
+                                className="text-center font-semibold px-3 py-2 w-full h-10 text-sm bg-white border-gray-200 hover:border-green-300 focus:border-green-500 transition-colors"
+                                placeholder="0"
+                              />
+                            </div>
+                          )}
+                          {isMaritimeService(selectedServiceLogistic) && (
+                            <div className="space-y-2">
+                              <Label
+                                htmlFor="volumenCBM"
+                                className="text-sm font-medium text-gray-700"
+                              >
+                                Volumen (CBM)
+                              </Label>
+                              <Input
+                                type="number"
+                                id="volumenCBM"
+                                value={dynamicValues.volumenCBM}
+                                onChange={(e) =>
+                                  updateDynamicValue(
+                                    "volumenCBM",
+                                    Number(e.target.value)
+                                  )
+                                }
+                                className="text-center font-semibold px-3 py-2 w-full h-10 text-sm bg-white border-gray-200 hover:border-green-300 focus:border-green-500 transition-colors"
+                                placeholder="0"
+                              />
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
+                          <div className="space-y-2">
+                            {/* Regimen */}
+                            {isMaritimeService(selectedServiceLogistic) && (
+                              <div className="space-y-2">
+                                <Label
+                                  htmlFor="regimen"
+                                  className="text-sm font-medium text-gray-700"
+                                >
+                                  Régimen
                                 </Label>
                                 <Select
-                                  value={selectedServiceLogistic}
-                                  onValueChange={setSelectedServiceLogistic}
+                                  value={selectedRegimen}
+                                  onValueChange={setSelectedRegimen}
                                 >
-                                  <SelectTrigger className="w-full">
+                                  <SelectTrigger className="w-full bg-white border-gray-200 hover:border-green-300 focus:border-green-500 transition-colors">
                                     <SelectValue />
                                   </SelectTrigger>
-                                  <SelectContent>
-                                    {serviciosLogisticos.map((servicio) => (
+                                  <SelectContent className="bg-white w-full h-full">
+                                    {regimenOptions.map((regimen) => (
                                       <SelectItem
-                                        key={servicio.value}
-                                        value={servicio.value}
+                                        key={regimen.value}
+                                        value={regimen.value}
                                       >
-                                        {servicio.label}
+                                        {regimen.label}
                                       </SelectItem>
                                     ))}
                                   </SelectContent>
                                 </Select>
                               </div>
-                            </div>
-                          </div>
-                          <div className="grid gap-4 md:grid-cols-2"></div>
-                        </CardContent>
-                      </Card>
-                    </div>
-
-                    {/* Segunda columna */}
-                    <div className="space-y-6">
-                      {/* Cargo Details */}
-                      <Card>
-                        <CardHeader className="pb-3">
-                          <CardTitle className="flex items-center gap-2 text-lg">
-                            <Package className="h-5 w-5 text-green-600" />
-                            Detalles de Carga
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                          <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
-                            <div>
-                              <Label htmlFor="cargoType">Tipo de Carga</Label>
-                              <Select
-                                value={selectedTypeLoad}
-                                onValueChange={setSelectedTypeLoad}
-                              >
-                                <SelectTrigger className=" w-full">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent className="bg-white w-full h-full">
-                                  {(isMaritimeService(selectedServiceLogistic)
-                                    ? typeLoadMaritime
-                                    : typeLoad
-                                  ).map((type) => (
-                                    <SelectItem
-                                      key={type.value}
-                                      value={type.value}
-                                    >
-                                      {type.label}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div>
-                              <Label htmlFor="commercialValue">
-                                Valor Comercial
-                              </Label>
-                              <div className="relative">
-                                <Input
-                                  type="number"
-                                  id="commercialValue"
-                                  value={Number(
-                                    dynamicValues.comercialValue.toFixed(2)
-                                  )}
-                                  onChange={(e) =>
-                                    updateDynamicValue(
-                                      "comercialValue",
-                                      Number(e.target.value)
-                                    )
-                                  }
-                                  className="text-center font-semibold px-3 py-1 w-full h-9 text-sm"
-                                  placeholder="0"
-                                />
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
-                                  USD
-                                </span>
+                            )}
+                            {/* Pais de Origen */}
+                            {isMaritimeService(selectedServiceLogistic) && (
+                              <div className="space-y-2">
+                                <Label
+                                  htmlFor="paisOrigen"
+                                  className="text-sm font-medium text-gray-700"
+                                >
+                                  País de Origen
+                                </Label>
+                                <Select
+                                  value={selectedPaisOrigen}
+                                  onValueChange={setSelectedPaisOrigen}
+                                >
+                                  <SelectTrigger className="w-full bg-white border-gray-200 hover:border-green-300 focus:border-green-500 transition-colors">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent className="bg-white w-full h-full">
+                                    {paisesOrigen.map((pais) => (
+                                      <SelectItem
+                                        key={pais.value}
+                                        value={pais.value}
+                                      >
+                                        {pais.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
                               </div>
-                            </div>
-                            <div>
-                              <Label htmlFor="boxes">
-                                {isMaritimeService(selectedServiceLogistic)
-                                  ? "Nro Bultos"
-                                  : "Cajas"}
-                              </Label>
-                              <Input
-                                type="number"
-                                id="boxes"
-                                value={
-                                  isMaritimeService(selectedServiceLogistic)
-                                    ? dynamicValues.nroBultos
-                                    : dynamicValues.cajas
-                                }
-                                onChange={(e) =>
-                                  updateDynamicValue(
-                                    isMaritimeService(selectedServiceLogistic)
-                                      ? "nroBultos"
-                                      : "cajas",
-                                    Number(e.target.value)
-                                  )
-                                }
-                                className="text-center font-semibold px-3 py-1 w-full h-9 text-sm"
-                                placeholder="0"
-                              />
-                            </div>
-                          </div>
-
-                          <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
-                            <div>
-                              <Label htmlFor="kg">Peso (KG)</Label>
-                              <Input
-                                type="number"
-                                id="kg"
-                                value={dynamicValues.kg}
-                                onChange={(e) =>
-                                  handleKgChange(Number(e.target.value))
-                                }
-                                className="text-center font-semibold px-3 py-1 w-full h-9 text-sm"
-                                placeholder="0"
-                              />
-                            </div>
-                            <div>
-                              <Label htmlFor="ton">Peso (TON)</Label>
-                              <Input
-                                type="number"
-                                id="ton"
-                                value={dynamicValues.ton}
-                                onChange={(e) =>
-                                  isMaritimeService(selectedServiceLogistic)
-                                    ? () => {}
-                                    : updateDynamicValue(
-                                        "ton",
-                                        Number(e.target.value)
-                                      )
-                                }
-                                className="text-center font-semibold px-3 py-1 w-full h-9 text-sm"
-                                placeholder="0"
-                              />
-                            </div>
-                            {!isMaritimeService(selectedServiceLogistic) && (
+                            )}
+                            {/* Pais de Destino */}
+                            {isMaritimeService(selectedServiceLogistic) && (
+                              <div className="space-y-2">
+                                <Label
+                                  htmlFor="paisDestino"
+                                  className="text-sm font-medium text-gray-700"
+                                >
+                                  País de Destino
+                                </Label>
+                                <Select
+                                  value={selectedPaisDestino}
+                                  onValueChange={setSelectedPaisDestino}
+                                >
+                                  <SelectTrigger className="w-full bg-white border-gray-200 hover:border-green-300 focus:border-green-500 transition-colors">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent className="bg-white w-full h-full">
+                                    {paisesDestino.map((pais) => (
+                                      <SelectItem
+                                        key={pais.value}
+                                        value={pais.value}
+                                      >
+                                        {pais.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            )}
+                            {/* Aduana */}
+                            {isMaritimeService(selectedServiceLogistic) && (
+                              <div className="space-y-2">
+                                <Label
+                                  htmlFor="aduana"
+                                  className="text-sm font-medium text-gray-700"
+                                >
+                                  Aduana
+                                </Label>
+                                <Select
+                                  value={selectedAduana}
+                                  onValueChange={setSelectedAduana}
+                                >
+                                  <SelectTrigger className="w-full bg-white border-gray-200 hover:border-green-300 focus:border-green-500 transition-colors">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent className="bg-white w-full h-full">
+                                    {aduana.map((aduan) => (
+                                      <SelectItem
+                                        key={aduan.value}
+                                        value={aduan.value}
+                                      >
+                                        {aduan.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            )}
+                            {/* Naviera */}
+                            {isMaritimeService(selectedServiceLogistic) && (
                               <div>
-                                <Label htmlFor="kv">K/V</Label>
+                                <Label htmlFor="naviera">Naviera</Label>
                                 <Input
-                                  type="number"
-                                  id="kv"
-                                  value={dynamicValues.kv}
-                                  onChange={(e) =>
-                                    updateDynamicValue(
-                                      "kv",
-                                      Number(e.target.value)
-                                    )
-                                  }
-                                  className="text-center font-semibold px-3 py-1 w-full h-9 text-sm"
-                                  placeholder="0"
+                                  id="naviera"
+                                  value={naviera}
+                                  onChange={(e) => setNaviera(e.target.value)}
                                 />
                               </div>
                             )}
+                          </div>
+                          <div className="space-y-2">
+                            {/* Puerto de salida */}
                             {isMaritimeService(selectedServiceLogistic) && (
                               <div>
-                                <Label htmlFor="volumenCBM">
-                                  Volumen (CBM)
+                                <Label htmlFor="puertoSalida">
+                                  Puerto de Salida
+                                </Label>
+                                <Select
+                                  value={selectedPuertoSalida}
+                                  onValueChange={setSelectedPuertoSalida}
+                                >
+                                  <SelectTrigger className="w-full">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent className="bg-white w-full h-full">
+                                    {puertosSalida.map((puerto) => (
+                                      <SelectItem
+                                        key={puerto.value}
+                                        value={puerto.value}
+                                      >
+                                        {puerto.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            )}
+                            {/* Puerto de destino */}
+                            {isMaritimeService(selectedServiceLogistic) && (
+                              <div>
+                                <Label htmlFor="puertoDestino">
+                                  Puerto de Destino
+                                </Label>
+                                <Select
+                                  value={selectedPuertoDestino}
+                                  onValueChange={setSelectedPuertoDestino}
+                                >
+                                  <SelectTrigger className="w-full">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {puertosDestino.map((puerto) => (
+                                      <SelectItem
+                                        key={puerto.value}
+                                        value={puerto.value}
+                                      >
+                                        {puerto.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            )}
+
+                            {/* T. Servicio */}
+                            {isMaritimeService(selectedServiceLogistic) && (
+                              <div>
+                                <Label htmlFor="tipoServicio">
+                                  T. Servicio
+                                </Label>
+                                <Select
+                                  value={selectedTipoServicio}
+                                  onValueChange={setSelectedTipoServicio}
+                                >
+                                  <SelectTrigger className="w-full">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {tipoServicio.map((tipo) => (
+                                      <SelectItem
+                                        key={tipo.value}
+                                        value={tipo.value}
+                                      >
+                                        {tipo.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            )}
+                            {/* Tiempo Transito */}
+                            {isMaritimeService(selectedServiceLogistic) && (
+                              <div>
+                                <Label htmlFor="tiempoTransito">
+                                  T. Tránsito
                                 </Label>
                                 <Input
                                   type="number"
-                                  id="volumenCBM"
-                                  value={dynamicValues.volumenCBM}
+                                  id="tiempoTransito"
+                                  value={tiempoTransito}
                                   onChange={(e) =>
-                                    updateDynamicValue(
-                                      "volumenCBM",
-                                      Number(e.target.value)
-                                    )
+                                    setTiempoTransito(Number(e.target.value))
                                   }
                                   className="text-center font-semibold px-3 py-1 w-full h-9 text-sm"
                                   placeholder="0"
                                 />
                               </div>
                             )}
+
+                            {/* Proforma Vigencia */}
+                            {isMaritimeService(selectedServiceLogistic) && (
+                              <div>
+                                <Label htmlFor="proformaVigencia">
+                                  Proforma Vigencia
+                                </Label>
+                                <Select
+                                  value={selectedProformaVigencia}
+                                  onValueChange={setSelectedProformaVigencia}
+                                >
+                                  <SelectTrigger className="w-full">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {proformaVigencia.map((vigencia) => (
+                                      <SelectItem
+                                        key={vigencia.value}
+                                        value={vigencia.value}
+                                      >
+                                        {vigencia.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            )}
                           </div>
+                        </div>
 
-                          <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
-                            <div className="space-y-2">
-                              {/* Regimen */}
-                              {isMaritimeService(selectedServiceLogistic) && (
-                                <div>
-                                  <Label htmlFor="regimen">Régimen</Label>
-                                  <Select
-                                    value={selectedRegimen}
-                                    onValueChange={setSelectedRegimen}
-                                  >
-                                    <SelectTrigger className="w-full">
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent className="bg-white w-full h-full">
-                                      {regimenOptions.map((regimen) => (
-                                        <SelectItem
-                                          key={regimen.value}
-                                          value={regimen.value}
-                                        >
-                                          {regimen.label}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                              )}
-                              {/* Pais de Origen */}
-                              {isMaritimeService(selectedServiceLogistic) && (
-                                <div>
-                                  <Label htmlFor="paisOrigen">
-                                    País de Origen
-                                  </Label>
-                                  <Select
-                                    value={selectedPaisOrigen}
-                                    onValueChange={setSelectedPaisOrigen}
-                                  >
-                                    <SelectTrigger className="w-full">
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent className="bg-white w-full h-full">
-                                      {paisesOrigen.map((pais) => (
-                                        <SelectItem
-                                          key={pais.value}
-                                          value={pais.value}
-                                        >
-                                          {pais.label}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                              )}
-                              {/* Pais de Destino */}
-                              {isMaritimeService(selectedServiceLogistic) && (
-                                <div>
-                                  <Label htmlFor="paisDestino">
-                                    País de Destino
-                                  </Label>
-                                  <Select
-                                    value={selectedPaisDestino}
-                                    onValueChange={setSelectedPaisDestino}
-                                  >
-                                    <SelectTrigger className="w-full">
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent className="bg-white w-full h-full">
-                                      {paisesDestino.map((pais) => (
-                                        <SelectItem
-                                          key={pais.value}
-                                          value={pais.value}
-                                        >
-                                          {pais.label}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                              )}
-                              {/* Aduana */}
-                              {isMaritimeService(selectedServiceLogistic) && (
-                                <div>
-                                  <Label htmlFor="aduana">Aduana</Label>
-                                  <Select
-                                    value={selectedAduana}
-                                    onValueChange={setSelectedAduana}
-                                  >
-                                    <SelectTrigger className="w-full">
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent className="bg-white w-full h-full">
-                                      {aduana.map((aduan) => (
-                                        <SelectItem
-                                          key={aduan.value}
-                                          value={aduan.value}
-                                        >
-                                          {aduan.label}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                              )}
-                              {/* Naviera */}
-                              {isMaritimeService(selectedServiceLogistic) && (
-                                <div>
-                                  <Label htmlFor="naviera">Naviera</Label>
-                                  <Input
-                                    id="naviera"
-                                    value={naviera}
-                                    onChange={(e) => setNaviera(e.target.value)}
-                                  />
-                                </div>
-                              )}
-                            </div>
-                            <div className="space-y-2">
-                              {/* Puerto de salida */}
-                              {isMaritimeService(selectedServiceLogistic) && (
-                                <div>
-                                  <Label htmlFor="puertoSalida">
-                                    Puerto de Salida
-                                  </Label>
-                                  <Select
-                                    value={selectedPuertoSalida}
-                                    onValueChange={setSelectedPuertoSalida}
-                                  >
-                                    <SelectTrigger className="w-full">
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent className="bg-white w-full h-full">
-                                      {puertosSalida.map((puerto) => (
-                                        <SelectItem
-                                          key={puerto.value}
-                                          value={puerto.value}
-                                        >
-                                          {puerto.label}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                              )}
-                              {/* Puerto de destino */}
-                              {isMaritimeService(selectedServiceLogistic) && (
-                                <div>
-                                  <Label htmlFor="puertoDestino">
-                                    Puerto de Destino
-                                  </Label>
-                                  <Select
-                                    value={selectedPuertoDestino}
-                                    onValueChange={setSelectedPuertoDestino}
-                                  >
-                                    <SelectTrigger className="w-full">
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {puertosDestino.map((puerto) => (
-                                        <SelectItem
-                                          key={puerto.value}
-                                          value={puerto.value}
-                                        >
-                                          {puerto.label}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                              )}
-
-                              {/* T. Servicio */}
-                              {isMaritimeService(selectedServiceLogistic) && (
-                                <div>
-                                  <Label htmlFor="tipoServicio">
-                                    T. Servicio
-                                  </Label>
-                                  <Select
-                                    value={selectedTipoServicio}
-                                    onValueChange={setSelectedTipoServicio}
-                                  >
-                                    <SelectTrigger className="w-full">
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {tipoServicio.map((tipo) => (
-                                        <SelectItem
-                                          key={tipo.value}
-                                          value={tipo.value}
-                                        >
-                                          {tipo.label}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                              )}
-                              {/* Tiempo Transito */}
-                              {isMaritimeService(selectedServiceLogistic) && (
-                                <div>
-                                  <Label htmlFor="tiempoTransito">
-                                    T. Tránsito
-                                  </Label>
-                                  <Input
-                                    type="number"
-                                    id="tiempoTransito"
-                                    value={tiempoTransito}
-                                    onChange={(e) =>
-                                      setTiempoTransito(Number(e.target.value))
-                                    }
-                                    className="text-center font-semibold px-3 py-1 w-full h-9 text-sm"
-                                    placeholder="0"
-                                  />
-                                </div>
-                              )}
-
-                              {/* Proforma Vigencia */}
-                              {isMaritimeService(selectedServiceLogistic) && (
-                                <div>
-                                  <Label htmlFor="proformaVigencia">
-                                    Proforma Vigencia
-                                  </Label>
-                                  <Select
-                                    value={selectedProformaVigencia}
-                                    onValueChange={setSelectedProformaVigencia}
-                                  >
-                                    <SelectTrigger className="w-full">
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {proformaVigencia.map((vigencia) => (
-                                        <SelectItem
-                                          key={vigencia.value}
-                                          value={vigencia.value}
-                                        >
-                                          {vigencia.label}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                              )}
-                            </div>
+                        {/* Primera Compra */}
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center space-x-2">
+                            <Checkbox
+                              id="firstPurchase"
+                              checked={isFirstPurchase}
+                              onCheckedChange={handleFirstPurchaseChange}
+                            />
+                            <Badge
+                              variant="secondary"
+                              className="bg-blue-50 text-blue-700"
+                            >
+                              Es Primera Compra
+                            </Badge>
+                            {isFirstPurchase && (
+                              <span className="text-xs text-green-600 font-semibold ml-2">
+                                (Servicios exonerados y 50% descuento en
+                                impuestos)
+                              </span>
+                            )}
                           </div>
-
-                          {/* Primera Compra */}
-                          <div className="flex items-center gap-2">
-                            <div className="flex items-center space-x-2">
-                              <Checkbox
-                                id="firstPurchase"
-                                checked={isFirstPurchase}
-                                onCheckedChange={handleFirstPurchaseChange}
-                              />
-                              <Badge
-                                variant="secondary"
-                                className="bg-blue-50 text-blue-700"
-                              >
-                                Es Primera Compra
-                              </Badge>
-                              {isFirstPurchase && (
-                                <span className="text-xs text-green-600 font-semibold ml-2">
-                                  (Servicios exonerados y 50% descuento en
-                                  impuestos)
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </div>
+                        </div>
+                      </CardContent>
+                    </Card>
                   </div>
+                </div>
+                <div className="space-y-6 gap-4 py-4">
                   <div>
                     {/* Shipping Details */}
-                    <Card>
-                      <CardHeader className="pb-3">
-                        <CardTitle className="flex items-center gap-2 text-lg">
-                          <Truck className="h-5 w-5 text-purple-600" />
-                          Detalles de Envío
+                    <Card className="shadow-lg border-1 bg-gradient-to-br border-purple-200 from-purple-50 to-indigo-50">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-3 text-xl font-bold">
+                          <div className="p-2 bg-purple-200 rounded-lg">
+                            <Truck className="h-6 w-6 text-purple-700" />
+                          </div>
+                          <div>
+                            <div>Detalles de Envío</div>
+                            <div className="text-sm font-normal text-purple-700">
+                              Información logística
+                            </div>
+                          </div>
                         </CardTitle>
                       </CardHeader>
-                      <CardContent className="space-y-4">
+                      <CardContent className="space-y-4 p-6">
+                        <div className="flex items-center gap-2 mb-4">
+                          <Badge
+                            variant="secondary"
+                            className="bg-purple-100 text-purple-800 border-purple-200"
+                          >
+                            ENVÍO
+                          </Badge>
+                          <span className="text-sm text-gray-600">
+                            Configuración logística
+                          </span>
+                        </div>
+
                         <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
                           {/* Primera columna */}
-                          <div className="space-y-2">
+                          <div className="space-y-3">
                             {/* Courier */}
-                            <div>
-                              <Label htmlFor="courier">Courier</Label>
+                            <div className="space-y-2">
+                              <Label
+                                htmlFor="courier"
+                                className="text-sm font-medium text-gray-700"
+                              >
+                                Courier
+                              </Label>
                               <Select
                                 value={selectedCourier}
                                 onValueChange={setSelectedCourier}
                               >
-                                <SelectTrigger className="w-full">
+                                <SelectTrigger className="w-full bg-white border-gray-200 hover:border-purple-300 focus:border-purple-500 transition-colors">
                                   <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent className="bg-white w-full h-full">
@@ -1799,13 +2125,18 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                               </Select>
                             </div>
                             {/* Incoterm */}
-                            <div>
-                              <Label htmlFor="incoterm">Incoterm</Label>
+                            <div className="space-y-2">
+                              <Label
+                                htmlFor="incoterm"
+                                className="text-sm font-medium text-gray-700"
+                              >
+                                Incoterm
+                              </Label>
                               <Select
                                 value={selectedIncoterm}
                                 onValueChange={setSelectedIncoterm}
                               >
-                                <SelectTrigger className="w-full">
+                                <SelectTrigger className="w-full bg-white border-gray-200 hover:border-purple-300 focus:border-purple-500 transition-colors">
                                   <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -1822,8 +2153,11 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                             </div>
 
                             {/* Flete / Cálculo Flete */}
-                            <div>
-                              <Label htmlFor="freight">
+                            <div className="space-y-2">
+                              <Label
+                                htmlFor="freight"
+                                className="text-sm font-medium text-gray-700"
+                              >
                                 {isMaritimeService(selectedServiceLogistic)
                                   ? "Cálculo Flete"
                                   : "Flete"}
@@ -1845,10 +2179,10 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                                       Number(e.target.value)
                                     )
                                   }
-                                  className="text-center font-semibold px-3 py-1 w-full h-9 text-sm"
+                                  className="text-center font-semibold px-3 py-2 w-full h-10 text-sm bg-white border-gray-200 hover:border-purple-300 focus:border-purple-500 transition-colors"
                                   placeholder="0"
                                 />
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 font-medium">
                                   USD
                                 </span>
                               </div>
@@ -1856,8 +2190,13 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                             {/* Desaduanaje */}
 
                             {!isMaritimeService(selectedServiceLogistic) && (
-                              <div>
-                                <Label htmlFor="customs">Desaduanaje</Label>
+                              <div className="space-y-2">
+                                <Label
+                                  htmlFor="customs"
+                                  className="text-sm font-medium text-gray-700"
+                                >
+                                  Desaduanaje
+                                </Label>
                                 <div className="relative">
                                   <Input
                                     type="number"
@@ -1869,10 +2208,10 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                                         Number(e.target.value)
                                       )
                                     }
-                                    className="text-center font-semibold px-3 py-1 w-full h-9 text-sm"
+                                    className="text-center font-semibold px-3 py-2 w-full h-10 text-sm bg-white border-gray-200 hover:border-purple-300 focus:border-purple-500 transition-colors"
                                     placeholder="0"
                                   />
-                                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
+                                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 font-medium">
                                     USD
                                   </span>
                                 </div>
@@ -1880,10 +2219,15 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                             )}
 
                             {/* Moneda */}
-                            <div>
-                              <Label htmlFor="currency">Moneda</Label>
+                            <div className="space-y-2">
+                              <Label
+                                htmlFor="currency"
+                                className="text-sm font-medium text-gray-700"
+                              >
+                                Moneda
+                              </Label>
                               <Select defaultValue="usd">
-                                <SelectTrigger className="w-full">
+                                <SelectTrigger className="w-full bg-white border-gray-200 hover:border-purple-300 focus:border-purple-500 transition-colors">
                                   <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -1893,8 +2237,11 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                               </Select>
                             </div>
                             {/* Tipo de Cambio */}
-                            <div>
-                              <Label htmlFor="exchangeRate">
+                            <div className="space-y-2">
+                              <Label
+                                htmlFor="exchangeRate"
+                                className="text-sm font-medium text-gray-700"
+                              >
                                 Tipo de Cambio
                               </Label>
                               <Input
@@ -1907,7 +2254,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                                     Number(e.target.value)
                                   )
                                 }
-                                className="text-center font-semibold px-3 py-1 w-full h-9 text-sm"
+                                className="text-center font-semibold px-3 py-2 w-full h-10 text-sm bg-white border-gray-200 hover:border-purple-300 focus:border-purple-500 transition-colors"
                                 placeholder="0"
                               />
                             </div>
@@ -1917,9 +2264,12 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                           <div className="space-y-2">
                             {/* Servicio de Carga Consolidada */}
 
-                            <div className="grid grid-cols-2 gap-2 text-sm justify-between items-center py-2 ">
+                            <div className="grid grid-cols-2 gap-4 text-sm justify-between items-center py-2">
                               <div className="flex flex-col gap-2">
-                                <Label htmlFor="transporteLocalChina">
+                                <Label
+                                  htmlFor="transporteLocalChina"
+                                  className="text-sm font-medium text-gray-700"
+                                >
                                   Transporte Local China
                                 </Label>
                                 <Input
@@ -1934,12 +2284,15 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                                       Number(e.target.value)
                                     )
                                   }
-                                  className="text-center font-semibold px-3 py-1 w-full h-9 text-sm"
+                                  className="text-center font-semibold px-3 py-2 w-full h-10 text-sm bg-white border-gray-200 hover:border-purple-300 focus:border-purple-500 transition-colors"
                                   placeholder="0"
                                 />
                               </div>
                               <div className="flex flex-col gap-2">
-                                <Label htmlFor="transporteLocalCliente">
+                                <Label
+                                  htmlFor="transporteLocalCliente"
+                                  className="text-sm font-medium text-gray-700"
+                                >
                                   Transporte Local Cliente
                                 </Label>
                                 <Input
@@ -1954,7 +2307,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                                       Number(e.target.value)
                                     )
                                   }
-                                  className="text-center font-semibold px-3 py-1 w-full h-9 text-sm"
+                                  className="text-center font-semibold px-3 py-2 w-full h-10 text-sm bg-white border-gray-200 hover:border-purple-300 focus:border-purple-500 transition-colors"
                                   placeholder="0"
                                 />
                               </div>
@@ -1962,94 +2315,107 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                             <Separator />
                             <div className="space-y-3">
                               {/* FOB */}
-                              <div className="grid grid-cols-2 gap-2 text-sm justify-between items-center py-2">
-                                <div>FOB</div>
-                                <div>
-                                  <span className="relative">
-                                    <Input
-                                      type="number"
-                                      id="fob"
-                                      value={dynamicValues.fob}
-                                      onChange={(e) =>
-                                        updateDynamicValue(
-                                          "fob" as keyof typeof dynamicValues,
-                                          Number(e.target.value)
-                                        )
-                                      }
-                                      className="text-center font-semibold px-3 py-1 w-full h-9 text-sm"
-                                      placeholder="0"
-                                    />
-                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
-                                      USD
-                                    </span>
+                              <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-100 hover:border-purple-200 transition-all duration-200">
+                                <div className="font-medium text-gray-900">
+                                  FOB
+                                </div>
+                                <div className="relative">
+                                  <Input
+                                    type="number"
+                                    id="fob"
+                                    value={dynamicValues.fob}
+                                    onChange={(e) =>
+                                      updateDynamicValue(
+                                        "fob" as keyof typeof dynamicValues,
+                                        Number(e.target.value)
+                                      )
+                                    }
+                                    className="text-center font-semibold px-3 py-2 w-full h-10 text-sm bg-white border-gray-200 hover:border-purple-300 focus:border-purple-500 transition-colors"
+                                    placeholder="0"
+                                  />
+                                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 font-medium">
+                                    USD
                                   </span>
                                 </div>
                               </div>
                               {/* Flete */}
-                              <div className="grid grid-cols-2 gap-2 text-sm justify-between items-center py-2">
-                                <div>FLETE</div>
-                                <div>
-                                  <span className="relative">
-                                    <Input
-                                      type="number"
-                                      id="flete"
-                                      value={
+                              <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-100 hover:border-purple-200 transition-all duration-200">
+                                <div className="font-medium text-gray-900">
+                                  FLETE
+                                </div>
+                                <div className="relative">
+                                  <Input
+                                    type="number"
+                                    id="flete"
+                                    value={
+                                      isMaritimeService(selectedServiceLogistic)
+                                        ? maritimeFlete
+                                        : dynamicValues.flete
+                                    }
+                                    onChange={(e) =>
+                                      updateDynamicValue(
                                         isMaritimeService(
                                           selectedServiceLogistic
                                         )
-                                          ? maritimeFlete
-                                          : dynamicValues.flete
-                                      }
-                                      onChange={(e) =>
-                                        updateDynamicValue(
-                                          isMaritimeService(
-                                            selectedServiceLogistic
-                                          )
-                                            ? "calculoFlete"
-                                            : "flete",
-                                          Number(e.target.value)
-                                        )
-                                      }
-                                      className="text-center font-semibold px-3 py-1 w-full h-9 text-sm"
-                                      placeholder="0"
-                                    />
-                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
-                                      USD
-                                    </span>
+                                          ? "calculoFlete"
+                                          : "flete",
+                                        Number(e.target.value)
+                                      )
+                                    }
+                                    className="text-center font-semibold px-3 py-2 w-full h-10 text-sm bg-white border-gray-200 hover:border-purple-300 focus:border-purple-500 transition-colors"
+                                    placeholder="0"
+                                  />
+                                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 font-medium">
+                                    USD
                                   </span>
                                 </div>
                               </div>
                               {/* Seguro */}
-                              <div className="grid grid-cols-2 gap-2 text-sm justify-between items-center py-2">
-                                <div>SEGURO</div>
-                                <div>
-                                  <span className="relative">
-                                    <Input
-                                      type="number"
-                                      id="seguro"
-                                      value={dynamicValues.seguro}
-                                      onChange={(e) =>
-                                        updateDynamicValue(
-                                          "seguro" as keyof typeof dynamicValues,
-                                          Number(e.target.value)
-                                        )
-                                      }
-                                      className="text-center font-semibold px-3 py-1 w-full h-9 text-sm"
-                                      placeholder="0"
-                                    />
-                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
-                                      USD
-                                    </span>
+                              <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-100 hover:border-purple-200 transition-all duration-200">
+                                <div className="font-medium text-gray-900">
+                                  SEGURO
+                                </div>
+                                <div className="relative">
+                                  <Input
+                                    type="number"
+                                    id="seguro"
+                                    value={dynamicValues.seguro}
+                                    onChange={(e) =>
+                                      updateDynamicValue(
+                                        "seguro" as keyof typeof dynamicValues,
+                                        Number(e.target.value)
+                                      )
+                                    }
+                                    className="text-center font-semibold px-3 py-2 w-full h-10 text-sm bg-white border-gray-200 hover:border-purple-300 focus:border-purple-500 transition-colors"
+                                    placeholder="0"
+                                  />
+                                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 font-medium">
+                                    USD
                                   </span>
                                 </div>
                               </div>
 
                               <Separator />
 
-                              <div className="grid grid-cols-2 gap-2 text-sm rounded-lg bg-green-200 p-2">
-                                <div className="font-semibold">CIF</div>
-                                <div className="text-center font-semibold">
-                                  USD {cif.toFixed(2)}
+                              <div className="flex justify-between items-center p-4 bg-gradient-to-r from-green-200 to-emerald-200 text-green-900 rounded-lg shadow-md">
+                                <div className="flex items-center gap-3">
+                                  <div className="p-2 bg-green-300 rounded-lg">
+                                    <DollarSign className="h-5 w-5 text-green-800" />
+                                  </div>
+                                  <div>
+                                    <div className="font-bold text-lg">CIF</div>
+                                    <div className="text-sm opacity-90">
+                                      Costo, Seguro y Flete
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <div className="font-bold text-2xl">
+                                    USD {cif.toFixed(2)}
+                                  </div>
+                                  <div className="text-sm opacity-90">
+                                    Total CIF
+                                  </div>
                                 </div>
                               </div>
                             </div>
@@ -2166,6 +2532,10 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                       onCommercialValueChange={handleCommercialValueChange}
                       isFirstPurchase={isFirstPurchase}
                       onProductsChange={handleUnitCostProductsChange}
+                      productQuotationState={productQuotationState}
+                      variantQuotationState={variantQuotationState}
+                      onProductQuotationChange={handleProductQuotationChange}
+                      onVariantQuotationChange={handleVariantQuotationChange}
                     />
                   </div>
                 </div>

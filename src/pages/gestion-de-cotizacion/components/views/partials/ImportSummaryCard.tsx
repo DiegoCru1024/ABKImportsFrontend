@@ -1,7 +1,8 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { ChartBar } from "lucide-react";
+import { ChartBar, DollarSign, FileText, TrendingUp, AlertTriangle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 export interface ImportSummaryCardProps {
   selectedIncoterm: string;
@@ -18,44 +19,137 @@ export default function ImportSummaryCard({
   inversionTotal,
   shouldExemptTaxes,
 }: ImportSummaryCardProps) {
+  const summaryItems = [
+    {
+      key: 'incoterm',
+      label: 'INCOTERM DE IMPORTACION',
+      value: selectedIncoterm,
+      icon: <FileText className="h-4 w-4 text-blue-500" />,
+      color: 'blue',
+      category: 'Términos'
+    },
+    {
+      key: 'comercialValue',
+      label: 'VALOR DE COMPRA FACTURA COMERCIAL',
+      value: `USD ${comercialValue.toFixed(2)}`,
+      icon: <DollarSign className="h-4 w-4 text-green-500" />,
+      color: 'green',
+      category: 'Valor'
+    },
+    {
+      key: 'totalGastos',
+      label: 'TOTAL GASTOS DE IMPORTACION',
+      value: `USD ${totalGastosImportacion.toFixed(2)}`,
+      icon: <TrendingUp className="h-4 w-4 text-orange-500" />,
+      color: 'orange',
+      category: 'Gastos'
+    }
+  ];
+
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <ChartBar className="h-5 w-5 text-orange-600" />
-          Resumen de Gastos de Importación
+    <Card className="shadow-lg border-0 bg-gradient-to-br from-purple-50 to-indigo-50">
+      <CardHeader className="pb-4 bg-gradient-to-r from-purple-100 to-indigo-100 text-purple-900 rounded-t-lg border-b border-purple-200">
+        <CardTitle className="flex items-center gap-3 text-xl font-bold">
+          <div className="p-2 bg-purple-200 rounded-lg">
+            <ChartBar className="h-6 w-6 text-purple-700" />
+          </div>
+          <div>
+            <div>Resumen de Gastos de Importación</div>
+            <div className="text-sm font-normal text-purple-700">Resumen consolidado</div>
+          </div>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-2">
-        <div className="space-y-2">
-          <div className="flex justify-between items-center py-2">
-            <span className="text-lg text-gray-600">INCOTERM DE IMPORTACION</span>
-            <span className="font-medium">{selectedIncoterm}</span>
+      <CardContent className="space-y-4 p-6">
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 mb-4">
+            <Badge variant="secondary" className="bg-purple-100 text-purple-800 border-purple-200">
+              RESUMEN
+            </Badge>
+            <span className="text-sm text-gray-600">Detalles de la importación</span>
           </div>
-          <div className="flex justify-between items-center py-2">
-            <span className="text-lg text-gray-600">VALOR DE COMPRA FACTURA COMERCIAL</span>
-            <span className="font-medium">USD {comercialValue.toFixed(2)}</span>
-          </div>
-          <div className="flex justify-between items-center py-2">
-            <span className="text-lg text-gray-600">TOTAL GASTOS DE IMPORTACION</span>
-            <span className="font-medium">USD {totalGastosImportacion.toFixed(2)}</span>
-          </div>
-          <Separator />
-          <div className="flex justify-between items-center py-2 bg-green-50 px-3 rounded-lg">
-            <span className="text-lg text-green-900">INVERSION TOTAL DE IMPORTACION</span>
-            <span className="font-medium text-green-900">USD {inversionTotal.toFixed(2)}</span>
-          </div>
-          {shouldExemptTaxes && (
-            <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
-              <div className="flex items-center gap-2 text-orange-800">
-                <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                <span className="text-sm font-medium">Exoneración Automática Activa</span>
+          
+          <div className="space-y-3">
+            {summaryItems.map((item) => (
+              <div
+                key={item.key}
+                className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-100 hover:border-purple-200 transition-all duration-200 hover:shadow-sm"
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 bg-${item.color}-50 rounded-lg`}>
+                    {item.icon}
+                  </div>
+                  <div>
+                    <div className="font-medium text-gray-900 text-sm">
+                      {item.label}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {item.category}
+                    </div>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="font-semibold text-gray-900">
+                    {item.value}
+                  </div>
+                </div>
               </div>
-              <p className="text-xs text-orange-700 mt-1">
-                Los impuestos están exonerados automáticamente porque el valor comercial es menor a $200.00
-              </p>
+            ))}
+          </div>
+          
+          <Separator className="my-4" />
+          
+          <div className="space-y-3">
+            <div className="flex justify-between items-center p-4 bg-gradient-to-r from-purple-200 to-indigo-200 text-purple-900 rounded-lg shadow-md">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-purple-300 rounded-lg">
+                  <DollarSign className="h-5 w-5 text-purple-800" />
+                </div>
+                <div>
+                  <div className="font-bold text-lg">
+                    INVERSION TOTAL DE IMPORTACION
+                  </div>
+                  <div className="text-sm opacity-90">
+                    Valor comercial + Gastos
+                  </div>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="font-bold text-2xl">
+                  USD {inversionTotal.toFixed(2)}
+                </div>
+                <div className="text-sm opacity-90">
+                  Total final
+                </div>
+              </div>
             </div>
-          )}
+            
+            {shouldExemptTaxes && (
+              <div className="bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-orange-100 rounded-lg">
+                    <AlertTriangle className="h-5 w-5 text-orange-600" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Badge variant="outline" className="bg-orange-100 text-orange-800 border-orange-300 text-xs">
+                        EXONERACIÓN AUTOMÁTICA
+                      </Badge>
+                      <span className="text-sm font-medium text-orange-800">
+                        Activa
+                      </span>
+                    </div>
+                    <p className="text-sm text-orange-700 leading-relaxed">
+                      Los impuestos están exonerados automáticamente porque el valor comercial es menor a <strong>USD $200.00</strong>. 
+                      Esta exoneración aplica a todos los impuestos y aranceles correspondientes.
+                    </p>
+                    <div className="mt-2 text-xs text-orange-600">
+                      <strong>Beneficio:</strong> Ahorro en costos de importación
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </CardContent>
     </Card>

@@ -306,8 +306,10 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({ user, onOpen }) => {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="final">Usuario Final</SelectItem>
-                        <SelectItem value="admin">Administrador</SelectItem>
+                      <SelectItem value="final">Usuario Final</SelectItem>
+                    <SelectItem value="admin">Administrador</SelectItem>
+                    <SelectItem value="temporal">Temporal</SelectItem>
+                    <SelectItem value="guest">Invitado</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

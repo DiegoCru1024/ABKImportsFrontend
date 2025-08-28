@@ -306,10 +306,10 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({ user, onOpen }) => {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                      <SelectItem value="final">Usuario Final</SelectItem>
-                    <SelectItem value="admin">Administrador</SelectItem>
-                    <SelectItem value="temporal">Temporal</SelectItem>
-                    <SelectItem value="guest">Invitado</SelectItem>
+                        <SelectItem value="final">Usuario Final</SelectItem>
+                        <SelectItem value="admin">Administrador</SelectItem>
+                        <SelectItem value="temporal">Temporal</SelectItem>
+                        <SelectItem value="guest">Invitado</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -324,7 +324,9 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({ user, onOpen }) => {
               </h3>
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="edit_user_new_password">Nueva Contraseña *</Label>
+                  <Label htmlFor="edit_user_new_password">
+                    Nueva Contraseña *
+                  </Label>
                   <div className="relative">
                     <Input
                       id="edit_user_new_password"

@@ -1,0 +1,171 @@
+const newQuotationResponse: QuotationResponseCompleteDTO = {
+  quotationResponse: {
+    quotationIdQuotation: "6baaf086-cdc4-4b2f-9420-71952fec95e4",
+    status: "ANSWERED",
+    response_date: "2025-08-27",
+    service_type: "Consolidado Marítimo",
+    cargo_type: "general",
+    courier: "ups",
+    incoterm: "FOB",
+    is_first_purchase: false,
+    regime: "importacion_consumo",
+    origin_country: "China",
+    destination_country: "Perú",
+    customs: "Callao",
+    origin_port: "Shanghai",
+    destination_port: "Callao",
+    service_type_detail: "consolidado",
+    transit_time_days: 35,
+    shipping_company: "Maersk",
+    proforma_validity_days: 15,
+    advisorIdUsuario: "75500ef2-e35c-4a77-8074-9104c9d971cb",
+    is_maritime_service: true,
+    calculation_details: {
+      correlative: "COT-00022-2025",
+      dynamicValues: {
+        comercialValue: 889,
+        flete: 250,
+        cajas: 8,
+        desaduanaje: 150,
+        kg: 350,
+        ton: 0.35,
+        kv: 0,
+        fob: 889,
+        seguro: 25,
+        tipoCambio: 3.75,
+        nroBultos: 8,
+        volumenCBM: 2.5,
+        calculoFlete: 250,
+        servicioConsolidado: 120,
+        separacionCarga: 30,
+        inspeccionProductos: 0,
+        gestionCertificado: 0,
+        inspeccionProducto: 0,
+        inspeccionFabrica: 0,
+        transporteLocal: 80,
+        otrosServicios: 0,
+        adValoremRate: 4,
+        antidumpingGobierno: 0,
+        antidumpingCantidad: 0,
+        iscRate: 0,
+        igvRate: 16,
+        ipmRate: 2,
+        percepcionRate: 3.5,
+        transporteLocalChinaEnvio: 50,
+        transporteLocalClienteEnvio: 80,
+        cif: 1164,
+        shouldExemptTaxes: false
+      },
+      exemptions: {
+        servicioConsolidadoAereo: false,
+        servicioConsolidadoMaritimo: true,
+        separacionCarga: true,
+        inspeccionProductos: false,
+        obligacionesFiscales: true,
+        desaduanajeFleteSaguro: false,
+        transporteLocalChina: false,
+        transporteLocalCliente: false,
+        gestionCertificado: false,
+        servicioInspeccion: false,
+        transporteLocal: false,
+        totalDerechos: true
+      },
+      serviceCalculations: {
+        serviceFields: {
+          servicioConsolidado: 120,
+          separacionCarga: 30,
+          inspeccionProductos: 0
+        },
+        subtotalServices: 150,
+        igvServices: 27,
+        totalServices: 177,
+        fiscalObligations: {
+          adValorem: 46.56,
+          totalDerechosDolares: 255.88
+        },
+        importExpenses: {
+          servicioConsolidadoFinal: 141.6,
+          separacionCargaFinal: 35.4,
+          totalGastosImportacion: 659.88
+        },
+        totals: {
+          inversionTotal: 1548.88
+        }
+      }
+    }
+  },
+  products: [
+    {
+      item: 1,
+      name: "Silla de oficina ergonómica",
+      productQuotationIdProductQuotation: "b5af4d01-610f-48e6-b22e-d492a58a9e93",
+      se_cotiza_producto: true,
+      status: "ACTIVE",
+      admin_comment: "Proveedor confiable, producto en stock.",
+      variants: [
+        {
+          price: 150,
+          quantity: 2,
+          total: 300,
+          import_costs: 35.5,
+          unit_cost: 185.5,
+          se_cotiza_variante: true,
+          productVariantId: "variante_silla_negra_id",
+          size: "N/A",
+          presentation: "Unidad",
+          model: "Estructura negra, red negra",
+          color: "Negro"
+        },
+        {
+          price: 165,
+          quantity: 1,
+          total: 165,
+          import_costs: 37.8,
+          unit_cost: 202.8,
+          se_cotiza_variante: true,
+          productVariantId: "variante_silla_blanca_id",
+          size: "N/A",
+          presentation: "Unidad",
+          model: "Estructura blanca, red gris",
+          color: "Blanco"
+        }
+      ]
+    },
+    {
+      item: 2,
+      name: "Mesa elevadora eléctrica",
+      productQuotationIdProductQuotation: "bfecbd49-1c57-4134-893b-41f3a021ca89",
+      se_cotiza_producto: true,
+      status: "ACTIVE",
+      admin_comment: "Esperando confirmación de precio para el acabado en nogal.",
+      variants: [
+        {
+          price: 274,
+          quantity: 1,
+          total: 274,
+          import_costs: 71.2,
+          unit_cost: 345.2,
+          se_cotiza_variante: true,
+          productVariantId: "variante_mesa_roble_id",
+          size: "120x60cm",
+          presentation: "Unidad",
+          model: "Doble motor",
+          color: "Roble"
+        },
+        {
+          price: 0,
+          quantity: 1,
+          total: 0,
+          import_costs: 0,
+          unit_cost: 0,
+          se_cotiza_variante: true,
+          productVariantId: "variante_mesa_nogal_id",
+          size: "120x60cm",
+          presentation: "Unidad",
+          model: "Doble motor",
+          color: "Nogal"
+        }
+      ]
+    }
+  ]
+};

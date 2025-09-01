@@ -615,7 +615,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
   const handlePendingProductChange = (
     productId: string,
     field: string,
-    value: number
+    value: number | string
   ) => {
     console.log("handlePendingProductChange:", { productId, field, value });
 
@@ -626,9 +626,10 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
 
           // Calcular el total: (precioXiaoYi * quantity) + express
           if (
-            field === "priceXiaoYi" ||
+            (field === "priceXiaoYi" ||
             field === "quantity" ||
-            field === "express"
+            field === "express") &&
+            typeof value === "number"
           ) {
             updatedProduct.total =
               updatedProduct.priceXiaoYi * updatedProduct.quantity +
@@ -661,6 +662,19 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
             return {
               ...product,
               variants: updatedVariants,
+            };
+          }
+          return product;
+        })
+      );
+    } else if (field === "adminComment") {
+      // Manejar comentarios del administrador
+      setEditableProductsWithVariants((prev) =>
+        prev.map((product) => {
+          if (product.id === productId) {
+            return {
+              ...product,
+              adminComment: value as string,
             };
           }
           return product;
@@ -717,8 +731,17 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
           </div>
 
           {/* Indicadores principales con mejor diseño */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 items-center justify-center max-w-4xl mx-auto">
-            {/* Primer indicador */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4 items-center justify-center max-w-4xl mx-auto">
+            {/* Primer indicador - N° de Items*/}
+            <div className="bg-white rounded-lg p-4 text-center border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200">
+              <div className="text-xl font-bold text-slate-800 mb-1">
+                {quotationDetail?.products?.length || 0}
+              </div>
+              <div className="text-xs font-medium text-slate-600">
+                N° de Items
+              </div>
+            </div>
+            {/* Segundo indicador - N° de Productos */}
             <div className="bg-white rounded-lg p-4 text-center border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200">
               <div className="text-xl font-bold text-slate-800 mb-1">
                 {quotationDetail?.products?.length || 0}
@@ -727,7 +750,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                 N° PRODUCTOS
               </div>
             </div>
-            {/* Segundo indicador */}
+            {/* Tercer indicador - CBM Total*/}
             <div className="bg-white rounded-lg p-4 text-center border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200">
               <div className="text-xl font-bold text-slate-800 mb-1">
                 {totalCBM.toFixed(2)}
@@ -736,7 +759,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                 CBM TOTAL
               </div>
             </div>
-            {/* Tercer indicador */}
+            {/* Cuarto indicador - Peso Total */}
             <div className="bg-white rounded-lg p-4 text-center border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200">
               <div className="text-xl font-bold text-slate-800 mb-1">
                 {totalWeight.toFixed(1)}
@@ -745,14 +768,21 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                 PESO (KG)
               </div>
             </div>
-            {/* Cuarto indicador */}
+            {/* Quinto indicador - Precio total */}
+            <div className="bg-white rounded-lg p-4 text-center border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200">
+              <div className="text-xl font-bold text-emerald-600 mb-1">
+                ${totalPrice.toFixed(2)}
+              </div>
+              <div className="text-xs font-medium text-slate-600">P. TOTAL</div>
+            </div>
+            {/* Sexto indicador - Express total */}
             <div className="bg-white rounded-lg p-4 text-center border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200">
               <div className="text-xl font-bold text-emerald-600 mb-1">
                 ${totalExpress.toFixed(2)}
               </div>
               <div className="text-xs font-medium text-slate-600">EXPRESS</div>
             </div>
-            {/* Quinto indicador */}
+            {/* Sexto indicador - Express total */}
             <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg p-4 text-center shadow-sm hover:shadow-md transition-all duration-200">
               <div className="text-xl font-bold text-white mb-1">
                 ${totalGeneral.toFixed(2)}
@@ -861,8 +891,14 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
     </Card>
   );
 
-  //* Función para generar el DTO con toda la información de la respuesta
+  //* Función para generar el DTO de respuesta según la interfaz QuotationCreateUpdateResponseDTO
   const generateQuotationResponseDTO = () => {
+    // Determinar si es servicio marítimo
+    const isMaritime = isMaritimeService(selectedServiceLogistic);
+    
+    // Extraer número de días de proformaValidity (ej: "15 días" -> 15)
+    const proformaDays = parseInt(selectedProformaVigencia) || 0;
+
     return {
       quotationInfo: {
         quotationId: selectedQuotationId,
@@ -874,19 +910,72 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
         courier: selectedCourier,
         incoterm: selectedIncoterm,
         isFirstPurchase: isFirstPurchase,
-        regime: selectedRegimen,
-        originCountry: selectedPaisOrigen,
-        destinationCountry: selectedPaisDestino,
-        customs: selectedAduana,
-        originPort: selectedPuertoSalida,
-        destinationPort: selectedPuertoDestino,
-        serviceTypeDetail: selectedTipoServicio,
-        transitTime: tiempoTransito,
-        naviera: naviera,
+        regime: isMaritime ? selectedRegimen : "",
+        originCountry: isMaritime ? selectedPaisOrigen : "",
+        destinationCountry: isMaritime ? selectedPaisDestino : "",
+        customs: isMaritime ? selectedAduana : "",
+        originPort: isMaritime ? selectedPuertoSalida : "",
+        destinationPort: isMaritime ? selectedPuertoDestino : "",
+        serviceTypeDetail: isMaritime ? selectedTipoServicio : "",
+        transitTime: isMaritime ? tiempoTransito : 0,
+        naviera: isMaritime ? naviera : "",
         proformaValidity: selectedProformaVigencia,
         id_asesor: id_asesor || "",
       },
       calculations: {
+        serviceCalculations: {
+          serviceFields: {
+            servicioConsolidado: serviceFields.servicioConsolidado || 0,
+            separacionCarga: serviceFields.separacionCarga || 0,
+            inspeccionProductos: serviceFields.inspeccionProductos || 0,
+          },
+          subtotalServices: subtotalServices,
+          igvServices: igvServices,
+          totalServices: totalServices,
+          fiscalObligations: {
+            adValorem: adValorem,
+            totalDerechosDolares: totalDerechosDolares,
+          },
+          importExpenses: {
+            servicioConsolidadoFinal: servicioConsolidadoFinal,
+            separacionCargaFinal: separacionCargaFinal,
+            inspeccionProductosFinal: inspeccionProductosFinal,
+            servicioConsolidadoMaritimoFinal: servicioConsolidadoMaritimoFinal,
+            gestionCertificadoFinal: gestionCertificadoFinal,
+            servicioInspeccionFinal: servicioInspeccionFinal,
+            transporteLocalFinal: transporteLocalFinal,
+            desaduanajeFleteSaguro: desaduanajeFleteSaguro,
+            finalValues: {
+              servicioConsolidado: servicioConsolidadoFinal,
+              gestionCertificado: gestionCertificadoFinal,
+              servicioInspeccion: servicioInspeccionFinal,
+              transporteLocal: transporteLocalFinal,
+              separacionCarga: separacionCargaFinal,
+              inspeccionProductos: inspeccionProductosFinal,
+              desaduanajeFleteSaguro: desaduanajeFleteSaguro,
+              transporteLocalChina: dynamicValues.transporteLocalChinaEnvio,
+              transporteLocalCliente: dynamicValues.transporteLocalClienteEnvio,
+            },
+            totalGastosImportacion: totalGastosImportacion,
+          },
+          totals: {
+            inversionTotal: inversionTotal,
+          },
+        },
+        exemptions: {
+          servicioConsolidadoAereo: exemptionState.servicioConsolidadoAereo,
+          servicioConsolidadoMaritimo: exemptionState.servicioConsolidadoMaritimo,
+          separacionCarga: exemptionState.separacionCarga,
+          inspeccionProductos: exemptionState.inspeccionProductos,
+          obligacionesFiscales: exemptionState.obligacionesFiscales,
+          desaduanajeFleteSaguro: exemptionState.desaduanajeFleteSaguro,
+          transporteLocalChina: exemptionState.transporteLocalChina,
+          transporteLocalCliente: exemptionState.transporteLocalCliente,
+          gestionCertificado: exemptionState.gestionCertificado,
+          servicioInspeccion: exemptionState.servicioInspeccion,
+          transporteLocal: exemptionState.transporteLocal,
+          totalDerechos: exemptionState.totalDerechos,
+        },
         dynamicValues: {
           comercialValue: dynamicValues.comercialValue,
           flete: dynamicValues.flete,
@@ -921,68 +1010,42 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
           cif: cif,
           shouldExemptTaxes: shouldExemptTaxes,
         },
-        exemptions: {
-          servicioConsolidadoAereo: exemptionState.servicioConsolidadoAereo,
-          servicioConsolidadoMaritimo: exemptionState.servicioConsolidadoMaritimo,
-          separacionCarga: exemptionState.separacionCarga,
-          inspeccionProductos: exemptionState.inspeccionProductos,
-          obligacionesFiscales: exemptionState.obligacionesFiscales,
-          desaduanajeFleteSaguro: exemptionState.desaduanajeFleteSaguro,
-          transporteLocalChina: exemptionState.transporteLocalChina,
-          transporteLocalCliente: exemptionState.transporteLocalCliente,
-          gestionCertificado: exemptionState.gestionCertificado,
-          servicioInspeccion: exemptionState.servicioInspeccion,
-          transporteLocal: exemptionState.transporteLocal,
-          totalDerechos: exemptionState.totalDerechos,
-        },
-        serviceCalculations: {
-          serviceFields: {
-            servicioConsolidado: serviceFields.servicioConsolidado || 0,
-            separacionCarga: serviceFields.separacionCarga || 0,
-            inspeccionProductos: serviceFields.inspeccionProductos || 0,
-          },
-          subtotalServices: subtotalServices,
-          igvServices: igvServices,
-          totalServices: totalServices,
-          fiscalObligations: {
-            adValorem: adValorem,
-            totalDerechosDolares: totalDerechosDolares,
-          },
-          importExpenses: {
-            servicioConsolidadoFinal: servicioConsolidadoFinal,
-            separacionCargaFinal: separacionCargaFinal,
-            totalGastosImportacion: totalGastosImportacion,
-          },
-          totals: {
-            inversionTotal: inversionTotal,
-          },
-        },
       },
-      products: quotationDetail?.products?.map((product: any) => {
-        // Buscar el producto editable correspondiente
-        const editableProduct = editableUnitCostProducts.find(
-          (ep) => ep.id === product.id
-        );
+      products: quotationDetail?.products?.map((product: any, index: number) => {
+        // Para el tipo de servicio "Pendiente", usar editableProductsWithVariants
+        // Para otros tipos, usar editableUnitCostProducts
+        const isPendingService = selectedServiceLogistic === "Pendiente";
+        const editableProduct = isPendingService 
+          ? editableProductsWithVariants.find((ep) => ep.id === product.id)
+          : editableUnitCostProducts.find((ep) => ep.id === product.id);
 
         return {
-          originalProductId: product.id,
+          productId: product.id,
           name: product.name,
-          adminComment: product.adminComment || "",
+          adminComment: editableProduct?.adminComment || product.adminComment || "",
           seCotizaProducto: productQuotationState[product.id] !== false,
           variants: (product.variants || []).map((variant: any) => {
             // Buscar la variante editable correspondiente
             const editableVariant = editableProduct?.variants?.find(
-              (ev) => ev.id === variant.id
+              (ev: any) => ev.id === variant.id
             );
 
+            const quantity = Number(variant.quantity) || 0;
+            const express = editableVariant?.express || 0;
+            
+            // Para el tipo "Pendiente", el precio unitario se calcula como express * quantity
+            const price = isPendingService 
+              ? express * quantity 
+              : editableVariant?.price || 0;
+
             return {
-              originalVariantId: variant.id,
+              variantId: variant.id,
               size: variant.size || "N/A",
               presentation: variant.presentation || "Unidad",
               model: variant.model || "",
               color: variant.color || "",
-              quantity: Number(variant.quantity) || 0,
-              price: editableVariant?.price || 0,
+              quantity: quantity,
+              price: price,
               unitCost: editableVariant?.unitCost || 0,
               importCosts: editableVariant?.importCosts || 0,
               seCotizaVariante: variantQuotationState[product.id]?.[variant.id] !== false,
@@ -1005,6 +1068,12 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
         "Enviando respuesta al backend:",
         JSON.stringify(dto, null, 2)
       );
+      
+      console.log("Estado de productos editables:", {
+        editableProductsWithVariants,
+        editableUnitCostProducts,
+        selectedServiceLogistic
+      });
 
       // Llamada al backend usando el hook
       /*await createQuotationResponseMutation.mutateAsync({
@@ -1098,6 +1167,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
       const initialProductsWithVariants = quotationDetail.products.map(
         (product: any) => ({
           ...product,
+          adminComment: product.adminComment || "",
           variants:
             product.variants?.map((variant: any) => ({
               ...variant,
@@ -1195,6 +1265,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                       <CardContent className="p-6">
                         <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
                           <div className="space-y-4">
+                            {/* Nombres */}
                             <div className="space-y-2">
                               <Label
                                 htmlFor="nombre_cliente"
@@ -1208,6 +1279,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                                 placeholder="Ingrese nombres"
                               />
                             </div>
+                            {/* Apellidos */}
                             <div className="space-y-2">
                               <Label
                                 htmlFor="apellidos_cliente"
@@ -1221,6 +1293,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                                 placeholder="Ingrese apellidos"
                               />
                             </div>
+                            {/* DNI */}
                             <div className="space-y-2">
                               <Label
                                 htmlFor="dni_cliente"
@@ -1234,6 +1307,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                                 placeholder="12345678"
                               />
                             </div>
+                            {/* Razón Social */}
                             <div className="space-y-2">
                               <Label
                                 htmlFor="razon_social_cliente"
@@ -1249,6 +1323,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                             </div>
                           </div>
                           <div className="space-y-4">
+                            {/* RUC */}
                             <div className="space-y-2">
                               <Label
                                 htmlFor="ruc_cliente"
@@ -1262,6 +1337,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                                 placeholder="20123456789"
                               />
                             </div>
+                            {/* Contacto */}
                             <div className="space-y-2">
                               <Label
                                 htmlFor="contacto_cliente"
@@ -1275,6 +1351,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                                 placeholder="+51 999 999 999"
                               />
                             </div>
+                            {/* Asesor */}
                             <div className="space-y-2">
                               <Label
                                 htmlFor="advisor"
@@ -1289,6 +1366,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                                 className="font-medium bg-gray-50 border-gray-300"
                               />
                             </div>
+                            {/* Fecha de Respuesta */}
                             <div className="space-y-2">
                               <Label
                                 htmlFor="date"
@@ -1383,6 +1461,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                         <CardContent className="p-6">
                           <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
                             <div className="space-y-4">
+                              {/* Nombre  */}
                               <div className="space-y-2">
                                 <Label
                                   htmlFor="nombre_cliente"
@@ -1396,6 +1475,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                                   placeholder="Ingrese nombres"
                                 />
                               </div>
+                              {/* Apellido */}
                               <div className="space-y-2">
                                 <Label
                                   htmlFor="apellidos_cliente"
@@ -1409,6 +1489,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                                   placeholder="Ingrese apellidos"
                                 />
                               </div>
+                              {/* DNI */}
                               <div className="space-y-2">
                                 <Label
                                   htmlFor="dni_cliente"
@@ -1422,6 +1503,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                                   placeholder="12345678"
                                 />
                               </div>
+                              {/* Razón Social */}
                               <div className="space-y-2">
                                 <Label
                                   htmlFor="razon_social_cliente"
@@ -1437,6 +1519,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                               </div>
                             </div>
                             <div className="space-y-4">
+                              {/* RUC */}
                               <div className="space-y-2">
                                 <Label
                                   htmlFor="ruc_cliente"
@@ -1450,6 +1533,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                                   placeholder="20123456789"
                                 />
                               </div>
+                              {/* Contacto */}
                               <div className="space-y-2">
                                 <Label
                                   htmlFor="contacto_cliente"
@@ -1463,6 +1547,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                                   placeholder="+51 999 999 999"
                                 />
                               </div>
+                              {/* Asesor */}
                               <div className="space-y-2">
                                 <Label
                                   htmlFor="advisor"
@@ -1477,6 +1562,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                                   className="font-medium bg-gray-50 border-gray-300"
                                 />
                               </div>
+                              {/* Fecha de Respuesta */}
                               <div className="space-y-2">
                                 <Label
                                   htmlFor="date"
@@ -1519,6 +1605,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                             </div>
                           </div>
 
+                          {/* Tipo de Servicio */}
                           <div className="space-y-2">
                             <Label
                               htmlFor="service"
@@ -1552,7 +1639,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
 
                   {/* Segunda columna */}
                   <div className="space-y-6 gap-4 grid grid-cols-1 lg:grid-cols-2">
-                    {/* Cargo Details */}
+                    {/* Detalles de Carga */}
                     <Card className="shadow-lg border-1 border-green-200 bg-gradient-to-br from-green-50 to-emerald-50">
                       <CardHeader>
                         <CardTitle className="flex items-center gap-3 text-xl font-bold">
@@ -1568,6 +1655,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-4 p-6">
+                        {/* Tipo de Carga */}
                         <div className="flex items-center gap-2 mb-4">
                           <Badge
                             variant="secondary"
@@ -1581,6 +1669,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                         </div>
 
                         <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
+                          {/* Tipo de Carga */}
                           <div className="space-y-2">
                             <Label
                               htmlFor="cargoType"
@@ -1610,6 +1699,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                               </SelectContent>
                             </Select>
                           </div>
+                          {/* Valor Comercial */}
                           <div className="space-y-2">
                             <Label
                               htmlFor="commercialValue"
@@ -1638,6 +1728,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                               </span>
                             </div>
                           </div>
+                          {/* Nro Bultos */}
                           <div className="space-y-2">
                             <Label
                               htmlFor="boxes"
@@ -1670,6 +1761,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                         </div>
 
                         <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
+                          {/* Peso (KG) */}
                           <div className="space-y-2">
                             <Label
                               htmlFor="kg"
@@ -1688,6 +1780,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                               placeholder="0"
                             />
                           </div>
+                          {/* Peso (TON) */}
                           <div className="space-y-2">
                             <Label
                               htmlFor="ton"
@@ -1711,6 +1804,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                               placeholder="0"
                             />
                           </div>
+                          {/* K/V */}
                           {!isMaritimeService(selectedServiceLogistic) && (
                             <div className="space-y-2">
                               <Label
@@ -1734,6 +1828,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                               />
                             </div>
                           )}
+                          {/* Volumen (CBM) */}
                           {isMaritimeService(selectedServiceLogistic) && (
                             <div className="space-y-2">
                               <Label
@@ -2042,8 +2137,8 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                       </CardContent>
                     </Card>
 
-                     {/* Shipping Details */}
-                     <Card className="shadow-lg border-1 bg-gradient-to-br border-purple-200 from-purple-50 to-indigo-50">
+                    {/* Shipping Details */}
+                    <Card className="shadow-lg border-1 bg-gradient-to-br border-purple-200 from-purple-50 to-indigo-50">
                       <CardHeader>
                         <CardTitle className="flex items-center gap-3 text-xl font-bold">
                           <div className="p-2 bg-purple-200 rounded-lg">
@@ -2399,11 +2494,6 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                         </div>
                       </CardContent>
                     </Card>
-                  </div>
-                </div>
-                <div className="space-y-6 gap-4 py-4">
-                  <div>
-                   
                   </div>
                 </div>
 

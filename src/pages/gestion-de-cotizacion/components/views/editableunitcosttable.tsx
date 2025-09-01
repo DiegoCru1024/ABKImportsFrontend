@@ -40,7 +40,11 @@ interface EditableUnitCostTableProps {
   productQuotationState?: Record<string, boolean>;
   variantQuotationState?: Record<string, Record<string, boolean>>;
   onProductQuotationChange?: (productId: string, checked: boolean) => void;
-  onVariantQuotationChange?: (productId: string, variantId: string, checked: boolean) => void;
+  onVariantQuotationChange?: (
+    productId: string,
+    variantId: string,
+    checked: boolean
+  ) => void;
 }
 
 const EditableUnitCostTable: React.FC<EditableUnitCostTableProps> = ({
@@ -64,7 +68,12 @@ const EditableUnitCostTable: React.FC<EditableUnitCostTableProps> = ({
   useEffect(() => {
     const recalculated = recalculateProducts(initialProducts);
     setProductsList(recalculated);
-  }, [initialProducts, totalImportCosts]); // Depende de los datos del padre y los costos
+  }, [
+    initialProducts,
+    totalImportCosts,
+    productQuotationState,
+    variantQuotationState,
+  ]); // Depende de los datos del padre, costos y estados de cotización
 
   // Función para calcular el factor M
   const calculateFactorM = (products: ProductRow[]): number => {
@@ -81,28 +90,35 @@ const EditableUnitCostTable: React.FC<EditableUnitCostTableProps> = ({
   // Recalcular todos los valores cuando cambien los productos
   const recalculateProducts = (updatedProducts: ProductRow[]) => {
     // Crear una lista plana de todos los productos y variantes que se cotizan
-    const allItems: Array<{ id: string; total: number; isVariant: boolean; productId?: string }> = [];
-    
+    const allItems: Array<{
+      id: string;
+      total: number;
+      isVariant: boolean;
+      productId?: string;
+    }> = [];
+
     updatedProducts.forEach((product) => {
       // Verificar si el producto se cotiza
-      const productShouldQuote = productQuotationState[product.id] !== undefined 
-        ? productQuotationState[product.id] 
-        : product.seCotiza;
-      
+      const productShouldQuote =
+        productQuotationState[product.id] !== undefined
+          ? productQuotationState[product.id]
+          : product.seCotiza;
+
       if (productShouldQuote) {
         // Si el producto tiene variantes, agregar las variantes que se cotizan
         if (product.variants && product.variants.length > 0) {
           product.variants.forEach((variant) => {
-            const variantShouldQuote = variantQuotationState[product.id]?.[variant.id] !== undefined
-              ? variantQuotationState[product.id][variant.id]
-              : variant.seCotiza;
-            
+            const variantShouldQuote =
+              variantQuotationState[product.id]?.[variant.id] !== undefined
+                ? variantQuotationState[product.id][variant.id]
+                : variant.seCotiza;
+
             if (variantShouldQuote) {
               allItems.push({
                 id: variant.id,
                 total: variant.total || 0,
                 isVariant: true,
-                productId: product.id
+                productId: product.id,
               });
             }
           });
@@ -111,27 +127,30 @@ const EditableUnitCostTable: React.FC<EditableUnitCostTableProps> = ({
           allItems.push({
             id: product.id,
             total: product.total || 0,
-            isVariant: false
+            isVariant: false,
           });
         }
       }
     });
 
     // Calcular valor comercial total (sumatoria de todos los totales de productos/variantes que se cotizan)
-    const totalCommercialValue = allItems.reduce((sum, item) => sum + (item.total || 0), 0) || 0;
+    const totalCommercialValue =
+      allItems.reduce((sum, item) => sum + (item.total || 0), 0) || 0;
 
     const recalculatedProducts = updatedProducts.map((product) => {
       // Verificar si el producto se cotiza
-      const productShouldQuote = productQuotationState[product.id] !== undefined 
-        ? productQuotationState[product.id] 
-        : product.seCotiza;
+      const productShouldQuote =
+        productQuotationState[product.id] !== undefined
+          ? productQuotationState[product.id]
+          : product.seCotiza;
 
       if (product.variants && product.variants.length > 0) {
         // Producto con variantes
         const recalculatedVariants = product.variants.map((variant) => {
-          const variantShouldQuote = variantQuotationState[product.id]?.[variant.id] !== undefined
-            ? variantQuotationState[product.id][variant.id]
-            : variant.seCotiza;
+          const variantShouldQuote =
+            variantQuotationState[product.id]?.[variant.id] !== undefined
+              ? variantQuotationState[product.id][variant.id]
+              : variant.seCotiza;
 
           if (variantShouldQuote) {
             // Calcular equivalencia: (total de la variante / valor comercial) * 100
@@ -147,7 +166,8 @@ const EditableUnitCostTable: React.FC<EditableUnitCostTableProps> = ({
             const totalCost = variant.total + importCosts;
 
             // Calcular costo unitario: costo total / cantidad
-            const unitCost = variant.quantity > 0 ? totalCost / variant.quantity : 0;
+            const unitCost =
+              variant.quantity > 0 ? totalCost / variant.quantity : 0;
 
             return {
               ...variant,
@@ -171,26 +191,27 @@ const EditableUnitCostTable: React.FC<EditableUnitCostTableProps> = ({
 
         // Calcular totales del producto basado en sus variantes
         const productTotal = recalculatedVariants
-          .filter(v => v.seCotiza)
+          .filter((v) => v.seCotiza)
           .reduce((sum, variant) => sum + variant.total, 0);
-        
+
         const productEquivalence = recalculatedVariants
-          .filter(v => v.seCotiza)
+          .filter((v) => v.seCotiza)
           .reduce((sum, variant) => sum + variant.equivalence, 0);
-        
+
         const productImportCosts = recalculatedVariants
-          .filter(v => v.seCotiza)
+          .filter((v) => v.seCotiza)
           .reduce((sum, variant) => sum + variant.importCosts, 0);
-        
+
         const productTotalCost = recalculatedVariants
-          .filter(v => v.seCotiza)
+          .filter((v) => v.seCotiza)
           .reduce((sum, variant) => sum + variant.totalCost, 0);
-        
+
         const productQuantity = recalculatedVariants
-          .filter(v => v.seCotiza)
+          .filter((v) => v.seCotiza)
           .reduce((sum, variant) => sum + variant.quantity, 0);
-        
-        const productUnitCost = productQuantity > 0 ? productTotalCost / productQuantity : 0;
+
+        const productUnitCost =
+          productQuantity > 0 ? productTotalCost / productQuantity : 0;
 
         return {
           ...product,
@@ -218,7 +239,8 @@ const EditableUnitCostTable: React.FC<EditableUnitCostTableProps> = ({
           const totalCost = product.total + importCosts;
 
           // Calcular costo unitario: costo total / cantidad
-          const unitCost = product.quantity > 0 ? totalCost / product.quantity : 0;
+          const unitCost =
+            product.quantity > 0 ? totalCost / product.quantity : 0;
 
           return {
             ...product,
@@ -243,7 +265,9 @@ const EditableUnitCostTable: React.FC<EditableUnitCostTableProps> = ({
 
     // Notificar cambio del valor comercial total al componente padre
     if (onCommercialValueChange) {
-      const validCommercialValue = Number.isFinite(totalCommercialValue) ? totalCommercialValue : 0;
+      const validCommercialValue = Number.isFinite(totalCommercialValue)
+        ? totalCommercialValue
+        : 0;
       onCommercialValueChange(validCommercialValue);
     }
 
@@ -329,7 +353,7 @@ const EditableUnitCostTable: React.FC<EditableUnitCostTableProps> = ({
 
   // Generar columnas con la lógica de actualización
   const columns = columnsEditableUnitcost(
-    updateProduct, 
+    updateProduct,
     updateVariant,
     productQuotationState,
     variantQuotationState,
@@ -360,81 +384,116 @@ const EditableUnitCostTable: React.FC<EditableUnitCostTableProps> = ({
   const factorM = calculateFactorM(productsList);
 
   return (
-    <div className="p-6 bg-gray-50">
-      <Card className="overflow-hidden">
-        <CardHeader>
-          <CardTitle className="text-lg font-bold text-center flex-1">
-            <div className="relative">
-              COSTEO UNITARIO DE IMPORTACIÓN
-              <div className="absolute top-0 right-0  text-black px-3 py-1 text-sm font-bold">
-                <div className="text-xs">FACTOR M.</div>
-                <div>{factorM.toFixed(2)}</div>
+    <Card className="bg-white shadow-lg border border-gray-100 overflow-hidden rounded-2xl">
+      <CardHeader>
+        <CardTitle className="text-lg font-bold text-center flex-1">
+          <div className="relative">
+            COSTEO UNITARIO DE IMPORTACIÓN
+            <div className="absolute top-0 right-0  text-black px-3 py-1 text-sm font-bold">
+              <div className="text-xs">FACTOR M.</div>
+              <div>{factorM.toFixed(2)}</div>
+            </div>
+          </div>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {/* Header con indicadores mejorado */}
+        <div className="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 border border-slate-200/60 rounded-xl p-6">
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold text-slate-800 mb-2">
+              Resumen de Cotización
+            </h2>
+            <p className="text-slate-600 text-sm">
+              Información general de la cotización actual
+            </p>
+          </div>
+
+          {/* Indicadores principales con mejor diseño */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4 items-center justify-center max-w-4xl mx-auto">
+            {/* Primer indicador  - N° de Items*/}
+            <div className="bg-white rounded-lg p-4 text-center border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200">
+              <div className="text-xl font-bold text-slate-800 mb-1">
+                {productsList.reduce(
+                  (sum, product) => sum + (product.variants?.length || 0),
+                  0
+                ) || 0}
+              </div>
+              <div className="text-xs font-medium text-slate-600">
+                N° ITEMS
               </div>
             </div>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <DataTable
-            columns={columns}
-            data={productsList}
-            pageInfo={{
-              pageNumber: 1,
-              pageSize: 10,
-              totalElements: productsList.length,
-              totalPages: 1,
-            }}
-            onPageChange={() => {}}
-            onSearch={() => {}}
-            searchTerm={""}
-            isLoading={false}
-            paginationOptions={{
-              showSelectedCount: false,
-              showPagination: false,
-              showNavigation: false,
-            }}
-            toolbarOptions={{
-              showSearch: false,
-              showViewOptions: false,
-            }}
-          />
+            {/* Segundo indicador - N° de Productos */}
+            <div className="bg-white rounded-lg p-4 text-center border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200">
+              <div className="text-xl font-bold text-slate-800 mb-1">
+                {productsList.length || 0}
+              </div>
+              <div className="text-xs font-medium text-slate-600">
+                N° PRODUCTOS
+              </div>
+            </div>
+            {/* Tercer indicador - CBM Total*/}
+            <div className="bg-white rounded-lg p-4 text-center border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200">
+              <div className="text-xl font-bold text-slate-800 mb-1">0.00</div>
+              <div className="text-xs font-medium text-slate-600">
+                CBM TOTAL
+              </div>
+            </div>
+            {/* Cuarto indicador - Peso Total */}
+            <div className="bg-white rounded-lg p-4 text-center border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200">
+              <div className="text-xl font-bold text-slate-800 mb-1">0.00</div>
+              <div className="text-xs font-medium text-slate-600">
+                PESO  (KG)
+              </div>
+            </div>
+            {/* Quinto indicador - Precio total */}
+            <div className="bg-white rounded-lg p-4 text-center border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200">
+              <div className="text-xl font-bold text-emerald-600 mb-1">
+                ${totalAmount.toFixed(2)}
+              </div>
+              <div className="text-xs font-medium text-slate-600">P. TOTAL</div>
+            </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4">
-            <Card className="h-20 w-full bg-gradient-to-r from-red-400 to-red-300 rounded-lg text-white">
-              <CardContent className="p-4 h-full flex flex-col justify-center">
-                <div className="text-3xl font-bold">{totalQuantity}</div>
-                <div className="text-sm opacity-90">Total Unidades</div>
-              </CardContent>
-            </Card>
-            <Card className="h-20 w-full bg-gradient-to-r from-blue-400 to-blue-300  rounded-lg text-white">
-              <CardContent className="p-4 h-full flex flex-col justify-center">
-                <div className="text-3xl font-bold">
-                  {totalAmount.toFixed(2)}
-                </div>
-                <div className="text-sm opacity-90">Precio Total USD</div>
-              </CardContent>
-            </Card>
-
-            <Card className="h-20 w-full bg-gradient-to-r from-green-400 to-green-300 rounded-lg text-white">
-              <CardContent className="p-4 h-full flex flex-col justify-center">
-                <div className="text-3xl font-bold">
-                  {totalImportCostsSum.toFixed(2)}
-                </div>
-                <div className="text-sm opacity-90">Total Importación</div>
-              </CardContent>
-            </Card>
-
-            <Card className="h-20 w-full bg-gradient-to-r from-orange-400 to-orange-300 rounded-lg text-white">
-              <CardContent className="p-4 h-full flex flex-col justify-center">
-                <div className="text-3xl font-bold">
-                  {grandTotal.toFixed(2)}
-                </div>
-                <div className="text-sm opacity-90">Total Costo</div>
-              </CardContent>
-            </Card>
+            {/* Sexto indicador - Express total */}
+            <div className="bg-white rounded-lg p-4 text-center border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200">
+              <div className="text-xl font-bold text-emerald-600 mb-1">
+                0.00
+              </div>
+              <div className="text-xs font-medium text-slate-600">EXPRESS</div>
+            </div>
+            {/* Septimo indicador - Total */}
+            <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg p-4 text-center shadow-sm hover:shadow-md transition-all duration-200">
+              <div className="text-xl font-bold text-white mb-1">
+                {grandTotal.toFixed(2)}
+              </div>
+              <div className="text-xs font-medium text-emerald-100">TOTAL</div>
+            </div>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+      </CardContent>
+      <DataTable
+        columns={columns}
+        data={productsList}
+        pageInfo={{
+          pageNumber: 1,
+          pageSize: 10,
+          totalElements: productsList.length,
+          totalPages: 1,
+        }}
+        onPageChange={() => {}}
+        onSearch={() => {}}
+        searchTerm={""}
+        isLoading={false}
+        paginationOptions={{
+          showSelectedCount: false,
+          showPagination: false,
+          showNavigation: false,
+        }}
+        toolbarOptions={{
+          showSearch: false,
+          showViewOptions: false,
+        }}
+      />
+    </Card>
   );
 };
 

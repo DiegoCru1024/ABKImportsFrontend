@@ -165,16 +165,16 @@ export function columnsEditableUnitcost(
                     : variant.seCotiza;
                   
                   return (
-                                         <EditableNumericField
-                       key={variant.id}
-                       value={variant.price}
-                       onChange={(value) => {
-                         if (updateVariant) {
-                           updateVariant(product.id, variant.id, "price", value);
-                         }
-                       }}
-                       disabled={!variantShouldQuote}
-                     />
+                    <EditableNumericField
+                      key={variant.id}
+                      value={variant.price}
+                      onChange={(value) => {
+                        if (updateVariant) {
+                          updateVariant(product.id, variant.id, "price", value);
+                        }
+                      }}
+                      disabled={!variantShouldQuote}
+                    />
                   );
                 })}
               </div>
@@ -242,10 +242,10 @@ export function columnsEditableUnitcost(
       size: 200,
       maxSize: 250,
     },
-         {
-       id: "total",
-       accessorKey: "total",
-       header: () => <div className="text-center">TOTAL</div>,
+    {
+      id: "total",
+      accessorKey: "total",
+      header: () => <div className="text-center">TOTAL</div>,
        cell: ({ row }) => {
          const product = row.original;
          const hasVariants = product.variants && product.variants.length > 0;

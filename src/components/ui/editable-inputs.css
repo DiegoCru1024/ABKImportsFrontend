@@ -1,0 +1,57 @@
+/* Estilos para inputs editables numéricos */
+.editable-numeric-input {
+  transition: all 0.2s ease-in-out;
+}
+
+.editable-numeric-input:focus {
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+  border-color: #3b82f6;
+}
+
+.editable-numeric-input:disabled {
+  background-color: #f3f4f6;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.editable-numeric-input:not(:disabled):hover {
+  border-color: #d1d5db;
+}
+
+/* Animación para el cursor cuando está editando */
+.editable-numeric-input.editing {
+  caret-color: #3b82f6;
+}
+
+/* Estilos para inputs con valores válidos */
+.editable-numeric-input.valid {
+  border-color: #10b981;
+}
+
+/* Estilos para inputs con valores inválidos */
+.editable-numeric-input.invalid {
+  border-color: #ef4444;
+}
+
+/* Estilos para el placeholder */
+.editable-numeric-input::placeholder {
+  color: #9ca3af;
+  opacity: 0.7;
+}
+
+/* Estilos para el texto seleccionado */
+.editable-numeric-input::selection {
+  background-color: #3b82f6;
+  color: white;
+}
+
+/* Estilos para el scroll en inputs numéricos */
+.editable-numeric-input::-webkit-outer-spin-button,
+.editable-numeric-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.editable-numeric-input[type=number] {
+  -moz-appearance: textfield;
+}

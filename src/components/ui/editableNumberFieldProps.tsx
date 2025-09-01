@@ -1,67 +1,123 @@
-import React, { useState, useEffect } from "react";
-import { Input } from "@/components/ui/input"; // Asegúrate que la ruta sea correcta
+import React, { useState, useEffect, useRef } from "react";
+import { Input } from "@/components/ui/input";
+import "./editable-inputs.css";
 
-// 1. Define las props que recibirá el nuevo componente
 interface EditableNumericFieldProps {
   value: number;
   onChange: (value: number) => void;
   currency?: string;
   disabled?: boolean;
+  step?: number;
+  min?: number;
+  max?: number;
 }
 
-// 2. Crea el componente con estado local
 export const EditableNumericField: React.FC<EditableNumericFieldProps> = ({
   value,
   onChange,
   currency = "USD",
   disabled = false,
+  step = 0.01,
+  min,
+  max,
 }) => {
-  // Estado local para manejar el string del input mientras se edita
-  const [inputValue, setInputValue] = useState<string>(value?.toString() || "0");
+  const [inputValue, setInputValue] = useState<string>("");
+  const [isEditing, setIsEditing] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  // Sincroniza el estado local si el valor externo (prop) cambia
+  // Función para formatear números
+  const formatNumber = (num: number): string => {
+    if (isNaN(num) || !isFinite(num)) return "0";
+    return num.toString();
+  };
+
+  // Inicializar el valor cuando el componente se monta o cambia el valor externo
   useEffect(() => {
-    // Solo actualiza si el valor numérico no coincide, para evitar loops
-    const currentValue = value ?? 0;
-    if (Number.parseFloat(inputValue) !== currentValue) {
-      setInputValue(currentValue.toString());
+    if (!isEditing) {
+      setInputValue(formatNumber(value || 0));
     }
-  }, [value, inputValue]);
+  }, [value, isEditing]);
 
   // Maneja el cambio en cada pulsación de tecla
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInputValue(e.target.value);
+    const newValue = e.target.value;
+    
+    // Permitir valores vacíos, números, puntos y comas
+    // También permitir múltiples dígitos después del punto decimal
+    if (newValue === "" || /^[0-9]*\.?[0-9]*$/.test(newValue)) {
+      setInputValue(newValue);
+    }
   };
 
   // Cuando el usuario hace clic fuera (onBlur), se procesa el valor final
   const handleBlur = () => {
-    // Reemplaza coma por punto y convierte a número
-    let numericValue = Number.parseFloat(inputValue.replace(",", "."));
+    setIsEditing(false);
+    
+    // Si el input está vacío o solo tiene un punto, usar 0
+    if (inputValue === "" || inputValue === ".") {
+      setInputValue("0");
+      onChange(0);
+      return;
+    }
 
-    // Si el resultado no es un número válido (ej. input vacío), usa 0
-    if (isNaN(numericValue)) {
+    // Convertir a número, permitiendo valores flotantes
+    let numericValue = parseFloat(inputValue);
+    
+    // Si no es un número válido, usar 0
+    if (isNaN(numericValue) || !isFinite(numericValue)) {
       numericValue = 0;
     }
 
-    // Llama a la función onChange del componente padre con el número final
-    onChange(numericValue);
+    // Aplicar límites si están definidos
+    if (min !== undefined && numericValue < min) {
+      numericValue = min;
+    }
+    if (max !== undefined && numericValue > max) {
+      numericValue = max;
+    }
 
-    // Actualiza el estado local para reflejar el formato numérico final
-    setInputValue(numericValue.toString());
+    // Formatear el valor final
+    const formattedValue = formatNumber(numericValue);
+    setInputValue(formattedValue);
+    
+    // Solo llamar onChange si el valor realmente cambió
+    if (Math.abs(numericValue - (value || 0)) > 0.001) {
+      onChange(numericValue);
+    }
+  };
+
+  // Cuando el usuario hace focus, entrar en modo edición
+  const handleFocus = () => {
+    setIsEditing(true);
+    if (inputRef.current) {
+      inputRef.current.select();
+    }
+  };
+
+  // Manejar tecla Enter
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      inputRef.current?.blur();
+    }
   };
 
   return (
     <Input
-      value={inputValue} // ✅ Usa el estado local (string) como valor
-      onChange={handleInputChange} // ✅ Actualiza el estado local
-      onBlur={handleBlur} // ✅ Procesa el número al perder el foco
-      className="text-center font-semibold px-3 py-1 w-full h-9 text-sm"
-      onFocus={(e) => e.target.select()}
+      ref={inputRef}
+      value={inputValue}
+      onChange={handleInputChange}
+      onBlur={handleBlur}
+      onFocus={handleFocus}
+      onKeyDown={handleKeyDown}
+      className={`editable-numeric-input text-center font-semibold px-3 py-1 w-full h-9 text-sm ${isEditing ? 'editing' : ''}`}
       placeholder="0"
       disabled={disabled}
-      // Si quieres el teclado numérico en móviles, puedes añadir type="number"
-      // y la clase CSS "no-arrows" que vimos antes.
-      type="number"
+      // Usar text en lugar de number para permitir mejor control
+      type="text"
+      inputMode="decimal"
+      step={step}
+      min={min}
+      max={max}
     />
   );
 };

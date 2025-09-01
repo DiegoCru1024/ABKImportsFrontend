@@ -22,53 +22,53 @@ export interface QuotationInfo {
 }
 
 export interface dynamicValues {
-  comercialValue: number;
-  flete: number;
-  cajas: number;
-  desaduanaje: number;
-  kg: number;
-  ton: number;
-  kv: number;
-  fob: number;
-  seguro: number;
-  tipoCambio: number;
-  nroBultos: number;
-  volumenCBM: number;
-  calculoFlete: number;
-  servicioConsolidado: number;
-  separacionCarga: number;
-  inspeccionProductos: number;
-  gestionCertificado: number;
-  inspeccionProducto: number;
-  inspeccionFabrica: number;
-  transporteLocal: number;
-  otrosServicios: number;
-  adValoremRate: number;
-  antidumpingGobierno: number;
-  antidumpingCantidad: number;
-  iscRate: number;
-  igvRate: number;
-  ipmRate: number;
-  percepcionRate: number;
-  transporteLocalChinaEnvio: number;
-  transporteLocalClienteEnvio: number;
-  cif: number;
-  shouldExemptTaxes: boolean;
+  comercialValue: number,
+  flete: number,
+  cajas: number,
+  desaduanaje: number,
+  kg: number,
+  ton: number,
+  kv: number,
+  fob: number,
+  seguro: number,
+  tipoCambio: number,
+  nroBultos: number,
+  volumenCBM: number,
+  calculoFlete: number,
+  servicioConsolidado: number,
+  separacionCarga: number,
+  inspeccionProductos: number,
+  gestionCertificado: number,
+  inspeccionProducto: number,
+  inspeccionFabrica: number,
+  transporteLocal: number,
+  otrosServicios: number,
+  adValoremRate: number,
+  antidumpingGobierno: number,
+  antidumpingCantidad: number,
+  iscRate: number,
+  igvRate: number,
+  ipmRate: number,
+  percepcionRate: number,
+  transporteLocalChinaEnvio: number,
+  transporteLocalClienteEnvio: number,
+  cif: number,
+  shouldExemptTaxes: boolean
 }
 
 export interface Exemptions {
-  servicioConsolidadoAereo: boolean;
-  separacionCarga: boolean;
-  inspeccionProductos: boolean;
-  obligacionesFiscales: boolean;
-  desaduanajeFleteSaguro: boolean;
-  transporteLocalChina: boolean;
-  transporteLocalCliente: boolean;
-  servicioConsolidadoMaritimo: boolean;
-  gestionCertificado: boolean;
-  servicioInspeccion: boolean;
-  transporteLocal: boolean;
-  totalDerechos: boolean;
+  servicioConsolidadoAereo: boolean,
+  servicioConsolidadoMaritimo: boolean,
+  separacionCarga: boolean,
+  inspeccionProductos: boolean,
+  obligacionesFiscales: boolean,
+  desaduanajeFleteSaguro: boolean,
+  transporteLocalChina: boolean,
+  transporteLocalCliente: boolean,
+  gestionCertificado: boolean,
+  servicioInspeccion: boolean,
+  transporteLocal: boolean,
+  totalDerechos: boolean
 }
 export interface serviceFields {
   servicioConsolidado: number;
@@ -78,15 +78,7 @@ export interface serviceFields {
 
 export interface fiscalObligations {
   adValorem: number;
-  antidumping: number;
-  isc: number;
-  baseIgvIpm: number;
-  igvFiscal: number;
-  ipm: number;
-  percepcion: number;
   totalDerechosDolares: number;
-  totalDerechosSoles: number;
-  totalDerechosDolaresFinal: number;
 }
 
 export interface importExpenses {
@@ -127,7 +119,7 @@ export interface ServiceCalculations {
 }
 
 export interface ProductsQuotationResponseDTO {
-  originalProductId: string;
+  productId: string;
   name: string;
   adminComment: string;
   seCotizaProducto: boolean;
@@ -135,7 +127,7 @@ export interface ProductsQuotationResponseDTO {
 }
 
 export interface VariantQuotationResponseDTO {
-  originalVariantId: string;
+  variantId: string;
   size: string;
   presentation: string;
   model: string;
@@ -165,7 +157,7 @@ export interface QuotationCreateUpdateResponseDTO {
 
 
 //*****************************************************************************************************/
-//********************* INTERFACES PARA LISTAR LAS RESPUESTAS DE UNA COTIZACIÓN ***********************
+//********************* INTERFACES PARA LISTAR LAS RESPUESTAS DE UNA COTIZACIÓN ***********************/
 //*****************************************************************************************************/
 
 export interface contentQuotationResponseDTO {
@@ -190,4 +182,81 @@ export interface QuotationResponseListDTO {
   totalElements: number;
   totalPages: number;
   last: boolean;
+}
+
+//*****************************************************************************************************/
+//********************* INTERFACES UNIFICADAS PARA CREACIÓN Y EDICIÓN *********************************/
+//*****************************************************************************************************/
+
+// Interfaz para variantes de productos en el DTO unificado
+export interface QuotationResponseVariantDTO {
+  id_quotation_response_variant?: string;
+  price: number;
+  quantity: number;
+  total: number;
+  import_costs: number;
+  unit_cost: number;
+  se_cotiza_variante: boolean;
+  quotationResponseProductId?: string;
+  productVariantId: string;
+  size?: string;
+  presentation?: string;
+  model?: string;
+  color?: string;
+}
+
+// Interfaz para productos en el DTO unificado
+export interface QuotationResponseProductDTO {
+  id_quotation_response_products?: string;
+  item: number;
+  name: string;
+  quotationResponseIdQuotationResponse?: string;
+  productQuotationIdProductQuotation: string;
+  se_cotiza_producto: boolean;
+  status: string;
+  admin_comment: string;
+  variants: QuotationResponseVariantDTO[];
+}
+
+// Interfaz para la respuesta principal en el DTO unificado
+export interface QuotationResponseMainDTO {
+  id_quotation_response?: string;
+  created_at?: string;
+  last_modified?: string;
+  is_active?: boolean;
+  quotationIdQuotation: string;
+  status: string;
+  response_date: string;
+  service_type: string;
+  cargo_type: string;
+  courier: string;
+  incoterm: string;
+  is_first_purchase: boolean;
+  regime?: string;
+  origin_country?: string;
+  destination_country?: string;
+  customs?: string;
+  origin_port?: string;
+  destination_port?: string;
+  service_type_detail?: string;
+  transit_time_days?: number;
+  shipping_company?: string;
+  proforma_validity_days?: number;
+  advisorIdUsuario: string;
+  advisor_name?: string;
+  is_maritime_service: boolean;
+  client_comments?: string;
+  admin_comments?: string;
+  calculation_details: {
+    correlative: string;
+    dynamicValues: dynamicValues;
+    exemptions: Exemptions;
+    serviceCalculations: ServiceCalculations;
+  };
+}
+
+// DTO unificado para creación y edición de respuestas de cotización
+export interface QuotationResponseCompleteDTO {
+  quotationResponse: QuotationResponseMainDTO;
+  products: QuotationResponseProductDTO[];
 }

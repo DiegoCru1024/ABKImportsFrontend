@@ -102,6 +102,8 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({ user, onOpen }) => {
       type: form.type || "final",
     };
 
+    console.log("  Este es el payload de updateProfile", JSON.stringify(payload, null, 2));
+
     updateMutation.mutate(payload);
   };
 

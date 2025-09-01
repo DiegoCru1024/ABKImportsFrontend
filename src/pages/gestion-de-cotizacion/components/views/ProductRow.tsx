@@ -34,7 +34,7 @@ interface ProductRowProps {
   product: any;
   index: number;
   quotationDetail: any;
-  onProductChange: (productId: string, field: string, value: number) => void;
+  onProductChange: (productId: string, field: string, value: number | string) => void;
   editableProducts: any[];
   productQuotationState?: Record<string, boolean>;
   variantQuotationState?: Record<string, Record<string, boolean>>;
@@ -757,7 +757,8 @@ const ProductRow: React.FC<ProductRowProps> = ({
               </Button>
               <Button
                 onClick={() => {
-                  // Aquí puedes agregar la lógica para guardar el comentario
+                  // Guardar el comentario en el componente padre
+                  onProductChange(product.id, "adminComment", adminComment);
                   console.log(
                     "Comentario del administrador guardado:",
                     adminComment

@@ -7,7 +7,9 @@ import {
   getListResponsesByQuotationId,
   getDetailsResponse,
   } from "@/api/quotation-responses";
-import type { QuotationCreateUpdateResponseDTO } from "@/api/interface/quotationResponseInterfaces";
+import type { 
+  QuotationCreateUpdateResponseDTO
+} from "@/api/interface/quotationResponseInterfaces";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -27,8 +29,6 @@ export function useCreateQuatitationResponse() {
       data: QuotationCreateUpdateResponseDTO;
       quotationId: string;
     }) => {
-      // Aplicar valores por defecto antes de enviar
-      //const dataWithDefaults = applyDefaultValues(data);
       return createQuatitationResponse(data, quotationId);
     },
     onSuccess: () => {

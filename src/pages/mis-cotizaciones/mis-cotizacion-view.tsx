@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/table/data-table";
 import { useGetQuotationsListWithPagination } from "@/hooks/use-quation";
 import { columnsQuotationsList } from "./components/table/columnsQuotationsList";
-import ResponseCotizacionView from "./respuesta-cotizacion-view";
+import ResponseCotizacionView from "./respuestas-cotizacion-view";
 import ConfirmationModal from "@/components/modal-confirmation";
 import SendingModal from "@/components/sending-modal";
 import { useDeleteQuotation } from "@/hooks/use-quation";
@@ -42,10 +42,26 @@ export default function MisCotizacionesView() {
     pageInfo.pageSize
   );
 
+  // Debug logs
+  console.log("dataQuotations raw:", dataQuotations);
+  console.log("isLoading:", isLoading);
+  console.log("isError:", isError);
+
   useEffect(() => {
     if (dataQuotations) {
-      setData(dataQuotations.content);
-      console.log("dataQuotations", dataQuotations.content);
+      // Mapear los datos de la API a la estructura esperada por el componente
+      const mappedData = dataQuotations.content.map((item: any) => ({
+        id: item.quotationId, // Cambiar quotationId por id
+        correlative: item.correlative,
+        status: item.status,
+        service_type: item.service_type,
+        productQuantity: item.productQuantity,
+        createdAt: item.createdAt,
+        updatedAt: item.updatedAt,
+      }));
+      
+      setData(mappedData);
+      console.log("dataQuotations", mappedData);
       setPageInfo({
         pageNumber: dataQuotations.pageNumber,
         pageSize: dataQuotations.pageSize,
@@ -242,6 +258,10 @@ export default function MisCotizacionesView() {
               ) : isError ? (
                 <div className="text-center py-8 text-red-500">
                   Error al cargar las cotizaciones
+                </div>
+              ) : data.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  No hay cotizaciones disponibles
                 </div>
               ) : (
                 <DataTable

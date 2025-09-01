@@ -98,6 +98,7 @@ export default function GestionDeCotizacionesView() {
   useEffect(() => {
     if (dataQuotations) {
       console.log("dataQuotations", dataQuotations);
+      console.log("dataQuotations.content", dataQuotations.content);
       setData(dataQuotations.content);
       setPageInfo({
         pageNumber:
@@ -118,10 +119,12 @@ export default function GestionDeCotizacionesView() {
 
   // Función para manejar la vista de detalles
   const handleViewDetails = (quotationId: string) => {
+    console.log("handleViewDetails called with quotationId:", quotationId);
     navigate(`/dashboard/gestion-de-cotizacion/respuesta/${quotationId}`);
   };
 
   const handleViewListResponses = (quotationId: string) => {
+    console.log("handleViewListResponses called with quotationId:", quotationId);
     navigate(`/dashboard/gestion-de-cotizacion/respuestas/${quotationId}`);
   };
 
@@ -314,7 +317,7 @@ export default function GestionDeCotizacionesView() {
 
                 return (
                   <Card
-                    key={quote.id}
+                    key={quote.quotationId}
                     className="hover:shadow-lg transition-shadow duration-200 flex flex-col"
                   >
                     {/* Header fijo de la tarjeta */}
@@ -384,7 +387,7 @@ export default function GestionDeCotizacionesView() {
                         <div className="grid grid-cols-3 gap-3 min-w-max">
                           {quote.products?.map((product: any) => (
                             <div
-                              key={product.id}
+                              key={product.productId}
                               className="bg-gray-50 rounded-lg p-3 w-[280px] flex-shrink-0"
                             >
                               <div className="flex gap-3">
@@ -493,7 +496,7 @@ export default function GestionDeCotizacionesView() {
                       {quote.status !== "pending" && quote.status !=="draft" ? (
                         <div className="flex justify-end">
                           <Button
-                            onClick={() => handleViewListResponses(quote.id)}
+                            onClick={() => handleViewListResponses(quote.quotationId)}
                             className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white"
                           >
                             <Eye className="w-4 h-4" />
@@ -505,7 +508,7 @@ export default function GestionDeCotizacionesView() {
                         {quote.status !== "draft" ?(
                         <div className="flex justify-end">
                           <Button
-                            onClick={() => handleViewDetails(quote.id)}
+                            onClick={() => handleViewDetails(quote.quotationId)}
                             className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white"
                           >
                             <Eye className="w-4 h-4" />

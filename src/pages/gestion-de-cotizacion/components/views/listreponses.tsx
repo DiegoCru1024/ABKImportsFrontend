@@ -21,6 +21,7 @@ interface ListResponsesProps {
 const ListResponses: React.FC<ListResponsesProps> = ({
   selectedQuotationId,
 }) => {
+  console.log("ListResponses component received selectedQuotationId:", selectedQuotationId);
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(1);
@@ -34,13 +35,51 @@ const ListResponses: React.FC<ListResponsesProps> = ({
     isError,
   } = useGetListResponsesByQuotationId(selectedQuotationId, page, pageSize);
 
+  console.log("ListResponses - listResponses data:", listResponses);
+  console.log("ListResponses - isLoading:", isLoading);
+  console.log("ListResponses - isError:", isError);
+
   const { mutateAsync: deleteQuotationResponse } =
     useDeleteQuatitationResponse();
 
   const data: contentQuotationResponseDTO[] = listResponses?.content ?? [];
 
-  if (isLoading) return <div>Cargando...</div>;
-  if (isError) return <div>Error al cargar las respuestas</div>;
+  if (!selectedQuotationId) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-orange-500/5 via-background to-orange-400/10 p-6">
+        <div className="text-center text-red-600">
+          Error: No se proporcionó un ID de cotización válido
+        </div>
+        <div className="text-center text-gray-500 text-sm mt-2">
+          selectedQuotationId: {selectedQuotationId}
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-orange-500/5 via-background to-orange-400/10 p-6">
+        <div className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+          <span className="ml-2">Cargando respuestas...</span>
+        </div>
+      </div>
+    );
+  }
+  
+  if (isError) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-orange-500/5 via-background to-orange-400/10 p-6">
+        <div className="text-center text-red-600">
+          Error al cargar las respuestas
+        </div>
+        <div className="text-center text-gray-500 text-sm mt-2">
+          selectedQuotationId: {selectedQuotationId}
+        </div>
+      </div>
+    );
+  }
 
   const handleEditQuotation = (idResponse: string) => {
     navigate(

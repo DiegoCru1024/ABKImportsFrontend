@@ -627,8 +627,8 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
           // Calcular el total: (precioXiaoYi * quantity) + express
           if (
             (field === "priceXiaoYi" ||
-            field === "quantity" ||
-            field === "express") &&
+              field === "quantity" ||
+              field === "express") &&
             typeof value === "number"
           ) {
             updatedProduct.total =
@@ -873,7 +873,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                 ))
               : quotationDetail?.products?.map((product, index) => (
                   <ProductRow
-                    key={product.id}
+                    key={product.productId}
                     product={product}
                     index={index}
                     quotationDetail={quotationDetail}
@@ -895,7 +895,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
   const generateQuotationResponseDTO = () => {
     // Determinar si es servicio marítimo
     const isMaritime = isMaritimeService(selectedServiceLogistic);
-    
+
     // Extraer número de días de proformaValidity (ej: "15 días" -> 15)
     const proformaDays = parseInt(selectedProformaVigencia) || 0;
 
@@ -964,7 +964,8 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
         },
         exemptions: {
           servicioConsolidadoAereo: exemptionState.servicioConsolidadoAereo,
-          servicioConsolidadoMaritimo: exemptionState.servicioConsolidadoMaritimo,
+          servicioConsolidadoMaritimo:
+            exemptionState.servicioConsolidadoMaritimo,
           separacionCarga: exemptionState.separacionCarga,
           inspeccionProductos: exemptionState.inspeccionProductos,
           obligacionesFiscales: exemptionState.obligacionesFiscales,
@@ -1006,53 +1007,57 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
           ipmRate: dynamicValues.ipmRate,
           percepcionRate: dynamicValues.percepcionRate,
           transporteLocalChinaEnvio: dynamicValues.transporteLocalChinaEnvio,
-          transporteLocalClienteEnvio: dynamicValues.transporteLocalClienteEnvio,
+          transporteLocalClienteEnvio:
+            dynamicValues.transporteLocalClienteEnvio,
           cif: cif,
           shouldExemptTaxes: shouldExemptTaxes,
         },
       },
-      products: quotationDetail?.products?.map((product: any, index: number) => {
-        // Para el tipo de servicio "Pendiente", usar editableProductsWithVariants
-        // Para otros tipos, usar editableUnitCostProducts
-        const isPendingService = selectedServiceLogistic === "Pendiente";
-        const editableProduct = isPendingService 
-          ? editableProductsWithVariants.find((ep) => ep.id === product.id)
-          : editableUnitCostProducts.find((ep) => ep.id === product.id);
+      products:
+        quotationDetail?.products?.map((product: any, index: number) => {
+          // Para el tipo de servicio "Pendiente", usar editableProductsWithVariants
+          // Para otros tipos, usar editableUnitCostProducts
+          const isPendingService = selectedServiceLogistic === "Pendiente";
+          const editableProduct = isPendingService
+            ? editableProductsWithVariants.find((ep) => ep.id === product.id)
+            : editableUnitCostProducts.find((ep) => ep.id === product.id);
 
-        return {
-          productId: product.id,
-          name: product.name,
-          adminComment: editableProduct?.adminComment || product.adminComment || "",
-          seCotizaProducto: productQuotationState[product.id] !== false,
-          variants: (product.variants || []).map((variant: any) => {
-            // Buscar la variante editable correspondiente
-            const editableVariant = editableProduct?.variants?.find(
-              (ev: any) => ev.id === variant.id
-            );
+          return {
+            productId: product.id,
+            name: product.name,
+            adminComment:
+              editableProduct?.adminComment || product.adminComment || "",
+            seCotizaProducto: productQuotationState[product.id] !== false,
+            variants: (product.variants || []).map((variant: any) => {
+              // Buscar la variante editable correspondiente
+              const editableVariant = editableProduct?.variants?.find(
+                (ev: any) => ev.id === variant.id
+              );
 
-            const quantity = Number(variant.quantity) || 0;
-            const express = editableVariant?.express || 0;
-            
-            // Para el tipo "Pendiente", el precio unitario se calcula como express * quantity
-            const price = isPendingService 
-              ? express * quantity 
-              : editableVariant?.price || 0;
+              const quantity = Number(variant.quantity) || 0;
+              const express = editableVariant?.express || 0;
 
-            return {
-              variantId: variant.id,
-              size: variant.size || "N/A",
-              presentation: variant.presentation || "Unidad",
-              model: variant.model || "",
-              color: variant.color || "",
-              quantity: quantity,
-              price: price,
-              unitCost: editableVariant?.unitCost || 0,
-              importCosts: editableVariant?.importCosts || 0,
-              seCotizaVariante: variantQuotationState[product.id]?.[variant.id] !== false,
-            };
-          }),
-        };
-      }) || [],
+              // Para el tipo "Pendiente", el precio unitario se calcula como express * quantity
+              const price = isPendingService
+                ? express * quantity
+                : editableVariant?.price || 0;
+
+              return {
+                variantId: variant.id,
+                size: variant.size || "N/A",
+                presentation: variant.presentation || "Unidad",
+                model: variant.model || "",
+                color: variant.color || "",
+                quantity: quantity,
+                price: price,
+                unitCost: editableVariant?.unitCost || 0,
+                importCosts: editableVariant?.importCosts || 0,
+                seCotizaVariante:
+                  variantQuotationState[product.id]?.[variant.id] !== false,
+              };
+            }),
+          };
+        }) || [],
     };
   };
 
@@ -1068,18 +1073,18 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
         "Enviando respuesta al backend:",
         JSON.stringify(dto, null, 2)
       );
-      
+
       console.log("Estado de productos editables:", {
         editableProductsWithVariants,
         editableUnitCostProducts,
-        selectedServiceLogistic
+        selectedServiceLogistic,
       });
 
       // Llamada al backend usando el hook
-      /*await createQuotationResponseMutation.mutateAsync({
+      await createQuotationResponseMutation.mutateAsync({
         data: dto,
         quotationId: selectedQuotationId,
-      });*/
+      });
 
       // Notificar y regresar a listado
       // Usamos toast del sistema de notificaciones (ya importado en hooks) o un alert simple
@@ -1107,7 +1112,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
         JSON.stringify(quotationDetail.products, null, 2)
       );
       const initialProducts = quotationDetail.products.map((product: any) => ({
-        id: product.id,
+        id: product.productId,
         name: product.name,
         price: 0,
         quantity: Number(product.quantity) || 0,
@@ -1141,7 +1146,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
     if (quotationDetail?.products && editablePendingProducts.length === 0) {
       const initialPendingProducts = quotationDetail.products.map(
         (product) => ({
-          id: product.id,
+          id: product.productId,
           name: product.name,
           quantity: product.quantity || 0,
           boxes: product.quantity || 0,

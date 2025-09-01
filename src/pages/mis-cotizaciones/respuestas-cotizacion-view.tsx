@@ -46,6 +46,7 @@ interface ResponseCotizacionViewProps {
 const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
   selectedQuotationId,
 }) => {
+  console.log("ResponseCotizacionView renderizado con selectedQuotationId:", selectedQuotationId);
   // ✅ TODOS LOS HOOKS Y ESTADOS VAN PRIMERO
 
   const {
@@ -60,6 +61,12 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
     isLoading: isLoadingResponses,
     isError: isErrorResponses,
   } = useGetQuatitationResponse(selectedQuotationId);
+
+  // Debug logs
+  console.log("selectedQuotationId:", selectedQuotationId);
+  console.log("quotationResponses:", quotationResponses);
+  console.log("isLoadingResponses:", isLoadingResponses);
+  console.log("isErrorResponses:", isErrorResponses);
 
   const [selectedResponseTab, setSelectedResponseTab] = useState<string>("");
   const [imageModalOpen, setImageModalOpen] = useState(false);
@@ -101,7 +108,7 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
   };
 
   useEffect(() => {
-    // Si hay respuestas, usar los unitCostProducts de la respuesta seleccionada
+    // Si hay respuestas, usar los productos de la respuesta seleccionada
     if (
       quotationResponses &&
       quotationResponses.length > 0 &&
@@ -110,27 +117,49 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
       const response = quotationResponses.find(
         (r) => r.serviceType === selectedResponseTab
       );
-      const mapped: ProductRow[] = (response?.unitCostProducts || []).map(
-        (p: any) => ({
-          id: p.id,
-          name: p.name,
-          price: Number(p.price) || 0,
-          quantity: Number(p.quantity) || 0,
-          total: Number(p.total) || 0,
-          equivalence: Number(p.equivalence) || 0,
-          importCosts: Number(p.importCosts) || 0,
-          totalCost: Number(p.totalCost) || 0,
-          unitCost: Number(p.unitCost) || 0,
-          seCotiza: p.seCotiza !== undefined ? p.seCotiza : true,
-        })
-      );
-      setProductsList(mapped);
-      return;
+      
+      if (response && response.products && response.products.length > 0) {
+        // Mapear productos y sus variantes para crear ProductRow
+        const mapped: ProductRow[] = response.products.map((product: any) => {
+          // Usar quantityTotal del producto si está disponible, sino calcular desde variantes
+          const totalQuantity = product.quantityTotal !== undefined 
+            ? Number(product.quantityTotal) 
+            : product.variants?.reduce((sum: number, variant: any) => 
+                sum + (Number(variant.quantity) || 0), 0) || 0;
+          
+          const totalPrice = product.variants?.reduce((sum: number, variant: any) => 
+            sum + (Number(variant.price) || 0), 0) || 0;
+          
+          const totalUnitCost = product.variants?.reduce((sum: number, variant: any) => 
+            sum + (Number(variant.unitCost) || 0), 0) || 0;
+          
+          const totalImportCosts = product.variants?.reduce((sum: number, variant: any) => 
+            sum + (Number(variant.importCosts) || 0), 0) || 0;
+          
+          return {
+            id: product.productId,
+            name: product.name,
+            price: totalPrice,
+            quantity: totalQuantity,
+            total: totalPrice,
+            equivalence: 0, // Se calculará después
+            importCosts: totalImportCosts,
+            totalCost: totalPrice + totalImportCosts,
+            unitCost: totalUnitCost,
+            seCotiza: product.seCotizaProducto !== undefined ? product.seCotizaProducto : true,
+          };
+        });
+        
+        // Recalcular equivalencias
+        const recalculated = recalculateProducts(mapped);
+        setProductsList(recalculated);
+        return;
+      }
     }
     // Fallback: mostrar productos de la cotización si no hay respuestas
     if (quotationDetail?.products && quotationDetail.products.length > 0) {
       const initialProducts = quotationDetail.products.map((p) => ({
-        id: p.id,
+        id: p.productId,
         name: p.name,
         price: 0,
         quantity: p.quantity,
@@ -188,140 +217,34 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
   );
   const factorM = calculateFactorM(productsList);
 
-  // Función para obtener los conceptos de gastos según el tipo de servicio
-  const getImportExpenseConcepts = (serviceType: string) => {
-    const serviceTypeLower = serviceType.toLowerCase();
-    
-    // Para servicios aéreos/express y almacenaje
-    if (serviceTypeLower.includes('express') || 
-        serviceTypeLower.includes('aereo') || 
-        serviceTypeLower.includes('aéreo') ||
-        serviceTypeLower.includes('almacenaje')) {
-      return [
-        { 
-          key: 'servicioConsolidado', 
-          label: 'Servicio Consolidado Aéreo',
-          path: 'serviceCalculations.importExpenses.finalValues.servicioConsolidado'
-        },
-        { 
-          key: 'separacionCarga', 
-          label: 'Separación de Carga',
-          path: 'serviceCalculations.importExpenses.finalValues.separacionCarga'
-        },
-        { 
-          key: 'inspeccionProductos', 
-          label: 'Inspección de Productos',
-          path: 'serviceCalculations.importExpenses.finalValues.inspeccionProductos'
-        },
-        { 
-          key: 'desaduanajeFleteSaguro', 
-          label: 'Desaduanaje + Flete + Seguro',
-          path: 'serviceCalculations.importExpenses.finalValues.desaduanajeFleteSaguro'
-        },
-        { 
-          key: 'transporteLocalChina', 
-          label: 'Transporte Local China',
-          path: 'serviceCalculations.importExpenses.finalValues.transporteLocalChina'
-        },
-        { 
-          key: 'transporteLocalCliente', 
-          label: 'Transporte Local Cliente',
-          path: 'serviceCalculations.importExpenses.finalValues.transporteLocalCliente'
-        },
-        { 
-          key: 'totalDerechosDolaresFinal', 
-          label: 'AD/VALOREM + IGV + IPM',
-          path: 'serviceCalculations.fiscalObligations.totalDerechosDolaresFinal'
-        }
-      ];
-    }
-    
-    // Para servicios marítimos
-    if (serviceTypeLower.includes('maritimo') || 
-        serviceTypeLower.includes('marítimo') ||
-        serviceTypeLower.includes('grupal')) {
-      return [
-        { 
-          key: 'servicioConsolidado', 
-          label: 'Servicio Consolidado Marítimo',
-          path: 'serviceCalculations.importExpenses.finalValues.servicioConsolidado'
-        },
-        { 
-          key: 'gestionCertificado', 
-          label: 'Gestión de Certificado de Origen',
-          path: 'serviceCalculations.importExpenses.finalValues.gestionCertificado'
-        },
-        { 
-          key: 'servicioInspeccion', 
-          label: 'Servicio de Inspección',
-          path: 'serviceCalculations.importExpenses.finalValues.servicioInspeccion'
-        },
-        { 
-          key: 'transporteLocal', 
-          label: 'Transporte Local',
-          path: 'serviceCalculations.importExpenses.finalValues.transporteLocal'
-        },
-        { 
-          key: 'totalDerechosDolaresFinal', 
-          label: 'Total de Derechos',
-          path: 'serviceCalculations.fiscalObligations.totalDerechosDolaresFinal'
-        }
-      ];
-    }
-    
-    // Fallback para otros tipos de servicio
-    return [
-      { 
-        key: 'servicioConsolidado', 
-        label: 'Servicio Consolidado',
-        path: 'serviceCalculations.importExpenses.finalValues.servicioConsolidado'
-      },
-      { 
-        key: 'separacionCarga', 
-        label: 'Separación de Carga',
-        path: 'serviceCalculations.importExpenses.finalValues.separacionCarga'
-      },
-      { 
-        key: 'inspeccionProductos', 
-        label: 'Inspección de Productos',
-        path: 'serviceCalculations.importExpenses.finalValues.inspeccionProductos'
-      },
-      { 
-        key: 'gestionCertificado', 
-        label: 'Gestión de Certificado',
-        path: 'serviceCalculations.importExpenses.finalValues.gestionCertificado'
-      },
-      { 
-        key: 'desaduanajeFleteSaguro', 
-        label: 'Desaduanaje + Flete + Seguro',
-        path: 'serviceCalculations.importExpenses.finalValues.desaduanajeFleteSaguro'
-      },
-      { 
-        key: 'transporteLocalChina', 
-        label: 'Transporte Local China',
-        path: 'serviceCalculations.importExpenses.finalValues.transporteLocalChina'
-      },
-      { 
-        key: 'transporteLocalCliente', 
-        label: 'Transporte Local Cliente',
-        path: 'serviceCalculations.importExpenses.finalValues.transporteLocalCliente'
-      }
-    ];
-  };
-
-  // Función para obtener valor anidado de un objeto usando un path de string
-  const getNestedValue = (obj: any, path: string) => {
-    return path.split('.').reduce((current, key) => current?.[key], obj) || 0;
-  };
 
   // Función para renderizar respuesta de tipo "Pendiente"
   const renderPendingResponse = (response: any) => {
-    if (!response || !response.pendingProducts) return null;
+    if (!response || !response.products) return null;
 
-    // Calcular sumatorias para tipo "Pendiente"
-    const totalExpressAirFreight = response.pendingCalculations?.totalExpressAirFreight || 0;
-    const totalAgenteXiaoYi = response.pendingCalculations?.totalAgenteXiaoYi || 0;
-    const totalPrecioTotal = response.pendingCalculations?.totalPrecioTotal || 0;
+    console.log("renderPendingResponse - response:", response);
+    console.log("renderPendingResponse - response.products:", response.products);
+
+    // Calcular sumatorias para tipo "Pendiente" basado en los productos
+    const totalExpress = response.products.reduce((sum: number, product: any) => {
+      const productTotal = product.variants?.reduce((vSum: number, variant: any) => 
+        vSum + (Number(variant.price) || 0), 0) || 0;
+      return sum + (Number(productTotal) || 0);
+    }, 0);
+
+    const totalQuantity = response.products.reduce((sum: number, product: any) => {
+      // Usar quantityTotal del producto si está disponible, sino calcular desde variantes
+      if (product.quantityTotal !== undefined) {
+        return sum + (Number(product.quantityTotal) || 0);
+      } else {
+        const productTotal = product.variants?.reduce((vSum: number, variant: any) => 
+          vSum + (Number(variant.quantity) || 0), 0) || 0;
+        return sum + (Number(productTotal) || 0);
+      }
+    }, 0);
+
+    console.log("renderPendingResponse - totalExpress:", totalExpress, "type:", typeof totalExpress);
+    console.log("renderPendingResponse - totalQuantity:", totalQuantity, "type:", typeof totalQuantity);
 
     return (
       <div className="space-y-6">
@@ -344,23 +267,23 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
           <Card className="bg-gradient-to-r from-yellow-400 to-yellow-300 text-white">
             <CardContent className="p-4">
               <div className="text-sm font-medium mb-2">EXPRESS AIR FREIGHT</div>
-              <div className="text-lg font-bold">USD {totalExpressAirFreight.toFixed(2)}</div>
+              <div className="text-lg font-bold">USD {(Number(totalExpress) || 0).toFixed(2)}</div>
             </CardContent>
           </Card>
 
-          {/* TOTAL AGENTE XIAO YI */}
+          {/* TOTAL PRODUCTOS */}
           <Card className="bg-gradient-to-r from-purple-400 to-purple-300 text-white">
             <CardContent className="p-4">
-              <div className="text-sm font-medium mb-2">TOTAL AGENTE XIAO YI</div>
-              <div className="text-lg font-bold">USD {totalAgenteXiaoYi.toFixed(2)}</div>
+              <div className="text-sm font-medium mb-2">TOTAL PRODUCTOS</div>
+              <div className="text-lg font-bold">{response.products.length}</div>
             </CardContent>
           </Card>
 
-          {/* PRECIO TOTAL */}
+          {/* CANTIDAD TOTAL */}
           <Card className="bg-gradient-to-r from-green-400 to-green-300 text-white">
             <CardContent className="p-4">
-              <div className="text-sm font-medium mb-2">PRECIO TOTAL</div>
-              <div className="text-lg font-bold">USD {totalPrecioTotal.toFixed(2)}</div>
+              <div className="text-sm font-medium mb-2">CANTIDAD TOTAL</div>
+              <div className="text-lg font-bold">{totalQuantity}</div>
             </CardContent>
           </Card>
         </div>
@@ -375,100 +298,109 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
           <CardContent>
             <div className="overflow-x-auto">
               <table className="w-full border-collapse">
-                <thead>
-                  <tr className="bg-gray-50 border-b border-gray-200">
-                    <th className="p-4 text-left font-semibold text-gray-700">#</th>
-                    <th className="p-4 text-left font-semibold text-gray-700">Imagen</th>
-                    <th className="p-4 text-left font-semibold text-gray-700">Producto</th>
-                    <th className="p-4 text-center font-semibold text-gray-700">$ Precio Xiao Yi</th>
-                    <th className="p-4 text-center font-semibold text-gray-700">CBM Total</th>
-                    <th className="p-4 text-center font-semibold text-gray-700">Express</th>
-                    <th className="p-4 text-center font-semibold text-gray-700">$ Total</th>
-                  </tr>
-                </thead>
+                                 <thead>
+                   <tr className="bg-gray-50 border-b border-gray-200">
+                     <th className="p-4 text-left font-semibold text-gray-700">#</th>
+                     <th className="p-4 text-left font-semibold text-gray-700">Producto</th>
+                     <th className="p-4 text-center font-semibold text-gray-700">URL</th>
+                     <th className="p-4 text-center font-semibold text-gray-700">Variantes</th>
+                     <th className="p-4 text-center font-semibold text-gray-700">Cantidad Total</th>
+                     <th className="p-4 text-center font-semibold text-gray-700">Peso/Volumen</th>
+                     <th className="p-4 text-center font-semibold text-gray-700">Precio Total</th>
+                     <th className="p-4 text-center font-semibold text-gray-700">Comentarios</th>
+                   </tr>
+                 </thead>
                 <tbody>
-                  {response.pendingProducts?.map((product: any, index: number) => (
-                    <tr
-                      key={product.id}
-                      className={`border-b border-gray-100 ${
-                        index % 2 === 0 ? "bg-white" : "bg-gray-50/30"
-                      }`}
-                    >
-                      <td className="p-4 py-6">
-                        <div className="w-8 h-8 flex items-center justify-center text-sm font-semibold">
-                          {index + 1}
-                        </div>
-                      </td>
-                      <td className="p-4 py-6">
-                        <div className="w-16 h-16 bg-gray-100 border-2 border-gray-200 rounded-xl flex items-center justify-center">
-                          <span className="text-xs text-gray-500">Imagen</span>
-                        </div>
-                      </td>
-                      <td className="p-4 py-6">
-                        <div className="space-y-2">
-                          <div className="font-medium text-gray-900">{product.name}</div>
-                          <div className="grid grid-cols-2 gap-2 text-sm">
-                            <div>
-                              <span className="text-gray-600">Cantidad:</span>
-                              <span className="ml-1 font-medium">{product.quantity}</span>
-                            </div>
-                            <div>
-                              <span className="text-gray-600">Cajas:</span>
-                              <span className="ml-1 font-medium">{product.boxes}</span>
-                            </div>
+                  {response.products?.map((product: any, index: number) => {
+                    // Usar quantityTotal del producto si está disponible, sino calcular desde variantes
+                    const totalProductQuantity = product.quantityTotal !== undefined 
+                      ? Number(product.quantityTotal) 
+                      : product.variants?.reduce((sum: number, variant: any) => 
+                          sum + (Number(variant.quantity) || 0), 0) || 0;
+                    const totalProductPrice = product.variants?.reduce((sum: number, variant: any) => 
+                      sum + (Number(variant.price) || 0), 0) || 0;
+                    
+                    return (
+                      <tr
+                        key={product.productId}
+                        className={`border-b border-gray-100 ${
+                          index % 2 === 0 ? "bg-white" : "bg-gray-50/30"
+                        }`}
+                      >
+                        <td className="p-4 py-6">
+                          <div className="w-8 h-8 flex items-center justify-center text-sm font-semibold">
+                            {index + 1}
                           </div>
-                          {product.url && (
-                            <div className="text-sm">
-                              <span className="text-gray-600">URL:</span>
-                              <a href={product.url} target="_blank" rel="noopener noreferrer" className="ml-1 text-blue-500 hover:text-blue-600">
-                                Ver link
-                              </a>
-                            </div>
-                          )}
-                          {product.size && (
-                            <div className="text-sm">
-                              <span className="text-gray-600">Tamaño:</span>
-                              <span className="ml-1 font-medium">{product.size}</span>
-                            </div>
-                          )}
-                          {product.color && (
-                            <div className="text-sm">
-                              <span className="text-gray-600">COLOR:</span>
-                              <span className="ml-1 font-medium">{product.color}</span>
-                            </div>
-                          )}
-                        </div>
-                      </td>
-                      <td className="p-4 py-6">
-                        <div className="text-center">
-                          <div className="text-lg font-bold text-blue-800">
-                            USD {product.priceXiaoYi?.toFixed(2) || "0.00"}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="p-4 py-6">
-                        <div className="text-center">
-                          <div className="text-lg font-bold text-amber-800">
-                            CBM {product.cbmTotal?.toFixed(2) || "0.00"}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="p-4 py-6">
-                        <div className="text-center">
-                          <div className="text-lg font-bold text-orange-800">
-                            USD {product.express?.toFixed(2) || "0.00"}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="p-4 py-6">
-                        <div className="text-center">
-                          <div className="text-lg font-bold text-green-800">
-                            USD {product.total?.toFixed(2) || "0.00"}
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                                                 <td className="p-4 py-6">
+                           <div className="space-y-2">
+                             <div className="font-medium text-gray-900">{product.name}</div>
+                             <div className="text-sm text-gray-600">
+                               Se cotiza: {product.seCotizaProducto ? 'Sí' : 'No'}
+                             </div>
+                           </div>
+                         </td>
+                         <td className="p-4 py-6">
+                           <div className="text-center">
+                             {product.url ? (
+                               <a 
+                                 href={product.url} 
+                                 target="_blank" 
+                                 rel="noopener noreferrer"
+                                 className="text-blue-600 hover:text-blue-800 text-sm underline"
+                               >
+                                 Ver link
+                               </a>
+                             ) : (
+                               <span className="text-sm text-gray-500">Sin URL</span>
+                             )}
+                           </div>
+                         </td>
+                         <td className="p-4 py-6">
+                           <div className="text-center">
+                             <div className="text-sm font-medium text-gray-700">
+                               {product.variants?.length || 0} variantes
+                             </div>
+                           </div>
+                         </td>
+                         <td className="p-4 py-6">
+                           <div className="text-center">
+                             <div className="text-lg font-bold text-blue-800">
+                               {totalProductQuantity}
+                             </div>
+                           </div>
+                         </td>
+                         <td className="p-4 py-6">
+                           <div className="text-center">
+                             <div className="text-sm text-gray-600">
+                               <div>Peso: {product.weight || '0.00'} kg</div>
+                               <div>Vol: {product.volume || '0.000000'} m³</div>
+                               <div>Cajas: {product.number_of_boxes || 0}</div>
+                             </div>
+                           </div>
+                         </td>
+                         <td className="p-4 py-6">
+                           <div className="text-center">
+                             <div className="text-lg font-bold text-green-800">
+                               USD {(Number(totalProductPrice) || 0).toFixed(2)}
+                             </div>
+                           </div>
+                         </td>
+                         <td className="p-4 py-6">
+                           <div className="text-center">
+                             <div className="text-sm text-gray-600">
+                               <div className="mb-1">
+                                 <strong>Admin:</strong> {product.adminComment || 'Sin comentarios'}
+                               </div>
+                               <div>
+                                 <strong>Cliente:</strong> {product.comment || 'Sin comentarios'}
+                               </div>
+                             </div>
+                           </div>
+                         </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -487,68 +419,85 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
       return renderPendingResponse(response);
     }
 
-    const concepts = getImportExpenseConcepts(response.serviceType);
-
+    // Para el nuevo DTO, mostrar información básica de la respuesta
     return (
       <div className="space-y-4">
-        {/* Gastos de Importación */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Información de la respuesta */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <DollarSign className="h-5 w-5 text-orange-600" />
-                Gastos de Importación
+                Información del Servicio
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="space-y-2">
-                {concepts.map((concept) => (
-                  <div key={concept.key} className="flex justify-between items-center py-2">
-                    <span className="text-sm text-gray-600">
-                      {concept.label}
-                    </span>
-                    <span className="font-medium">
-                      USD {formatCurrency(getNestedValue(response, concept.path))}
-                    </span>
-                  </div>
-                ))}
-
-                <Separator />
-                <div className="flex justify-between items-center py-2 bg-orange-50 px-3 rounded-lg">
-                  <span className="font-medium text-orange-900">
-                    Total Gastos de Importación
-                  </span>
-                  <span className="font-bold text-orange-900">
-                    USD{" "}
-                    {formatCurrency(
-                      response.serviceCalculations?.importExpenses
-                        ?.totalGastosImportacion || 0
-                    )}
-                  </span>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-sm text-gray-600">Tipo de Servicio</span>
+                  <span className="font-medium">{response.serviceType}</span>
+                </div>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-sm text-gray-600">Tipo de Carga</span>
+                  <span className="font-medium">{response.quotationInfo?.cargoType || 'N/A'}</span>
+                </div>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-sm text-gray-600">Courier</span>
+                  <span className="font-medium">{response.quotationInfo?.courier || 'N/A'}</span>
+                </div>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-sm text-gray-600">Incoterm</span>
+                  <span className="font-medium">{response.quotationInfo?.incoterm || 'N/A'}</span>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Resumen de Gastos de Importación */}
+          {/* Información del Usuario */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <User className="h-5 w-5 text-orange-600" />
+                Información del Cliente
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="space-y-2">
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-sm text-gray-600">Nombre</span>
+                  <span className="font-medium">{response.user?.name || 'N/A'}</span>
+                </div>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-sm text-gray-600">Email</span>
+                  <span className="font-medium">{response.user?.email || 'N/A'}</span>
+                </div>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-sm text-gray-600">ID Usuario</span>
+                  <span className="font-medium text-xs">{response.user?.id || 'N/A'}</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Resumen de Productos */}
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <ChartBar className="h-5 w-5 text-orange-600" />
-                Resumen de Gastos de Importación
+                Resumen de Productos
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
               <div className="space-y-2">
                 <div className="flex justify-between items-center py-2">
                   <span className="text-lg text-gray-600">
-                    INCOTERM DE IMPORTACION
+                    TOTAL PRODUCTOS
                   </span>
-                  <span className="font-medium">{response.serviceType}</span>
+                  <span className="font-medium">{response.products?.length || 0}</span>
                 </div>
                 <div className="flex justify-between items-center py-2">
                   <span className="text-lg text-gray-600">
-                    VALOR DE COMPRA FACTURA COMERCIAL
+                    VALOR TOTAL
                   </span>
                   <span className="font-medium">
                     USD {formatCurrency(totalAmount)}
@@ -556,26 +505,17 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
                 </div>
                 <div className="flex justify-between items-center py-2">
                   <span className="text-lg text-gray-600">
-                    TOTAL GASTOS DE IMPORTACION
+                    CANTIDAD TOTAL
                   </span>
-                  <span className="font-medium">
-                    USD{" "}
-                    {formatCurrency(
-                      response.serviceCalculations?.importExpenses
-                        ?.totalGastosImportacion || 0
-                    )}
-                  </span>
+                  <span className="font-medium">{totalQuantity}</span>
                 </div>
                 <Separator />
                 <div className="flex justify-between items-center py-2 bg-green-50 px-3 rounded-lg">
                   <span className="text-lg text-green-900">
-                    INVERSION TOTAL DE IMPORTACION
+                    COSTO TOTAL
                   </span>
                   <span className="font-medium text-green-900">
-                    USD{" "}
-                    {formatCurrency(
-                      response.serviceCalculations?.totals?.inversionTotal || 0
-                    )}
+                    USD {formatCurrency(grandTotal)}
                   </span>
                 </div>
               </div>
@@ -598,29 +538,29 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <DataTable
-                columns={columns}
-                data={response.unitCostProducts || []}
-                pageInfo={{
-                  pageNumber: 1,
-                  pageSize: 10,
-                  totalElements: response.unitCostProducts?.length || 0,
-                  totalPages: 1,
-                }}
-                onPageChange={() => {}}
-                onSearch={() => {}}
-                searchTerm={""}
-                isLoading={false}
-                paginationOptions={{
-                  showSelectedCount: false,
-                  showPagination: false,
-                  showNavigation: false,
-                }}
-                toolbarOptions={{
-                  showSearch: false,
-                  showViewOptions: false,
-                }}
-              />
+                             <DataTable
+                 columns={columns}
+                 data={productsList}
+                 pageInfo={{
+                   pageNumber: 1,
+                   pageSize: 10,
+                   totalElements: productsList?.length || 0,
+                   totalPages: 1,
+                 }}
+                 onPageChange={() => {}}
+                 onSearch={() => {}}
+                 searchTerm={""}
+                 isLoading={false}
+                 paginationOptions={{
+                   showSelectedCount: false,
+                   showPagination: false,
+                   showNavigation: false,
+                 }}
+                 toolbarOptions={{
+                   showSearch: false,
+                   showViewOptions: false,
+                 }}
+               />
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4">
                 <Card className="h-20 w-full bg-gradient-to-r from-red-400 to-red-300 rounded-lg text-white">
@@ -666,7 +606,10 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
   if (isLoading) {
     return (
       <div className="space-y-4 p-6">
-        <div className="animate-pulse">{/* ... tu skeleton loader ... */}</div>
+        <div className="animate-pulse">
+          <div className="h-4 bg-gray-200 rounded w-1/4 mb-4"></div>
+          <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+        </div>
       </div>
     );
   }
@@ -677,10 +620,14 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
         <div className="text-center text-red-600">
           Error al cargar los detalles de la cotización.
         </div>
+        <div className="text-center text-gray-500 text-sm">
+          selectedQuotationId: {selectedQuotationId}
+        </div>
       </div>
     );
   }
 
+  console.log("ResponseCotizacionView renderizando contenido principal");
   return (
     <div className="space-y-4 p-4">
       {/* Header Bento Grid */}
@@ -739,7 +686,7 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
               <div className="flex gap-3 overflow-x-auto pb-2">
                 {quotationDetail.products?.map((product: any) => (
                   <div
-                    key={product.id}
+                    key={product.productId || product.id}
                     className="flex bg-gray-50 rounded-lg p-3 gap-3 min-w-[320px]"
                   >
                     {/* Imagen del producto */}

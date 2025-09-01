@@ -135,6 +135,7 @@ export function useGetQuatitationResponse(quotationId: string) {
   return useQuery({
     queryKey: ["allQuatitationResponse", quotationId],
     queryFn: () => getResponsesForUsers(quotationId),
+    enabled: Boolean(quotationId), // Solo ejecutar si quotationId existe
   });
 }
 

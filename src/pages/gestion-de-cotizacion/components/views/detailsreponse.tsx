@@ -650,7 +650,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
 
       setEditableProductsWithVariants((prev) =>
         prev.map((product) => {
-          if (product.id === productId) {
+          if (product.id === productId || product.productId === productId) {
             const updatedVariants = [...(product.variants || [])];
             if (updatedVariants[variantIndex]) {
               updatedVariants[variantIndex] = {
@@ -671,10 +671,23 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
       // Manejar comentarios del administrador
       setEditableProductsWithVariants((prev) =>
         prev.map((product) => {
-          if (product.id === productId) {
+          if (product.id === productId || product.productId === productId) {
             return {
               ...product,
               adminComment: value as string,
+            };
+          }
+          return product;
+        })
+      );
+    } else if (["boxes", "cbm", "weight"].includes(field)) {
+      // Manejar campos de packing list (boxes, cbm, weight)
+      setEditableProductsWithVariants((prev) =>
+        prev.map((product) => {
+          if (product.id === productId || product.productId === productId) {
+            return {
+              ...product,
+              [field]: value,
             };
           }
           return product;
@@ -864,7 +877,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                     index={index}
                     quotationDetail={quotationDetail}
                     onProductChange={handlePendingProductChange}
-                    editableProducts={editablePendingProducts}
+                    editableProducts={editableProductsWithVariants}
                     productQuotationState={productQuotationState}
                     variantQuotationState={variantQuotationState}
                     onProductQuotationChange={handleProductQuotationChange}
@@ -878,7 +891,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                     index={index}
                     quotationDetail={quotationDetail}
                     onProductChange={handlePendingProductChange}
-                    editableProducts={editablePendingProducts}
+                    editableProducts={editableProductsWithVariants}
                     productQuotationState={productQuotationState}
                     variantQuotationState={variantQuotationState}
                     onProductQuotationChange={handleProductQuotationChange}
@@ -1019,19 +1032,19 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
           // Para otros tipos, usar editableUnitCostProducts
           const isPendingService = selectedServiceLogistic === "Pendiente";
           const editableProduct = isPendingService
-            ? editableProductsWithVariants.find((ep) => ep.id === product.id)
-            : editableUnitCostProducts.find((ep) => ep.id === product.id);
+            ? editableProductsWithVariants.find((ep) => ep.id === product.productId)
+            : editableUnitCostProducts.find((ep) => ep.id === product.productId);
 
           return {
-            productId: product.id,
+            productId: product.productId,
             name: product.name,
             adminComment:
               editableProduct?.adminComment || product.adminComment || "",
-            seCotizaProducto: productQuotationState[product.id] !== false,
+            seCotizaProducto: productQuotationState[product.productId] !== false,
             variants: (product.variants || []).map((variant: any) => {
               // Buscar la variante editable correspondiente
               const editableVariant = editableProduct?.variants?.find(
-                (ev: any) => ev.id === variant.id
+                (ev: any) => ev.id === variant.variantId
               );
 
               const quantity = Number(variant.quantity) || 0;
@@ -1043,7 +1056,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                 : editableVariant?.price || 0;
 
               return {
-                variantId: variant.id,
+                variantId: variant.variantId,
                 size: variant.size || "N/A",
                 presentation: variant.presentation || "Unidad",
                 model: variant.model || "",
@@ -1053,7 +1066,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                 unitCost: editableVariant?.unitCost || 0,
                 importCosts: editableVariant?.importCosts || 0,
                 seCotizaVariante:
-                  variantQuotationState[product.id]?.[variant.id] !== false,
+                  variantQuotationState[product.productId]?.[variant.variantId] !== false,
               };
             }),
           };
@@ -1125,7 +1138,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
         // Incluir variantes si existen
         variants:
           product.variants?.map((variant: any) => ({
-            id: variant.id,
+            id: variant.variantId,
             name: variant.name,
             price: 0,
             quantity: Number(variant.quantity) || 0,
@@ -1173,6 +1186,10 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
         (product: any) => ({
           ...product,
           adminComment: product.adminComment || "",
+          // Agregar campos necesarios para la tabla
+          boxes: product.quantity || 0,
+          cbm: Number(product.volume) || 0,
+          weight: Number(product.weight) || 0,
           variants:
             product.variants?.map((variant: any) => ({
               ...variant,
@@ -1192,14 +1209,14 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
 
       quotationDetail.products.forEach((product: any) => {
         // Por defecto, todos los productos se cotizan
-        initialProductQuotationState[product.id] = true;
+        initialProductQuotationState[product.productId] = true;
 
         // Inicializar estado de cotización para variantes
         if (product.variants && product.variants.length > 0) {
-          initialVariantQuotationState[product.id] = {};
+          initialVariantQuotationState[product.productId] = {};
           product.variants.forEach((variant: any) => {
             // Por defecto, todas las variantes se cotizan
-            initialVariantQuotationState[product.id][variant.id] = true;
+            initialVariantQuotationState[product.productId][variant.variantId] = true;
           });
         }
       });

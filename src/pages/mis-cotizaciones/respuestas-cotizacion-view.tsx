@@ -17,6 +17,11 @@ import {
   ChartBar,
   DollarSign,
   Link,
+  ImageIcon,
+  ListIcon,
+  Truck,
+  LinkIcon,
+  Check,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useGetQuotationById } from "@/hooks/use-quation";
@@ -49,18 +54,19 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
   console.log("ResponseCotizacionView renderizado con selectedQuotationId:", selectedQuotationId);
   // ✅ TODOS LOS HOOKS Y ESTADOS VAN PRIMERO
 
-  const {
-    data: quotationDetail,
-    isLoading,
-    isError,
-  } = useGetQuotationById(selectedQuotationId);
-
   // Hook para obtener las respuestas de cotización
   const {
     data: quotationResponses,
     isLoading: isLoadingResponses,
     isError: isErrorResponses,
   } = useGetQuatitationResponse(selectedQuotationId);
+
+  // Hook para obtener los detalles de la cotización
+  const {
+    data: quotationDetail,
+    isLoading,
+    isError,
+  } = useGetQuotationById(selectedQuotationId);
 
   // Debug logs
   console.log("selectedQuotationId:", selectedQuotationId);
@@ -158,7 +164,7 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
     }
     // Fallback: mostrar productos de la cotización si no hay respuestas
     if (quotationDetail?.products && quotationDetail.products.length > 0) {
-      const initialProducts = quotationDetail.products.map((p) => ({
+      const initialProducts = quotationDetail.products.map((p: any) => ({
         id: p.productId,
         name: p.name,
         price: 0,
@@ -217,8 +223,7 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
   );
   const factorM = calculateFactorM(productsList);
 
-
-  // Función para renderizar respuesta de tipo "Pendiente"
+  //* Función para renderizar respuesta de tipo "Pendiente"
   const renderPendingResponse = (response: any) => {
     if (!response || !response.products) return null;
 
@@ -243,172 +248,346 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
       }
     }, 0);
 
+    // Calcular totales adicionales
+    const totalCBM = response.products.reduce((sum: number, product: any) => 
+      sum + (Number(product.volume) || 0), 0);
+    
+    const totalWeight = response.products.reduce((sum: number, product: any) => 
+      sum + (Number(product.weight) || 0), 0);
+    
+    const totalPrice = response.products.reduce((sum: number, product: any) => {
+      const productTotal = product.variants?.reduce((vSum: number, variant: any) => 
+        vSum + (Number(variant.price) || 0), 0) || 0;
+      return sum + (Number(productTotal) || 0);
+    }, 0);
+    
+    const totalGeneral = totalPrice + totalExpress;
+
     console.log("renderPendingResponse - totalExpress:", totalExpress, "type:", typeof totalExpress);
     console.log("renderPendingResponse - totalQuantity:", totalQuantity, "type:", typeof totalQuantity);
 
     return (
-      <div className="space-y-6">
-        {/* Resumen de totales */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {/* SHIPMENT */}
-          <Card className="bg-gradient-to-r from-yellow-400 to-yellow-300 text-white">
-            <CardContent className="p-4">
-              <div className="text-sm font-medium mb-2">SHIPMENT</div>
-              <div className="flex items-center gap-2">
-                <select className="bg-transparent border-none text-white text-sm font-medium">
-                  <option>UPS</option>
-                </select>
-                <div className="text-lg font-bold">USD 0.00</div>
+      <Card className="bg-white shadow-lg border border-gray-100 overflow-hidden rounded-2xl">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg shadow-sm">
+                <Package className="h-5 w-5 text-white" />
               </div>
-            </CardContent>
-          </Card>
-
-          {/* EXPRESS AIR FREIGHT */}
-          <Card className="bg-gradient-to-r from-yellow-400 to-yellow-300 text-white">
-            <CardContent className="p-4">
-              <div className="text-sm font-medium mb-2">EXPRESS AIR FREIGHT</div>
-              <div className="text-lg font-bold">USD {(Number(totalExpress) || 0).toFixed(2)}</div>
-            </CardContent>
-          </Card>
-
-          {/* TOTAL PRODUCTOS */}
-          <Card className="bg-gradient-to-r from-purple-400 to-purple-300 text-white">
-            <CardContent className="p-4">
-              <div className="text-sm font-medium mb-2">TOTAL PRODUCTOS</div>
-              <div className="text-lg font-bold">{response.products.length}</div>
-            </CardContent>
-          </Card>
-
-          {/* CANTIDAD TOTAL */}
-          <Card className="bg-gradient-to-r from-green-400 to-green-300 text-white">
-            <CardContent className="p-4">
-              <div className="text-sm font-medium mb-2">CANTIDAD TOTAL</div>
-              <div className="text-lg font-bold">{totalQuantity}</div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Tabla de productos */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg font-bold text-center">
-              PRODUCTOS - SERVICIO PENDIENTE
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse">
-                                 <thead>
-                   <tr className="bg-gray-50 border-b border-gray-200">
-                     <th className="p-4 text-left font-semibold text-gray-700">#</th>
-                     <th className="p-4 text-left font-semibold text-gray-700">Producto</th>
-                     <th className="p-4 text-center font-semibold text-gray-700">URL</th>
-                     <th className="p-4 text-center font-semibold text-gray-700">Variantes</th>
-                     <th className="p-4 text-center font-semibold text-gray-700">Cantidad Total</th>
-                     <th className="p-4 text-center font-semibold text-gray-700">Peso/Volumen</th>
-                     <th className="p-4 text-center font-semibold text-gray-700">Precio Total</th>
-                     <th className="p-4 text-center font-semibold text-gray-700">Comentarios</th>
-                   </tr>
-                 </thead>
-                <tbody>
-                  {response.products?.map((product: any, index: number) => {
-                    // Usar quantityTotal del producto si está disponible, sino calcular desde variantes
-                    const totalProductQuantity = product.quantityTotal !== undefined 
-                      ? Number(product.quantityTotal) 
-                      : product.variants?.reduce((sum: number, variant: any) => 
-                          sum + (Number(variant.quantity) || 0), 0) || 0;
-                    const totalProductPrice = product.variants?.reduce((sum: number, variant: any) => 
-                      sum + (Number(variant.price) || 0), 0) || 0;
-                    
-                    return (
-                      <tr
-                        key={product.productId}
-                        className={`border-b border-gray-100 ${
-                          index % 2 === 0 ? "bg-white" : "bg-gray-50/30"
-                        }`}
-                      >
-                        <td className="p-4 py-6">
-                          <div className="w-8 h-8 flex items-center justify-center text-sm font-semibold">
-                            {index + 1}
-                          </div>
-                        </td>
-                                                 <td className="p-4 py-6">
-                           <div className="space-y-2">
-                             <div className="font-medium text-gray-900">{product.name}</div>
-                             <div className="text-sm text-gray-600">
-                               Se cotiza: {product.seCotizaProducto ? 'Sí' : 'No'}
-                             </div>
-                           </div>
-                         </td>
-                         <td className="p-4 py-6">
-                           <div className="text-center">
-                             {product.url ? (
-                               <a 
-                                 href={product.url} 
-                                 target="_blank" 
-                                 rel="noopener noreferrer"
-                                 className="text-blue-600 hover:text-blue-800 text-sm underline"
-                               >
-                                 Ver link
-                               </a>
-                             ) : (
-                               <span className="text-sm text-gray-500">Sin URL</span>
-                             )}
-                           </div>
-                         </td>
-                         <td className="p-4 py-6">
-                           <div className="text-center">
-                             <div className="text-sm font-medium text-gray-700">
-                               {product.variants?.length || 0} variantes
-                             </div>
-                           </div>
-                         </td>
-                         <td className="p-4 py-6">
-                           <div className="text-center">
-                             <div className="text-lg font-bold text-blue-800">
-                               {totalProductQuantity}
-                             </div>
-                           </div>
-                         </td>
-                         <td className="p-4 py-6">
-                           <div className="text-center">
-                             <div className="text-sm text-gray-600">
-                               <div>Peso: {product.weight || '0.00'} kg</div>
-                               <div>Vol: {product.volume || '0.000000'} m³</div>
-                               <div>Cajas: {product.number_of_boxes || 0}</div>
-                             </div>
-                           </div>
-                         </td>
-                         <td className="p-4 py-6">
-                           <div className="text-center">
-                             <div className="text-lg font-bold text-green-800">
-                               USD {(Number(totalProductPrice) || 0).toFixed(2)}
-                             </div>
-                           </div>
-                         </td>
-                         <td className="p-4 py-6">
-                           <div className="text-center">
-                             <div className="text-sm text-gray-600">
-                               <div className="mb-1">
-                                 <strong>Admin:</strong> {product.adminComment || 'Sin comentarios'}
-                               </div>
-                               <div>
-                                 <strong>Cliente:</strong> {product.comment || 'Sin comentarios'}
-                               </div>
-                             </div>
-                           </div>
-                         </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+              <div>
+                <CardTitle className="text-xl font-semibold text-slate-800">
+                  Gestión de Productos - Servicio Pendiente
+                </CardTitle>
+                <CardDescription className="text-slate-600 mt-1">
+                  Administre los productos de la cotización con sus variantes y
+                  configuraciones
+                </CardDescription>
+              </div>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+            <div className="flex items-center gap-2">
+              <div className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
+                {response.products?.length || 0} productos
+              </div>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {/* Header con indicadores mejorado */}
+          <div className="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 border border-slate-200/60 rounded-xl p-6">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold text-slate-800 mb-2">
+                Resumen de Cotización
+              </h2>
+              <p className="text-slate-600 text-sm">
+                Información general de la cotización actual
+              </p>
+            </div>
+
+            {/* Indicadores principales con mejor diseño */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4 items-center justify-center max-w-4xl mx-auto">
+              {/* Primer indicador - N° de Items*/}
+              <div className="bg-white rounded-lg p-4 text-center border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200">
+                <div className="text-xl font-bold text-slate-800 mb-1">
+                  {response.products?.length || 0}
+                </div>
+                <div className="text-xs font-medium text-slate-600">
+                  N° de Items
+                </div>
+              </div>
+              {/* Segundo indicador - N° de Productos */}
+              <div className="bg-white rounded-lg p-4 text-center border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200">
+                <div className="text-xl font-bold text-slate-800 mb-1">
+                  {response.products?.length || 0}
+                </div>
+                <div className="text-xs font-medium text-slate-600">
+                  N° PRODUCTOS
+                </div>
+              </div>
+              {/* Tercer indicador - CBM Total*/}
+              <div className="bg-white rounded-lg p-4 text-center border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200">
+                <div className="text-xl font-bold text-slate-800 mb-1">
+                  {totalCBM.toFixed(2)}
+                </div>
+                <div className="text-xs font-medium text-slate-600">
+                  CBM TOTAL
+                </div>
+              </div>
+              {/* Cuarto indicador - Peso Total */}
+              <div className="bg-white rounded-lg p-4 text-center border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200">
+                <div className="text-xl font-bold text-slate-800 mb-1">
+                  {totalWeight.toFixed(1)}
+                </div>
+                <div className="text-xs font-medium text-slate-600">
+                  PESO (KG)
+                </div>
+              </div>
+              {/* Quinto indicador - Precio total */}
+              <div className="bg-white rounded-lg p-4 text-center border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200">
+                <div className="text-xl font-bold text-emerald-600 mb-1">
+                  ${totalPrice.toFixed(2)}
+                </div>
+                <div className="text-xs font-medium text-slate-600">P. TOTAL</div>
+              </div>
+              {/* Sexto indicador - Express total */}
+              <div className="bg-white rounded-lg p-4 text-center border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200">
+                <div className="text-xl font-bold text-emerald-600 mb-1">
+                  ${totalExpress.toFixed(2)}
+                </div>
+                <div className="text-xs font-medium text-slate-600">EXPRESS</div>
+              </div>
+              {/* Séptimo indicador - Total General */}
+              <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg p-4 text-center shadow-sm hover:shadow-md transition-all duration-200">
+                <div className="text-xl font-bold text-white mb-1">
+                  ${totalGeneral.toFixed(2)}
+                </div>
+                <div className="text-xs font-medium text-emerald-100">TOTAL</div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-max">
+            <thead>
+              <tr className="bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200">
+                <th className="text-left p-4 text-xs font-semibold text-slate-700 uppercase tracking-wider w-16">
+                  Nro.
+                </th>
+                <th className="text-left p-4 text-xs font-semibold text-slate-700 uppercase tracking-wider w-40">
+                  <div className="flex items-center gap-2">
+                    <ImageIcon className="h-4 w-4 text-slate-600" />
+                    Imagen & URL
+                  </div>
+                </th>
+                <th className="text-left p-4 text-xs font-semibold text-slate-700 uppercase tracking-wider min-w-72">
+                  <div className="flex items-center gap-2">
+                    <Package className="h-4 w-4 text-slate-600" />
+                    Producto & Variantes
+                  </div>
+                </th>
+                <th className="text-left p-4 text-xs font-semibold text-slate-700 uppercase tracking-wider w-48">
+                  <div className="flex items-center gap-2">
+                    <ListIcon className="h-4 w-4 text-emerald-600" />
+                    Packing List
+                  </div>
+                </th>
+                <th className="text-left p-4 text-xs font-semibold text-slate-700 uppercase tracking-wider w-52">
+                  <div className="flex items-center gap-2">
+                    <Truck className="h-4 w-4 text-indigo-600" />
+                    Manipulación de Carga
+                  </div>
+                </th>
+                <th className="text-left p-4 text-xs font-semibold text-slate-700 uppercase tracking-wider w-44">
+                  <div className="flex items-center gap-2">
+                    <LinkIcon className="h-4 w-4 text-amber-600" />
+                    URL Fantasma
+                  </div>
+                </th>
+                <th className="text-left p-4 text-xs font-semibold text-slate-700 uppercase tracking-wider w-32">
+                  <div className="flex items-center gap-2">
+                    <DollarSign className="h-4 w-4 text-emerald-600" />
+                    Precio
+                  </div>
+                </th>
+                <th className="text-left p-4 text-xs font-semibold text-slate-700 uppercase tracking-wider w-32">
+                  <div className="flex items-center gap-2">
+                    <Truck className="h-4 w-4 text-orange-600" />
+                    Express
+                  </div>
+                </th>
+                <th className="text-left p-4 text-xs font-semibold text-slate-700 uppercase tracking-wider w-40">
+                  <div className="flex items-center gap-2">
+                    <DollarSign className="h-4 w-4 text-emerald-600" />
+                    Total
+                  </div>
+                </th>
+                <th className="text-left p-4 text-xs font-semibold text-slate-700 uppercase tracking-wider w-24">
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-600" />
+                    Cotizar
+                  </div>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {response.products?.map((product: any, index: number) => {
+                // Usar quantityTotal del producto si está disponible, sino calcular desde variantes
+                const totalProductQuantity = product.quantityTotal !== undefined 
+                  ? Number(product.quantityTotal) 
+                  : product.variants?.reduce((sum: number, variant: any) => 
+                      sum + (Number(variant.quantity) || 0), 0) || 0;
+                const totalProductPrice = product.variants?.reduce((sum: number, variant: any) => 
+                  sum + (Number(variant.price) || 0), 0) || 0;
+                
+                return (
+                  <tr
+                    key={product.productId}
+                    className={`border-b border-gray-100 ${
+                      index % 2 === 0 ? "bg-white" : "bg-gray-50/30"
+                    }`}
+                  >
+                    <td className="p-4 py-6">
+                      <div className="w-8 h-8 flex items-center justify-center text-sm font-semibold">
+                        {index + 1}
+                      </div>
+                    </td>
+                    <td className="p-4 py-6">
+                      <div className="flex items-center gap-3">
+                        {/* Imagen del producto */}
+                        {product.attachments && product.attachments.length > 0 && (
+                          <div className="relative w-16 h-16 group flex-shrink-0">
+                            <img
+                              src={product.attachments[0] || "/placeholder.svg"}
+                              alt={product.name}
+                              className="w-full h-full object-cover rounded cursor-pointer transition-all duration-200"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = "none";
+                              }}
+                            />
+                            {/* Overlay con hover effect */}
+                            <div
+                              className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded flex items-center justify-center cursor-pointer"
+                              onClick={() => {
+                                setImageUrls(product.attachments as string[]);
+                                setModalProductName(product.name);
+                                setOpenImageModal(true);
+                              }}
+                            >
+                              <div className="flex flex-col items-center gap-1 text-white">
+                                <Eye className="w-3 h-3" />
+                                <span className="text-xs font-medium text-center">
+                                  {product.attachments.length > 1
+                                    ? `Ver ${product.attachments.length}`
+                                    : "Ver imagen"}
+                                </span>
+                              </div>
+                            </div>
+                            {/* Badge contador de imágenes */}
+                            {product.attachments.length > 1 && (
+                              <div className="absolute top-1 right-1 bg-gray-900 bg-opacity-80 text-white text-xs px-1 py-0.5 rounded-full">
+                                +{product.attachments.length - 1}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        {/* URL */}
+                        <div className="text-center">
+                          {product.url ? (
+                            <a 
+                              href={product.url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-800 text-sm underline"
+                            >
+                              Ver link
+                            </a>
+                          ) : (
+                            <span className="text-sm text-gray-500">Sin URL</span>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="p-4 py-6">
+                      <div className="space-y-2">
+                        <div className="font-medium text-gray-900">{product.name}</div>
+                        <div className="text-sm text-gray-600">
+                          Se cotiza: {product.seCotizaProducto ? 'Sí' : 'No'}
+                        </div>
+                        {/* Mostrar variantes si existen */}
+                        {product.variants && product.variants.length > 0 && (
+                          <div className="text-xs text-gray-500">
+                            {product.variants.length} variante{product.variants.length > 1 ? 's' : ''}
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    <td className="p-4 py-6">
+                      <div className="text-center">
+                        <div className="text-sm text-gray-600">
+                          <div>Cantidad: {totalProductQuantity}</div>
+                          <div>Peso: {product.weight || '0.00'} kg</div>
+                          <div>Vol: {product.volume || '0.000000'} m³</div>
+                          <div>Cajas: {product.number_of_boxes || 0}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="p-4 py-6">
+                      <div className="text-center">
+                        <div className="text-sm text-gray-600">
+                          {/* Aquí puedes agregar información de manipulación de carga si está disponible */}
+                          <div>Manipulación estándar</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="p-4 py-6">
+                      <div className="text-center">
+                        <div className="text-sm text-gray-600">
+                          {/* URL fantasma - puedes agregar lógica específica aquí */}
+                          <div>URL fantasma</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="p-4 py-6">
+                      <div className="text-center">
+                        <div className="text-lg font-bold text-emerald-600">
+                          USD {(Number(totalProductPrice) || 0).toFixed(2)}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="p-4 py-6">
+                      <div className="text-center">
+                        <div className="text-lg font-bold text-orange-600">
+                          USD {(Number(totalExpress) || 0).toFixed(2)}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="p-4 py-6">
+                      <div className="text-center">
+                        <div className="text-lg font-bold text-green-600">
+                          USD {((Number(totalProductPrice) || 0) + (Number(totalExpress) || 0)).toFixed(2)}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="p-4 py-6">
+                      <div className="text-center">
+                        <div className="flex items-center justify-center">
+                          <Check className={`w-5 h-5 ${product.seCotizaProducto ? 'text-green-600' : 'text-gray-400'}`} />
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </Card>
     );
   };
+
+
+
+
 
   // Función para renderizar las respuestas de importación
   const renderQuotationResponse = (response: any) => {

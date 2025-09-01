@@ -28,53 +28,53 @@ export interface QuotationInfo {
 }
 
 export interface dynamicValues {
-  comercialValue: number,
-  flete: number,
-  cajas: number,
-  desaduanaje: number,
-  kg: number,
-  ton: number,
-  kv: number,
-  fob: number,
-  seguro: number,
-  tipoCambio: number,
-  nroBultos: number,
-  volumenCBM: number,
-  calculoFlete: number,
-  servicioConsolidado: number,
-  separacionCarga: number,
-  inspeccionProductos: number,
-  gestionCertificado: number,
-  inspeccionProducto: number,
-  inspeccionFabrica: number,
-  transporteLocal: number,
-  otrosServicios: number,
-  adValoremRate: number,
-  antidumpingGobierno: number,
-  antidumpingCantidad: number,
-  iscRate: number,
-  igvRate: number,
-  ipmRate: number,
-  percepcionRate: number,
-  transporteLocalChinaEnvio: number,
-  transporteLocalClienteEnvio: number,
-  cif: number,
-  shouldExemptTaxes: boolean
+  comercialValue: number;
+  flete: number;
+  cajas: number;
+  desaduanaje: number;
+  kg: number;
+  ton: number;
+  kv: number;
+  fob: number;
+  seguro: number;
+  tipoCambio: number;
+  nroBultos: number;
+  volumenCBM: number;
+  calculoFlete: number;
+  servicioConsolidado: number;
+  separacionCarga: number;
+  inspeccionProductos: number;
+  gestionCertificado: number;
+  inspeccionProducto: number;
+  inspeccionFabrica: number;
+  transporteLocal: number;
+  otrosServicios: number;
+  adValoremRate: number;
+  antidumpingGobierno: number;
+  antidumpingCantidad: number;
+  iscRate: number;
+  igvRate: number;
+  ipmRate: number;
+  percepcionRate: number;
+  transporteLocalChinaEnvio: number;
+  transporteLocalClienteEnvio: number;
+  cif: number;
+  shouldExemptTaxes: boolean;
 }
 
 export interface Exemptions {
-  servicioConsolidadoAereo: boolean,
-  servicioConsolidadoMaritimo: boolean,
-  separacionCarga: boolean,
-  inspeccionProductos: boolean,
-  obligacionesFiscales: boolean,
-  desaduanajeFleteSaguro: boolean,
-  transporteLocalChina: boolean,
-  transporteLocalCliente: boolean,
-  gestionCertificado: boolean,
-  servicioInspeccion: boolean,
-  transporteLocal: boolean,
-  totalDerechos: boolean
+  servicioConsolidadoAereo: boolean;
+  servicioConsolidadoMaritimo: boolean;
+  separacionCarga: boolean;
+  inspeccionProductos: boolean;
+  obligacionesFiscales: boolean;
+  desaduanajeFleteSaguro: boolean;
+  transporteLocalChina: boolean;
+  transporteLocalCliente: boolean;
+  gestionCertificado: boolean;
+  servicioInspeccion: boolean;
+  transporteLocal: boolean;
+  totalDerechos: boolean;
 }
 export interface serviceFields {
   servicioConsolidado: number;
@@ -135,6 +135,15 @@ export interface ProductsQuotationResponseDTO {
   number_of_boxes: number;
   adminComment: string;
   seCotizaProducto: boolean;
+  attachments: string[];
+  variants: VariantQuotationResponseDTO[];
+}
+
+export interface ProductsQuotationCreateResponseDTO {
+  productId: string;
+  name: string;
+  adminComment: string;
+  seCotizaProducto: boolean;
   variants: VariantQuotationResponseDTO[];
 }
 
@@ -149,9 +158,7 @@ export interface VariantQuotationResponseDTO {
   unitCost: string;
   importCosts: string;
   seCotizaVariante: boolean;
-  attachments: string[];
 }
-
 
 export interface Calculations {
   serviceCalculations: ServiceCalculations;
@@ -159,15 +166,12 @@ export interface Calculations {
   dynamicValues: dynamicValues;
 }
 
-
 //!INTERFACES PARA CREAR UNA RESPUESTA DE UNA COTIZACIÓN
 export interface QuotationCreateUpdateResponseDTO {
   quotationInfo: QuotationInfo;
   calculations: Calculations;
-  products: ProductsQuotationResponseDTO[];
+  products: ProductsQuotationCreateResponseDTO[];
 }
-
-
 
 //*****************************************************************************************************/
 //********************* INTERFACES PARA LISTAR LAS RESPUESTAS DE UNA COTIZACIÓN ***********************/
@@ -189,7 +193,7 @@ export interface QuotationGetResponsesForUsersDTO {
     cargoType: string;
     courier: string;
     incoterm: string;
-  },
+  };
   user: UserInfo;
   serviceType: string;
   products: ProductsQuotationResponseDTO[];
@@ -204,7 +208,3 @@ export interface QuotationResponseListDTO {
   totalPages: number;
   last: boolean;
 }
-
-
-
-

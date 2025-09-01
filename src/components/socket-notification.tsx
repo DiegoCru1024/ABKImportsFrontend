@@ -73,30 +73,74 @@ export default function SocketNotification() {
             console.log("Socket error:", error);
         });
 
-        socket.on("notification", (data) => {
+        socket.on("quotationCreated", (data) => {
             const newNotification: Notification = {
-                id: `${data.data.quotationId}-${Date.now()}`,
-                type: data.type,
-                title: data.type === 'quotation_created' ? 'Nueva Cotización' : 'Respuesta de Cotización',
-                message: data.data.message,
-                quotationId: data.data.quotationId,
-                correlative: data.data.correlative,
-                data: data.data,
+                id: `${data.quotationId}-${Date.now()}`,
+                type: 'quotation_created',
+                title: 'Nueva Cotización',
+                message: `Se ha creado una nueva cotización: ${data.correlative}`,
+                quotationId: data.quotationId,
+                correlative: data.correlative,
+                data: data,
                 isRead: false,
-                createdAt: data.data.timestamp,
-                updatedAt: data.data.timestamp,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
             };
 
             setNotifications(prev => [newNotification, ...prev]);
 
-            toast.success("Nueva notificación", {
-                description: data.data.message,
+            toast.success("Nueva Cotización", {
+                description: `Se ha creado una nueva cotización: ${data.correlative}`,
                 duration: 5000,
                 action: {
                     label: "Ver",
                     onClick: () => setIsOpen(true),
                 },
             });
+        });
+
+        socket.on("quotationResponse", (data) => {
+            const newNotification: Notification = {
+                id: `${data.quotationId}-${Date.now()}`,
+                type: 'quotation_response',
+                title: 'Respuesta de Cotización',
+                message: `Se ha recibido una respuesta para la cotización: ${data.correlative}`,
+                quotationId: data.quotationId,
+                correlative: data.correlative,
+                data: data,
+                isRead: false,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+            };
+
+            setNotifications(prev => [newNotification, ...prev]);
+
+            toast.success("Respuesta de Cotización", {
+                description: `Se ha recibida una respuesta para la cotización: ${data.correlative}`,
+                duration: 5000,
+                action: {
+                    label: "Ver",
+                    onClick: () => setIsOpen(true),
+                },
+            });
+        });
+
+        socket.on("unreadNotifications", (data) => {
+            setNotifications(data);
+        });
+
+        socket.on("notificationUpdated", (notification) => {
+            setNotifications(prev =>
+                prev.map(n => 
+                    n.id === notification.id ? notification : n
+                )
+            );
+        });
+
+        socket.on("allNotificationsMarkedAsRead", () => {
+            setNotifications(prev =>
+                prev.map(n => ({ ...n, isRead: true, updatedAt: new Date().toISOString() }))
+            );
         });
 
         socket.on("disconnect", () => {
@@ -113,12 +157,9 @@ export default function SocketNotification() {
     const markAsRead = async (isRead: boolean, notificationId: string) => {
         try {
             if (isRead) return;
-            await notificationsAPI.markAsRead(notificationId);
-            setNotifications(prev =>
-                prev.map(n =>
-                    n.id === notificationId ? { ...n, isRead: true, updatedAt: new Date().toISOString() } : n
-                )
-            );
+            if (socketRef.current) {
+                socketRef.current.emit('markAsRead', { notificationId });
+            }
         } catch (error) {
             console.error("Error marking notification as read:", error);
         }
@@ -126,10 +167,9 @@ export default function SocketNotification() {
 
     const markAllAsRead = async () => {
         try {
-            await notificationsAPI.markAllAsRead();
-            setNotifications(prev =>
-                prev.map(n => ({ ...n, isRead: true, updatedAt: new Date().toISOString() }))
-            );
+            if (socketRef.current) {
+                socketRef.current.emit('markAllAsRead');
+            }
         } catch (error) {
             console.error("Error marking all as read:", error);
         }

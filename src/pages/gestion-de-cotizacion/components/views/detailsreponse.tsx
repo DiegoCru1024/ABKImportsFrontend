@@ -648,9 +648,18 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
       const variantIndex = parseInt(parts[1]);
       const variantField = parts[2];
 
-      setEditableProductsWithVariants((prev) =>
-        prev.map((product) => {
+      setEditableProductsWithVariants((prev) => {
+        console.log("handlePendingProductChange - current editableProductsWithVariants:", JSON.stringify(prev, null, 2));
+        
+        const newState = prev.map((product) => {
           if (product.id === productId || product.productId === productId) {
+            console.log("handlePendingProductChange - product before update:", {
+              productId: product.productId,
+              id: product.id,
+              variants: product.variants,
+              variantsLength: product.variants?.length
+            });
+
             const updatedVariants = [...(product.variants || [])];
             if (updatedVariants[variantIndex]) {
               updatedVariants[variantIndex] = {
@@ -659,40 +668,53 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
               };
             }
 
-            return {
+            const updatedProduct = {
               ...product,
               variants: updatedVariants,
             };
+            console.log("handlePendingProductChange - updated product (variant change):", updatedProduct);
+            return updatedProduct;
           }
           return product;
-        })
-      );
+        });
+        
+        console.log("handlePendingProductChange - new editableProductsWithVariants state:", JSON.stringify(newState, null, 2));
+        return newState;
+      });
     } else if (field === "adminComment") {
       // Manejar comentarios del administrador
-      setEditableProductsWithVariants((prev) =>
-        prev.map((product) => {
+      setEditableProductsWithVariants((prev) => {
+        const newState = prev.map((product) => {
           if (product.id === productId || product.productId === productId) {
-            return {
+            const updatedProduct = {
               ...product,
               adminComment: value as string,
             };
+            console.log("handlePendingProductChange - updated product (adminComment):", updatedProduct);
+            return updatedProduct;
           }
           return product;
-        })
-      );
+        });
+        console.log("handlePendingProductChange - new editableProductsWithVariants state (adminComment):", JSON.stringify(newState, null, 2));
+        return newState;
+      });
     } else if (["boxes", "cbm", "weight"].includes(field)) {
       // Manejar campos de packing list (boxes, cbm, weight)
-      setEditableProductsWithVariants((prev) =>
-        prev.map((product) => {
+      setEditableProductsWithVariants((prev) => {
+        const newState = prev.map((product) => {
           if (product.id === productId || product.productId === productId) {
-            return {
+            const updatedProduct = {
               ...product,
               [field]: value,
             };
+            console.log("handlePendingProductChange - updated product (packing list):", updatedProduct);
+            return updatedProduct;
           }
           return product;
-        })
-      );
+        });
+        console.log("handlePendingProductChange - new editableProductsWithVariants state (packing list):", JSON.stringify(newState, null, 2));
+        return newState;
+      });
     }
   };
 
@@ -906,6 +928,9 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
 
   //* Función para generar el DTO de respuesta según la interfaz QuotationCreateUpdateResponseDTO
   const generateQuotationResponseDTO = () => {
+    console.log("generateQuotationResponseDTO - editableProductsWithVariants state:", JSON.stringify(editableProductsWithVariants, null, 2));
+    console.log("generateQuotationResponseDTO - selectedServiceLogistic:", selectedServiceLogistic);
+    
     // Determinar si es servicio marítimo
     const isMaritime = isMaritimeService(selectedServiceLogistic);
 
@@ -1044,16 +1069,48 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
             variants: (product.variants || []).map((variant: any) => {
               // Buscar la variante editable correspondiente
               const editableVariant = editableProduct?.variants?.find(
-                (ev: any) => ev.id === variant.variantId
+                (ev: any) => ev.variantId === variant.variantId || ev.id === variant.variantId
               );
+
+              console.log("Variant matching debug:", {
+                productName: product.name,
+                variantId: variant.variantId,
+                editableProductVariants: editableProduct?.variants?.map((ev: any) => ({
+                  evId: ev.id,
+                  evVariantId: ev.variantId,
+                  evPrice: ev.price,
+                  evUnitCost: ev.unitCost,
+                  evImportCosts: ev.importCosts,
+                  evExpress: ev.express
+                })),
+                foundEditableVariant: editableVariant ? {
+                  price: editableVariant.price,
+                  unitCost: editableVariant.unitCost,
+                  importCosts: editableVariant.importCosts,
+                  express: editableVariant.express
+                } : null,
+                finalValues: {
+                  price: editableVariant?.price || 0,
+                  unitCost: editableVariant?.unitCost || 0,
+                  importCosts: editableVariant?.importCosts || 0,
+                  express: editableVariant?.express || 0
+                }
+              });
 
               const quantity = Number(variant.quantity) || 0;
               const express = editableVariant?.express || 0;
 
-              // Para el tipo "Pendiente", el precio unitario se calcula como express * quantity
-              const price = isPendingService
-                ? express * quantity
-                : editableVariant?.price || 0;
+              // Para el tipo "Pendiente", usar el precio ingresado por el usuario
+              const price = editableVariant?.price || 0;
+
+              console.log("Final values for DTO:", {
+                productName: product.name,
+                variantId: variant.variantId,
+                price,
+                unitCost: editableVariant?.unitCost || 0,
+                importCosts: editableVariant?.importCosts || 0,
+                express
+              });
 
               return {
                 variantId: variant.variantId,
@@ -1088,7 +1145,18 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
       );
 
       console.log("Estado de productos editables:", {
-        editableProductsWithVariants,
+        editableProductsWithVariants: editableProductsWithVariants.map(p => ({
+          id: p.id,
+          name: p.name,
+          variants: p.variants?.map((v: any) => ({
+            id: v.id,
+            variantId: v.variantId,
+            price: v.price,
+            unitCost: v.unitCost,
+            importCosts: v.importCosts,
+            express: v.express
+          }))
+        })),
         editableUnitCostProducts,
         selectedServiceLogistic,
       });
@@ -1102,7 +1170,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
       // Notificar y regresar a listado
       // Usamos toast del sistema de notificaciones (ya importado en hooks) o un alert simple
       console.log("Respuesta enviada correctamente");
-      //window.history.back();
+      window.history.back();
     } catch (error) {
       console.error("Error al guardar la respuesta:", error);
     } finally {
@@ -1185,6 +1253,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
       const initialProductsWithVariants = quotationDetail.products.map(
         (product: any) => ({
           ...product,
+          id: product.productId, // Explicitly set id for consistency
           adminComment: product.adminComment || "",
           // Agregar campos necesarios para la tabla
           boxes: product.quantity || 0,
@@ -1193,8 +1262,11 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
           variants:
             product.variants?.map((variant: any) => ({
               ...variant,
+              variantId: variant.variantId || variant.id,
               price: variant.price || 0,
               express: variant.express || 0,
+              unitCost: variant.unitCost || 0,
+              importCosts: variant.importCosts || 0,
             })) || [],
         })
       );

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Eye,
   Link as LinkIcon,
@@ -70,13 +70,16 @@ const ProductRow: React.FC<ProductRowProps> = ({
         ...variant,
         price: variant.price || 0,
         express: variant.express || 0,
+        unitCost: variant.unitCost || 0,
+        importCosts: variant.importCosts || 0,
       })
     );
     return initialVariants;
   });
 
   const editableProduct = editableProducts.find((p) => p.id === product.id || p.productId === product.productId);
-  const variants = variantsData;
+  // Usar los datos del editableProduct si están disponibles, sino usar variantsData local
+  const variants = editableProduct?.variants || variantsData;
   const hasMultipleVariants = variants.length > 1;
 
   // Función helper para obtener el ID correcto del producto
@@ -104,6 +107,7 @@ const ProductRow: React.FC<ProductRowProps> = ({
     field: string,
     value: number
   ) => {
+    // Actualizar estado local
     setVariantsData((prev: any[]) =>
       prev.map((variant: any, idx: number) =>
         idx === variantIndex ? { ...variant, [field]: value } : variant
@@ -120,18 +124,29 @@ const ProductRow: React.FC<ProductRowProps> = ({
       // Para productos con múltiples variantes
       const totalExpress = variants.reduce((sum: number, v: any) => sum + (v.express || 0), 0);
       const totalPrice = variants.reduce((sum: number, v: any) => sum + ((v.price || 0) * (v.quantity || 0)), 0);
-      return { totalExpress, totalPrice };
+      const totalUnitCost = variants.reduce((sum: number, v: any) => sum + (v.unitCost || 0), 0);
+      const totalImportCosts = variants.reduce((sum: number, v: any) => sum + (v.importCosts || 0), 0);
+      return { totalExpress, totalPrice, totalUnitCost, totalImportCosts };
     } else {
       // Para productos con una sola variante
       const variant = variants[0];
       const totalPrice = (variant?.price || 0) * (variant?.quantity || 0);
       const totalExpress = variant?.express || 0;
-      return { totalExpress, totalPrice };
+      const totalUnitCost = variant?.unitCost || 0;
+      const totalImportCosts = variant?.importCosts || 0;
+      return { totalExpress, totalPrice, totalUnitCost, totalImportCosts };
     }
   };
 
-  const { totalExpress, totalPrice } = calculateProductTotals();
+  const { totalExpress, totalPrice, totalUnitCost, totalImportCosts } = calculateProductTotals();
   const productTotal = totalPrice + totalExpress;
+
+  // Sincronizar el estado local cuando cambien los datos del editableProduct
+  useEffect(() => {
+    if (editableProduct?.variants) {
+      setVariantsData(editableProduct.variants);
+    }
+  }, [editableProduct?.variants]);
 
   return (
     <>
@@ -583,10 +598,10 @@ const ProductRow: React.FC<ProductRowProps> = ({
       {/* Filas de variantes (si hay múltiples variantes y están expandidas) */}
       {hasMultipleVariants && showVariants && (
         <tr>
-          <td colSpan={9} className="p-0">
+          <td colSpan={11} className="p-0">
             <div className="bg-gray-50 border-t">
               {/* Variants Header */}
-              <div className="grid grid-cols-8 gap-2 p-3 bg-gray-100 text-xs font-semibold text-gray-600">
+              <div className="grid grid-cols-10 gap-2 p-3 bg-gray-100 text-xs font-semibold text-gray-600">
                 <div className="text-center">Presentación</div>
                 <div className="text-center">Modelo</div>
                 <div className="text-center">Color</div>
@@ -596,6 +611,12 @@ const ProductRow: React.FC<ProductRowProps> = ({
                 <div className="text-center text-green-600">
                   $Precio Unitario
                 </div>
+                <div className="text-center text-blue-600">
+                  $Costo Unitario
+                </div>
+                <div className="text-center text-purple-600">
+                  $Costos Importación
+                </div>
                 <div></div>
               </div>
 
@@ -603,7 +624,7 @@ const ProductRow: React.FC<ProductRowProps> = ({
               {variants.map((variant: any, variantIndex: number) => (
                 <div
                   key={variant.id}
-                  className="grid grid-cols-8 gap-2 p-3 items-center border-b border-gray-200 last:border-b-0"
+                  className="grid grid-cols-10 gap-2 p-3 items-center border-b border-gray-200 last:border-b-0"
                 >
                   {/* Presentación */}
                   <div className="text-center">
@@ -677,6 +698,42 @@ const ProductRow: React.FC<ProductRowProps> = ({
                           handleVariantChange(
                             variantIndex,
                             "price",
+                            Number(e.target.value)
+                          )
+                        }
+                        className="text-center font-semibold px-3 py-1 w-full h-9 text-sm border-0"
+                        placeholder="0"
+                      />
+                    </div>
+                  </div>
+                  {/* Costo Unitario */}
+                  <div className="text-center">
+                    <div className="w-16 h-8 bg-white border rounded flex items-center justify-center mx-auto">
+                      <Input
+                        type="number"
+                        value={variant.unitCost || 0}
+                        onChange={(e) =>
+                          handleVariantChange(
+                            variantIndex,
+                            "unitCost",
+                            Number(e.target.value)
+                          )
+                        }
+                        className="text-center font-semibold px-3 py-1 w-full h-9 text-sm border-0"
+                        placeholder="0"
+                      />
+                    </div>
+                  </div>
+                  {/* Costos Importación */}
+                  <div className="text-center">
+                    <div className="w-16 h-8 bg-white border rounded flex items-center justify-center mx-auto">
+                      <Input
+                        type="number"
+                        value={variant.importCosts || 0}
+                        onChange={(e) =>
+                          handleVariantChange(
+                            variantIndex,
+                            "importCosts",
                             Number(e.target.value)
                           )
                         }

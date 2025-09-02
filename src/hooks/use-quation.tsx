@@ -100,11 +100,12 @@ export function useGetQuotationById(id: string) {
 export function useGetQuotationsListWithPagination(
   searchTerm: string,
   page: number,
-  size: number
+  size: number,
+  filter:string
 ) {
   return useQuery({
-    queryKey: ["useGetQuotationsByUser", searchTerm, page, size],
-    queryFn: () => getQuotationsByUser(searchTerm, page, size),
+    queryKey: ["useGetQuotationsByUser", searchTerm, page, size,filter],
+    queryFn: () => getQuotationsByUser(searchTerm, page, size,filter),
   });
 }
 

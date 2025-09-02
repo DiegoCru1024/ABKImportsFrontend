@@ -17,6 +17,9 @@ import {
   Ruler,
   Palette,
   Link,
+  Filter,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 
 // Importar componentes modulares
@@ -32,6 +35,13 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 import { formatDate, formatDateTime } from "@/lib/format-time";
 
@@ -39,7 +49,6 @@ import {
   defaultStatusConfig,
   statusMap,
 } from "@/pages/cotizacion-page/components/static";
-import { obtenerUser } from "@/lib/functions";
 
 export default function GestionDeCotizacionesView() {
   const navigate = useNavigate();
@@ -48,11 +57,14 @@ export default function GestionDeCotizacionesView() {
 
   // ********Cotización seleccionada**** */
   const [selectedQuotationId, setSelectedQuotationId] = useState<string>("");
+  const [filter,setFilter]=useState<string>("all");
 
   // ********Estados de filtro y búsqueda**** */
-
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+
+  // ********Estados del acordeón de productos**** */
+  const [expandedProducts, setExpandedProducts] = useState<Record<string, boolean>>({});
 
   // ********Estados del modal de imágenes**** */
   const [imageModalOpen, setImageModalOpen] = useState(false);
@@ -61,7 +73,6 @@ export default function GestionDeCotizacionesView() {
   );
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [modalProductName, setModalProductName] = useState("");
-
 
   // ********Datos y paginación**** */
   const [data, setData] = useState<QuotationsByUserResponseInterfaceContent[]>(
@@ -82,7 +93,8 @@ export default function GestionDeCotizacionesView() {
   } = useGetQuotationsListWithPagination(
     debouncedSearchTerm,
     pageInfo.pageNumber,
-    pageInfo.pageSize
+    pageInfo.pageSize,
+    filter === "all" ? "" : filter
   );
 
   // Debounce del término de búsqueda
@@ -124,7 +136,10 @@ export default function GestionDeCotizacionesView() {
   };
 
   const handleViewListResponses = (quotationId: string) => {
-    console.log("handleViewListResponses called with quotationId:", quotationId);
+    console.log(
+      "handleViewListResponses called with quotationId:",
+      quotationId
+    );
     navigate(`/dashboard/gestion-de-cotizacion/respuestas/${quotationId}`);
   };
 
@@ -134,6 +149,21 @@ export default function GestionDeCotizacionesView() {
       ...prev,
       pageNumber: newPage,
     }));
+  };
+
+  // ********Funciones del acordeón de productos**** */
+
+  // Función para alternar el estado del acordeón de productos
+  const toggleProductsAccordion = (quotationId: string) => {
+    setExpandedProducts((prev) => ({
+      ...prev,
+      [quotationId]: !prev[quotationId],
+    }));
+  };
+
+  // Función para limpiar el filtro
+  const clearFilter = () => {
+    setFilter("all");
   };
 
   // ********Funciones del modal de imágenes**** */
@@ -203,26 +233,26 @@ export default function GestionDeCotizacionesView() {
     );
   }
 
-    // Renderizado condicional según el tab activo
-    if (mainTab === "listResponses" && selectedQuotationId) {
-      return (
-        <div className="min-h-screen bg-gray-50">
-          <div className="border-b bg-white shadow-sm">
-            <div className="container flex items-center justify-between px-4 py-4">
-              <Button
-                variant="ghost"
-                onClick={() => setMainTab("solicitudes")}
-                className="flex items-center gap-2"
-              >
-                <ChevronLeft className="h-4 w-4" />
-                Volver a Solicitudes
-              </Button>
-            </div>
+  // Renderizado condicional según el tab activo
+  if (mainTab === "listResponses" && selectedQuotationId) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="border-b bg-white shadow-sm">
+          <div className="container flex items-center justify-between px-4 py-4">
+            <Button
+              variant="ghost"
+              onClick={() => setMainTab("solicitudes")}
+              className="flex items-center gap-2"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Volver a Solicitudes
+            </Button>
           </div>
-            <ListResponses selectedQuotationId={selectedQuotationId} />
         </div>
-      );
-    }
+        <ListResponses selectedQuotationId={selectedQuotationId} />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -251,14 +281,52 @@ export default function GestionDeCotizacionesView() {
       <div className="container mx-auto px-4 py-6 max-w-full overflow-hidden">
         {/* Barra de búsqueda */}
         <div className="mb-6">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-            <Input
-              placeholder="Buscar por cliente o ID de cotización..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9 bg-white"
-            />
+          <div className="flex flex-col sm:flex-row gap-4">
+            {/* Búsqueda por texto */}
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              <Input
+                placeholder="Buscar por cliente o ID de cotización..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-9 bg-white"
+              />
+            </div>
+
+            {/* Filtro de estado */}
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2">
+                <Filter className="h-4 w-4 text-gray-500" />
+                <Select value={filter} onValueChange={setFilter}>
+                  <SelectTrigger className="w-48 bg-white">
+                    <SelectValue placeholder="Filtrar por estado" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos los estados</SelectItem>
+                    <SelectItem value="draft">Borrador</SelectItem>
+                    <SelectItem value="pending">Pendiente</SelectItem>
+                    <SelectItem value="observed">Observado</SelectItem>
+                    <SelectItem value="approved">Aprobado</SelectItem>
+                    <SelectItem value="cancelled">Cancelado</SelectItem>
+                    <SelectItem value="completed">Completado</SelectItem>
+                    <SelectItem value="answered">Respondido</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Botón para limpiar filtro */}
+              {filter !== "all" && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={clearFilter}
+                  className="flex items-center gap-2"
+                >
+                  <X className="h-4 w-4" />
+                  Limpiar
+                </Button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -379,124 +447,153 @@ export default function GestionDeCotizacionesView() {
 
                     {/* Área de productos con scroll interno */}
                     <div className="px-6 flex-1 min-h-0">
-                      <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                        <Package className="w-4 h-4" />
-                        Productos ({quote.products.length})
-                      </h4>
-                      <div className="max-h-[300px] overflow-x-auto pb-2">
-                        <div className="grid grid-cols-3 gap-3 min-w-max">
-                          {quote.products?.map((product: any) => (
-                            <div
-                              key={product.productId}
-                              className="bg-gray-50 rounded-lg p-3 w-[280px] flex-shrink-0"
-                            >
-                              <div className="flex gap-3">
-                                {/* Imagen del producto */}
-                                {product.attachments && product.attachments.length > 0 && (
-                                  <div className="relative w-[80px] h-[80px] group flex-shrink-0">
-                                    <img
-                                      src={product.attachments[0] || "/placeholder.svg"}
-                                      alt={product.name}
-                                      className="w-full h-full object-cover rounded cursor-pointer transition-all duration-200 hover:opacity-75"
-                                      onClick={() => openImageModal(product.attachments, product.name, 0)}
-                                      onError={(e) => {
-                                        const target = e.target as HTMLImageElement;
-                                        target.style.display = "none";
-                                      }}
-                                    />
-                                    {/* Overlay con hover effect */}
-                                    <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded flex items-center justify-center cursor-pointer"
-                                         onClick={() => openImageModal(product.attachments, product.name, 0)}>
-                                      <div className="flex flex-col items-center gap-1 text-white">
-                                        <Eye className="w-4 h-4" />
-                                        <span className="text-xs font-medium text-center">
-                                          {product.attachments.length > 1 ? `Ver ${product.attachments.length}` : "Ver imagen"}
-                                        </span>
-                                      </div>
-                                    </div>
-                                    {/* Badge contador de imágenes */}
-                                    {product.attachments.length > 1 && (
-                                      <div className="absolute top-1 right-1 bg-gray-900 bg-opacity-80 text-white text-xs px-1 py-0.5 rounded-full">
-                                        +{product.attachments.length - 1}
-                                      </div>
-                                    )}
-                                  </div>
-                                )}
-
-                                {/* Información del producto */}
-                                <div className="flex-1 min-w-0">
-                                  <div className="space-y-1">
-                                    {/* Header del producto */}
-                                    <div>
-                                      <h3 className="font-bold text-sm text-gray-900 capitalize leading-tight">
-                                        {product.name}
-                                      </h3>
-                                      <div className="flex items-center gap-2 mt-1">
-                                        <Badge variant="outline" className="text-xs">
-                                          {product.quantity} unidades
-                                        </Badge>
-                                      </div>
-                                    </div>
-
-                                    {/* Especificaciones en línea */}
-                                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
-                                      {product.size && (
-                                        <div className="flex items-center gap-1">
-                                          <Ruler className="w-3 h-3 text-gray-400" />
-                                          <span className="text-gray-600">Tamaño:</span>
-                                          <span className="font-medium text-gray-900">
-                                            {product.size}
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                          <Package className="w-4 h-4" />
+                          Productos ({quote.products.length})
+                        </h4>
+                        
+                        {/* Botón para abrir/cerrar acordeón */}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => toggleProductsAccordion(quote.quotationId)}
+                          className="flex items-center gap-2 text-gray-600 hover:text-gray-800"
+                        >
+                          {expandedProducts[quote.quotationId] ? (
+                            <>
+                              <ChevronUp className="h-4 w-4" />
+                              Ocultar productos
+                            </>
+                          ) : (
+                            <>
+                              <ChevronDown className="h-4 w-4" />
+                              Mostrar productos
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                      
+                      {/* Acordeón de productos */}
+                      {expandedProducts[quote.quotationId] && (
+                        <div className="max-h-[300px] overflow-x-auto pb-2">
+                          <div className="grid grid-cols-3 gap-3 min-w-max">
+                            {quote.products?.map((product: any) => (
+                              <div
+                                key={product.productId}
+                                className="bg-gray-50 rounded-lg p-3 w-[280px] flex-shrink-0"
+                              >
+                                <div className="flex gap-3">
+                                  {/* Imagen del producto */}
+                                  {product.attachments && product.attachments.length > 0 && (
+                                    <div className="relative w-[80px] h-[80px] group flex-shrink-0">
+                                      <img
+                                        src={product.attachments[0] || "/placeholder.svg"}
+                                        alt={product.name}
+                                        className="w-full h-full object-cover rounded cursor-pointer transition-all duration-200 hover:opacity-75"
+                                        onClick={() => openImageModal(product.attachments, product.name, 0)}
+                                        onError={(e) => {
+                                          const target = e.target as HTMLImageElement;
+                                          target.style.display = "none";
+                                        }}
+                                      />
+                                      {/* Overlay con hover effect */}
+                                      <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded flex items-center justify-center cursor-pointer"
+                                           onClick={() => openImageModal(product.attachments, product.name, 0)}>
+                                        <div className="flex flex-col items-center gap-1 text-white">
+                                          <Eye className="w-4" />
+                                          <span className="text-xs font-medium text-center">
+                                            {product.attachments.length > 1 ? `Ver ${product.attachments.length}` : "Ver imagen"}
                                           </span>
                                         </div>
-                                      )}
-                                      {product.color && (
-                                        <div className="flex items-center gap-1">
-                                          <Palette className="w-3 h-3 text-gray-400" />
-                                          <span className="text-gray-600">Color:</span>
-                                          <span className="font-medium text-gray-900">
-                                            {product.color}
-                                          </span>
-                                        </div>
-                                      )}
-                                      {product.url && (
-                                        <div className="flex items-center gap-1">
-                                          <Link className="w-3 h-3 text-gray-400" />
-                                          <span className="text-gray-600">URL:</span>
-                                          <span className="font-medium text-gray-900">
-                                            <a href={product.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600">
-                                              Ver link
-                                            </a>
-                                          </span>
+                                      </div>
+                                      {/* Badge contador de imágenes */}
+                                      {product.attachments.length > 1 && (
+                                        <div className="absolute top-1 right-1 bg-gray-900 bg-opacity-80 text-white text-xs px-1 py-0.5 rounded-full">
+                                          +{product.attachments.length - 1}
                                         </div>
                                       )}
                                     </div>
+                                  )}
 
-                                    {/* Comentarios destacados */}
-                                    {product.comment && (
-                                      <div className="bg-blue-50 border-l-2 border-blue-400 p-2 rounded-r mt-2">
-                                        <div className="flex items-start gap-2">
-                                          <MessageSquare className="w-3 h-3 text-blue-500 mt-0.5 flex-shrink-0" />
-                                          <p className="text-xs text-blue-700 font-medium leading-tight">
-                                            {product.comment}
-                                          </p>
+                                  {/* Información del producto */}
+                                  <div className="flex-1 min-w-0">
+                                    <div className="space-y-1">
+                                      {/* Header del producto */}
+                                      <div>
+                                        <h3 className="font-bold text-sm text-gray-900 capitalize leading-tight">
+                                          {product.name}
+                                        </h3>
+                                        <div className="flex items-center gap-2 mt-1">
+                                          <Badge variant="outline" className="text-xs">
+                                            {product.quantity} unidades
+                                          </Badge>
                                         </div>
                                       </div>
-                                    )}
+
+                                      {/* Especificaciones en línea */}
+                                      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
+                                        {product.size && (
+                                          <div className="flex items-center gap-1">
+                                            <Ruler className="w-3  text-gray-400" />
+                                            <span className="text-gray-600">Tamaño:</span>
+                                            <span className="font-medium text-gray-900">
+                                              {product.size}
+                                            </span>
+                                          </div>
+                                        )}
+                                        {product.color && (
+                                          <div className="flex items-center gap-1">
+                                            <Palette className="w-3  text-gray-400" />
+                                            <span className="text-gray-600">Color:</span>
+                                            <span className="font-medium text-gray-900">
+                                              {product.color}
+                                            </span>
+                                          </div>
+                                        )}
+                                        {product.url && (
+                                          <div className="flex items-center gap-1">
+                                            <Link className="w-3 text-gray-400" />
+                                            <span className="text-gray-600">URL:</span>
+                                            <span className="font-medium text-gray-900">
+                                              <a href={product.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600">
+                                                Ver link
+                                              </a>
+                                            </span>
+                                          </div>
+                                        )}
+                                      </div>
+
+                                      {/* Comentarios destacados */}
+                                      {product.comment && (
+                                        <div className="bg-blue-50 border-l-2 border-blue-400 p-2 rounded-r mt-2">
+                                          <div className="flex items-start gap-2">
+                                            <MessageSquare className="w-3  text-blue-500 mt-0.5 flex-shrink-0" />
+                                            <p className="text-xs text-blue-700 font-medium leading-tight">
+                                              {product.comment}
+                                            </p>
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
                                   </div>
                                 </div>
                               </div>
-                            </div>
-                          ))}
+                            ))}
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </div>
 
                     {/* Footer fijo con botones */}
                     <div className="p-6 pt-4 border-t bg-gray-50/50 flex-shrink-0">
-                      {quote.status !== "pending" && quote.status !=="draft" ? (
+                      {quote.status !== "pending" &&
+                      quote.status !== "draft" ? (
                         <div className="flex justify-end">
                           <Button
-                            onClick={() => handleViewListResponses(quote.quotationId)}
+                            onClick={() =>
+                              handleViewListResponses(quote.quotationId)
+                            }
                             className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white"
                           >
                             <Eye className="w-4 h-4" />
@@ -505,29 +602,28 @@ export default function GestionDeCotizacionesView() {
                         </div>
                       ) : (
                         <>
-                        {quote.status !== "draft" ?(
-                        <div className="flex justify-end">
-                          <Button
-                            onClick={() => handleViewDetails(quote.quotationId)}
-                            className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white"
-                          >
-                            <Eye className="w-4 h-4" />
-                            Responder
-                          </Button>
-                        </div>
-                        ):
-                        (
-                          <div className="flex justify-end">
-                            <Button
-                              className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white"
-                            >
-                              <EyeOff className="w-4 h-4" />
-                              Cotización en borrador
-                            </Button>
-                          </div>
+                          {quote.status !== "draft" ? (
+                            <div className="flex justify-end">
+                              <Button
+                                onClick={() =>
+                                  handleViewDetails(quote.quotationId)
+                                }
+                                className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white"
+                              >
+                                <Eye className="w-4 h-4" />
+                                Responder
+                              </Button>
+                            </div>
+                          ) : (
+                            <div className="flex justify-end">
+                              <Button className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white">
+                                <EyeOff className="w-4 h-4" />
+                                Cotización en borrador
+                              </Button>
+                            </div>
                           )}
-                      </>
-                    )}
+                        </>
+                      )}
                     </div>
                   </Card>
                 );

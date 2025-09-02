@@ -46,7 +46,8 @@ export const getQuotationById = async (id: string) => {
 export const getQuotationsByUser = async (
   searchTerm: string,
   page: number,
-  size: number
+  size: number,
+  filter?:string
 ) => {
   let endpoint = "/quotations";
   
@@ -60,6 +61,10 @@ export const getQuotationsByUser = async (
   // Agregar los parámetros de paginación
   params.append("page", page.toString());
   params.append("size", size.toString());
+
+  if (filter){
+    params.append("status", filter.toString());
+  }
 
   // Si hay parámetros, los agregamos al endpoint
   if (params.toString()) {

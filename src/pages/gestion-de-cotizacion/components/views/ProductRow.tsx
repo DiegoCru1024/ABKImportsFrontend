@@ -33,9 +33,9 @@ import { Label } from "@/components/ui/label";
 interface ProductRowProps {
   product: any;
   index: number;
-  quotationDetail: any;
-  onProductChange: (productId: string, field: string, value: number | string) => void;
-  editableProducts: any[];
+  quotationDetail?: any;
+  onProductChange?: (productId: string, field: string, value: number | string) => void;
+  editableProducts?: any[];
   productQuotationState?: Record<string, boolean>;
   variantQuotationState?: Record<string, Record<string, boolean>>;
   onProductQuotationChange?: (productId: string, checked: boolean) => void;
@@ -77,7 +77,7 @@ const ProductRow: React.FC<ProductRowProps> = ({
     return initialVariants;
   });
 
-  const editableProduct = editableProducts.find((p) => p.id === product.id || p.productId === product.productId);
+  const editableProduct = editableProducts?.find((p) => p.id === product.id || p.productId === product.productId);
   // Usar los datos del editableProduct si están disponibles, sino usar variantsData local
   const variants = editableProduct?.variants || variantsData;
   const hasMultipleVariants = variants.length > 1;
@@ -115,7 +115,7 @@ const ProductRow: React.FC<ProductRowProps> = ({
     );
 
     // También notificar al componente padre
-    onProductChange(getProductId(), `variant_${variantIndex}_${field}`, value);
+    onProductChange?.(getProductId(), `variant_${variantIndex}_${field}`, value);
   };
 
   // Calcular totales dinámicos para productos con múltiples variantes
@@ -342,7 +342,7 @@ const ProductRow: React.FC<ProductRowProps> = ({
                   type="number"
                   value={editableProduct?.boxes || 0}
                   onChange={(e) =>
-                    onProductChange(getProductId(), "boxes", Number(e.target.value))
+                    onProductChange?.(getProductId(), "boxes", Number(e.target.value))
                   }
                   className="text-center font-semibold px-3 py-1 w-full h-9 text-sm"
                   placeholder="0"
@@ -359,7 +359,7 @@ const ProductRow: React.FC<ProductRowProps> = ({
                   type="number"
                   value={editableProduct?.cbm || 0}
                   onChange={(e) =>
-                    onProductChange(getProductId(), "cbm", Number(e.target.value))
+                    onProductChange?.(getProductId(), "cbm", Number(e.target.value))
                   }
                   className="text-center font-semibold px-3 py-1 w-full h-9 text-sm"
                   placeholder="0"
@@ -375,7 +375,7 @@ const ProductRow: React.FC<ProductRowProps> = ({
                   type="number"
                   value={editableProduct?.weight || 0}
                   onChange={(e) =>
-                    onProductChange(
+                    onProductChange?.(
                       getProductId(),
                       "weight",
                       Number(e.target.value)
@@ -395,7 +395,7 @@ const ProductRow: React.FC<ProductRowProps> = ({
                   type="number"
                   value={(editableProduct?.weight || 0) / 1000}
                   onChange={(e) =>
-                    onProductChange(
+                    onProductChange?.(
                       getProductId(),
                       "weight",
                       Number(e.target.value) * 1000
@@ -820,7 +820,7 @@ const ProductRow: React.FC<ProductRowProps> = ({
               <Button
                 onClick={() => {
                   // Guardar el comentario en el componente padre
-                  onProductChange(getProductId(), "adminComment", adminComment);
+                  onProductChange?.(getProductId(), "adminComment", adminComment);
                   console.log(
                     "Comentario del administrador guardado:",
                     adminComment

@@ -22,6 +22,8 @@ import {
   Truck,
   LinkIcon,
   Check,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useGetQuotationById } from "@/hooks/use-quation";
@@ -38,11 +40,29 @@ import { formatCurrency } from "@/lib/functions";
 import UrlImageViewerModal from "./components/UrlImageViewerModal";
 import { formatDate, formatDateTime } from "@/lib/format-time";
 
-
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import type { ProductRow } from "@/pages/gestion-de-cotizacion/components/views/editableunitcosttable";
 import { columnsUnitCost } from "./components/table/columnsUnitCost";
+import { Button } from "@/components/ui/button";
+import ImageCarouselModal from "@/components/ImageCarouselModal";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+} from "@/components/ui/select";
+import { SelectValue } from "@radix-ui/react-select";
+import { Textarea } from "@/components/ui/textarea";
 
 interface ResponseCotizacionViewProps {
   selectedQuotationId: string;
@@ -51,7 +71,10 @@ interface ResponseCotizacionViewProps {
 const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
   selectedQuotationId,
 }) => {
-  console.log("ResponseCotizacionView renderizado con selectedQuotationId:", selectedQuotationId);
+  console.log(
+    "ResponseCotizacionView renderizado con selectedQuotationId:",
+    selectedQuotationId
+  );
   // ✅ TODOS LOS HOOKS Y ESTADOS VAN PRIMERO
 
   // Hook para obtener las respuestas de cotización
@@ -75,16 +98,12 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
   console.log("isErrorResponses:", isErrorResponses);
 
   const [selectedResponseTab, setSelectedResponseTab] = useState<string>("");
-  const [imageModalOpen, setImageModalOpen] = useState(false);
-  const [selectedProductImages, setSelectedProductImages] = useState<string[]>(
-    []
-  );
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [modalProductName, setModalProductName] = useState("");
   const [productsList, setProductsList] = useState<ProductRow[]>([]);
 
   const [openImageModal, setOpenImageModal] = useState<boolean>(false);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [showAdminCommentModal, setShowAdminCommentModal] = useState(false);
 
   // ✅ TODA LA LÓGICA Y FUNCIONES QUE USAN LOS HOOKS TAMBIÉN VAN AQUÍ
 
@@ -123,25 +142,40 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
       const response = quotationResponses.find(
         (r) => r.serviceType === selectedResponseTab
       );
-      
+
       if (response && response.products && response.products.length > 0) {
         // Mapear productos y sus variantes para crear ProductRow
         const mapped: ProductRow[] = response.products.map((product: any) => {
           // Usar quantityTotal del producto si está disponible, sino calcular desde variantes
-          const totalQuantity = product.quantityTotal !== undefined 
-            ? Number(product.quantityTotal) 
-            : product.variants?.reduce((sum: number, variant: any) => 
-                sum + (Number(variant.quantity) || 0), 0) || 0;
-          
-          const totalPrice = product.variants?.reduce((sum: number, variant: any) => 
-            sum + (Number(variant.price) || 0), 0) || 0;
-          
-          const totalUnitCost = product.variants?.reduce((sum: number, variant: any) => 
-            sum + (Number(variant.unitCost) || 0), 0) || 0;
-          
-          const totalImportCosts = product.variants?.reduce((sum: number, variant: any) => 
-            sum + (Number(variant.importCosts) || 0), 0) || 0;
-          
+          const totalQuantity =
+            product.quantityTotal !== undefined
+              ? Number(product.quantityTotal)
+              : product.variants?.reduce(
+                  (sum: number, variant: any) =>
+                    sum + (Number(variant.quantity) || 0),
+                  0
+                ) || 0;
+
+          const totalPrice =
+            product.variants?.reduce(
+              (sum: number, variant: any) => sum + (Number(variant.price) || 0),
+              0
+            ) || 0;
+
+          const totalUnitCost =
+            product.variants?.reduce(
+              (sum: number, variant: any) =>
+                sum + (Number(variant.unitCost) || 0),
+              0
+            ) || 0;
+
+          const totalImportCosts =
+            product.variants?.reduce(
+              (sum: number, variant: any) =>
+                sum + (Number(variant.importCosts) || 0),
+              0
+            ) || 0;
+
           return {
             id: product.productId,
             name: product.name,
@@ -152,10 +186,13 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
             importCosts: totalImportCosts,
             totalCost: totalPrice + totalImportCosts,
             unitCost: totalUnitCost,
-            seCotiza: product.seCotizaProducto !== undefined ? product.seCotizaProducto : true,
+            seCotiza:
+              product.seCotizaProducto !== undefined
+                ? product.seCotizaProducto
+                : true,
           };
         });
-        
+
         // Recalcular equivalencias
         const recalculated = recalculateProducts(mapped);
         setProductsList(recalculated);
@@ -188,12 +225,10 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
       quotationResponses.length > 0 &&
       !selectedResponseTab
     ) {
-      console.log("Jas",JSON.stringify(quotationResponses,null,2 ));
+      console.log("Jas", JSON.stringify(quotationResponses, null, 2));
       setSelectedResponseTab(quotationResponses[0].serviceType);
     }
   }, [quotationResponses, selectedResponseTab]);
-
-
 
   // El resto de tus funciones y cálculos
   const calculateFactorM = (products: ProductRow[]): number => {
@@ -228,46 +263,66 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
     if (!response || !response.products) return null;
 
     console.log("renderPendingResponse - response:", response);
-    console.log("renderPendingResponse - response.products:", response.products);
+    console.log(
+      "renderPendingResponse - response.products:",
+      response.products
+    );
 
     // Calcular sumatorias para tipo "Pendiente" basado en los productos
-    const totalExpress = response.products.reduce((sum: number, product: any) => {
-      const productTotal = product.variants?.reduce((vSum: number, variant: any) => 
-        vSum + (Number(variant.price) || 0), 0) || 0;
-      return sum + (Number(productTotal) || 0);
-    }, 0);
-
-    const totalQuantity = response.products.reduce((sum: number, product: any) => {
-      // Usar quantityTotal del producto si está disponible, sino calcular desde variantes
-      if (product.quantityTotal !== undefined) {
-        return sum + (Number(product.quantityTotal) || 0);
-      } else {
-        const productTotal = product.variants?.reduce((vSum: number, variant: any) => 
-          vSum + (Number(variant.quantity) || 0), 0) || 0;
+    const totalExpress = response.products.reduce(
+      (sum: number, product: any) => {
+        const productTotal =
+          product.variants?.reduce(
+            (vSum: number, variant: any) => vSum + (Number(variant.price) || 0),
+            0
+          ) || 0;
         return sum + (Number(productTotal) || 0);
-      }
-    }, 0);
+      },
+      0
+    );
+
+    const totalQuantity = response.products.reduce(
+      (sum: number, product: any) => {
+        // Usar quantityTotal del producto si está disponible, sino calcular desde variantes
+        if (product.quantityTotal !== undefined) {
+          return sum + (Number(product.quantityTotal) || 0);
+        } else {
+          const productTotal =
+            product.variants?.reduce(
+              (vSum: number, variant: any) =>
+                vSum + (Number(variant.quantity) || 0),
+              0
+            ) || 0;
+          return sum + (Number(productTotal) || 0);
+        }
+      },
+      0
+    );
 
     // Calcular totales adicionales
-    const totalCBM = response.products.reduce((sum: number, product: any) => 
-      sum + (Number(product.volume) || 0), 0);
-    
-    const totalWeight = response.products.reduce((sum: number, product: any) => 
-      sum + (Number(product.weight) || 0), 0);
-    
+    const totalCBM = response.products.reduce(
+      (sum: number, product: any) => sum + (Number(product.volume) || 0),
+      0
+    );
+
+    const totalWeight = response.products.reduce(
+      (sum: number, product: any) => sum + (Number(product.weight) || 0),
+      0
+    );
+
     const totalPrice = response.products.reduce((sum: number, product: any) => {
-      const productTotal = product.variants?.reduce((vSum: number, variant: any) => 
-        vSum + (Number(variant.price) || 0), 0) || 0;
+      const productTotal =
+        product.variants?.reduce(
+          (vSum: number, variant: any) => vSum + (Number(variant.price) || 0),
+          0
+        ) || 0;
       return sum + (Number(productTotal) || 0);
     }, 0);
-    
+
     const totalGeneral = totalPrice + totalExpress;
 
-    console.log("renderPendingResponse - totalExpress:", totalExpress, "type:", typeof totalExpress);
-    console.log("renderPendingResponse - totalQuantity:", totalQuantity, "type:", typeof totalQuantity);
-
     return (
-      <Card className="bg-white shadow-lg border border-gray-100 overflow-hidden rounded-2xl">
+      <Card className="bg-white shadow-lg border border-gray-100 overflow-hidden rounded-2xl flex flex-col overflow-x-auto">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -276,11 +331,11 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
               </div>
               <div>
                 <CardTitle className="text-xl font-semibold text-slate-800">
-                  Gestión de Productos - Servicio Pendiente
+                  Respuesta
                 </CardTitle>
                 <CardDescription className="text-slate-600 mt-1">
-                  Administre los productos de la cotización con sus variantes y
-                  configuraciones
+                  Se visualiza la respuesta detallada de los productos de la
+                  cotización con sus variantes
                 </CardDescription>
               </div>
             </div>
@@ -296,10 +351,10 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
           <div className="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 border border-slate-200/60 rounded-xl p-6">
             <div className="text-center mb-6">
               <h2 className="text-2xl font-bold text-slate-800 mb-2">
-                Resumen de Cotización
+                Resumen de Respuesta
               </h2>
               <p className="text-slate-600 text-sm">
-                Información general de la cotización actual
+                Información general de la respuesta de la cotización actual
               </p>
             </div>
 
@@ -311,7 +366,7 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
                   {response.products?.length || 0}
                 </div>
                 <div className="text-xs font-medium text-slate-600">
-                  N° de Items
+                  N° ITEMS
                 </div>
               </div>
               {/* Segundo indicador - N° de Productos */}
@@ -346,27 +401,35 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
                 <div className="text-xl font-bold text-emerald-600 mb-1">
                   ${totalPrice.toFixed(2)}
                 </div>
-                <div className="text-xs font-medium text-slate-600">P. TOTAL</div>
+                <div className="text-xs font-medium text-slate-600">
+                  P. TOTAL
+                </div>
               </div>
               {/* Sexto indicador - Express total */}
               <div className="bg-white rounded-lg p-4 text-center border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200">
                 <div className="text-xl font-bold text-emerald-600 mb-1">
                   ${totalExpress.toFixed(2)}
                 </div>
-                <div className="text-xs font-medium text-slate-600">EXPRESS</div>
+                <div className="text-xs font-medium text-slate-600">
+                  EXPRESS
+                </div>
               </div>
               {/* Séptimo indicador - Total General */}
               <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg p-4 text-center shadow-sm hover:shadow-md transition-all duration-200">
                 <div className="text-xl font-bold text-white mb-1">
                   ${totalGeneral.toFixed(2)}
                 </div>
-                <div className="text-xs font-medium text-emerald-100">TOTAL</div>
+                <div className="text-xs font-medium text-emerald-100">
+                  TOTAL
+                </div>
               </div>
             </div>
           </div>
         </CardContent>
+
         <div className="overflow-x-auto">
           <table className="w-full min-w-max">
+            {/*Encabezado*/}
             <thead>
               <tr className="bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200">
                 <th className="text-left p-4 text-xs font-semibold text-slate-700 uppercase tracking-wider w-16">
@@ -398,8 +461,8 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
                 </th>
                 <th className="text-left p-4 text-xs font-semibold text-slate-700 uppercase tracking-wider w-44">
                   <div className="flex items-center gap-2">
-                    <LinkIcon className="h-4 w-4 text-amber-600" />
-                    URL Fantasma
+                    <MessageSquare className="h-4 w-4 text-amber-600" />
+                    Comentarios
                   </div>
                 </th>
                 <th className="text-left p-4 text-xs font-semibold text-slate-700 uppercase tracking-wider w-32">
@@ -420,24 +483,38 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
                     Total
                   </div>
                 </th>
-                <th className="text-left p-4 text-xs font-semibold text-slate-700 uppercase tracking-wider w-24">
-                  <div className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-green-600" />
-                    Cotizar
-                  </div>
-                </th>
               </tr>
             </thead>
             <tbody>
               {response.products?.map((product: any, index: number) => {
                 // Usar quantityTotal del producto si está disponible, sino calcular desde variantes
-                const totalProductQuantity = product.quantityTotal !== undefined 
-                  ? Number(product.quantityTotal) 
-                  : product.variants?.reduce((sum: number, variant: any) => 
-                      sum + (Number(variant.quantity) || 0), 0) || 0;
-                const totalProductPrice = product.variants?.reduce((sum: number, variant: any) => 
-                  sum + (Number(variant.price) || 0), 0) || 0;
-                
+                const totalProductQuantity =
+                  product.quantityTotal !== undefined
+                    ? Number(product.quantityTotal)
+                    : product.variants?.reduce(
+                        (sum: number, variant: any) =>
+                          sum + (Number(variant.quantity) || 0),
+                        0
+                      ) || 0;
+                const totalProductPrice =
+                  product.variants?.reduce(
+                    (sum: number, variant: any) =>
+                      sum + (Number(variant.price) || 0),
+                    0
+                  ) || 0;
+
+                // Calcular el express total del producto
+                const totalProductExpress =
+                  product.variants?.reduce(
+                    (sum: number, variant: any) =>
+                      sum + (Number(variant.importCosts) || 0),
+                    0
+                  ) || 0;
+
+                // Obtener las variantes del producto
+                const variants = product.variants || [];
+                const hasMultipleVariants = variants.length > 1;
+
                 return (
                   <tr
                     key={product.productId}
@@ -450,102 +527,380 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
                         {index + 1}
                       </div>
                     </td>
-                    <td className="p-4 py-6">
-                      <div className="flex items-center gap-3">
-                        {/* Imagen del producto */}
-                        {product.attachments && product.attachments.length > 0 && (
-                          <div className="relative w-16 h-16 group flex-shrink-0">
-                            <img
-                              src={product.attachments[0] || "/placeholder.svg"}
-                              alt={product.name}
-                              className="w-full h-full object-cover rounded cursor-pointer transition-all duration-200"
-                              onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                target.style.display = "none";
-                              }}
-                            />
-                            {/* Overlay con hover effect */}
-                            <div
-                              className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded flex items-center justify-center cursor-pointer"
-                              onClick={() => {
-                                setImageUrls(product.attachments as string[]);
-                                setModalProductName(product.name);
-                                setOpenImageModal(true);
-                              }}
-                            >
-                              <div className="flex flex-col items-center gap-1 text-white">
-                                <Eye className="w-3 h-3" />
-                                <span className="text-xs font-medium text-center">
-                                  {product.attachments.length > 1
-                                    ? `Ver ${product.attachments.length}`
-                                    : "Ver imagen"}
-                                </span>
-                              </div>
-                            </div>
-                            {/* Badge contador de imágenes */}
-                            {product.attachments.length > 1 && (
-                              <div className="absolute top-1 right-1 bg-gray-900 bg-opacity-80 text-white text-xs px-1 py-0.5 rounded-full">
-                                +{product.attachments.length - 1}
-                              </div>
-                            )}
-                          </div>
-                        )}
-                        {/* URL */}
-                        <div className="text-center">
-                          {product.url ? (
-                            <a 
-                              href={product.url} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="text-blue-600 hover:text-blue-800 text-sm underline"
-                            >
-                              Ver link
-                            </a>
-                          ) : (
-                            <span className="text-sm text-gray-500">Sin URL</span>
-                          )}
-                        </div>
-                      </div>
-                    </td>
+                    {/* Columna Imagen */}
                     <td className="p-4 py-6">
                       <div className="space-y-2">
-                        <div className="font-medium text-gray-900">{product.name}</div>
-                        <div className="text-sm text-gray-600">
-                          Se cotiza: {product.seCotizaProducto ? 'Sí' : 'No'}
+                        <div className="relative w-30 h-24 bg-gray-100 border-2 border-gray-200 rounded-xl overflow-hidden group">
+                          {product.attachments &&
+                          product.attachments.length > 0 ? (
+                            <>
+                              <img
+                                src={
+                                  product.attachments[0] || "/placeholder.svg"
+                                }
+                                alt={product.name}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement;
+                                  target.style.display = "none";
+                                }}
+                              />
+                              <div className="absolute inset-0  bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 flex items-center justify-center">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-white/90 hover:bg-white"
+                                  onClick={() => {
+                                    setImageUrls(
+                                      product.attachments as string[]
+                                    );
+                                    setModalProductName(product.name);
+                                    setOpenImageModal(true);
+                                  }}
+                                >
+                                  <Eye className="h-4 w-4 text-gray-700" />
+                                </Button>
+                              </div>
+                            </>
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-400">
+                              <span className="text-xs">Sin imagen</span>
+                            </div>
+                          )}
                         </div>
-                        {/* Mostrar variantes si existen */}
-                        {product.variants && product.variants.length > 0 && (
-                          <div className="text-xs text-gray-500">
-                            {product.variants.length} variante{product.variants.length > 1 ? 's' : ''}
+                        {/* URL del producto */}
+                        {product.url && (
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="w-full h-8 text-xs"
+                              onClick={() => window.open(product.url, "_blank")}
+                            >
+                              <LinkIcon className="h-3 w-3 mr-1" />
+                              Ver link
+                            </Button>
+                          </div>
+                        )}
+
+                        {/* Comentario del Cliente */}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 text-blue-600 hover:text-blue-700"
+                          onClick={() => {
+                            // Aquí podrías abrir un modal para mostrar el comentario
+                            console.log(
+                              "Comentario del producto:",
+                              product.comment
+                            );
+                          }}
+                        >
+                          <MessageSquare className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </td>
+                    {/*Columna Producto */}
+                    <td className="p-4 py-6">
+                      <div className="space-y-3">
+                        <div className="font-medium text-gray-900">
+                          {product.name}
+                        </div>
+                        {/* Si tiene múltiples variantes, mostrar resumen */}
+                        {hasMultipleVariants ? (
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <Badge className="text-xs font-medium text-amber-800 bg-amber-50 border border-amber-200">
+                                Total: {totalProductQuantity} unidades
+                              </Badge>
+                              <Badge className="text-xs font-medium text-blue-800 bg-blue-50 border border-blue-200">
+                                {variants.length} variantes
+                              </Badge>
+                            </div>
+                            {/* Mostrar resumen de variantes */}
+                            <div className="space-y-1">
+                              {variants.map((variant: any, vIndex: number) => (
+                                <div
+                                  key={vIndex}
+                                  className="text-xs text-gray-600 bg-gray-50 p-2 rounded"
+                                >
+                                  <div className="flex justify-between">
+                                    <span>
+                                      {variant.presentation ||
+                                        variant.model ||
+                                        `Variante ${vIndex + 1}`}
+                                    </span>
+                                    <span className="font-medium">
+                                      {variant.quantity || 0} uds
+                                    </span>
+                                  </div>
+                                  {variant.color && (
+                                    <div className="text-gray-500">
+                                      Color: {variant.color}
+                                    </div>
+                                  )}
+                                  {variant.size && (
+                                    <div className="text-gray-500">
+                                      Tamaño: {variant.size}
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ) : (
+                          /* Si tiene una sola variante, mostrar detalles directamente */
+                          <div className="grid grid-cols-2 gap-2 text-sm">
+                            {/* Modelo */}
+                            {variants[0]?.model && (
+                              <div className="flex items-center gap-2">
+                                <Badge className="text-xs font-medium text-purple-800 bg-purple-50 border border-purple-200">
+                                  Modelo
+                                </Badge>
+                                <span className="font-medium">
+                                  {variants[0].model}
+                                </span>
+                              </div>
+                            )}
+                            {/* Color */}
+                            {variants[0]?.color && (
+                              <div className="flex items-center gap-2">
+                                <Badge className="text-xs font-medium text-amber-800 bg-amber-50 border border-amber-200">
+                                  Color
+                                </Badge>
+                                <Badge
+                                  variant="secondary"
+                                  className="uppercase text-xs"
+                                >
+                                  {variants[0].color}
+                                </Badge>
+                              </div>
+                            )}
+                            {/* Tamaño */}
+                            {variants[0]?.size && (
+                              <div className="flex items-center gap-2">
+                                <Badge className="text-xs font-medium text-purple-800 bg-purple-50 border border-purple-200">
+                                  Tamaño
+                                </Badge>
+                                <span className="font-medium">
+                                  {variants[0].size}
+                                </span>
+                              </div>
+                            )}
+                            {/* Presentación */}
+                            {variants[0]?.presentation && (
+                              <div className="flex items-center gap-2">
+                                <Badge className="text-xs font-medium text-blue-800 bg-blue-50 border border-blue-200">
+                                  Presentación
+                                </Badge>
+                                <span className="font-medium">
+                                  {variants[0].presentation}
+                                </span>
+                              </div>
+                            )}
+
+                            {/* Cantidad */}
+                            <div className="flex items-center gap-2">
+                              <Badge className="text-xs font-medium text-amber-800 bg-amber-50 border border-amber-200">
+                                Cantidad
+                              </Badge>
+                              <span className="font-medium">
+                                {variants[0]?.quantity || 0}
+                              </span>
+                            </div>
+                            {/* Express */}
+                            <div className="flex items-center gap-2">
+                              <Badge className="text-xs font-medium text-amber-800 bg-amber-50 border border-amber-200">
+                                Express
+                              </Badge>
+                              <span className="font-medium">
+                                ${variants[0]?.importCosts || 0}
+                              </span>
+                            </div>
+                            {/* Precio Unitario */}
+                            <div className="flex items-center gap-2">
+                              <Badge className="text-xs font-medium text-amber-800 bg-amber-50 border border-amber-200">
+                                Precio Unitario
+                              </Badge>
+                              <span className="font-medium">
+                                ${variants[0]?.unitCost || 0}
+                              </span>
+                            </div>
                           </div>
                         )}
                       </div>
                     </td>
-                    <td className="p-4 py-6">
-                      <div className="text-center">
-                        <div className="text-sm text-gray-600">
-                          <div>Cantidad: {totalProductQuantity}</div>
-                          <div>Peso: {product.weight || '0.00'} kg</div>
-                          <div>Vol: {product.volume || '0.000000'} m³</div>
-                          <div>Cajas: {product.number_of_boxes || 0}</div>
+
+                    {/* Columna Packing List */}
+                    <td className="p-4">
+                      <div className="space-y-2 grid grid-cols-2 gap-2">
+                        <div className="flex flex-col items-center gap-2">
+                          <Badge className="text-xs font-medium text-red-800 bg-red-50 border border-red-200">
+                            Nro. Cajas
+                          </Badge>
+                          <div className="w-16">
+                            <Input
+                              type="number"
+                              value={0}
+                              className="text-center font-semibold px-3 py-1 w-full h-9 text-sm"
+                              placeholder="0"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col items-center gap-2">
+                          <Badge className="text-xs font-medium text-blue-800 bg-blue-50 border border-blue-200">
+                            CBM
+                          </Badge>
+                          <div className="w-16">
+                            <Input
+                              type="number"
+                              value={0}
+                              className="text-center font-semibold px-3 py-1 w-full h-9 text-sm"
+                              placeholder="0"
+                            />
+                          </div>
+                        </div>
+                        <div className="flex flex-col items-center gap-2">
+                          <Badge className="text-xs font-medium text-green-800 bg-green-50 border border-green-200">
+                            PESO KG
+                          </Badge>
+                          <div className="w-16">
+                            <Input
+                              type="number"
+                              value={0}
+                              className="text-center font-semibold px-3 py-1 w-full h-9 text-sm"
+                              placeholder="0"
+                            />
+                          </div>
+                        </div>
+                        <div className="flex flex-col items-center gap-2">
+                          <Badge className="text-xs font-medium text-purple-800 bg-purple-50 border border-purple-200">
+                            PESO TON
+                          </Badge>
+                          <div className="w-16">
+                            <Input
+                              type="number"
+                              value={0}
+                              className="text-center font-semibold px-3 py-1 w-full h-9 text-sm"
+                              placeholder="0"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    {/* Columna Manipulación de Carga */}
+                    <td className="p-4">
+                      <div className="space-y-4">
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`fragile-${product.id}`}
+                            //checked={isFragile}
+                            //onCheckedChange={(checked) => setIsFragile(checked as boolean)}
+                          />
+                          <Label
+                            htmlFor={`fragile-${product.id}`}
+                            className="text-sm font-medium text-gray-700"
+                          >
+                            Producto Frágil
+                          </Label>
+                        </div>
+
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`stackable-${product.id}`}
+                            //checked={isStackable}
+                            //onCheckedChange={(checked) =>
+                            //  setIsStackable(checked as boolean)
+                            //}
+                          />
+                          <Label
+                            htmlFor={`stackable-${product.id}`}
+                            className="text-sm font-medium text-gray-700"
+                          >
+                            Producto Apilable
+                          </Label>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-gray-700">
+                            Tipo de Carga
+                          </Label>
+                          <Select>
+                            <SelectTrigger className="w-full h-8 text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="GENERAL">GENERAL</SelectItem>
+                              <SelectItem value="IMO">IMO</SelectItem>
+                              <SelectItem value="MIXTA">MIXTA</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
                       </div>
                     </td>
                     <td className="p-4 py-6">
                       <div className="text-center">
                         <div className="text-sm text-gray-600">
-                          {/* Aquí puedes agregar información de manipulación de carga si está disponible */}
-                          <div>Manipulación estándar</div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 mt-1 text-green-600 items-center justify-center hover:text-green-800"
+                            onClick={() => setShowAdminCommentModal(true)}
+                          >
+                            <MessageSquare className="h-4 w-4" />
+                          </Button>
                         </div>
                       </div>
-                    </td>
-                    <td className="p-4 py-6">
-                      <div className="text-center">
-                        <div className="text-sm text-gray-600">
-                          {/* URL fantasma - puedes agregar lógica específica aquí */}
-                          <div>URL fantasma</div>
-                        </div>
-                      </div>
+                      {/* Dialog para comentario del administrador */}
+                      <Dialog
+                        open={showAdminCommentModal}
+                        onOpenChange={setShowAdminCommentModal}
+                      >
+                        <DialogContent className="max-w-md">
+                          <DialogHeader>
+                            <DialogTitle className="flex items-center gap-2">
+                              <MessageSquare className="h-5 w-5 text-green-600" />
+                              Comentario del Administrador
+                            </DialogTitle>
+                          </DialogHeader>
+                          <div className="space-y-4">
+                            <div>
+                              <label className="text-sm font-medium text-gray-700 mb-2 block">
+                                Agregar comentario del administrador:
+                              </label>
+                              <Textarea
+                                placeholder="Escriba aquí el comentario del administrador..."
+                                //value={adminComment}
+                                //onChange={(e) => setAdminComment(e.target.value)}
+                                className="w-full h-24 resize-none"
+                                rows={4}
+                              />
+                            </div>
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                variant="outline"
+                                onClick={() => setShowAdminCommentModal(false)}
+                              >
+                                Cancelar
+                              </Button>
+                              <Button
+                                onClick={() => {
+                                  // Guardar el comentario en el componente padre
+                                  //onProductChange?.(getProductId(), "adminComment", adminComment);
+                                  //console.log(
+                                  // "Comentario del administrador guardado:",
+                                  //adminComment
+                                  //);
+                                  setShowAdminCommentModal(false);
+                                }}
+                              >
+                                Guardar
+                              </Button>
+                            </div>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
                     </td>
                     <td className="p-4 py-6">
                       <div className="text-center">
@@ -557,21 +912,18 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
                     <td className="p-4 py-6">
                       <div className="text-center">
                         <div className="text-lg font-bold text-orange-600">
-                          USD {(Number(totalExpress) || 0).toFixed(2)}
+                          USD {(Number(totalProductExpress) || 0).toFixed(2)}
                         </div>
                       </div>
                     </td>
                     <td className="p-4 py-6">
                       <div className="text-center">
                         <div className="text-lg font-bold text-green-600">
-                          USD {((Number(totalProductPrice) || 0) + (Number(totalExpress) || 0)).toFixed(2)}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="p-4 py-6">
-                      <div className="text-center">
-                        <div className="flex items-center justify-center">
-                          <Check className={`w-5 h-5 ${product.seCotizaProducto ? 'text-green-600' : 'text-gray-400'}`} />
+                          USD{" "}
+                          {(
+                            (Number(totalProductPrice) || 0) +
+                            (Number(totalProductExpress) || 0)
+                          ).toFixed(2)}
                         </div>
                       </div>
                     </td>
@@ -584,10 +936,6 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
       </Card>
     );
   };
-
-
-
-
 
   // Función para renderizar las respuestas de importación
   const renderQuotationResponse = (response: any) => {
@@ -602,7 +950,7 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
     return (
       <div className="space-y-4">
         {/* Información de la respuesta */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg">
@@ -613,46 +961,28 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
             <CardContent className="space-y-3">
               <div className="space-y-2">
                 <div className="flex justify-between items-center py-2">
-                  <span className="text-sm text-gray-600">Tipo de Servicio</span>
+                  <span className="text-sm text-gray-600">
+                    Tipo de Servicio
+                  </span>
                   <span className="font-medium">{response.serviceType}</span>
                 </div>
                 <div className="flex justify-between items-center py-2">
                   <span className="text-sm text-gray-600">Tipo de Carga</span>
-                  <span className="font-medium">{response.quotationInfo?.cargoType || 'N/A'}</span>
+                  <span className="font-medium">
+                    {response.quotationInfo?.cargoType || "N/A"}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center py-2">
                   <span className="text-sm text-gray-600">Courier</span>
-                  <span className="font-medium">{response.quotationInfo?.courier || 'N/A'}</span>
+                  <span className="font-medium">
+                    {response.quotationInfo?.courier || "N/A"}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center py-2">
                   <span className="text-sm text-gray-600">Incoterm</span>
-                  <span className="font-medium">{response.quotationInfo?.incoterm || 'N/A'}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Información del Usuario */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <User className="h-5 w-5 text-orange-600" />
-                Información del Cliente
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="space-y-2">
-                <div className="flex justify-between items-center py-2">
-                  <span className="text-sm text-gray-600">Nombre</span>
-                  <span className="font-medium">{response.user?.name || 'N/A'}</span>
-                </div>
-                <div className="flex justify-between items-center py-2">
-                  <span className="text-sm text-gray-600">Email</span>
-                  <span className="font-medium">{response.user?.email || 'N/A'}</span>
-                </div>
-                <div className="flex justify-between items-center py-2">
-                  <span className="text-sm text-gray-600">ID Usuario</span>
-                  <span className="font-medium text-xs">{response.user?.id || 'N/A'}</span>
+                  <span className="font-medium">
+                    {response.quotationInfo?.incoterm || "N/A"}
+                  </span>
                 </div>
               </div>
             </CardContent>
@@ -669,30 +999,24 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
             <CardContent className="space-y-2">
               <div className="space-y-2">
                 <div className="flex justify-between items-center py-2">
-                  <span className="text-lg text-gray-600">
-                    TOTAL PRODUCTOS
+                  <span className="text-lg text-gray-600">TOTAL PRODUCTOS</span>
+                  <span className="font-medium">
+                    {response.products?.length || 0}
                   </span>
-                  <span className="font-medium">{response.products?.length || 0}</span>
                 </div>
                 <div className="flex justify-between items-center py-2">
-                  <span className="text-lg text-gray-600">
-                    VALOR TOTAL
-                  </span>
+                  <span className="text-lg text-gray-600">VALOR TOTAL</span>
                   <span className="font-medium">
                     USD {formatCurrency(totalAmount)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-2">
-                  <span className="text-lg text-gray-600">
-                    CANTIDAD TOTAL
-                  </span>
+                  <span className="text-lg text-gray-600">CANTIDAD TOTAL</span>
                   <span className="font-medium">{totalQuantity}</span>
                 </div>
                 <Separator />
                 <div className="flex justify-between items-center py-2 bg-green-50 px-3 rounded-lg">
-                  <span className="text-lg text-green-900">
-                    COSTO TOTAL
-                  </span>
+                  <span className="text-lg text-green-900">COSTO TOTAL</span>
                   <span className="font-medium text-green-900">
                     USD {formatCurrency(grandTotal)}
                   </span>
@@ -717,29 +1041,29 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
               </CardTitle>
             </CardHeader>
             <CardContent>
-                             <DataTable
-                 columns={columns}
-                 data={productsList}
-                 pageInfo={{
-                   pageNumber: 1,
-                   pageSize: 10,
-                   totalElements: productsList?.length || 0,
-                   totalPages: 1,
-                 }}
-                 onPageChange={() => {}}
-                 onSearch={() => {}}
-                 searchTerm={""}
-                 isLoading={false}
-                 paginationOptions={{
-                   showSelectedCount: false,
-                   showPagination: false,
-                   showNavigation: false,
-                 }}
-                 toolbarOptions={{
-                   showSearch: false,
-                   showViewOptions: false,
-                 }}
-               />
+              <DataTable
+                columns={columns}
+                data={productsList}
+                pageInfo={{
+                  pageNumber: 1,
+                  pageSize: 10,
+                  totalElements: productsList?.length || 0,
+                  totalPages: 1,
+                }}
+                onPageChange={() => {}}
+                onSearch={() => {}}
+                searchTerm={""}
+                isLoading={false}
+                paginationOptions={{
+                  showSelectedCount: false,
+                  showPagination: false,
+                  showNavigation: false,
+                }}
+                toolbarOptions={{
+                  showSearch: false,
+                  showViewOptions: false,
+                }}
+              />
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4">
                 <Card className="h-20 w-full bg-gradient-to-r from-red-400 to-red-300 rounded-lg text-white">
@@ -806,7 +1130,6 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
     );
   }
 
-  console.log("ResponseCotizacionView renderizando contenido principal");
   return (
     <div className="space-y-4 p-4">
       {/* Header Bento Grid */}
@@ -947,7 +1270,12 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
                               <Link className="w-3 h-3 text-gray-400" />
                               <span className="text-gray-600">URL:</span>
                               <span className="font-medium text-gray-900">
-                                <a href={product.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600">
+                                <a
+                                  href={product.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-blue-500 hover:text-blue-600"
+                                >
                                   Ver link
                                 </a>
                               </span>
@@ -1024,7 +1352,9 @@ const ResponseCotizacionView: React.FC<ResponseCotizacionViewProps> = ({
                     {quotationResponses.map((response, index) => (
                       <button
                         key={`${response.serviceType}-${index}`}
-                        onClick={() => setSelectedResponseTab(response.serviceType)}
+                        onClick={() =>
+                          setSelectedResponseTab(response.serviceType)
+                        }
                         className={`
                           relative flex-1 px-4 py-3 text-sm font-medium rounded-md transition-all duration-200
                           ${

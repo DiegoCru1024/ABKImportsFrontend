@@ -101,21 +101,29 @@ const ProductRow: React.FC<ProductRowProps> = ({
     0
   );
 
-  // Función para manejar cambios en las variantes
-  const handleVariantChange = (
+  // Unified variant change handler that works for both single and multiple variants
+  const handleVariantFieldChange = (
     variantIndex: number,
     field: string,
     value: number
   ) => {
-    // Actualizar estado local
+    // Validate input based on field type
+    let processedValue = value;
+    if (field === 'quantity' && typeof value === 'number') {
+      processedValue = Math.max(0, Math.floor(value)); // Ensure positive integer
+    } else if (['price', 'express', 'unitCost', 'importCosts'].includes(field) && typeof value === 'number') {
+      processedValue = Math.max(0, value); // Ensure non-negative
+    }
+
+    // Update local state
     setVariantsData((prev: any[]) =>
       prev.map((variant: any, idx: number) =>
-        idx === variantIndex ? { ...variant, [field]: value } : variant
+        idx === variantIndex ? { ...variant, [field]: processedValue } : variant
       )
     );
 
-    // También notificar al componente padre
-    onProductChange?.(getProductId(), `variant_${variantIndex}_${field}`, value);
+    // Notify parent component with standardized field path
+    onProductChange?.(getProductId(), `variant_${variantIndex}_${field}`, processedValue);
   };
 
   // Calcular totales dinámicos para productos con múltiples variantes
@@ -304,7 +312,7 @@ const ProductRow: React.FC<ProductRowProps> = ({
                     type="number"
                     value={variants[0]?.express || 0}
                     onChange={(e) =>
-                      handleVariantChange(0, "express", Number(e.target.value))
+                      handleVariantFieldChange(0, "express", Number(e.target.value))
                     }
                     className="w-16 h-6 text-xs text-center"
                     placeholder="0"
@@ -319,7 +327,7 @@ const ProductRow: React.FC<ProductRowProps> = ({
                     type="number"
                     value={variants[0]?.price || 0}
                     onChange={(e) =>
-                      handleVariantChange(0, "price", Number(e.target.value))
+                      handleVariantFieldChange(0, "price", Number(e.target.value))
                     }
                     className="w-16 h-6 text-xs text-center"
                     placeholder="0"
@@ -496,7 +504,7 @@ const ProductRow: React.FC<ProductRowProps> = ({
                 type="number"
                 value={variants[0]?.price || 0}
                 onChange={(e) =>
-                  handleVariantChange(0, "price", Number(e.target.value))
+                  handleVariantFieldChange(0, "price", Number(e.target.value))
                 }
                 className="text-center font-semibold px-3 py-1 w-full h-9 text-sm"
                 placeholder="0"
@@ -518,7 +526,7 @@ const ProductRow: React.FC<ProductRowProps> = ({
                 type="number"
                 value={variants[0]?.express || 0}
                 onChange={(e) =>
-                  handleVariantChange(0, "express", Number(e.target.value))
+                  handleVariantFieldChange(0, "express", Number(e.target.value))
                 }
                 className="text-center font-semibold px-3 py-1 w-full h-9 text-sm"
                 placeholder="0"
@@ -677,7 +685,7 @@ const ProductRow: React.FC<ProductRowProps> = ({
                         type="number"
                         value={variant.express || 0}
                         onChange={(e) =>
-                          handleVariantChange(
+                          handleVariantFieldChange(
                             variantIndex,
                             "express",
                             Number(e.target.value)
@@ -695,7 +703,7 @@ const ProductRow: React.FC<ProductRowProps> = ({
                         type="number"
                         value={variant.price || 0}
                         onChange={(e) =>
-                          handleVariantChange(
+                          handleVariantFieldChange(
                             variantIndex,
                             "price",
                             Number(e.target.value)
@@ -713,7 +721,7 @@ const ProductRow: React.FC<ProductRowProps> = ({
                         type="number"
                         value={variant.unitCost || 0}
                         onChange={(e) =>
-                          handleVariantChange(
+                          handleVariantFieldChange(
                             variantIndex,
                             "unitCost",
                             Number(e.target.value)
@@ -731,7 +739,7 @@ const ProductRow: React.FC<ProductRowProps> = ({
                         type="number"
                         value={variant.importCosts || 0}
                         onChange={(e) =>
-                          handleVariantChange(
+                          handleVariantFieldChange(
                             variantIndex,
                             "importCosts",
                             Number(e.target.value)

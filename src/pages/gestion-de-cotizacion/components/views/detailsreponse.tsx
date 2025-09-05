@@ -642,56 +642,75 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
       })
     );
 
-    // Manejar cambios en variantes para actualizar el estado local
+    // Handle variant field updates with improved logic
     if (field.startsWith("variant_")) {
       const parts = field.split("_");
-      const variantIndex = parseInt(parts[1]);
-      const variantField = parts[2];
+      if (parts.length >= 3) {
+        const variantIndex = parseInt(parts[1]);
+        const variantField = parts[2];
 
-      setEditableProductsWithVariants((prev) => {
-        console.log(
-          "handlePendingProductChange - current editableProductsWithVariants:",
-          JSON.stringify(prev, null, 2)
-        );
+        // Validate variant field
+        const validVariantFields = ['price', 'express', 'unitCost', 'importCosts', 'quantity'];
+        if (!validVariantFields.includes(variantField)) {
+          console.warn(`Invalid variant field: ${variantField}`);
+          return;
+        }
 
-        const newState = prev.map((product) => {
-          if (product.id === productId || product.productId === productId) {
-            console.log("handlePendingProductChange - product before update:", {
-              productId: product.productId,
-              id: product.id,
-              variants: product.variants,
-              variantsLength: product.variants?.length,
-            });
+        setEditableProductsWithVariants((prev) => {
+          console.log(
+            "handlePendingProductChange - current editableProductsWithVariants:",
+            JSON.stringify(prev, null, 2)
+          );
 
-            const updatedVariants = [...(product.variants || [])];
-            if (updatedVariants[variantIndex]) {
-              updatedVariants[variantIndex] = {
-                ...updatedVariants[variantIndex],
-                [variantField]: value,
+          const newState = prev.map((product) => {
+            if (product.id === productId || product.productId === productId) {
+              console.log("handlePendingProductChange - product before update:", {
+                productId: product.productId,
+                id: product.id,
+                variants: product.variants,
+                variantsLength: product.variants?.length,
+              });
+
+              const updatedVariants = [...(product.variants || [])];
+              if (updatedVariants[variantIndex]) {
+                // Apply business rules for specific fields
+                let processedValue = value;
+                if (variantField === 'quantity' && typeof value === 'number') {
+                  processedValue = Math.max(0, Math.floor(value)); // Ensure positive integer
+                } else if (['price', 'express', 'unitCost', 'importCosts'].includes(variantField) && typeof value === 'number') {
+                  processedValue = Math.max(0, value); // Ensure non-negative
+                }
+
+                updatedVariants[variantIndex] = {
+                  ...updatedVariants[variantIndex],
+                  [variantField]: processedValue,
+                };
+              }
+
+              const updatedProduct = {
+                ...product,
+                variants: updatedVariants,
               };
+              console.log(
+                "handlePendingProductChange - updated product (variant change):",
+                updatedProduct
+              );
+              return updatedProduct;
             }
+            return product;
+          });
 
-            const updatedProduct = {
-              ...product,
-              variants: updatedVariants,
-            };
-            console.log(
-              "handlePendingProductChange - updated product (variant change):",
-              updatedProduct
-            );
-            return updatedProduct;
-          }
-          return product;
+          console.log(
+            "handlePendingProductChange - new editableProductsWithVariants state:",
+            JSON.stringify(newState, null, 2)
+          );
+          return newState;
         });
-
-        console.log(
-          "handlePendingProductChange - new editableProductsWithVariants state:",
-          JSON.stringify(newState, null, 2)
-        );
-        return newState;
-      });
+      } else {
+        console.warn(`Invalid variant field format: ${field}`);
+      }
     } else if (field === "adminComment") {
-      // Manejar comentarios del administrador
+      // Handle admin comments
       setEditableProductsWithVariants((prev) => {
         const newState = prev.map((product) => {
           if (product.id === productId || product.productId === productId) {
@@ -714,13 +733,19 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
         return newState;
       });
     } else if (["boxes", "cbm", "weight"].includes(field)) {
-      // Manejar campos de packing list (boxes, cbm, weight)
+      // Handle packing list fields (boxes, cbm, weight)
       setEditableProductsWithVariants((prev) => {
         const newState = prev.map((product) => {
           if (product.id === productId || product.productId === productId) {
+            // Ensure numeric value and non-negative for packing fields
+            let processedValue = value;
+            if (typeof value === 'number') {
+              processedValue = Math.max(0, value);
+            }
+            
             const updatedProduct = {
               ...product,
-              [field]: value,
+              [field]: processedValue,
             };
             console.log(
               "handlePendingProductChange - updated product (packing list):",
@@ -949,20 +974,23 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
 
   //* Función para generar el DTO de respuesta según la interfaz QuotationCreateUpdateResponseDTO
   const generateQuotationResponseDTO = () => {
-    console.log(
-      "generateQuotationResponseDTO - editableProductsWithVariants state:",
-      JSON.stringify(editableProductsWithVariants, null, 2)
-    );
-    console.log(
-      "generateQuotationResponseDTO - selectedServiceLogistic:",
-      selectedServiceLogistic
-    );
 
     // Determinar si es servicio marítimo
     const isMaritime = isMaritimeService(selectedServiceLogistic);
 
     // Extraer número de días de proformaValidity (ej: "15 días" -> 15)
     const proformaDays = parseInt(selectedProformaVigencia) || 0;
+
+    // Calculate total CBM and weight from products
+    const totalCBM = editableProductsWithVariants.reduce(
+      (sum, product) => sum + (product.cbm || 0),
+      0
+    );
+    
+    const totalWeight = editableProductsWithVariants.reduce(
+      (sum, product) => sum + (product.weight || 0),
+      0
+    );
 
     return {
       quotationInfo: {
@@ -985,8 +1013,8 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
         transitTime: isMaritime ? tiempoTransito : 0,
         naviera: isMaritime ? naviera : "",
         proformaValidity: selectedProformaVigencia,
-        cbm_total: 0,
-        peso_total: 0,
+        cbm_total: totalCBM,
+        peso_total: totalWeight,
         id_asesor: id_asesor || "",
       },
       calculations: {
@@ -1156,8 +1184,8 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                 variantId: variant.variantId,
 
                 quantity: quantity,
-                precio_unitario: editableVariant?.unitCost || 0,
-                precio_express: editableVariant?.importCosts || 0,
+                precio_unitario: editableVariant?.price || 0,
+                precio_express: editableVariant?.express || 0,
                 seCotizaVariante:
                   variantQuotationState[product.productId]?.[
                     variant.variantId
@@ -1182,32 +1210,12 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
         JSON.stringify(dto, null, 2)
       );
 
-      console.log("Estado de productos editables:", {
-        editableProductsWithVariants: editableProductsWithVariants.map((p) => ({
-          id: p.id,
-          name: p.name,
-          variants: p.variants?.map((v: any) => ({
-            id: v.id,
-            variantId: v.variantId,
-            price: v.price,
-            unitCost: v.unitCost,
-            importCosts: v.importCosts,
-            express: v.express,
-          })),
-        })),
-        editableUnitCostProducts,
-        selectedServiceLogistic,
-      });
-
       // Llamada al backend usando el hook
       await createQuotationResponseMutation.mutateAsync({
         data: dto,
-        quotationId: selectedQuotationId,
+       quotationId: selectedQuotationId,
       });
 
-      // Notificar y regresar a listado
-      // Usamos toast del sistema de notificaciones (ya importado en hooks) o un alert simple
-      console.log("Respuesta enviada correctamente");
       window.history.back();
     } catch (error) {
       console.error("Error al guardar la respuesta:", error);

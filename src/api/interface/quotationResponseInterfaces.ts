@@ -187,6 +187,7 @@ export interface contentQuotationResponseDTO {
 //!Interfaz para listar las respuestas del administrador y sean vistas por el usuario
 export interface QuotationGetResponsesForUsersDTO {
   quotationInfo: {
+    idQuotationResponse:string;
     correlative: string;
     date: string;
     serviceType: string;

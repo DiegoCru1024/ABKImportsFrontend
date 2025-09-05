@@ -244,9 +244,9 @@ export const filterResponses = (
     }
 
     // Status filter (if implemented in the future)
-    if (filters.status && response.data.quotationInfo?.status !== filters.status) {
-      return false;
-    }
+    //if (filters.status && response.data.quotationInfo?.status !== filters.status) {
+    //  return false;
+   // }
 
     return true;
   });

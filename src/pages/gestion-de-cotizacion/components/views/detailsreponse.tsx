@@ -649,15 +649,18 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
       const variantField = parts[2];
 
       setEditableProductsWithVariants((prev) => {
-        console.log("handlePendingProductChange - current editableProductsWithVariants:", JSON.stringify(prev, null, 2));
-        
+        console.log(
+          "handlePendingProductChange - current editableProductsWithVariants:",
+          JSON.stringify(prev, null, 2)
+        );
+
         const newState = prev.map((product) => {
           if (product.id === productId || product.productId === productId) {
             console.log("handlePendingProductChange - product before update:", {
               productId: product.productId,
               id: product.id,
               variants: product.variants,
-              variantsLength: product.variants?.length
+              variantsLength: product.variants?.length,
             });
 
             const updatedVariants = [...(product.variants || [])];
@@ -672,13 +675,19 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
               ...product,
               variants: updatedVariants,
             };
-            console.log("handlePendingProductChange - updated product (variant change):", updatedProduct);
+            console.log(
+              "handlePendingProductChange - updated product (variant change):",
+              updatedProduct
+            );
             return updatedProduct;
           }
           return product;
         });
-        
-        console.log("handlePendingProductChange - new editableProductsWithVariants state:", JSON.stringify(newState, null, 2));
+
+        console.log(
+          "handlePendingProductChange - new editableProductsWithVariants state:",
+          JSON.stringify(newState, null, 2)
+        );
         return newState;
       });
     } else if (field === "adminComment") {
@@ -690,12 +699,18 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
               ...product,
               adminComment: value as string,
             };
-            console.log("handlePendingProductChange - updated product (adminComment):", updatedProduct);
+            console.log(
+              "handlePendingProductChange - updated product (adminComment):",
+              updatedProduct
+            );
             return updatedProduct;
           }
           return product;
         });
-        console.log("handlePendingProductChange - new editableProductsWithVariants state (adminComment):", JSON.stringify(newState, null, 2));
+        console.log(
+          "handlePendingProductChange - new editableProductsWithVariants state (adminComment):",
+          JSON.stringify(newState, null, 2)
+        );
         return newState;
       });
     } else if (["boxes", "cbm", "weight"].includes(field)) {
@@ -707,12 +722,18 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
               ...product,
               [field]: value,
             };
-            console.log("handlePendingProductChange - updated product (packing list):", updatedProduct);
+            console.log(
+              "handlePendingProductChange - updated product (packing list):",
+              updatedProduct
+            );
             return updatedProduct;
           }
           return product;
         });
-        console.log("handlePendingProductChange - new editableProductsWithVariants state (packing list):", JSON.stringify(newState, null, 2));
+        console.log(
+          "handlePendingProductChange - new editableProductsWithVariants state (packing list):",
+          JSON.stringify(newState, null, 2)
+        );
         return newState;
       });
     }
@@ -928,9 +949,15 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
 
   //* Función para generar el DTO de respuesta según la interfaz QuotationCreateUpdateResponseDTO
   const generateQuotationResponseDTO = () => {
-    console.log("generateQuotationResponseDTO - editableProductsWithVariants state:", JSON.stringify(editableProductsWithVariants, null, 2));
-    console.log("generateQuotationResponseDTO - selectedServiceLogistic:", selectedServiceLogistic);
-    
+    console.log(
+      "generateQuotationResponseDTO - editableProductsWithVariants state:",
+      JSON.stringify(editableProductsWithVariants, null, 2)
+    );
+    console.log(
+      "generateQuotationResponseDTO - selectedServiceLogistic:",
+      selectedServiceLogistic
+    );
+
     // Determinar si es servicio marítimo
     const isMaritime = isMaritimeService(selectedServiceLogistic);
 
@@ -958,6 +985,8 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
         transitTime: isMaritime ? tiempoTransito : 0,
         naviera: isMaritime ? naviera : "",
         proformaValidity: selectedProformaVigencia,
+        cbm_total: 0,
+        peso_total: 0,
         id_asesor: id_asesor || "",
       },
       calculations: {
@@ -1057,44 +1086,55 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
           // Para otros tipos, usar editableUnitCostProducts
           const isPendingService = selectedServiceLogistic === "Pendiente";
           const editableProduct = isPendingService
-            ? editableProductsWithVariants.find((ep) => ep.id === product.productId)
-            : editableUnitCostProducts.find((ep) => ep.id === product.productId);
+            ? editableProductsWithVariants.find(
+                (ep) => ep.id === product.productId
+              )
+            : editableUnitCostProducts.find(
+                (ep) => ep.id === product.productId
+              );
 
           return {
             productId: product.productId,
             name: product.name,
             adminComment:
               editableProduct?.adminComment || product.adminComment || "",
-            seCotizaProducto: productQuotationState[product.productId] !== false,
+            seCotizaProducto:
+              productQuotationState[product.productId] !== false,
             variants: (product.variants || []).map((variant: any) => {
               // Buscar la variante editable correspondiente
               const editableVariant = editableProduct?.variants?.find(
-                (ev: any) => ev.variantId === variant.variantId || ev.id === variant.variantId
+                (ev: any) =>
+                  ev.variantId === variant.variantId ||
+                  ev.id === variant.variantId
               );
 
               console.log("Variant matching debug:", {
                 productName: product.name,
                 variantId: variant.variantId,
-                editableProductVariants: editableProduct?.variants?.map((ev: any) => ({
-                  evId: ev.id,
-                  evVariantId: ev.variantId,
-                  evPrice: ev.price,
-                  evUnitCost: ev.unitCost,
-                  evImportCosts: ev.importCosts,
-                  evExpress: ev.express
-                })),
-                foundEditableVariant: editableVariant ? {
-                  price: editableVariant.price,
-                  unitCost: editableVariant.unitCost,
-                  importCosts: editableVariant.importCosts,
-                  express: editableVariant.express
-                } : null,
+                editableProductVariants: editableProduct?.variants?.map(
+                  (ev: any) => ({
+                    evId: ev.id,
+                    evVariantId: ev.variantId,
+                    evPrice: ev.price,
+                    evUnitCost: ev.unitCost,
+                    evImportCosts: ev.importCosts,
+                    evExpress: ev.express,
+                  })
+                ),
+                foundEditableVariant: editableVariant
+                  ? {
+                      price: editableVariant.price,
+                      unitCost: editableVariant.unitCost,
+                      importCosts: editableVariant.importCosts,
+                      express: editableVariant.express,
+                    }
+                  : null,
                 finalValues: {
                   price: editableVariant?.price || 0,
                   unitCost: editableVariant?.unitCost || 0,
                   importCosts: editableVariant?.importCosts || 0,
-                  express: editableVariant?.express || 0
-                }
+                  express: editableVariant?.express || 0,
+                },
               });
 
               const quantity = Number(variant.quantity) || 0;
@@ -1109,21 +1149,19 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                 price,
                 unitCost: editableVariant?.unitCost || 0,
                 importCosts: editableVariant?.importCosts || 0,
-                express
+                express,
               });
 
               return {
                 variantId: variant.variantId,
-                size: variant.size || "N/A",
-                presentation: variant.presentation || "Unidad",
-                model: variant.model || "",
-                color: variant.color || "",
+
                 quantity: quantity,
-                price: price,
-                unitCost: editableVariant?.unitCost || 0,
-                importCosts: editableVariant?.importCosts || 0,
+                precio_unitario: editableVariant?.unitCost || 0,
+                precio_express: editableVariant?.importCosts || 0,
                 seCotizaVariante:
-                  variantQuotationState[product.productId]?.[variant.variantId] !== false,
+                  variantQuotationState[product.productId]?.[
+                    variant.variantId
+                  ] !== false,
               };
             }),
           };
@@ -1145,7 +1183,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
       );
 
       console.log("Estado de productos editables:", {
-        editableProductsWithVariants: editableProductsWithVariants.map(p => ({
+        editableProductsWithVariants: editableProductsWithVariants.map((p) => ({
           id: p.id,
           name: p.name,
           variants: p.variants?.map((v: any) => ({
@@ -1154,8 +1192,8 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
             price: v.price,
             unitCost: v.unitCost,
             importCosts: v.importCosts,
-            express: v.express
-          }))
+            express: v.express,
+          })),
         })),
         editableUnitCostProducts,
         selectedServiceLogistic,
@@ -1288,7 +1326,8 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
           initialVariantQuotationState[product.productId] = {};
           product.variants.forEach((variant: any) => {
             // Por defecto, todas las variantes se cotizan
-            initialVariantQuotationState[product.productId][variant.variantId] = true;
+            initialVariantQuotationState[product.productId][variant.variantId] =
+              true;
           });
         }
       });

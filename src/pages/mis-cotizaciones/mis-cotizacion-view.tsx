@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/table/data-table";
 import { useGetQuotationsListWithPagination } from "@/hooks/use-quation";
 import { columnsQuotationsList } from "./components/table/columnsQuotationsList";
-import ResponseCotizacionView from "./respuestas-cotizacion-view";
+import ResponseListContainer from "./components/quotation-responses/ResponseListContainer";
 import ConfirmationModal from "@/components/modal-confirmation";
 import SendingModal from "@/components/sending-modal";
 import { useDeleteQuotation } from "@/hooks/use-quation";
@@ -39,7 +39,8 @@ export default function MisCotizacionesView() {
   } = useGetQuotationsListWithPagination(
     searchTerm,
     pageInfo.pageNumber,
-    pageInfo.pageSize
+    pageInfo.pageSize,
+    ""
   );
 
   // Debug logs
@@ -331,7 +332,10 @@ export default function MisCotizacionesView() {
           </div>
         </div>
 
-        <ResponseCotizacionView selectedQuotationId={selectedQuotationId} />
+        <ResponseListContainer 
+          quotationId={selectedQuotationId}
+          onBack={handleBackToList}
+        />
       </div>
     );
   }

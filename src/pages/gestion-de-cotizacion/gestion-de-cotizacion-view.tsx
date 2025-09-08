@@ -127,7 +127,7 @@ export default function GestionDeCotizacionesView() {
 
         {!quotationList.isLoading && !quotationList.isError && (
           <>
-            <div className="space-y-6">
+            <div className="space-y-6 grid gap-4 grid-cols-1 md:grid-cols-2">
               {quotationList.data.map((quotation) => (
                 <QuotationCard
                   key={quotation.quotationId}

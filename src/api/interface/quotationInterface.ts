@@ -2,18 +2,14 @@
  * Interfaz para la respuesta de una cotización por su ID
  */
 export interface QuotationResponseIdInterface {
-  
-    quotationId: string;
-    correlative: string;
-    status: string;
-    service_type: string;
-    products: ProductoResponseIdInterface[];
-    createdAt: string;
-    updatedAt: string;
-
-  
+  quotationId: string;
+  correlative: string;
+  status: string;
+  service_type: string;
+  products: ProductoResponseIdInterface[];
+  createdAt: string;
+  updatedAt: string;
 }
-
 
 /**
  * Interfaz para el producto de la cotización
@@ -21,7 +17,7 @@ export interface QuotationResponseIdInterface {
 export interface ProductoResponseIdInterface {
   productId: string;
   name: string;
-  quantity: number;
+  quantityTotal: number;
   size: string;
   color: string;
   url: string;
@@ -31,7 +27,6 @@ export interface ProductoResponseIdInterface {
   number_of_boxes: number;
   variants: VariantResponseIdInterface[];
   attachments: string[];
-
 }
 
 export interface VariantResponseIdInterface {

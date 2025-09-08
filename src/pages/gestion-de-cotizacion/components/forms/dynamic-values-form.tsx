@@ -12,40 +12,42 @@ import {
 import { Label } from "@/components/ui/label";
 import { EditableNumericField } from "@/components/ui/editableNumberFieldProps";
 
+interface DynamicValues {
+  comercialValue: number;
+  flete: number;
+  cajas: number;
+  desaduanaje: number;
+  kg: number;
+  ton: number;
+  kv: number;
+  fob: number;
+  seguro: number;
+  tipoCambio: number;
+  nroBultos: number;
+  volumenCBM: number;
+  calculoFlete: number;
+  servicioConsolidado: number;
+  separacionCarga: number;
+  inspeccionProductos: number;
+  gestionCertificado: number;
+  inspeccionProducto: number;
+  inspeccionFabrica: number;
+  transporteLocal: number;
+  otrosServicios: number;
+  adValoremRate: number;
+  antidumpingGobierno: number;
+  antidumpingCantidad: number;
+  iscRate: number;
+  igvRate: number;
+  ipmRate: number;
+  percepcionRate: number;
+  transporteLocalChinaEnvio: number;
+  transporteLocalClienteEnvio: number;
+}
+
 interface DynamicValuesFormProps {
-  dynamicValues: {
-    comercialValue: number;
-    flete: number;
-    cajas: number;
-    desaduanaje: number;
-    kg: number;
-    ton: number;
-    kv: number;
-    fob: number;
-    seguro: number;
-    tipoCambio: number;
-    nroBultos: number;
-    volumenCBM: number;
-    calculoFlete: number;
-    servicioConsolidado: number;
-    separacionCarga: number;
-    inspeccionProductos: number;
-    gestionCertificado: number;
-    inspeccionProducto: number;
-    inspeccionFabrica: number;
-    transporteLocal: number;
-    otrosServicios: number;
-    adValoremRate: number;
-    antidumpingGobierno: number;
-    antidumpingCantidad: number;
-    iscRate: number;
-    igvRate: number;
-    ipmRate: number;
-    percepcionRate: number;
-    transporteLocalChinaEnvio: number;
-    transporteLocalClienteEnvio: number;
-  };
-  onUpdateValue: (field: string, value: number) => void;
+  dynamicValues: DynamicValues;
+  onUpdateValue: (field: keyof DynamicValues, value: number) => void;
   onKgChange: (value: number) => void;
   isMaritimeService: boolean;
 }
@@ -82,7 +84,7 @@ export function DynamicValuesForm({
             </Label>
             <EditableNumericField
               value={dynamicValues.comercialValue}
-              onValueChange={(value) => onUpdateValue("comercialValue", value)}
+              onChange={(value) => onUpdateValue("comercialValue", value)}
               prefix="$"
               decimalPlaces={2}
             />
@@ -94,7 +96,7 @@ export function DynamicValuesForm({
             </Label>
             <EditableNumericField
               value={dynamicValues.flete}
-              onValueChange={(value) => onUpdateValue("flete", value)}
+              onChange={(value) => onUpdateValue("flete", value)}
               prefix="$"
               decimalPlaces={2}
             />
@@ -106,7 +108,7 @@ export function DynamicValuesForm({
             </Label>
             <EditableNumericField
               value={dynamicValues.cajas}
-              onValueChange={(value) => onUpdateValue("cajas", value)}
+              onChange={(value) => onUpdateValue("cajas", value)}
               decimalPlaces={0}
             />
           </div>
@@ -117,7 +119,7 @@ export function DynamicValuesForm({
             </Label>
             <EditableNumericField
               value={dynamicValues.desaduanaje}
-              onValueChange={(value) => onUpdateValue("desaduanaje", value)}
+              onChange={(value) => onUpdateValue("desaduanaje", value)}
               prefix="$"
               decimalPlaces={2}
             />
@@ -129,7 +131,7 @@ export function DynamicValuesForm({
             </Label>
             <EditableNumericField
               value={dynamicValues.kg}
-              onValueChange={onKgChange}
+              onChange={onKgChange}
               suffix="kg"
               decimalPlaces={2}
             />
@@ -141,7 +143,7 @@ export function DynamicValuesForm({
             </Label>
             <EditableNumericField
               value={dynamicValues.ton}
-              onValueChange={(value) => onUpdateValue("ton", value)}
+              onChange={(value) => onUpdateValue("ton", value)}
               suffix="ton"
               decimalPlaces={3}
               readOnly
@@ -154,7 +156,7 @@ export function DynamicValuesForm({
             </Label>
             <EditableNumericField
               value={dynamicValues.kv}
-              onValueChange={(value) => onUpdateValue("kv", value)}
+              onChange={(value) => onUpdateValue("kv", value)}
               decimalPlaces={2}
             />
           </div>
@@ -165,7 +167,7 @@ export function DynamicValuesForm({
             </Label>
             <EditableNumericField
               value={dynamicValues.fob}
-              onValueChange={(value) => onUpdateValue("fob", value)}
+              onChange={(value) => onUpdateValue("fob", value)}
               prefix="$"
               decimalPlaces={2}
             />
@@ -177,7 +179,7 @@ export function DynamicValuesForm({
             </Label>
             <EditableNumericField
               value={dynamicValues.seguro}
-              onValueChange={(value) => onUpdateValue("seguro", value)}
+              onChange={(value) => onUpdateValue("seguro", value)}
               prefix="$"
               decimalPlaces={2}
             />
@@ -189,7 +191,7 @@ export function DynamicValuesForm({
             </Label>
             <EditableNumericField
               value={dynamicValues.tipoCambio}
-              onValueChange={(value) => onUpdateValue("tipoCambio", value)}
+              onChange={(value) => onUpdateValue("tipoCambio", value)}
               decimalPlaces={2}
             />
           </div>
@@ -202,7 +204,7 @@ export function DynamicValuesForm({
                 </Label>
                 <EditableNumericField
                   value={dynamicValues.nroBultos}
-                  onValueChange={(value) => onUpdateValue("nroBultos", value)}
+                  onChange={(value) => onUpdateValue("nroBultos", value)}
                   decimalPlaces={0}
                 />
               </div>
@@ -213,7 +215,7 @@ export function DynamicValuesForm({
                 </Label>
                 <EditableNumericField
                   value={dynamicValues.volumenCBM}
-                  onValueChange={(value) => onUpdateValue("volumenCBM", value)}
+                  onChange={(value) => onUpdateValue("volumenCBM", value)}
                   suffix="m³"
                   decimalPlaces={2}
                 />
@@ -225,7 +227,7 @@ export function DynamicValuesForm({
                 </Label>
                 <EditableNumericField
                   value={dynamicValues.calculoFlete}
-                  onValueChange={(value) => onUpdateValue("calculoFlete", value)}
+                  onChange={(value) => onUpdateValue("calculoFlete", value)}
                   prefix="$"
                   decimalPlaces={2}
                 />
@@ -245,7 +247,7 @@ export function DynamicValuesForm({
               </Label>
               <EditableNumericField
                 value={dynamicValues.servicioConsolidado}
-                onValueChange={(value) => onUpdateValue("servicioConsolidado", value)}
+                onChange={(value) => onUpdateValue("servicioConsolidado", value)}
                 prefix="$"
                 decimalPlaces={2}
               />
@@ -257,7 +259,7 @@ export function DynamicValuesForm({
               </Label>
               <EditableNumericField
                 value={dynamicValues.separacionCarga}
-                onValueChange={(value) => onUpdateValue("separacionCarga", value)}
+                onChange={(value) => onUpdateValue("separacionCarga", value)}
                 prefix="$"
                 decimalPlaces={2}
               />
@@ -269,7 +271,7 @@ export function DynamicValuesForm({
               </Label>
               <EditableNumericField
                 value={dynamicValues.inspeccionProductos}
-                onValueChange={(value) => onUpdateValue("inspeccionProductos", value)}
+                onChange={(value) => onUpdateValue("inspeccionProductos", value)}
                 prefix="$"
                 decimalPlaces={2}
               />
@@ -283,7 +285,7 @@ export function DynamicValuesForm({
                   </Label>
                   <EditableNumericField
                     value={dynamicValues.gestionCertificado}
-                    onValueChange={(value) => onUpdateValue("gestionCertificado", value)}
+                    onChange={(value) => onUpdateValue("gestionCertificado", value)}
                     prefix="$"
                     decimalPlaces={2}
                   />
@@ -295,7 +297,7 @@ export function DynamicValuesForm({
                   </Label>
                   <EditableNumericField
                     value={dynamicValues.inspeccionProducto}
-                    onValueChange={(value) => onUpdateValue("inspeccionProducto", value)}
+                    onChange={(value) => onUpdateValue("inspeccionProducto", value)}
                     prefix="$"
                     decimalPlaces={2}
                   />
@@ -307,7 +309,7 @@ export function DynamicValuesForm({
                   </Label>
                   <EditableNumericField
                     value={dynamicValues.inspeccionFabrica}
-                    onValueChange={(value) => onUpdateValue("inspeccionFabrica", value)}
+                    onChange={(value) => onUpdateValue("inspeccionFabrica", value)}
                     prefix="$"
                     decimalPlaces={2}
                   />
@@ -319,7 +321,7 @@ export function DynamicValuesForm({
                   </Label>
                   <EditableNumericField
                     value={dynamicValues.transporteLocal}
-                    onValueChange={(value) => onUpdateValue("transporteLocal", value)}
+                    onChange={(value) => onUpdateValue("transporteLocal", value)}
                     prefix="$"
                     decimalPlaces={2}
                   />
@@ -331,7 +333,7 @@ export function DynamicValuesForm({
                   </Label>
                   <EditableNumericField
                     value={dynamicValues.otrosServicios}
-                    onValueChange={(value) => onUpdateValue("otrosServicios", value)}
+                    onChange={(value) => onUpdateValue("otrosServicios", value)}
                     prefix="$"
                     decimalPlaces={2}
                   />
@@ -352,7 +354,7 @@ export function DynamicValuesForm({
               </Label>
               <EditableNumericField
                 value={dynamicValues.adValoremRate}
-                onValueChange={(value) => onUpdateValue("adValoremRate", value)}
+                onChange={(value) => onUpdateValue("adValoremRate", value)}
                 suffix="%"
                 decimalPlaces={2}
               />
@@ -364,7 +366,7 @@ export function DynamicValuesForm({
               </Label>
               <EditableNumericField
                 value={dynamicValues.igvRate}
-                onValueChange={(value) => onUpdateValue("igvRate", value)}
+                onChange={(value) => onUpdateValue("igvRate", value)}
                 suffix="%"
                 decimalPlaces={2}
               />
@@ -376,7 +378,7 @@ export function DynamicValuesForm({
               </Label>
               <EditableNumericField
                 value={dynamicValues.ipmRate}
-                onValueChange={(value) => onUpdateValue("ipmRate", value)}
+                onChange={(value) => onUpdateValue("ipmRate", value)}
                 suffix="%"
                 decimalPlaces={2}
               />
@@ -388,7 +390,7 @@ export function DynamicValuesForm({
               </Label>
               <EditableNumericField
                 value={dynamicValues.percepcionRate}
-                onValueChange={(value) => onUpdateValue("percepcionRate", value)}
+                onChange={(value) => onUpdateValue("percepcionRate", value)}
                 suffix="%"
                 decimalPlaces={2}
               />

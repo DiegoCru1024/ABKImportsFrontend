@@ -5,44 +5,67 @@ import { ChartBar, DollarSign, FileText, TrendingUp, AlertTriangle } from "lucid
 import { Badge } from "@/components/ui/badge";
 
 export interface ImportSummaryCardProps {
-  selectedIncoterm: string;
-  comercialValue: number;
-  totalGastosImportacion: number;
-  inversionTotal: number;
-  shouldExemptTaxes: boolean;
+  cif: number;
+  taxCalculations: {
+    finalTotal: number;
+    finalTotalInSoles: number;
+    totalExempted: number;
+    adValorem: number;
+    igv: number;
+    ipm: number;
+    percepcion: number;
+    adValoremAmount: number;
+    igvAmount: number;
+    ipmAmount: number;
+    percepcionAmount: number;
+    totalTaxes: number;
+    totalTaxesInSoles: number;
+    totalCBM: number;
+    totalWeight: number;
+    totalPrice: number;
+    totalExpress: number;
+    totalGeneral: number;
+    productCount: number;
+  };
+  exemptionState: {
+    adValorem: boolean;
+    igv: boolean;
+    ipm: boolean;
+    percepcion: boolean;
+  };
 }
 
 export default function ImportSummaryCard({
-  selectedIncoterm,
-  comercialValue,
-  totalGastosImportacion,
-  inversionTotal,
-  shouldExemptTaxes,
+  cif,
+  taxCalculations,
+  exemptionState,
 }: ImportSummaryCardProps) {
+  const isAnyExempted = Object.values(exemptionState).some(Boolean);
+  
   const summaryItems = [
     {
-      key: 'incoterm',
-      label: 'INCOTERM DE IMPORTACION',
-      value: selectedIncoterm,
+      key: 'cif',
+      label: 'VALOR CIF',
+      value: `USD ${cif.toFixed(2)}`,
       icon: <FileText className="h-4 w-4 text-blue-500" />,
       color: 'blue',
       category: 'Términos'
     },
     {
-      key: 'comercialValue',
-      label: 'VALOR DE COMPRA FACTURA COMERCIAL',
-      value: `USD ${comercialValue.toFixed(2)}`,
+      key: 'totalTaxes',
+      label: 'TOTAL IMPUESTOS',
+      value: `USD ${taxCalculations.totalTaxes.toFixed(2)}`,
       icon: <DollarSign className="h-4 w-4 text-green-500" />,
       color: 'green',
-      category: 'Valor'
+      category: 'Impuestos'
     },
     {
-      key: 'totalGastos',
-      label: 'TOTAL GASTOS DE IMPORTACION',
-      value: `USD ${totalGastosImportacion.toFixed(2)}`,
+      key: 'finalTotal',
+      label: 'TOTAL FINAL',
+      value: `USD ${taxCalculations.finalTotal.toFixed(2)}`,
       icon: <TrendingUp className="h-4 w-4 text-orange-500" />,
       color: 'orange',
-      category: 'Gastos'
+      category: 'Total'
     }
   ];
 
@@ -115,7 +138,7 @@ export default function ImportSummaryCard({
               </div>
               <div className="text-right">
                 <div className="font-bold text-2xl">
-                  USD {inversionTotal.toFixed(2)}
+                  USD {taxCalculations.finalTotal.toFixed(2)}
                 </div>
                 <div className="text-sm opacity-90">
                   Total final
@@ -123,7 +146,7 @@ export default function ImportSummaryCard({
               </div>
             </div>
             
-            {shouldExemptTaxes && (
+            {isAnyExempted && (
               <div className="bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-lg p-4">
                 <div className="flex items-start gap-3">
                   <div className="p-2 bg-orange-100 rounded-lg">

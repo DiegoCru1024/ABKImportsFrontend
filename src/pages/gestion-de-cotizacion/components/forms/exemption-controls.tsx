@@ -12,22 +12,24 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 
+interface ExemptionState {
+  servicioConsolidadoAereo: boolean;
+  separacionCarga: boolean;
+  inspeccionProductos: boolean;
+  obligacionesFiscales: boolean;
+  desaduanajeFleteSaguro: boolean;
+  transporteLocalChina: boolean;
+  transporteLocalCliente: boolean;
+  servicioConsolidadoMaritimo: boolean;
+  gestionCertificado: boolean;
+  servicioInspeccion: boolean;
+  transporteLocal: boolean;
+  totalDerechos: boolean;
+}
+
 interface ExemptionControlsProps {
-  exemptionState: {
-    servicioConsolidadoAereo: boolean;
-    separacionCarga: boolean;
-    inspeccionProductos: boolean;
-    obligacionesFiscales: boolean;
-    desaduanajeFleteSaguro: boolean;
-    transporteLocalChina: boolean;
-    transporteLocalCliente: boolean;
-    servicioConsolidadoMaritimo: boolean;
-    gestionCertificado: boolean;
-    servicioInspeccion: boolean;
-    transporteLocal: boolean;
-    totalDerechos: boolean;
-  };
-  onExemptionChange: (field: string, value: boolean) => void;
+  exemptionState: ExemptionState;
+  onExemptionChange: (field: keyof ExemptionState, value: boolean) => void;
   isMaritimeService: boolean;
 }
 
@@ -127,7 +129,7 @@ export function ExemptionControls({
                 id={exemption.id}
                 checked={exemptionState[exemption.id as keyof typeof exemptionState]}
                 onCheckedChange={(checked) => 
-                  onExemptionChange(exemption.id, checked as boolean)
+                  onExemptionChange(exemption.id as keyof ExemptionState, checked as boolean)
                 }
               />
               <Label 

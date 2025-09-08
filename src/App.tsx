@@ -4,7 +4,7 @@ import Tracking from "@/pages/Tracking";
 
 
 import GestionDeCotizacionesView from "@/pages/gestion-de-cotizacion/gestion-de-cotizacion-view";
-import DetailsResponse from "@/pages/gestion-de-cotizacion/components/views/detailsreponse";
+
 import ListResponses from "@/pages/gestion-de-cotizacion/components/views/listreponses";
 import LoginPage from "@/pages/login";  
 import DashboardPage from "@/pages/dashboard";
@@ -23,6 +23,7 @@ import Tarifas from "./pages/Tarifas";
 import Educacion from "./pages/Educacion";
 import Herramientas from "./pages/Herramientas";
 import EditResponse from './pages/gestion-de-cotizacion/components/views/editresponse';
+import { QuotationResponseView } from "./pages/gestion-de-cotizacion/components";
 
 function App() {
   return (  
@@ -123,7 +124,7 @@ export default App;
 function GestionDeCotizacionRespuestaRoute() {
   const { quotationId } = useParams();
   if (!quotationId) return <Navigate to="/dashboard/gestion-de-cotizacion" replace />;
-  return <DetailsResponse selectedQuotationId={quotationId} />;
+  return <QuotationResponseView selectedQuotationId={quotationId} />;
 }
 
 function GestionDeCotizacionRespuestasRoute() {
@@ -144,7 +145,7 @@ function GestionDeCotizacionEditarRespuestaRoute() {
 function GestionDeCotizacionResponderRoute() {
   const { quotationId } = useParams();
   if (!quotationId) return <Navigate to="/dashboard/gestion-de-cotizacion" replace />;
-  return <DetailsResponse selectedQuotationId={quotationId} />;
+  return <QuotationResponseView selectedQuotationId={quotationId} />;
 }
 
 function EditarCotizacionRoute() {

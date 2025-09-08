@@ -1,23 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  FileText,
-  Plus,
-} from "lucide-react";
+import { FileText, Plus } from "lucide-react";
 
-import {
-  useDeleteQuatitationResponse,
-  useGetListResponsesByQuotationId,
-} from "@/hooks/use-quatitation-response";
 import { columnsListResponses } from "../table/columnsListResponses";
 
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LoadingState } from "@/components/ui/loading-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { DataTable } from "@/components/table/data-table";
@@ -25,6 +13,10 @@ import SendingModal from "@/components/sending-modal";
 import ConfirmationModal from "@/components/modal-confirmation";
 
 import type { contentQuotationResponseDTO } from "@/api/interface/quotationResponseInterfaces";
+import {
+  useDeleteQuatitationResponse,
+  useGetListResponsesByQuotationId,
+} from "@/hooks/use-quatitation-response";
 
 interface QuotationResponsesListProps {
   selectedQuotationId: string;
@@ -34,27 +26,35 @@ export default function QuotationResponsesList({
   selectedQuotationId,
 }: QuotationResponsesListProps) {
   const navigate = useNavigate();
-  
+
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [selectedResponseId, setSelectedResponseId] = useState<string | null>(null);
+  const [selectedResponseId, setSelectedResponseId] = useState<string | null>(
+    null
+  );
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false);
   const [isSendingModalOpen, setIsSendingModalOpen] = useState<boolean>(false);
+  const [page, setPage] = useState(1);
+  const [size, setSize] = useState(10);
 
   const {
     data: responses,
     isLoading,
     isError,
     refetch,
-  } = useGetListResponsesByQuotationId(selectedQuotationId);
+  } = useGetListResponsesByQuotationId(selectedQuotationId, page, size);
 
   const deleteResponseMutation = useDeleteQuatitationResponse();
 
   const handleCreateNewResponse = () => {
-    navigate(`/dashboard/gestion-de-cotizacion/respuesta/${selectedQuotationId}`);
+    navigate(
+      `/dashboard/gestion-de-cotizacion/respuesta/${selectedQuotationId}`
+    );
   };
 
   const handleEditResponse = (responseId: string) => {
-    navigate(`/dashboard/gestion-de-cotizacion/respuesta/${selectedQuotationId}/${responseId}`);
+    navigate(
+      `/dashboard/gestion-de-cotizacion/respuesta/${selectedQuotationId}/${responseId}`
+    );
   };
 
   const handleDeleteResponse = (responseId: string) => {
@@ -78,17 +78,22 @@ export default function QuotationResponsesList({
     }
   };
 
-  const filteredResponses = responses?.content?.filter((response: contentQuotationResponseDTO) =>
-    response.id?.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
-    response.createdAt?.toLowerCase().includes(searchTerm.toLowerCase())
-  ) || [];
+  const filteredResponses =
+    responses?.content?.filter(
+      (response: contentQuotationResponseDTO) =>
+        response.id
+          ?.toString()
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        response.createdAt?.toLowerCase().includes(searchTerm.toLowerCase())
+    ) || [];
 
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <LoadingState 
-          message="Cargando respuestas de cotización..." 
-          variant="card" 
+        <LoadingState
+          message="Cargando respuestas de cotización..."
+          variant="card"
         />
       </div>
     );
@@ -121,7 +126,8 @@ export default function QuotationResponsesList({
                     Respuestas de Cotización
                   </CardTitle>
                   <p className="text-slate-600 text-sm mt-1">
-                    Administra todas las respuestas para la cotización #{selectedQuotationId}
+                    Administra todas las respuestas para la cotización #
+                    {selectedQuotationId}
                   </p>
                 </div>
               </div>
@@ -177,10 +183,8 @@ export default function QuotationResponsesList({
         }}
         onConfirm={confirmDelete}
         title="Eliminar Respuesta"
-        message="¿Está seguro que desea eliminar esta respuesta? Esta acción no se puede deshacer."
-        confirmText="Eliminar"
-        cancelText="Cancelar"
-        variant="destructive"
+        description="¿Está seguro que desea eliminar esta respuesta? Esta acción no se puede deshacer."
+        buttonText="Eliminar"
       />
 
       <SendingModal

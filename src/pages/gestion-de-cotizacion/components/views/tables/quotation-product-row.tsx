@@ -212,7 +212,7 @@ export default function QuotationProductRow({
             <Label className="text-sm font-medium">Precio</Label>
             <EditableNumericField
               value={product.price || 0}
-              onValueChange={(value) => handleProductFieldChange('price', value)}
+              onChange={(value) => handleProductFieldChange('price', value)}
               prefix="$"
               decimalPlaces={2}
             />
@@ -223,7 +223,7 @@ export default function QuotationProductRow({
               <Label className="text-sm font-medium">Peso (kg)</Label>
               <EditableNumericField
                 value={product.weight}
-                onValueChange={(value) => handleProductFieldChange('weight', value)}
+                onChange={(value) => handleProductFieldChange('weight', value)}
                 suffix="kg"
                 decimalPlaces={2}
               />
@@ -235,7 +235,7 @@ export default function QuotationProductRow({
               <Label className="text-sm font-medium">CBM</Label>
               <EditableNumericField
                 value={product.cbm}
-                onValueChange={(value) => handleProductFieldChange('cbm', value)}
+                onChange={(value) => handleProductFieldChange('cbm', value)}
                 suffix="m³"
                 decimalPlaces={3}
               />
@@ -302,7 +302,7 @@ export default function QuotationProductRow({
                     <Label className="text-sm font-medium">Precio</Label>
                     <EditableNumericField
                       value={variant.price || 0}
-                      onValueChange={(value) => handleVariantFieldChange(variant.id, 'price', value)}
+                      onChange={(value) => handleVariantFieldChange(variant.id, 'price', value)}
                       prefix="$"
                       decimalPlaces={2}
                     />
@@ -325,7 +325,7 @@ export default function QuotationProductRow({
                       <Label className="text-sm font-medium">Peso (kg)</Label>
                       <EditableNumericField
                         value={variant.weight}
-                        onValueChange={(value) => handleVariantFieldChange(variant.id, 'weight', value)}
+                        onChange={(value) => handleVariantFieldChange(variant.id, 'weight', value)}
                         suffix="kg"
                         decimalPlaces={2}
                       />
@@ -337,7 +337,7 @@ export default function QuotationProductRow({
                       <Label className="text-sm font-medium">CBM</Label>
                       <EditableNumericField
                         value={variant.cbm}
-                        onValueChange={(value) => handleVariantFieldChange(variant.id, 'cbm', value)}
+                        onChange={(value) => handleVariantFieldChange(variant.id, 'cbm', value)}
                         suffix="m³"
                         decimalPlaces={3}
                       />
@@ -386,18 +386,9 @@ export default function QuotationProductRow({
       <ImageCarouselModal
         isOpen={isImageModalOpen}
         onClose={() => setIsImageModalOpen(false)}
-        images={selectedImages}
-        currentIndex={currentImageIndex}
+        files={[]}
+        attachments={selectedImages.map(img => img.url)}
         productName={product.name}
-        onPrevious={() => setCurrentImageIndex(Math.max(0, currentImageIndex - 1))}
-        onNext={() => setCurrentImageIndex(Math.min(selectedImages.length - 1, currentImageIndex + 1))}
-        onGoToImage={setCurrentImageIndex}
-        onDownload={(imageUrl) => {
-          const link = document.createElement('a');
-          link.href = imageUrl;
-          link.download = 'image';
-          link.click();
-        }}
       />
     </div>
   );

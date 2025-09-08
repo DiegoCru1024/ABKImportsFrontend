@@ -15,6 +15,8 @@ import {
 import { Button } from "@/components/ui/button"
 
 interface ConfirmDialogProps {
+  isOpen?:boolean
+  onClose?:()=>void
   trigger: React.ReactNode
   title: string
   description?: string
@@ -25,6 +27,7 @@ interface ConfirmDialogProps {
 }
 
 export function ConfirmDialog({
+  isOpen,
   trigger,
   title,
   description,

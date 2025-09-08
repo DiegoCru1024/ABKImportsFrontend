@@ -53,11 +53,35 @@ export default function QuotationResponseView({
 
   const quotationForm = useQuotationResponseForm();
 
+  // Mapear productos de la API al formato esperado por los cálculos
+  const mappedProducts = (quotationDetail?.products || []).map(product => ({
+    id: product.productId,
+    name: product.name,
+    quantity: product.quantity,
+    boxes: product.number_of_boxes,
+    priceXiaoYi: 0, // Valor por defecto
+    cbmTotal: parseFloat(product.volume) || 0,
+    express: 0, // Valor por defecto
+    total: 0, // Valor por defecto
+    cbm: parseFloat(product.volume) || 0,
+    weight: parseFloat(product.weight) || 0,
+    price: 0, // Valor por defecto
+    variants: product.variants?.map(variant => ({
+      id: variant.variantId,
+      name: `${variant.size} - ${variant.presentation} - ${variant.model} - ${variant.color}`,
+      quantity: 1, // Valor por defecto
+      price: 0, // Valor por defecto
+      weight: 0, // Valor por defecto
+      cbm: 0, // Valor por defecto
+      express: 0, // Valor por defecto
+    })) || []
+  }));
+
   const calculations = useQuotationCalculations({
-    products: quotationDetail?.products || [],
+    products: mappedProducts,
     dynamicValues: quotationForm.dynamicValues,
     cif: quotationForm.cif,
-    exemptionState: quotationForm.exemptionState,
+    exemptionState: quotationForm.exemptionState as unknown as Record<string, boolean>,
     productQuotationState: quotationForm.productQuotationState,
     variantQuotationState: quotationForm.variantQuotationState,
   });
@@ -130,18 +154,24 @@ export default function QuotationResponseView({
         }
         description={`Respondiendo cotización #${selectedQuotationId}`}
         actions={
-          <Button
-            onClick={handleSubmitQuotation}
-            disabled={isSubmitting}
-            className="flex items-center gap-2"
-          >
-            {isSubmitting ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Send className="h-4 w-4" />
-            )}
-            {isSubmitting ? "Enviando..." : "Enviar Respuesta"}
-          </Button>
+          <ConfirmDialog
+            trigger={
+              <Button
+                disabled={isSubmitting}
+                className="flex items-center gap-2"
+              >
+                {isSubmitting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
+                {isSubmitting ? "Enviando..." : "Enviar Respuesta"}
+              </Button>
+            }
+            title="Confirmar Envío"
+            description="¿Está seguro que desea enviar esta respuesta de cotización?"
+            onConfirm={handleSubmitQuotation}
+          />
         }
       />
 
@@ -234,31 +264,69 @@ export default function QuotationResponseView({
             />
 
             <ServiceConsolidationCard
-              serviceType={quotationForm.selectedServiceLogistic}
-              serviceName={quotationForm.getServiceName()}
+              title={quotationForm.getServiceName()}
               serviceFields={quotationForm.getServiceFields()}
-              exemptionState={quotationForm.exemptionState}
-              onExemptionToggle={quotationForm.updateExemptionState}
+              updateDynamicValue={(key, value) => quotationForm.updateDynamicValue(key as keyof typeof quotationForm.dynamicValues, value)}
+              igvServices={Object.values(quotationForm.getServiceFields()).reduce((sum, value) => sum + (value || 0), 0) * 0.18}
+              totalServices={Object.values(quotationForm.getServiceFields()).reduce((sum, value) => sum + (value || 0), 0) * 1.18}
             />
 
             <ImportExpensesCard
-              dynamicValues={quotationForm.dynamicValues}
-              exemptionState={quotationForm.exemptionState}
-              onExemptionToggle={quotationForm.updateExemptionState}
-              onValueChange={quotationForm.updateDynamicValue}
+              isMaritime={quotationForm.isMaritimeService()}
+              values={{
+                servicioConsolidadoMaritimoFinal: quotationForm.dynamicValues.servicioConsolidado,
+                gestionCertificadoFinal: quotationForm.dynamicValues.gestionCertificado,
+                servicioInspeccionFinal: quotationForm.dynamicValues.inspeccionProducto,
+                transporteLocalFinal: quotationForm.dynamicValues.transporteLocal,
+                totalDerechosDolaresFinal: calculations.finalTotal,
+                desaduanajeFleteSaguro: quotationForm.dynamicValues.desaduanaje,
+                transporteLocalChinaEnvio: quotationForm.dynamicValues.transporteLocalChinaEnvio,
+                transporteLocalClienteEnvio: quotationForm.dynamicValues.transporteLocalClienteEnvio,
+              }}
+              exemptionState={quotationForm.exemptionState as unknown as Record<string, boolean>}
+              handleExemptionChange={(field, checked) => quotationForm.updateExemptionState(field as keyof typeof quotationForm.exemptionState, checked)}
+              applyExemption={(value, exempted) => exempted ? 0 : value}
+              servicioConsolidadoFinal={quotationForm.dynamicValues.servicioConsolidado}
+              separacionCargaFinal={quotationForm.dynamicValues.separacionCarga}
+              inspeccionProductosFinal={quotationForm.dynamicValues.inspeccionProductos}
+              shouldExemptTaxes={quotationForm.exemptionState.obligacionesFiscales}
+              totalGastosImportacion={calculations.finalTotal}
             />
 
             <ImportSummaryCard
               cif={quotationForm.cif}
               taxCalculations={calculations}
-              exemptionState={quotationForm.exemptionState}
+              exemptionState={{
+                adValorem: quotationForm.exemptionState.totalDerechos,
+                igv: quotationForm.exemptionState.obligacionesFiscales,
+                ipm: quotationForm.exemptionState.totalDerechos,
+                percepcion: quotationForm.exemptionState.obligacionesFiscales,
+              }}
             />
 
             <TaxObligationsCard
-              cif={quotationForm.cif}
-              taxCalculations={calculations}
-              dynamicValues={quotationForm.dynamicValues}
-              exemptionState={quotationForm.exemptionState}
+              adValoremRate={quotationForm.dynamicValues.adValoremRate}
+              setAdValoremRate={(v) => quotationForm.updateDynamicValue("adValoremRate", v)}
+              igvRate={quotationForm.dynamicValues.igvRate}
+              setIgvRate={(v) => quotationForm.updateDynamicValue("igvRate", v)}
+              ipmRate={quotationForm.dynamicValues.ipmRate}
+              setIpmRate={(v) => quotationForm.updateDynamicValue("ipmRate", v)}
+              isMaritime={quotationForm.isMaritimeService()}
+              antidumpingGobierno={quotationForm.dynamicValues.antidumpingGobierno}
+              setAntidumpingGobierno={(v) => quotationForm.updateDynamicValue("antidumpingGobierno", v)}
+              antidumpingCantidad={quotationForm.dynamicValues.antidumpingCantidad}
+              setAntidumpingCantidad={(v) => quotationForm.updateDynamicValue("antidumpingCantidad", v)}
+              iscRate={quotationForm.dynamicValues.iscRate}
+              setIscRate={(v) => quotationForm.updateDynamicValue("iscRate", v)}
+              values={{
+                adValorem: calculations.adValoremAmount,
+                igvFiscal: calculations.igv,
+                ipm: calculations.ipm,
+                isc: 0, // ISC no está calculado en este contexto
+                percepcion: calculations.percepcion,
+                totalDerechosDolares: calculations.finalTotal,
+                totalDerechosSoles: calculations.finalTotalInSoles,
+              }}
             />
 
             <EditableUnitCostTable
@@ -281,13 +349,6 @@ export default function QuotationResponseView({
         onClose={() => quotationForm.setIsSendingModalOpen(false)}
       />
 
-      <ConfirmDialog
-        isOpen={quotationForm.showCommentModal}
-        onClose={() => quotationForm.setShowCommentModal(false)}
-        title="Confirmar Envío"
-        description="¿Está seguro que desea enviar esta respuesta de cotización?"
-        onConfirm={handleSubmitQuotation}
-      />
     </div>
   );
 }

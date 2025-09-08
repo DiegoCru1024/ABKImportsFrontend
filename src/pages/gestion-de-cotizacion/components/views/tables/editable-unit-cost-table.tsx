@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/card";
 
 import { columnsEditableUnitcost } from "../../table/columnseditableunitcost";
-import { DataTable } from "@/components/table/data-table";
+import { SimpleDataTable } from "@/components/table/simple-data-table";
 
 interface ProductVariant {
   originalVariantId: string | null;
@@ -87,6 +87,44 @@ export default function EditableUnitCostTable({
     }
   };
 
+  const updateProduct = useCallback((id: string, field: keyof ProductRow, value: number | boolean) => {
+    setData(prevData => {
+      const newData = prevData.map(product => {
+        if (product.id === id) {
+          return { ...product, [field]: value };
+        }
+        return product;
+      });
+      if (onProductsChange) {
+        onProductsChange(newData);
+      }
+      return newData;
+    });
+  }, [onProductsChange]);
+
+  const updateVariant = useCallback((productId: string, variantId: string, field: keyof ProductVariant, value: number | boolean) => {
+    setData(prevData => {
+      const newData = prevData.map(product => {
+        if (product.id === productId && product.variants) {
+          return {
+            ...product,
+            variants: product.variants.map(variant => {
+              if (variant.id === variantId) {
+                return { ...variant, [field]: value };
+              }
+              return variant;
+            })
+          };
+        }
+        return product;
+      });
+      if (onProductsChange) {
+        onProductsChange(newData);
+      }
+      return newData;
+    });
+  }, [onProductsChange]);
+
   const calculateCommercialValue = useCallback(() => {
     return data.reduce((total, product) => {
       if (productQuotationState[product.id]) {
@@ -149,8 +187,15 @@ export default function EditableUnitCostTable({
             )}
           </div>
 
-          <DataTable
-            columns={columnsEditableUnitcost}
+          <SimpleDataTable
+            columns={columnsEditableUnitcost(
+              updateProduct,
+              updateVariant,
+              productQuotationState,
+              variantQuotationState,
+              onProductQuotationChange,
+              onVariantQuotationChange
+            )}
             data={data}
             onDataChange={handleDataChange}
             productQuotationState={productQuotationState}

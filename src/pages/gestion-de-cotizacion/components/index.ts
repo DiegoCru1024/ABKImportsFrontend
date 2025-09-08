@@ -15,7 +15,6 @@ export { default as QuotationResponsesList } from "./views/quotation-responses-l
 
 // Table Components  
 export { default as EditableUnitCostTable } from "./views/tables/editable-unit-cost-table";
-export { default as QuotationProductRow } from "./views/tables/quotation-product-row";
 
 // Managers
 export { default as ProductManager } from "./views/managers/product-manager";

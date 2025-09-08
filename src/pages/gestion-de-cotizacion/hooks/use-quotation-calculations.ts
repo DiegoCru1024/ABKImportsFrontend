@@ -130,6 +130,7 @@ export function useQuotationCalculations({
       ...finalTaxes,
       finalTotal,
       finalTotalInSoles,
+      totalTaxesInSoles: Object.values(finalTaxes).reduce((sum, tax) => sum + tax, 0) * dynamicValues.tipoCambio,
       totalExempted: taxCalculations.totalTaxes - Object.values(finalTaxes).reduce((sum, tax) => sum + tax, 0),
     };
   }, [taxCalculations, exemptionState, cif, dynamicValues.tipoCambio]);

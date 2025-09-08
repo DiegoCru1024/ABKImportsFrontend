@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/table/data-table";
 import { useGetQuotationsListWithPagination } from "@/hooks/use-quation";
 import { columnsQuotationsList } from "./components/table/columnsQuotationsList";
-import ResponseListContainer from "./components/quotation-responses/ResponseListContainer";
+
 import ConfirmationModal from "@/components/modal-confirmation";
 import SendingModal from "@/components/sending-modal";
 import { useDeleteQuotation } from "@/hooks/use-quation";
@@ -332,10 +332,10 @@ export default function MisCotizacionesView() {
           </div>
         </div>
 
-        <ResponseListContainer 
+        {/*<ResponseListContainer 
           quotationId={selectedQuotationId}
           onBack={handleBackToList}
-        />
+        />*/}
       </div>
     );
   }

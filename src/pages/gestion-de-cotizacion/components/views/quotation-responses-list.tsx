@@ -1,0 +1,194 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  FileText,
+  Plus,
+} from "lucide-react";
+
+import {
+  useDeleteQuatitationResponse,
+  useGetListResponsesByQuotationId,
+} from "@/hooks/use-quatitation-response";
+import { columnsListResponses } from "../table/columnsListResponses";
+
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { LoadingState } from "@/components/ui/loading-state";
+import { ErrorState } from "@/components/ui/error-state";
+import { DataTable } from "@/components/table/data-table";
+import SendingModal from "@/components/sending-modal";
+import ConfirmationModal from "@/components/modal-confirmation";
+
+import type { contentQuotationResponseDTO } from "@/api/interface/quotationResponseInterfaces";
+
+interface QuotationResponsesListProps {
+  selectedQuotationId: string;
+}
+
+export default function QuotationResponsesList({
+  selectedQuotationId,
+}: QuotationResponsesListProps) {
+  const navigate = useNavigate();
+  
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [selectedResponseId, setSelectedResponseId] = useState<string | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false);
+  const [isSendingModalOpen, setIsSendingModalOpen] = useState<boolean>(false);
+
+  const {
+    data: responses,
+    isLoading,
+    isError,
+    refetch,
+  } = useGetListResponsesByQuotationId(selectedQuotationId);
+
+  const deleteResponseMutation = useDeleteQuatitationResponse();
+
+  const handleCreateNewResponse = () => {
+    navigate(`/dashboard/gestion-de-cotizacion/respuesta/${selectedQuotationId}`);
+  };
+
+  const handleEditResponse = (responseId: string) => {
+    navigate(`/dashboard/gestion-de-cotizacion/respuesta/${selectedQuotationId}/${responseId}`);
+  };
+
+  const handleDeleteResponse = (responseId: string) => {
+    setSelectedResponseId(responseId);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!selectedResponseId) return;
+
+    setIsSendingModalOpen(true);
+    try {
+      await deleteResponseMutation.mutateAsync(selectedResponseId);
+      await refetch();
+    } catch (error) {
+      console.error("Error al eliminar respuesta:", error);
+    } finally {
+      setIsSendingModalOpen(false);
+      setIsDeleteModalOpen(false);
+      setSelectedResponseId(null);
+    }
+  };
+
+  const filteredResponses = responses?.content?.filter((response: contentQuotationResponseDTO) =>
+    response.id?.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
+    response.createdAt?.toLowerCase().includes(searchTerm.toLowerCase())
+  ) || [];
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <LoadingState 
+          message="Cargando respuestas de cotización..." 
+          variant="card" 
+        />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <ErrorState
+          title="Error al cargar las respuestas"
+          message="Por favor, intente recargar la página o contacte al administrador."
+          variant="card"
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-orange-500/5 via-background to-orange-400/10">
+      <div className="container mx-auto px-4 py-6 space-y-6">
+        <Card className="bg-white shadow-lg border border-gray-100 rounded-2xl overflow-hidden">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg shadow-sm">
+                  <FileText className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <CardTitle className="text-xl font-semibold text-slate-800">
+                    Respuestas de Cotización
+                  </CardTitle>
+                  <p className="text-slate-600 text-sm mt-1">
+                    Administra todas las respuestas para la cotización #{selectedQuotationId}
+                  </p>
+                </div>
+              </div>
+              <Button
+                onClick={handleCreateNewResponse}
+                className="flex items-center gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                Nueva Respuesta
+              </Button>
+            </div>
+          </CardHeader>
+
+          <CardContent className="space-y-6">
+            {filteredResponses.length > 0 ? (
+              <DataTable
+                columns={columnsListResponses}
+                data={filteredResponses}
+                searchValue={searchTerm}
+                onSearchChange={setSearchTerm}
+                onEdit={handleEditResponse}
+                onDelete={handleDeleteResponse}
+                searchPlaceholder="Buscar por ID o fecha..."
+              />
+            ) : (
+              <div className="text-center py-12">
+                <FileText className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  No hay respuestas disponibles
+                </h3>
+                <p className="text-sm text-gray-500 mb-4">
+                  Crea la primera respuesta para esta cotización.
+                </p>
+                <Button
+                  onClick={handleCreateNewResponse}
+                  className="flex items-center gap-2 mx-auto"
+                >
+                  <Plus className="h-4 w-4" />
+                  Crear Primera Respuesta
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Modales */}
+      <ConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setSelectedResponseId(null);
+        }}
+        onConfirm={confirmDelete}
+        title="Eliminar Respuesta"
+        message="¿Está seguro que desea eliminar esta respuesta? Esta acción no se puede deshacer."
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        variant="destructive"
+      />
+
+      <SendingModal
+        isOpen={isSendingModalOpen}
+        onClose={() => setIsSendingModalOpen(false)}
+        title="Eliminando Respuesta"
+        message="Por favor espere mientras se elimina la respuesta..."
+      />
+    </div>
+  );
+}

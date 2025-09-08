@@ -1,14 +1,28 @@
-import React, { useState } from "react";
-import { Plus, Trash2, Edit, Save, X, Check } from "lucide-react";
+import { useState } from "react";
+import {
+  Plus,
+  Trash2,
+  Edit,
+  Save,
+} from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import type { Product, ProductVariant } from "@/api/interface/quotationResponseDTO";
+
+import type { Product } from "../utils/interface";
+import type { ProductVariant } from "./tables/editable-unit-cost-table";
+
 
 interface ProductManagerProps {
   products: Product[];
@@ -16,11 +30,11 @@ interface ProductManagerProps {
   serviceType: string;
 }
 
-const ProductManager: React.FC<ProductManagerProps> = ({
+export default function ProductManager({
   products,
   onProductsChange,
-  serviceType
-}) => {
+  serviceType: _serviceType, // eslint-disable-line @typescript-eslint/no-unused-vars
+}: ProductManagerProps) {
   const [editingProduct, setEditingProduct] = useState<number | null>(null);
   const [editingVariant, setEditingVariant] = useState<{ productIndex: number; variantIndex: number } | null>(null);
 
@@ -89,7 +103,7 @@ const ProductManager: React.FC<ProductManagerProps> = ({
     onProductsChange(updatedProducts);
   };
 
-  const updateProduct = (productIndex: number, field: keyof Product, value: any) => {
+  const updateProduct = (productIndex: number, field: keyof Product, value: unknown) => {
     const updatedProducts = [...products];
     updatedProducts[productIndex] = {
       ...updatedProducts[productIndex],
@@ -99,7 +113,7 @@ const ProductManager: React.FC<ProductManagerProps> = ({
     onProductsChange(updatedProducts);
   };
 
-  const updateVariant = (productIndex: number, variantIndex: number, field: keyof ProductVariant, value: any) => {
+  const updateVariant = (productIndex: number, variantIndex: number, field: keyof ProductVariant, value: unknown) => {
     const updatedProducts = [...products];
     const updatedVariants = [...updatedProducts[productIndex].variants];
     updatedVariants[variantIndex] = {
@@ -446,6 +460,4 @@ const ProductManager: React.FC<ProductManagerProps> = ({
       )}
     </div>
   );
-};
-
-export default ProductManager;
+}

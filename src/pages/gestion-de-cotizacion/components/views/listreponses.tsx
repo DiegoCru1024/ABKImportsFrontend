@@ -1,18 +1,22 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { FileText, Plus } from "lucide-react";
+
 import {
   useDeleteQuatitationResponse,
   useGetListResponsesByQuotationId,
 } from "@/hooks/use-quatitation-response";
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DataTable } from "@/components/table/data-table";
 import { columnsListResponses } from "../table/columnsListResponses";
 import type { contentQuotationResponseDTO } from "@/api/interface/quotationResponseInterfaces";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { SectionHeader } from "@/components/ui/section-header";
+import { LoadingState } from "@/components/ui/loading-state";
+import { ErrorState } from "@/components/ui/error-state";
+import { DataTable } from "@/components/table/data-table";
 import SendingModal from "@/components/sending-modal";
 import ConfirmationModal from "@/components/modal-confirmation";
-import { FileText } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
 
 interface ListResponsesProps {
   selectedQuotationId: string;
@@ -46,38 +50,25 @@ const ListResponses: React.FC<ListResponsesProps> = ({
 
   if (!selectedQuotationId) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-500/5 via-background to-orange-400/10 p-6">
-        <div className="text-center text-red-600">
-          Error: No se proporcionó un ID de cotización válido
-        </div>
-        <div className="text-center text-gray-500 text-sm mt-2">
-          selectedQuotationId: {selectedQuotationId}
-        </div>
-      </div>
+      <ErrorState
+        title="ID de cotización no válido"
+        message="No se proporcionó un ID de cotización válido"
+        variant="page"
+      />
     );
   }
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-500/5 via-background to-orange-400/10 p-6">
-        <div className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
-          <span className="ml-2">Cargando respuestas...</span>
-        </div>
-      </div>
-    );
+    return <LoadingState message="Cargando respuestas..." variant="page" />;
   }
   
   if (isError) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-500/5 via-background to-orange-400/10 p-6">
-        <div className="text-center text-red-600">
-          Error al cargar las respuestas
-        </div>
-        <div className="text-center text-gray-500 text-sm mt-2">
-          selectedQuotationId: {selectedQuotationId}
-        </div>
-      </div>
+      <ErrorState
+        title="Error al cargar las respuestas"
+        message="Ha ocurrido un problema al cargar las respuestas de la cotización"
+        variant="page"
+      />
     );
   }
 
@@ -125,57 +116,44 @@ const ListResponses: React.FC<ListResponsesProps> = ({
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-500/5 via-background to-orange-400/10">
-      {/* Header */}
-      <div className="border-t border-border/60 bg-background/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="w-full px-4 py-4 border-b border-border/60">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-500 hover:bg-orange-600">
-                <FileText className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-                  Lista de Respuestas
-                </h1>
-                <p className="text-sm text-muted-foreground">
-                  Todas las respuestas de la cotización
-                </p>
-              </div>
-            </div>
-            <Button
-              className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-full shadow-md flex items-center gap-2"
-              onClick={() =>
-                navigate(
-                  `/dashboard/gestion-de-cotizacion/respuestas/${selectedQuotationId}/responder`
-                )
-              }
-            >
-              <Plus className="h-4 w-4" />
-              Nueva Respuesta
-            </Button>
-          </div>
-        </div>
-      </div>
+      <SectionHeader
+        icon={<FileText className="h-6 w-6 text-white" />}
+        title="Lista de Respuestas"
+        description="Todas las respuestas de la cotización"
+        actions={
+          <Button
+            className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg shadow-sm flex items-center gap-2"
+            onClick={() =>
+              navigate(
+                `/dashboard/gestion-de-cotizacion/respuestas/${selectedQuotationId}/responder`
+              )
+            }
+          >
+            <Plus className="h-4 w-4" />
+            Nueva Respuesta
+          </Button>
+        }
+      />
 
-      <div className="p-6">
-        {/* Tabla de cotizaciones */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Lista de Respuestas</CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Todas las respuestas de la cotización
+      <div className="container mx-auto px-4 py-6">
+        <Card className="bg-white shadow-lg border border-gray-100 rounded-2xl overflow-hidden">
+          <CardHeader className="bg-gradient-to-r from-slate-50 to-slate-100">
+            <CardTitle className="text-xl font-bold text-slate-800">
+              Lista de Respuestas
+            </CardTitle>
+            <p className="text-sm text-slate-600">
+              Todas las respuestas generadas para esta cotización
             </p>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-6">
             {isLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
-                <span className="ml-2">Cargando respuestas...</span>
-              </div>
+              <LoadingState message="Cargando respuestas..." variant="inline" />
             ) : isError ? (
-              <div className="text-center py-8 text-red-500">
-                Error al cargar las respuestas
-              </div>
+              <ErrorState
+                title="Error al cargar respuestas"
+                message="No se pudieron cargar las respuestas de la cotización"
+                variant="inline"
+              />
             ) : (
               <DataTable
                 columns={columns}

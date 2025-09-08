@@ -1,0 +1,167 @@
+import { useState, useEffect, useCallback } from "react";
+import {
+  Package,
+} from "lucide-react";
+
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+
+import { columnsEditableUnitcost } from "../../table/columnseditableunitcost";
+import { DataTable } from "@/components/table/data-table";
+
+interface ProductVariant {
+  originalVariantId: string | null;
+  id: string;
+  name: string;
+  price: number;
+  size: string;
+  presentation: string;
+  quantity: number;
+  total: number;
+  equivalence: number;
+  importCosts: number;
+  totalCost: number;
+  unitCost: number;
+  seCotiza: boolean;
+}
+
+interface ProductRow {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+  total: number;
+  equivalence: number;
+  importCosts: number;
+  totalCost: number;
+  unitCost: number;
+  seCotiza: boolean;
+  variants?: ProductVariant[];
+}
+
+interface EditableUnitCostTableProps {
+  totalImportCosts?: number;
+  onCommercialValueChange?: (value: number) => void;
+  isFirstPurchase?: boolean;
+  initialProducts?: ProductRow[];
+  onProductsChange?: (products: ProductRow[]) => void;
+  productQuotationState?: Record<string, boolean>;
+  variantQuotationState?: Record<string, Record<string, boolean>>;
+  onProductQuotationChange?: (productId: string, checked: boolean) => void;
+  onVariantQuotationChange?: (
+    productId: string,
+    variantId: string,
+    checked: boolean
+  ) => void;
+  products: ProductRow[];
+}
+
+export default function EditableUnitCostTable({
+  totalImportCosts = 0,
+  onCommercialValueChange,
+  isFirstPurchase = false,
+  initialProducts = [],
+  onProductsChange,
+  productQuotationState = {},
+  variantQuotationState = {},
+  onProductQuotationChange,
+  onVariantQuotationChange,
+  products,
+}: EditableUnitCostTableProps) {
+  const [data, setData] = useState<ProductRow[]>(initialProducts);
+
+  useEffect(() => {
+    if (products && products.length > 0) {
+      setData(products);
+    }
+  }, [products]);
+
+  const handleDataChange = (newData: ProductRow[]) => {
+    setData(newData);
+    if (onProductsChange) {
+      onProductsChange(newData);
+    }
+  };
+
+  const calculateCommercialValue = useCallback(() => {
+    return data.reduce((total, product) => {
+      if (productQuotationState[product.id]) {
+        return total + (product.total || 0);
+      }
+      return total;
+    }, 0);
+  }, [data, productQuotationState]);
+
+  useEffect(() => {
+    const commercialValue = calculateCommercialValue();
+    if (onCommercialValueChange) {
+      onCommercialValueChange(commercialValue);
+    }
+  }, [data, productQuotationState, onCommercialValueChange, calculateCommercialValue]);
+
+  return (
+    <Card className="bg-white shadow-lg border border-gray-100 rounded-2xl overflow-hidden">
+      <CardHeader>
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg shadow-sm">
+            <Package className="h-5 w-5 text-white" />
+          </div>
+          <div>
+            <CardTitle className="text-xl font-semibold text-slate-800">
+              Tabla de Costeo Unitario
+            </CardTitle>
+            <p className="text-slate-600 text-sm mt-1">
+              Gestiona los costos unitarios de los productos seleccionados
+            </p>
+          </div>
+        </div>
+      </CardHeader>
+      
+      <CardContent>
+        <div className="space-y-4">
+          {isFirstPurchase && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <p className="text-sm text-blue-700">
+                <strong>Primera Compra:</strong> Los costos de importación se distribuyen 
+                entre todos los productos para calcular el costo unitario real.
+              </p>
+            </div>
+          )}
+
+          <div className="bg-gradient-to-r from-slate-50 to-blue-50 rounded-lg p-4 border border-slate-200">
+            <div className="flex items-center justify-between text-sm">
+              <span className="font-medium text-slate-700">Valor Comercial Total:</span>
+              <span className="font-bold text-blue-600 text-lg">
+                ${calculateCommercialValue().toFixed(2)}
+              </span>
+            </div>
+            {totalImportCosts > 0 && (
+              <div className="flex items-center justify-between text-sm mt-2">
+                <span className="font-medium text-slate-700">Costos de Importación:</span>
+                <span className="font-semibold text-orange-600">
+                  ${totalImportCosts.toFixed(2)}
+                </span>
+              </div>
+            )}
+          </div>
+
+          <DataTable
+            columns={columnsEditableUnitcost}
+            data={data}
+            onDataChange={handleDataChange}
+            productQuotationState={productQuotationState}
+            variantQuotationState={variantQuotationState}
+            onProductQuotationChange={onProductQuotationChange}
+            onVariantQuotationChange={onVariantQuotationChange}
+          />
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+export type { ProductRow, ProductVariant };

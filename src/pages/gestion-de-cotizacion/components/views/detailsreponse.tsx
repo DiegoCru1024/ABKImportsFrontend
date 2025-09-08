@@ -1162,7 +1162,7 @@ const DetailsResponse: React.FC<DetailsResponseProps> = ({
                   variantQuotationState[product.productId]?.[
                     variant.variantId
                   ] !== false,
-              };
+              }; 
             }),
           };
         }) || [],

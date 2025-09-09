@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { FileText, Send, Loader2 } from "lucide-react";
 
 import { useGetQuotationById } from "@/hooks/use-quation";
@@ -39,6 +39,7 @@ import ImportExpensesCard from "./partials/ImportExpensesCard";
 import ImportSummaryCard from "./partials/ImportSummaryCard";
 import TaxObligationsCard from "./partials/TaxObligationsCard";
 import EditableUnitCostTable from "./tables/editable-unit-cost-table";
+import QuotationProductRow from "./tables/quotation-product-row";
 
 export default function QuotationResponseView({
   selectedQuotationId,
@@ -57,7 +58,6 @@ export default function QuotationResponseView({
   const mappedProducts = (quotationDetail?.products || []).map(product => ({
     id: product.productId,
     name: product.name,
-    quantity: product.quantity,
     boxes: product.number_of_boxes,
     priceXiaoYi: 0, // Valor por defecto
     cbmTotal: parseFloat(product.volume) || 0,
@@ -66,16 +66,101 @@ export default function QuotationResponseView({
     cbm: parseFloat(product.volume) || 0,
     weight: parseFloat(product.weight) || 0,
     price: 0, // Valor por defecto
+    attachments: product.attachments || [], // Imágenes del producto
     variants: product.variants?.map(variant => ({
       id: variant.variantId,
-      name: `${variant.size} - ${variant.presentation} - ${variant.model} - ${variant.color}`,
-      quantity: 1, // Valor por defecto
+      name: `Nombre: ${variant.size} - Presentacion: ${variant.presentation} - Modelo: ${variant.model} - Color: ${variant.color}`,
+      quantity: variant.quantity || 1,
       price: 0, // Valor por defecto
       weight: 0, // Valor por defecto
       cbm: 0, // Valor por defecto
       express: 0, // Valor por defecto
     })) || []
   }));
+
+  // Mapear productos para EditableUnitCostTable (servicios no pendientes)
+  const editableUnitCostTableProducts = useMemo(() => {
+    return (quotationDetail?.products || []).map(product => ({
+      id: product.productId,
+      name: product.name,
+      price: 0, // El usuario ingresará el precio
+      quantity: product.variants?.reduce((sum, variant) => sum + (variant.quantity || 0), 0) || product.number_of_boxes || 1,
+      total: 0, // Se calculará automáticamente
+      equivalence: 0,
+      importCosts: 0,
+      totalCost: 0,
+      unitCost: 0,
+      seCotiza: true, // Por defecto seleccionado
+      variants: product.variants?.map(variant => ({
+        originalVariantId: variant.variantId,
+        id: variant.variantId,
+        name: `${variant.size} - ${variant.presentation} - ${variant.model} - ${variant.color}`,
+        price: 0, // El usuario ingresará el precio
+        size: variant.size,
+        presentation: variant.presentation,
+        quantity: variant.quantity || 1,
+        total: 0, // Se calculará automáticamente
+        equivalence: 0,
+        importCosts: 0,
+        totalCost: 0,
+        unitCost: 0,
+        seCotiza: true, // Por defecto seleccionado
+      })) || []
+    }));
+  }, [quotationDetail?.products]);
+
+  // Detectar si es vista "Pendiente" (administrativa) vs vista completa
+  const isPendingView = quotationForm.selectedServiceLogistic === "Pendiente";
+
+  // Inicializar productos en el hook cuando cambien
+  useEffect(() => {
+    if (editableUnitCostTableProducts.length > 0 && !isPendingView) {
+      quotationForm.setEditableUnitCostProducts(editableUnitCostTableProducts);
+    }
+  }, [editableUnitCostTableProducts, isPendingView, quotationForm]);
+
+  // Inicializar estados de cotización como true por defecto
+  useEffect(() => {
+    if (mappedProducts && mappedProducts.length > 0) {
+      const initialProductStates: Record<string, boolean> = {};
+      const initialVariantStates: Record<string, Record<string, boolean>> = {};
+      
+      mappedProducts.forEach(product => {
+        // Producto por defecto en true
+        if (quotationForm.productQuotationState[product.id] === undefined) {
+          initialProductStates[product.id] = true;
+        }
+        
+        // Variantes por defecto en true
+        if (product.variants && product.variants.length > 0) {
+          const variantStates: Record<string, boolean> = {};
+          product.variants.forEach(variant => {
+            if (!quotationForm.variantQuotationState[product.id]?.[variant.id]) {
+              variantStates[variant.id] = true;
+            }
+          });
+          if (Object.keys(variantStates).length > 0) {
+            initialVariantStates[product.id] = variantStates;
+          }
+        }
+      });
+      
+      // Actualizar estados si hay cambios
+      if (Object.keys(initialProductStates).length > 0) {
+        Object.entries(initialProductStates).forEach(([productId, value]) => {
+          quotationForm.updateProductQuotationState(productId, value);
+        });
+      }
+      
+      if (Object.keys(initialVariantStates).length > 0) {
+        Object.entries(initialVariantStates).forEach(([productId, variants]) => {
+          Object.entries(variants).forEach(([variantId, value]) => {
+            quotationForm.updateVariantQuotationState(productId, variantId, value);
+          });
+        });
+      }
+    }
+  }, [mappedProducts, quotationForm]);
 
   const calculations = useQuotationCalculations({
     products: mappedProducts,
@@ -87,6 +172,66 @@ export default function QuotationResponseView({
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Estado para los datos agregados de cada producto (para vista pendiente)
+  const [productsAggregatedData, setProductsAggregatedData] = useState<Record<string, {
+    totalPrice: number;
+    totalWeight: number;
+    totalCBM: number;
+    totalQuantity: number;
+    totalExpress: number;
+  }>>({});
+
+  // Función para manejar cambios en datos agregados de productos
+  const handleAggregatedDataChange = (productId: string, aggregatedData: {
+    totalPrice: number;
+    totalWeight: number;
+    totalCBM: number;
+    totalQuantity: number;
+    totalExpress: number;
+  }) => {
+    setProductsAggregatedData(prev => ({
+      ...prev,
+      [productId]: aggregatedData
+    }));
+  };
+
+  // Calcular totales generales para vista pendiente
+  const pendingViewTotals = useMemo(() => {
+    const selectedProducts = Object.entries(productsAggregatedData).filter(([productId]) => {
+      const isSelected = quotationForm.productQuotationState[productId] !== undefined 
+        ? quotationForm.productQuotationState[productId] 
+        : true;
+      return isSelected;
+    });
+
+    return selectedProducts.reduce(
+      (totals, [, data]) => ({
+        totalItems: totals.totalItems + data.totalQuantity,
+        totalProducts: totals.totalProducts + 1,
+        totalCBM: totals.totalCBM + data.totalCBM,
+        totalWeight: totals.totalWeight + data.totalWeight,
+        totalPrice: totals.totalPrice + data.totalPrice,
+        totalExpress: totals.totalExpress + data.totalExpress,
+        grandTotal: totals.grandTotal + data.totalPrice + data.totalExpress
+      }),
+      { totalItems: 0, totalProducts: 0, totalCBM: 0, totalWeight: 0, totalPrice: 0, totalExpress: 0, grandTotal: 0 }
+    );
+  }, [productsAggregatedData, quotationForm.productQuotationState]);
+
+  // Calcular totales para vista no pendiente (basado en API data)
+  const nonPendingViewTotals = useMemo(() => {
+    const totalItems = (quotationDetail?.products || []).reduce((sum, product) => {
+      return sum + (product.variants?.reduce((variantSum, variant) => variantSum + (variant.quantity || 0), 0) || product.number_of_boxes || 1);
+    }, 0);
+
+    const totalProducts = (quotationDetail?.products || []).length;
+
+    return {
+      totalItems,
+      totalProducts
+    };
+  }, [quotationDetail?.products]);
 
   const handleSubmitQuotation = async () => {
     setIsSubmitting(true);
@@ -140,9 +285,6 @@ export default function QuotationResponseView({
     );
   }
 
-  // Detectar si es vista "Pendiente" (administrativa) vs vista completa
-  const isPendingView = quotationForm.selectedServiceLogistic === "Pendiente";
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-500/5 via-background to-orange-400/10">
       <SectionHeader
@@ -178,12 +320,13 @@ export default function QuotationResponseView({
       <div className="container mx-auto px-4 py-6 space-y-8 max-w-full overflow-hidden">
         {/* Resumen de productos */}
         <QuotationSummaryCard
-          productCount={calculations.productCount}
-          totalCBM={calculations.totalCBM}
-          totalWeight={calculations.totalWeight}
-          totalPrice={calculations.totalPrice}
-          totalExpress={calculations.totalExpress}
-          totalGeneral={calculations.totalGeneral}
+          productCount={isPendingView ? pendingViewTotals.totalProducts : nonPendingViewTotals.totalProducts}
+          totalCBM={isPendingView ? pendingViewTotals.totalCBM : calculations.totalCBM}
+          totalWeight={isPendingView ? pendingViewTotals.totalWeight : calculations.totalWeight}
+          totalPrice={isPendingView ? pendingViewTotals.totalPrice : calculations.totalPrice}
+          totalExpress={isPendingView ? pendingViewTotals.totalExpress : calculations.totalExpress}
+          totalGeneral={isPendingView ? pendingViewTotals.grandTotal : calculations.totalGeneral}
+          itemCount={isPendingView ? pendingViewTotals.totalItems : nonPendingViewTotals.totalItems}
         />
 
         {/* Configuración general */}
@@ -240,6 +383,72 @@ export default function QuotationResponseView({
         {isPendingView ? (
           /* Vista administrativa simplificada */
           <>
+            {/* Sección de productos con QuotationProductRow */}
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+              <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-6">
+                <h3 className="text-xl font-bold text-white">
+                  Productos de la Cotización
+                </h3>
+                <p className="text-blue-100 text-sm mt-1">
+                  Administrar y cotizar productos solicitados
+                </p>
+              </div>
+              <div className="p-6 space-y-4">
+                {mappedProducts.map((product, index) => (
+                  <QuotationProductRow
+                    key={product.id}
+                    product={{
+                      id: product.id,
+                      name: product.name,
+                      quantity: product.boxes || 1,
+                      price: product.priceXiaoYi || 0,
+                      weight: product.weight,
+                      cbm: product.cbm,
+                      images: product.attachments?.map((url: string, index: number) => ({
+                        id: `${product.id}-img-${index}`,
+                        url: url,
+                        name: `Imagen ${index + 1}`
+                      })) || [],
+                      variants: product.variants?.map(variant => ({
+                        id: variant.id,
+                        name: variant.name,
+                        quantity: variant.quantity || 1,
+                        price: variant.price || 0,
+                        weight: variant.weight,
+                        cbm: variant.cbm,
+                        images: [], // Las variantes no tienen imágenes en el API actual
+                      })) || [],
+                      adminComment: "",
+                    }}
+                    index={index}
+                    quotationDetail={quotationDetail}
+                    productQuotationState={quotationForm.productQuotationState}
+                    variantQuotationState={quotationForm.variantQuotationState}
+                    onProductQuotationToggle={(productId, checked) => {
+                      quotationForm.updateProductQuotationState(productId, checked);
+                    }}
+                    onVariantQuotationToggle={(productId, variantId, checked) => {
+                      quotationForm.updateVariantQuotationState(productId, variantId, checked);
+                    }}
+                    onProductUpdate={(productId, updates) => {
+                      // Handle product updates if needed
+                      console.log('Product update:', productId, updates);
+                    }}
+                    onVariantUpdate={(productId, variantId, updates) => {
+                      // Handle variant updates if needed
+                      console.log('Variant update:', productId, variantId, updates);
+                    }}
+                    onAggregatedDataChange={handleAggregatedDataChange}
+                  />
+                ))}
+                {mappedProducts.length === 0 && (
+                  <div className="text-center py-8 text-gray-500">
+                    <p>No hay productos disponibles para cotizar</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
             <DynamicValuesForm
               dynamicValues={quotationForm.dynamicValues}
               onUpdateValue={quotationForm.updateDynamicValue}
@@ -332,6 +541,11 @@ export default function QuotationResponseView({
             <EditableUnitCostTable
               products={quotationForm.editableUnitCostProducts}
               onProductsChange={quotationForm.setEditableUnitCostProducts}
+              totalImportCosts={calculations.finalTotal || 0}
+              productQuotationState={quotationForm.productQuotationState}
+              variantQuotationState={quotationForm.variantQuotationState}
+              onProductQuotationChange={quotationForm.updateProductQuotationState}
+              onVariantQuotationChange={quotationForm.updateVariantQuotationState}
             />
 
             <ExemptionControls

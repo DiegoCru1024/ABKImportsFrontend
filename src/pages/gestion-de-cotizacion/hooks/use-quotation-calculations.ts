@@ -3,7 +3,6 @@ import { useMemo } from "react";
 interface Product {
   id: string;
   name: string;
-  quantity: number;
   boxes?: number;
   priceXiaoYi?: number;
   cbmTotal?: number;

@@ -17,8 +17,6 @@ export interface QuotationResponseIdInterface {
 export interface ProductoResponseIdInterface {
   productId: string;
   name: string;
-  quantityTotal: number;
-  size: string;
   color: string;
   url: string;
   comment: string;

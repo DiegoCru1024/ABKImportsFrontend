@@ -13,7 +13,7 @@ ABKImports Frontend is a React TypeScript application for import/export manageme
 npm run dev
 
 # Build for production
-vite build
+npm run build
 
 # Type checking
 npm run type-check
@@ -40,18 +40,18 @@ npm run preview
 - `src/api/` - API layer with centralized fetch utility (`apiFetch.ts`)
 - `src/components/` - Reusable UI components including shadcn/ui components
 - `src/pages/` - Page components organized by feature areas
-- `src/layouts/` - Layout components (basic-layout, dashboard-layout)
 - `src/hooks/` - Custom React hooks
 - `src/context/` - React contexts for auth and theme
 - `src/lib/` - Utility functions and configurations
 
 ### Key Features & Pages
-- **Inspection Management** (`src/pages/inspeccion/`) - Cargo inspection workflows
+- **Inspection Management** (`src/pages/Inspeccion/`) - Cargo inspection workflows
 - **Merchandise Management** (`src/pages/gestion-de-mercancia/`) - Product and inventory management
 - **Tracking System** (`src/pages/Tracking.tsx`, `src/pages/gestion-de-tracking.tsx`) - Shipment tracking with maps
-- **Quotation System** (`src/pages/mis-cotizaciones/`, `src/pages/gestion-de-cotizacion/`) - Quote management
+- **Quotation System** (`src/pages/mis-cotizaciones/`, `src/pages/gestion-de-cotizacion/`) - Quote management and responses
 - **Tax Calculator** (`src/pages/calculator.tsx`) - Import tax calculations
 - **Educational Resources** (`src/pages/Educacion.tsx`) - Learning materials
+- **User Management** (`src/pages/gestion-de-usuarios/`) - Admin user management
 
 ### Authentication & Role-Based Access
 The application uses JWT tokens stored in localStorage with role-based navigation permissions defined in `src/components/app-sidebar.tsx`. Roles include: `admin`, `temporal`, `guest`, `final`.

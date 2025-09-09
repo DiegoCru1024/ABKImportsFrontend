@@ -72,7 +72,7 @@ export default function EditableUnitCostTable({
   onVariantQuotationChange,
   products,
 }: EditableUnitCostTableProps) {
-  const [data, setData] = useState<ProductRow[]>(initialProducts);
+  const [data, setData] = useState<ProductRow[]>(products || initialProducts);
 
   useEffect(() => {
     if (products && products.length > 0) {
@@ -91,13 +91,25 @@ export default function EditableUnitCostTable({
     setData(prevData => {
       const newData = prevData.map(product => {
         if (product.id === id) {
-          return { ...product, [field]: value };
+          const updatedProduct = { ...product, [field]: value };
+          
+          // Recalcular total si cambia precio o cantidad
+          if (field === 'price' || field === 'quantity') {
+            updatedProduct.total = (updatedProduct.price || 0) * (updatedProduct.quantity || 0);
+          }
+          
+          return updatedProduct;
         }
         return product;
       });
-      if (onProductsChange) {
-        onProductsChange(newData);
-      }
+      
+      // Notificar al padre después de un pequeño delay para evitar loops
+      setTimeout(() => {
+        if (onProductsChange) {
+          onProductsChange(newData);
+        }
+      }, 0);
+      
       return newData;
     });
   }, [onProductsChange]);
@@ -110,7 +122,14 @@ export default function EditableUnitCostTable({
             ...product,
             variants: product.variants.map(variant => {
               if (variant.id === variantId) {
-                return { ...variant, [field]: value };
+                const updatedVariant = { ...variant, [field]: value };
+                
+                // Recalcular total si cambia precio o cantidad
+                if (field === 'price' || field === 'quantity') {
+                  updatedVariant.total = (updatedVariant.price || 0) * (updatedVariant.quantity || 0);
+                }
+                
+                return updatedVariant;
               }
               return variant;
             })
@@ -118,16 +137,23 @@ export default function EditableUnitCostTable({
         }
         return product;
       });
-      if (onProductsChange) {
-        onProductsChange(newData);
-      }
+      
+      // Notificar al padre después de un pequeño delay para evitar loops
+      setTimeout(() => {
+        if (onProductsChange) {
+          onProductsChange(newData);
+        }
+      }, 0);
+      
       return newData;
     });
   }, [onProductsChange]);
 
   const calculateCommercialValue = useCallback(() => {
     return data.reduce((total, product) => {
-      if (productQuotationState[product.id]) {
+      // Por defecto es true si no está definido
+      const isSelected = productQuotationState[product.id] !== undefined ? productQuotationState[product.id] : true;
+      if (isSelected) {
         return total + (product.total || 0);
       }
       return total;

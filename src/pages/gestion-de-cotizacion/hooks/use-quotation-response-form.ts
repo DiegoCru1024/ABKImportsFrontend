@@ -155,7 +155,7 @@ export function useQuotationResponseForm({
   useEffect(() => {
     const user = obtenerUser();
     setId_asesor(user.id_usuario);
-    setNombre_asesor(user.nombre || null);
+    setNombre_asesor(user?.name || null);
   }, []);
   
   // Función para detectar si es servicio marítimo
@@ -241,6 +241,25 @@ export function useQuotationResponseForm({
       [field]: value
     }));
   };
+
+  // Función para actualizar estado de cotización de productos
+  const updateProductQuotationState = (productId: string, value: boolean) => {
+    setProductQuotationState(prev => ({
+      ...prev,
+      [productId]: value
+    }));
+  };
+
+  // Función para actualizar estado de cotización de variantes
+  const updateVariantQuotationState = (productId: string, variantId: string, value: boolean) => {
+    setVariantQuotationState(prev => ({
+      ...prev,
+      [productId]: {
+        ...prev[productId],
+        [variantId]: value
+      }
+    }));
+  };
   
   return {
     // Estados principales
@@ -309,6 +328,8 @@ export function useQuotationResponseForm({
     setProductQuotationState,
     variantQuotationState,
     setVariantQuotationState,
+    updateProductQuotationState,
+    updateVariantQuotationState,
     
     // Funciones utilitarias
     isMaritimeService: () => isMaritimeService(selectedServiceLogistic),

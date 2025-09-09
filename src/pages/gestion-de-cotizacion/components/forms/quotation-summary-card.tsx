@@ -19,6 +19,7 @@ interface QuotationSummaryCardProps {
   totalPrice: number;
   totalExpress: number;
   totalGeneral: number;
+  itemCount?: number; // Opcional para vista pendiente
 }
 
 export function QuotationSummaryCard({
@@ -28,6 +29,7 @@ export function QuotationSummaryCard({
   totalPrice,
   totalExpress,
   totalGeneral,
+  itemCount,
 }: QuotationSummaryCardProps) {
   return (
     <Card className="bg-white shadow-lg border border-gray-100 overflow-hidden rounded-2xl">
@@ -68,7 +70,7 @@ export function QuotationSummaryCard({
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4 items-center justify-center max-w-4xl mx-auto">
             <div className="bg-white rounded-lg p-4 text-center border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200">
               <div className="text-xl font-bold text-slate-800 mb-1">
-                {productCount}
+                {itemCount !== undefined ? itemCount : productCount}
               </div>
               <div className="text-xs font-medium text-slate-600">
                 N° de Items

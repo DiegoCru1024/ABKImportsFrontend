@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { FileText, Send, Loader2 } from "lucide-react";
 
 import { useGetQuotationById } from "@/hooks/use-quation";
@@ -117,7 +117,7 @@ export default function QuotationResponseView({
     if (editableUnitCostTableProducts.length > 0 && !isPendingView) {
       quotationForm.setEditableUnitCostProducts(editableUnitCostTableProducts);
     }
-  }, [editableUnitCostTableProducts, isPendingView, quotationForm]);
+  }, [editableUnitCostTableProducts, isPendingView]);
 
   // Inicializar estados de cotización como true por defecto
   useEffect(() => {
@@ -160,7 +160,7 @@ export default function QuotationResponseView({
         });
       }
     }
-  }, [mappedProducts, quotationForm]);
+  }, [mappedProducts]);
 
   const calculations = useQuotationCalculations({
     products: mappedProducts,
@@ -183,7 +183,7 @@ export default function QuotationResponseView({
   }>>({});
 
   // Función para manejar cambios en datos agregados de productos
-  const handleAggregatedDataChange = (productId: string, aggregatedData: {
+  const handleAggregatedDataChange = useCallback((productId: string, aggregatedData: {
     totalPrice: number;
     totalWeight: number;
     totalCBM: number;
@@ -194,7 +194,7 @@ export default function QuotationResponseView({
       ...prev,
       [productId]: aggregatedData
     }));
-  };
+  }, []);
 
   // Calcular totales generales para vista pendiente
   const pendingViewTotals = useMemo(() => {

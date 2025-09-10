@@ -2,8 +2,7 @@
 import React from "react";
 import { useParams } from "react-router-dom";
 
-// New Architecture Components
-import ResponseListContainer from "./components/quotation-responses/ResponseListContainer";
+
 
 // Legacy components and hooks (for backwards compatibility)
 import { useGetQuotationById } from "@/hooks/use-quation";
@@ -107,7 +106,7 @@ export default function RespuestasCotizacionView() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-500/5 via-background to-blue-400/10">
       <div className="p-6">
-        <ResponseListContainer
+        {/*<ResponseListContainer
           quotationId={quotationId}
           quotationData={quotationDetail ? {
             correlative: quotationDetail.correlative,
@@ -116,7 +115,7 @@ export default function RespuestasCotizacionView() {
             service_type: quotationDetail.service_type,
           } : undefined}
           onBack={handleBack}
-        />
+        />*/}
       </div>
     </div>
   );

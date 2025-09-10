@@ -51,7 +51,19 @@ export const EditableNumericField: React.FC<EditableNumericFieldProps> = ({
       const formattedValue = formatNumber(value || 0);
       setInputValue(formattedValue);
     }
-  }, [value, isEditing, decimalPlaces]);
+  }, [value, decimalPlaces]);
+
+  // Solo actualizar si no estamos editando y el valor externo cambió significativamente
+  useEffect(() => {
+    if (!isEditing) {
+      const currentNumericValue = parseFloat(inputValue) || 0;
+      const externalValue = value || 0;
+      if (Math.abs(currentNumericValue - externalValue) > 0.001) {
+        const formattedValue = formatNumber(externalValue);
+        setInputValue(formattedValue);
+      }
+    }
+  }, [value]);
 
   // Maneja el cambio en cada pulsación de tecla
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

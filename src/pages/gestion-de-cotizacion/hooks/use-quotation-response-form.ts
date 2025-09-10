@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { obtenerUser } from "@/lib/functions";
 
 interface DynamicValues {
@@ -243,15 +243,15 @@ export function useQuotationResponseForm({
   };
 
   // Función para actualizar estado de cotización de productos
-  const updateProductQuotationState = (productId: string, value: boolean) => {
+  const updateProductQuotationState = useCallback((productId: string, value: boolean) => {
     setProductQuotationState(prev => ({
       ...prev,
       [productId]: value
     }));
-  };
+  }, []);
 
   // Función para actualizar estado de cotización de variantes
-  const updateVariantQuotationState = (productId: string, variantId: string, value: boolean) => {
+  const updateVariantQuotationState = useCallback((productId: string, variantId: string, value: boolean) => {
     setVariantQuotationState(prev => ({
       ...prev,
       [productId]: {
@@ -259,7 +259,20 @@ export function useQuotationResponseForm({
         [variantId]: value
       }
     }));
-  };
+  }, []);
+
+  // Función para establecer productos con useCallback para evitar re-renders
+  const setEditableUnitCostProductsCallback = useCallback((products: any[]) => {
+    setEditableUnitCostProducts(products);
+  }, []);
+
+  const setEditablePendingProductsCallback = useCallback((products: any[]) => {
+    setEditablePendingProducts(products);
+  }, []);
+
+  const setEditableProductsWithVariantsCallback = useCallback((products: any[]) => {
+    setEditableProductsWithVariants(products);
+  }, []);
   
   return {
     // Estados principales
@@ -319,11 +332,11 @@ export function useQuotationResponseForm({
     
     // Productos
     editableUnitCostProducts,
-    setEditableUnitCostProducts,
+    setEditableUnitCostProducts: setEditableUnitCostProductsCallback,
     editablePendingProducts,
-    setEditablePendingProducts,
+    setEditablePendingProducts: setEditablePendingProductsCallback,
     editableProductsWithVariants,
-    setEditableProductsWithVariants,
+    setEditableProductsWithVariants: setEditableProductsWithVariantsCallback,
     productQuotationState,
     setProductQuotationState,
     variantQuotationState,

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   Package,
 } from "lucide-react";
@@ -73,11 +73,13 @@ export default function EditableUnitCostTable({
   products,
 }: EditableUnitCostTableProps) {
   const [data, setData] = useState<ProductRow[]>(products || initialProducts);
+  const isInternalUpdate = useRef(false);
 
   useEffect(() => {
-    if (products && products.length > 0) {
+    if (products && products.length > 0 && !isInternalUpdate.current) {
       setData(products);
     }
+    isInternalUpdate.current = false;
   }, [products]);
 
   const handleDataChange = (newData: ProductRow[]) => {
@@ -88,6 +90,7 @@ export default function EditableUnitCostTable({
   };
 
   const updateProduct = useCallback((id: string, field: keyof ProductRow, value: number | boolean) => {
+    isInternalUpdate.current = true;
     setData(prevData => {
       const newData = prevData.map(product => {
         if (product.id === id) {
@@ -103,18 +106,19 @@ export default function EditableUnitCostTable({
         return product;
       });
       
-      // Notificar al padre después de un pequeño delay para evitar loops
-      setTimeout(() => {
-        if (onProductsChange) {
-          onProductsChange(newData);
-        }
-      }, 0);
-      
       return newData;
     });
-  }, [onProductsChange]);
+  }, []);
+
+  // Efecto separado para notificar cambios al padre
+  useEffect(() => {
+    if (onProductsChange) {
+      onProductsChange(data);
+    }
+  }, [data, onProductsChange]);
 
   const updateVariant = useCallback((productId: string, variantId: string, field: keyof ProductVariant, value: number | boolean) => {
+    isInternalUpdate.current = true;
     setData(prevData => {
       const newData = prevData.map(product => {
         if (product.id === productId && product.variants) {
@@ -138,16 +142,9 @@ export default function EditableUnitCostTable({
         return product;
       });
       
-      // Notificar al padre después de un pequeño delay para evitar loops
-      setTimeout(() => {
-        if (onProductsChange) {
-          onProductsChange(newData);
-        }
-      }, 0);
-      
       return newData;
     });
-  }, [onProductsChange]);
+  }, []);
 
   const calculateCommercialValue = useCallback(() => {
     return data.reduce((total, product) => {

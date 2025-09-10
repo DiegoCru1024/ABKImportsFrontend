@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import {
   Eye,
   Link as LinkIcon,
@@ -107,10 +107,24 @@ export default function QuotationProductRow({
   // Estado local para los valores del producto
   const [localProduct, setLocalProduct] = useState<Product>(product);
   
-  // Actualizar estado local cuando el producto cambie desde el padre
+  // Solo actualizar el estado local si hay cambios significativos desde el padre
+  // y no estamos en medio de una edición
   useEffect(() => {
-    setLocalProduct(product);
-  }, [product]);
+    // Comparar solo propiedades clave para evitar actualizaciones innecesarias
+    const hasSignificantChange = (
+      product.id !== localProduct.id ||
+      product.name !== localProduct.name ||
+      (product.variants && localProduct.variants && product.variants.length !== localProduct.variants.length)
+    );
+    
+    if (hasSignificantChange) {
+      setLocalProduct(product);
+    }
+  }, [product.id, product.name, product.variants?.length]);
+
+  // Definir productVariants antes de usarlo en useMemo
+  const isProductSelected = productQuotationState[product.id] !== undefined ? productQuotationState[product.id] : true;
+  const productVariants = variantQuotationState[product.id] || {};
 
   // Cálculos dinámicos agregados de las variantes
   const aggregatedData = useMemo(() => {
@@ -141,12 +155,21 @@ export default function QuotationProductRow({
     );
   }, [localProduct.variants, productVariants, localProduct.price, localProduct.weight, localProduct.cbm, localProduct.quantity]);
 
+  // Usar ref para evitar llamadas innecesarias
+  const previousAggregatedDataRef = useRef<any>(null);
+  
   // Notificar al padre cuando cambien los datos agregados
   useEffect(() => {
     if (onAggregatedDataChange) {
-      onAggregatedDataChange(product.id, aggregatedData);
+      const current = JSON.stringify(aggregatedData);
+      const previous = JSON.stringify(previousAggregatedDataRef.current);
+      
+      if (current !== previous) {
+        onAggregatedDataChange(product.id, aggregatedData);
+        previousAggregatedDataRef.current = aggregatedData;
+      }
     }
-  }, [aggregatedData, product.id, onAggregatedDataChange]);
+  }, [aggregatedData, product.id]);
 
   const handleToggleExpanded = () => {
     setIsExpanded(!isExpanded);
@@ -209,9 +232,6 @@ export default function QuotationProductRow({
       onVariantUpdate(product.id, variantId, { [field]: value });
     }
   };
-
-  const isProductSelected = productQuotationState[product.id] !== undefined ? productQuotationState[product.id] : true;
-  const productVariants = variantQuotationState[product.id] || {};
 
   return (
     <div className="border border-gray-200 rounded-lg p-4 bg-white hover:shadow-md transition-shadow">

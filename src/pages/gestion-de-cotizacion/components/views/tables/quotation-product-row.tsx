@@ -5,8 +5,10 @@ import {
   MessageSquare,
   ChevronDown,
   ChevronUp,
+  ChevronRight,
   Check,
   X,
+  Package,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -26,9 +28,11 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Card, CardContent } from "@/components/ui/card";
 import ImageCarouselModal from "@/components/ImageCarouselModal";
 
 interface ProductVariant {
@@ -234,258 +238,240 @@ export default function QuotationProductRow({
   };
 
   return (
-    <div className="border border-gray-200 rounded-lg p-4 bg-white hover:shadow-md transition-shadow">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Checkbox
-            checked={isProductSelected}
-            onCheckedChange={handleProductQuotationToggle}
-          />
-          <div className="flex-1 min-w-0">
-            <h3 className="font-medium text-gray-900 truncate">
-              {localProduct.name}
-            </h3>
-            <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
-              <span>Cantidad: {aggregatedData.totalQuantity}</span>
-              <span>Precio: ${aggregatedData.totalPrice.toFixed(2)}</span>
-              <span>Peso: {aggregatedData.totalWeight.toFixed(2)}kg</span>
-              <span>CBM: {aggregatedData.totalCBM.toFixed(3)}</span>
-              {aggregatedData.totalExpress > 0 && <span>Express: ${aggregatedData.totalExpress.toFixed(2)}</span>}
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          {localProduct.images && localProduct.images.length > 0 && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => handleOpenImages(localProduct.images || [], 0)}
-              className="flex items-center gap-1"
-            >
-              <Eye className="w-4 h-4" />
-              Ver Imágenes ({localProduct.images.length})
-            </Button>
-          )}
-
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => setIsCommentModalOpen(true)}
-            className="flex items-center gap-1"
-          >
-            <MessageSquare className="w-4 h-4" />
-            Comentario
-          </Button>
-
-          {localProduct.variants && localProduct.variants.length > 0 && (
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={handleToggleExpanded}
-              className="flex items-center gap-1"
-            >
-              {isExpanded ? (
-                <ChevronUp className="w-4 h-4" />
-              ) : (
-                <ChevronDown className="w-4 h-4" />
-              )}
-              Variantes ({localProduct.variants.length})
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {/* Campo de precio editable */}
-      {isProductSelected && (
-        <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Precio Total</Label>
-            <div className="p-3 bg-gray-50 border rounded-lg">
-              <span className="text-lg font-semibold text-gray-900">
-                ${aggregatedData.totalPrice.toFixed(2)}
-              </span>
-              <span className="text-sm text-gray-500 ml-2">
-                (Suma de variantes)
-              </span>
-            </div>
-          </div>
-          
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Peso Total (kg)</Label>
-            <div className="p-3 bg-gray-50 border rounded-lg">
-              <span className="text-lg font-semibold text-gray-900">
-                {aggregatedData.totalWeight.toFixed(2)} kg
-              </span>
-              <span className="text-sm text-gray-500 ml-2">
-                (Suma de variantes)
-              </span>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">CBM Total</Label>
-            <div className="p-3 bg-gray-50 border rounded-lg">
-              <span className="text-lg font-semibold text-gray-900">
-                {aggregatedData.totalCBM.toFixed(3)} m³
-              </span>
-              <span className="text-sm text-gray-500 ml-2">
-                (Suma de variantes)
-              </span>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Cantidad Total</Label>
-            <div className="p-3 bg-gray-50 border rounded-lg">
-              <span className="text-lg font-semibold text-gray-900">
-                {aggregatedData.totalQuantity}
-              </span>
-              <span className="text-sm text-gray-500 ml-2">
-                (Suma de variantes)
-              </span>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Variantes expandidas */}
-      {isExpanded && localProduct.variants && localProduct.variants.length > 0 && (
-        <div className="mt-6 pl-6 border-l-2 border-gray-200 space-y-4">
-          <h4 className="font-medium text-gray-700">Variantes del Producto</h4>
-          {localProduct.variants.map((variant, variantIndex) => {
-            const isVariantSelected = productVariants[variant.id] !== undefined ? productVariants[variant.id] : true;
-            return (
-            <div
-              key={variant.id}
-              className="bg-gray-50 rounded-lg p-4 border border-gray-200"
-            >
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-3">
-                  <Checkbox
-                    checked={isVariantSelected}
-                    onCheckedChange={(checked) => 
-                      handleVariantQuotationToggle(variant.id, checked as boolean)
-                    }
-                  />
-                  <div>
-                    <h5 className="font-medium text-gray-800">
-                      {variant.name}
-                    </h5>
-                    <div className="flex items-center gap-3 text-sm text-gray-500">
-                      <span>Cantidad: {variant.quantity}</span>
-                      <span>Precio: ${variant.price?.toFixed(2) || '0.00'}</span>
-                      <span>Express: ${variant.priceExpress?.toFixed(2) || '0.00'}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {variant.images && variant.images.length > 0 && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleOpenImages(variant.images || [], 0)}
-                    className="flex items-center gap-1"
-                  >
-                    <Eye className="w-4 h-4" />
-                    Ver ({variant.images.length})
-                  </Button>
-                )}
-              </div>
-
-              {/* Campos editables para variantes seleccionadas */}
-              {isVariantSelected && (
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Precio Unitario</Label>
-                    <EditableNumericField
-                      value={variant.price || 0}
-                      onChange={(value) => handleVariantFieldChange(variant.id, 'price', value)}
-                      prefix="$"
-                      decimalPlaces={2}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Precio Express</Label>
-                    <EditableNumericField
-                      value={variant.priceExpress || 0}
-                      onChange={(value) => handleVariantFieldChange(variant.id, 'priceExpress', value)}
-                      prefix="$"
-                      decimalPlaces={2}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Cantidad</Label>
-                    <EditableNumericField
-                      value={variant.quantity || 0}
-                      onChange={(value) => 
-                        handleVariantFieldChange(variant.id, 'quantity', value)
-                      }
-                      decimalPlaces={0}
-                      min={0}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Peso (kg)</Label>
-                    <EditableNumericField
-                      value={variant.weight || 0}
-                      onChange={(value) => handleVariantFieldChange(variant.id, 'weight', value)}
-                      suffix="kg"
-                      decimalPlaces={2}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">CBM</Label>
-                    <EditableNumericField
-                      value={variant.cbm || 0}
-                      onChange={(value) => handleVariantFieldChange(variant.id, 'cbm', value)}
-                      suffix="m³"
-                      decimalPlaces={3}
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Modal de comentario */}
-      <Dialog open={isCommentModalOpen} onOpenChange={setIsCommentModalOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Comentario del Administrador</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="comment">Agregar comentario para: {product.name}</Label>
-              <Textarea
-                id="comment"
-                value={adminComment}
-                onChange={(e) => setAdminComment(e.target.value)}
-                placeholder="Escriba un comentario sobre este producto..."
-                rows={4}
+    <Card className="overflow-hidden">
+      <CardContent className="p-0">
+        {/* Main Product Row */}
+        <div className="p-6 border-b border-border">
+          <div className="flex items-center gap-4">
+            {/* Product Checkbox */}
+            <div className="flex-shrink-0">
+              <Checkbox
+                checked={isProductSelected}
+                onCheckedChange={handleProductQuotationToggle}
               />
             </div>
-            <div className="flex justify-end gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setIsCommentModalOpen(false)}
-              >
-                Cancelar
-              </Button>
-              <Button onClick={handleSaveComment}>
-                Guardar Comentario
-              </Button>
+
+            {/* Product Image */}
+            <div className="flex-shrink-0">
+              {localProduct.images && localProduct.images.length > 0 ? (
+                <div className="relative">
+                  <img
+                    src={localProduct.images[0]?.url || "/placeholder.svg"}
+                    alt={localProduct.name}
+                    className="w-20 h-20 object-cover rounded-lg border border-border"
+                  />
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
+                    onClick={() => handleOpenImages(localProduct.images || [], 0)}
+                  >
+                    <Eye className="h-3 w-3" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="w-20 h-20 bg-muted rounded-lg flex items-center justify-center">
+                  <Package className="h-8 w-8 text-muted-foreground" />
+                </div>
+              )}
+            </div>
+
+            {/* Product Info */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-3 mb-2">
+                <h3 className="font-heading text-lg font-bold text-foreground truncate">
+                  {localProduct.name}
+                </h3>
+                {localProduct.variants && localProduct.variants.length > 0 && (
+                  <Badge variant="secondary" className="font-body">
+                    {localProduct.variants.length} variante{localProduct.variants.length !== 1 ? "s" : ""}
+                  </Badge>
+                )}
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm font-body">
+                <div>
+                  <span className="text-muted-foreground">Cantidad:</span>
+                  <span className="ml-1 font-semibold">{aggregatedData.totalQuantity}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Precio:</span>
+                  <span className="ml-1 font-semibold">${aggregatedData.totalPrice.toFixed(2)}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Peso:</span>
+                  <span className="ml-1 font-semibold">{aggregatedData.totalWeight.toFixed(2)}kg</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">CBM:</span>
+                  <span className="ml-1 font-semibold">{aggregatedData.totalCBM.toFixed(3)}</span>
+                </div>
+              </div>
+              {aggregatedData.totalExpress > 0 && (
+                <div className="mt-2 text-sm font-body">
+                  <span className="text-muted-foreground">Express:</span>
+                  <span className="ml-1 font-semibold">${aggregatedData.totalExpress.toFixed(2)}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center gap-2">
+              <Dialog open={isCommentModalOpen} onOpenChange={setIsCommentModalOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm" className="font-body bg-transparent">
+                    <MessageSquare className="h-4 w-4 mr-2" />
+                    Comentario
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle className="font-heading">Comentario del Administrador</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <p className="font-body text-sm text-muted-foreground">
+                      Agregar comentario para: {localProduct.name}
+                    </p>
+                    <Textarea
+                      placeholder="Escriba un comentario sobre este producto..."
+                      value={adminComment}
+                      onChange={(e) => setAdminComment(e.target.value)}
+                      className="font-body"
+                    />
+                    <div className="flex justify-end gap-2">
+                      <Button 
+                        variant="outline" 
+                        className="font-body bg-transparent"
+                        onClick={() => setIsCommentModalOpen(false)}
+                      >
+                        Cancelar
+                      </Button>
+                      <Button 
+                        className="font-body"
+                        onClick={handleSaveComment}
+                      >
+                        Guardar Comentario
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+
+              {localProduct.variants && localProduct.variants.length > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleToggleExpanded}
+                  className="font-body"
+                >
+                  {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                  Variantes ({localProduct.variants.length})
+                </Button>
+              )}
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
+        </div>
+
+        {/* Expanded Variants */}
+        {isExpanded && localProduct.variants && localProduct.variants.length > 0 && (
+          <div className="bg-muted/30">
+            <div className="p-4">
+              <h4 className="font-heading text-sm font-bold text-foreground mb-3">Variantes del Producto</h4>
+              <div className="space-y-3">
+                {localProduct.variants.map((variant) => {
+                  const isVariantSelected = productVariants[variant.id] !== undefined ? productVariants[variant.id] : true;
+                  return (
+                    <div key={variant.id} className="bg-card rounded-lg p-4 border border-border">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <Checkbox
+                            checked={isVariantSelected}
+                            onCheckedChange={(checked) => 
+                              handleVariantQuotationToggle(variant.id, checked as boolean)
+                            }
+                          />
+                          <div className="w-2 h-2 bg-primary rounded-full"></div>
+                          <span className="font-body font-semibold text-sm">
+                            {variant.name}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="font-body text-xs">
+                            Cantidad: {variant.quantity}
+                          </Badge>
+                          {variant.images && variant.images.length > 0 && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleOpenImages(variant.images || [], 0)}
+                              className="flex items-center gap-1"
+                            >
+                              <Eye className="w-4 h-4" />
+                              Ver ({variant.images.length})
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Campos editables para variantes seleccionadas */}
+                      {isVariantSelected && (
+                        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-xs font-body">
+                          <div className="bg-background rounded p-2 text-center">
+                            <div className="text-muted-foreground mb-1">Precio Unitario</div>
+                            <EditableNumericField
+                              value={variant.price || 0}
+                              onChange={(value) => handleVariantFieldChange(variant.id, 'price', value)}
+                              prefix="$"
+                              decimalPlaces={2}
+                            />
+                          </div>
+                          <div className="bg-background rounded p-2 text-center">
+                            <div className="text-muted-foreground mb-1">Precio Express</div>
+                            <EditableNumericField
+                              value={variant.priceExpress || 0}
+                              onChange={(value) => handleVariantFieldChange(variant.id, 'priceExpress', value)}
+                              prefix="$"
+                              decimalPlaces={2}
+                            />
+                          </div>
+                          <div className="bg-background rounded p-2 text-center">
+                            <div className="text-muted-foreground mb-1">Cantidad</div>
+                            <EditableNumericField
+                              value={variant.quantity || 0}
+                              onChange={(value) => 
+                                handleVariantFieldChange(variant.id, 'quantity', value)
+                              }
+                              decimalPlaces={0}
+                              min={0}
+                            />
+                          </div>
+                          <div className="bg-background rounded p-2 text-center">
+                            <div className="text-muted-foreground mb-1">Peso (kg)</div>
+                            <EditableNumericField
+                              value={variant.weight || 0}
+                              onChange={(value) => handleVariantFieldChange(variant.id, 'weight', value)}
+                              suffix="kg"
+                              decimalPlaces={2}
+                            />
+                          </div>
+                          <div className="bg-background rounded p-2 text-center">
+                            <div className="text-muted-foreground mb-1">CBM</div>
+                            <EditableNumericField
+                              value={variant.cbm || 0}
+                              onChange={(value) => handleVariantFieldChange(variant.id, 'cbm', value)}
+                              suffix="m³"
+                              decimalPlaces={3}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+      </CardContent>
 
       {/* Modal de imágenes */}
       <ImageCarouselModal
@@ -493,8 +479,8 @@ export default function QuotationProductRow({
         onClose={() => setIsImageModalOpen(false)}
         files={[]}
         attachments={selectedImages.map(img => img.url)}
-        productName={product.name}
+        productName={localProduct.name}
       />
-    </div>
+    </Card>
   );
 }

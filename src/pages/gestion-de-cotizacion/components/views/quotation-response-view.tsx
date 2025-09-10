@@ -449,18 +449,18 @@ export default function QuotationResponseView({
               </div>
             </div>
 
-            <DynamicValuesForm
+            {/*<DynamicValuesForm
               dynamicValues={quotationForm.dynamicValues}
               onUpdateValue={quotationForm.updateDynamicValue}
               onKgChange={quotationForm.handleKgChange}
               isMaritimeService={quotationForm.isMaritimeService()}
-            />
+            />*/}
 
-            <ExemptionControls
+            {/*<ExemptionControls
               exemptionState={quotationForm.exemptionState}
               onExemptionChange={quotationForm.updateExemptionState}
               isMaritimeService={quotationForm.isMaritimeService()}
-            />
+            />*/}
           </>
         ) : (
           /* Vista completa con todos los componentes */

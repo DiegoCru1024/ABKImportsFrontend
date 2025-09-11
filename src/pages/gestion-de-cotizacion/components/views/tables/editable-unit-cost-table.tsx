@@ -69,6 +69,7 @@ interface EditableUnitCostTableProps {
     checked: boolean
   ) => void;
   products: ProductRow[];
+  totalInvestmentImport?: number; // INVERSION TOTAL DE IMPORTACION from ImportSummaryCard
 }
 
 export default function EditableUnitCostTable({
@@ -82,14 +83,20 @@ export default function EditableUnitCostTable({
   onProductQuotationChange,
   onVariantQuotationChange,
   products,
+  totalInvestmentImport = 0,
 }: EditableUnitCostTableProps) {
   const [data, setData] = useState<ProductRow[]>(products || initialProducts);
   const [expandedProducts, setExpandedProducts] = useState<Set<string>>(new Set());
   const isInternalUpdate = useRef(false);
+  const prevProductsRef = useRef<ProductRow[]>([]);
 
   useEffect(() => {
     if (products && products.length > 0 && !isInternalUpdate.current) {
-      setData(products);
+      // Solo actualizar si los productos realmente cambiaron
+      if (JSON.stringify(products) !== JSON.stringify(prevProductsRef.current)) {
+        setData(products);
+        prevProductsRef.current = products;
+      }
     }
     isInternalUpdate.current = false;
   }, [products]);
@@ -104,12 +111,117 @@ export default function EditableUnitCostTable({
     setExpandedProducts(newExpanded);
   };
 
-  const handleDataChange = (newData: ProductRow[]) => {
-    setData(newData);
-    if (onProductsChange) {
-      onProductsChange(newData);
-    }
-  };
+  // Use ref to track previous values to avoid infinite loops
+  const prevStateRef = useRef({
+    productQuotationState: {},
+    variantQuotationState: {},
+    totalInvestmentImport: 0
+  });
+
+  // Función para calcular valores dinámicos
+  const calculateDynamicValues = useCallback((products: ProductRow[], prodState: Record<string, boolean>, varState: Record<string, Record<string, boolean>>, investment: number) => {
+    // Primero calculamos el total amount de todos los productos seleccionados
+    const totalAmount = products.reduce((total, product) => {
+      const isSelected = prodState[product.id] !== undefined ? prodState[product.id] : true;
+      if (!isSelected) return total;
+
+      const hasVariants = product.variants && product.variants.length > 0;
+      if (hasVariants && product.variants) {
+        return total + product.variants.reduce((variantTotal, variant) => {
+          const isVariantSelected = varState[product.id]?.[variant.id] !== undefined
+            ? varState[product.id][variant.id]
+            : true;
+          return isVariantSelected ? variantTotal + (variant.total || 0) : variantTotal;
+        }, 0);
+      } else {
+        return total + (product.total || 0);
+      }
+    }, 0);
+
+    // Luego aplicamos los cálculos dinámicos a cada producto
+    return products.map(product => {
+      const isSelected = prodState[product.id] !== undefined ? prodState[product.id] : true;
+      if (!isSelected) return product;
+
+      const hasVariants = product.variants && product.variants.length > 0;
+      
+      if (hasVariants && product.variants) {
+        const updatedVariants = product.variants.map(variant => {
+          const isVariantSelected = varState[product.id]?.[variant.id] !== undefined
+            ? varState[product.id][variant.id]
+            : true;
+          if (!isVariantSelected) return variant;
+
+          // EQUIVALENCIA: (variant.total / totalAmount) * 100
+          const equivalence = totalAmount > 0 ? (variant.total / totalAmount) * 100 : 0;
+          
+          // GASTOS DE IMPORTACIÓN: (equivalence / 100) * investment
+          const importCosts = (equivalence / 100) * investment;
+          
+          // COSTO TOTAL: variant.total + importCosts
+          const totalCost = variant.total + importCosts;
+          
+          // COSTO UNITARIO: totalCost / variant.quantity
+          const unitCost = variant.quantity > 0 ? totalCost / variant.quantity : 0;
+
+          return {
+            ...variant,
+            equivalence,
+            importCosts,
+            totalCost,
+            unitCost
+          };
+        });
+
+        return {
+          ...product,
+          variants: updatedVariants,
+          // Para productos con variantes, calcular valores agregados
+          equivalence: updatedVariants.reduce((sum, v) => sum + (v.equivalence || 0), 0),
+          importCosts: updatedVariants.reduce((sum, v) => sum + (v.importCosts || 0), 0),
+          totalCost: updatedVariants.reduce((sum, v) => sum + (v.totalCost || 0), 0),
+          unitCost: updatedVariants.length > 0 ? updatedVariants.reduce((sum, v) => sum + (v.unitCost || 0), 0) / updatedVariants.length : 0
+        };
+      } else {
+        // EQUIVALENCIA: (product.total / totalAmount) * 100
+        const equivalence = totalAmount > 0 ? (product.total / totalAmount) * 100 : 0;
+        
+        // GASTOS DE IMPORTACIÓN: (equivalence / 100) * investment
+        const importCosts = (equivalence / 100) * investment;
+        
+        // COSTO TOTAL: product.total + importCosts
+        const totalCost = product.total + importCosts;
+        
+        // COSTO UNITARIO: totalCost / product.quantity
+        const unitCost = product.quantity > 0 ? totalCost / product.quantity : 0;
+
+        return {
+          ...product,
+          equivalence,
+          importCosts,
+          totalCost,
+          unitCost
+        };
+      }
+    });
+  }, []);
+
+  // Aplicar cálculos dinámicos con debounce para evitar loops infinitos
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (data.length > 0 && !isInternalUpdate.current) {
+        const updatedData = calculateDynamicValues(data, productQuotationState, variantQuotationState, totalInvestmentImport);
+        const hasChanges = JSON.stringify(updatedData) !== JSON.stringify(data);
+        if (hasChanges) {
+          isInternalUpdate.current = true;
+          setData(updatedData);
+        }
+      }
+      isInternalUpdate.current = false;
+    }, 50); // Increased delay to prevent immediate circular updates
+
+    return () => clearTimeout(timeout);
+  }, [productQuotationState, variantQuotationState, totalInvestmentImport, calculateDynamicValues]);
 
   const updateProduct = useCallback((id: string, field: keyof ProductRow, value: number | boolean) => {
     isInternalUpdate.current = true;
@@ -128,15 +240,21 @@ export default function EditableUnitCostTable({
         return product;
       });
       
+      // No recalcular aquí, se hará en el useEffect
       return newData;
     });
   }, []);
 
-  // Efecto separado para notificar cambios al padre
+  // Efecto separado para notificar cambios al padre con debounce
   useEffect(() => {
-    if (onProductsChange) {
-      onProductsChange(data);
-    }
+    const timeout = setTimeout(() => {
+      if (onProductsChange && !isInternalUpdate.current) {
+        onProductsChange(data);
+      }
+      isInternalUpdate.current = false;
+    }, 100); // Debounce para evitar notificaciones excesivas
+
+    return () => clearTimeout(timeout);
   }, [data, onProductsChange]);
 
   const updateVariant = useCallback((productId: string, variantId: string, field: keyof ProductVariant, value: number | boolean) => {
@@ -164,6 +282,7 @@ export default function EditableUnitCostTable({
         return product;
       });
       
+      // No recalcular aquí, se hará en el useEffect
       return newData;
     });
   }, []);
@@ -203,10 +322,14 @@ export default function EditableUnitCostTable({
   }, [data, productQuotationState, variantQuotationState]);
 
   useEffect(() => {
-    const commercialValue = calculateCommercialValue();
-    if (onCommercialValueChange) {
-      onCommercialValueChange(commercialValue);
-    }
+    const timeout = setTimeout(() => {
+      const commercialValue = calculateCommercialValue();
+      if (onCommercialValueChange) {
+        onCommercialValueChange(commercialValue);
+      }
+    }, 100); // Debounce para evitar notificaciones excesivas
+
+    return () => clearTimeout(timeout);
   }, [data, productQuotationState, onCommercialValueChange, calculateCommercialValue]);
 
   // Totales de footer (considerando productos/variantes seleccionados)
@@ -259,19 +382,39 @@ export default function EditableUnitCostTable({
     };
   }, [data, productQuotationState, variantQuotationState]);
 
-  // Factor M: basado en el primer producto seleccionado con precio y costo unitario válidos
+  // Factor M: basado en el primer producto/variante seleccionado con precio y costo unitario válidos
   const factorM = React.useMemo(() => {
-    const selectedProduct = data.find((p) => {
-      const isSelected =
-        productQuotationState[p.id] !== undefined
-          ? productQuotationState[p.id]
-          : true;
-      return isSelected && (p.price || 0) > 0 && (p.unitCost || 0) > 0;
-    });
+    // Buscar en productos principales primero
+    for (const product of data) {
+      const isSelected = productQuotationState[product.id] !== undefined
+        ? productQuotationState[product.id]
+        : true;
+      
+      if (!isSelected) continue;
 
-    if (!selectedProduct) return 0;
-    return (selectedProduct.unitCost || 0) / (selectedProduct.price || 1);
-  }, [data, productQuotationState]);
+      const hasVariants = product.variants && product.variants.length > 0;
+      
+      if (hasVariants && product.variants) {
+        // Buscar en variantes
+        for (const variant of product.variants) {
+          const isVariantSelected = variantQuotationState[product.id]?.[variant.id] !== undefined
+            ? variantQuotationState[product.id][variant.id]
+            : true;
+          
+          if (isVariantSelected && (variant.price || 0) > 0 && (variant.unitCost || 0) > 0) {
+            return (variant.unitCost || 0) / (variant.price || 1);
+          }
+        }
+      } else {
+        // Producto sin variantes
+        if ((product.price || 0) > 0 && (product.unitCost || 0) > 0) {
+          return (product.unitCost || 0) / (product.price || 1);
+        }
+      }
+    }
+    
+    return 0;
+  }, [data, productQuotationState, variantQuotationState]);
 
   return (
     <Card className="bg-white shadow-lg border border-gray-100 rounded-2xl overflow-hidden">
@@ -315,11 +458,11 @@ export default function EditableUnitCostTable({
                 ${calculateCommercialValue().toFixed(2)}
               </span>
             </div>
-            {totalImportCosts > 0 && (
+            {totalInvestmentImport > 0 && (
               <div className="flex items-center justify-between text-sm mt-2">
-                <span className="font-medium text-slate-700">Costos de Importación:</span>
+                <span className="font-medium text-slate-700">Inversión Total de Importación:</span>
                 <span className="font-semibold text-orange-600">
-                  ${totalImportCosts.toFixed(2)}
+                  ${totalInvestmentImport.toFixed(2)}
                 </span>
               </div>
             )}
@@ -403,7 +546,7 @@ export default function EditableUnitCostTable({
                         </TableCell>
                         <TableCell>
                           {hasVariants ? (
-                            <span className="font-semibold text-primary">USD {productTotal.toFixed(2)}</span>
+                            <span className="font-semibold text-primary">Variantes</span>
                           ) : (
                             <EditableNumericField
                               value={product.price || 0}
@@ -429,36 +572,24 @@ export default function EditableUnitCostTable({
                           <span className="font-semibold text-primary">USD {productTotal.toFixed(2)}</span>
                         </TableCell>
                         <TableCell>
-                          <EditableNumericField
-                            value={product.equivalence || 0}
-                            onChange={(value) => updateProduct(product.id, 'equivalence', value)}
-                            suffix="%"
-                            decimalPlaces={2}
-                          />
+                          <span className="text-sm font-medium text-blue-600">
+                            {(product.equivalence || 0).toFixed(2)}%
+                          </span>
                         </TableCell>
                         <TableCell>
-                          <EditableNumericField
-                            value={product.importCosts || 0}
-                            onChange={(value) => updateProduct(product.id, 'importCosts', value)}
-                            prefix="$"
-                            decimalPlaces={2}
-                          />
+                          <span className="text-sm font-medium text-orange-600">
+                            USD {(product.importCosts || 0).toFixed(2)}
+                          </span>
                         </TableCell>
                         <TableCell>
-                          <EditableNumericField
-                            value={product.totalCost || 0}
-                            onChange={(value) => updateProduct(product.id, 'totalCost', value)}
-                            prefix="$"
-                            decimalPlaces={2}
-                          />
+                          <span className="text-sm font-semibold text-green-600">
+                            USD {(product.totalCost || 0).toFixed(2)}
+                          </span>
                         </TableCell>
                         <TableCell>
-                          <EditableNumericField
-                            value={product.unitCost || 0}
-                            onChange={(value) => updateProduct(product.id, 'unitCost', value)}
-                            prefix="$"
-                            decimalPlaces={2}
-                          />
+                          <span className="text-sm font-semibold text-purple-600">
+                            USD {(product.unitCost || 0).toFixed(2)}
+                          </span>
                         </TableCell>
                       </TableRow>
 
@@ -477,7 +608,7 @@ export default function EditableUnitCostTable({
                                   return (
                                     <div
                                       key={variant.id}
-                                      className="grid grid-cols-12 gap-4 p-3 bg-background rounded-md border items-center"
+                                      className="grid grid-cols-16 gap-2 p-3 bg-background rounded-md border items-center"
                                     >
                                       <div className="col-span-1">
                                         <Checkbox
@@ -523,6 +654,38 @@ export default function EditableUnitCostTable({
                                         <div className="h-8 flex items-center">
                                           <span className="text-sm font-semibold text-primary">
                                             USD {((variant.price || 0) * (variant.quantity || 0)).toFixed(2)}
+                                          </span>
+                                        </div>
+                                      </div>
+                                      <div className="col-span-2">
+                                        <label className="text-xs font-medium text-muted-foreground block mb-1">Equivalencia %</label>
+                                        <div className="h-8 flex items-center">
+                                          <span className="text-sm font-medium text-blue-600">
+                                            {(variant.equivalence || 0).toFixed(2)}%
+                                          </span>
+                                        </div>
+                                      </div>
+                                      <div className="col-span-2">
+                                        <label className="text-xs font-medium text-muted-foreground block mb-1">Gastos Importación</label>
+                                        <div className="h-8 flex items-center">
+                                          <span className="text-sm font-medium text-orange-600">
+                                            USD {(variant.importCosts || 0).toFixed(2)}
+                                          </span>
+                                        </div>
+                                      </div>
+                                      <div className="col-span-2">
+                                        <label className="text-xs font-medium text-muted-foreground block mb-1">Costo Total</label>
+                                        <div className="h-8 flex items-center">
+                                          <span className="text-sm font-semibold text-green-600">
+                                            USD {(variant.totalCost || 0).toFixed(2)}
+                                          </span>
+                                        </div>
+                                      </div>
+                                      <div className="col-span-2">
+                                        <label className="text-xs font-medium text-muted-foreground block mb-1">Costo Unitario</label>
+                                        <div className="h-8 flex items-center">
+                                          <span className="text-sm font-semibold text-purple-600">
+                                            USD {(variant.unitCost || 0).toFixed(2)}
                                           </span>
                                         </div>
                                       </div>

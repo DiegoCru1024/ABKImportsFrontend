@@ -24,6 +24,8 @@ export interface QuotationInfo {
   transitTime: number;
   naviera: string;
   proformaValidity: string;
+  cbm_total: number;
+  peso_total: number;
   id_asesor: string;
 }
 
@@ -76,6 +78,7 @@ export interface Exemptions {
   transporteLocal: boolean;
   totalDerechos: boolean;
 }
+
 export interface serviceFields {
   servicioConsolidado: number;
   separacionCarga: number;
@@ -90,26 +93,7 @@ export interface fiscalObligations {
 export interface importExpenses {
   servicioConsolidadoFinal: number;
   separacionCargaFinal: number;
-  inspeccionProductosFinal: number;
-  servicioConsolidadoMaritimoFinal: number;
-  gestionCertificadoFinal: number;
-  servicioInspeccionFinal: number;
-  transporteLocalFinal: number;
-  desaduanajeFleteSaguro: number;
-  finalValues: finalValues;
   totalGastosImportacion: number;
-}
-
-export interface finalValues {
-  servicioConsolidado: number;
-  gestionCertificado: number;
-  servicioInspeccion: number;
-  transporteLocal: number;
-  separacionCarga: number;
-  inspeccionProductos: number;
-  desaduanajeFleteSaguro: number;
-  transporteLocalChina: number;
-  transporteLocalCliente: number;
 }
 
 export interface ServiceCalculations {
@@ -144,7 +128,7 @@ export interface ProductsQuotationCreateResponseDTO {
   name: string;
   adminComment: string;
   seCotizaProducto: boolean;
-  variants: VariantQuotationResponseDTO[];
+  variants: VariantQuotationCreateResponseDTO[];
 }
 
 export interface VariantQuotationResponseDTO {
@@ -158,6 +142,16 @@ export interface VariantQuotationResponseDTO {
   unitCost: string;
   importCosts: string;
   seCotizaVariante: boolean;
+}
+
+// Nueva interfaz para variantes de creación con la estructura correcta
+export interface VariantQuotationCreateResponseDTO {
+  variantId: string;
+  quantity: number;
+  precio_unitario: number;
+  precio_express_unitario: number;
+  seCotizaVariante: boolean;
+  unitCost?: number;
 }
 
 export interface Calculations {

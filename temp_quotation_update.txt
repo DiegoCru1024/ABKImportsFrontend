@@ -1,0 +1,15 @@
+            <EditableUnitCostTable
+              products={quotationForm.editableUnitCostProducts}
+              onProductsChange={quotationForm.setEditableUnitCostProducts}
+              totalImportCosts={calculations.finalTotal || 0}
+              totalInvestmentImport={calculations.finalTotal || 0}
+              onCommercialValueChange={(value) => quotationForm.updateDynamicValue("comercialValue", value)}
+              productQuotationState={quotationForm.productQuotationState}
+              variantQuotationState={quotationForm.variantQuotationState}
+              onProductQuotationChange={
+                quotationForm.updateProductQuotationState
+              }
+              onVariantQuotationChange={
+                quotationForm.updateVariantQuotationState
+              }
+            />

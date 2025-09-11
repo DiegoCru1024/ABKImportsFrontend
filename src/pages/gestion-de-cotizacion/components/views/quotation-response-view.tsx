@@ -20,6 +20,7 @@ import { ExemptionControls } from "../forms/exemption-controls";
 import { useQuotationResponseForm } from "../../hooks/use-quotation-response-form";
 import { useQuotationCalculations } from "../../hooks/use-quotation-calculations";
 import type { DetailsResponseProps } from "../utils/interface";
+import { buildQuotationResponseDto } from "../../utils/build-quotation-response-dto";
 import {
   aduana,
   courier,
@@ -288,13 +289,28 @@ export default function QuotationResponseView({
   const handleSubmitQuotation = async () => {
     setIsSubmitting(true);
     try {
-      // Lógica para enviar la cotización
-      // Esta sección necesitará la implementación específica del DTO
-      console.log("Enviando cotización...", {
-        quotationId: selectedQuotationId,
-        formData: quotationForm,
+      // Obtener el ID del usuario actual (esto debe venir del contexto de auth)
+      const currentUserId = "75500ef2-e35c-4a77-8074-9104c9d971cb"; // TODO: Obtener del contexto de auth
+      
+      // Obtener los datos de productos según el tipo de vista
+      const productsData = isPendingView 
+        ? mappedProducts 
+        : quotationForm.editableUnitCostProducts;
+
+      // Construir el DTO
+      const quotationResponseDto = buildQuotationResponseDto({
+        selectedQuotationId,
+        quotationDetail,
+        quotationForm,
         calculations,
+        productsData,
+        currentUserId
       });
+
+      console.log("DTO construido:", quotationResponseDto);
+
+      // Enviar la cotización usando el hook
+      await createQuotationResponseMutation.mutateAsync(quotationResponseDto);
 
       quotationForm.setIsSendingModalOpen(true);
     } catch (error) {
@@ -547,18 +563,6 @@ export default function QuotationResponseView({
               </div>
             </div>
 
-            {/*<DynamicValuesForm
-              dynamicValues={quotationForm.dynamicValues}
-              onUpdateValue={quotationForm.updateDynamicValue}
-              onKgChange={quotationForm.handleKgChange}
-              isMaritimeService={quotationForm.isMaritimeService()}
-            />*/}
-
-            {/*<ExemptionControls
-              exemptionState={quotationForm.exemptionState}
-              onExemptionChange={quotationForm.updateExemptionState}
-              isMaritimeService={quotationForm.isMaritimeService()}
-            />*/}
           </>
         ) : (
           /* Vista completa con todos los componentes */
@@ -704,6 +708,11 @@ export default function QuotationResponseView({
               products={quotationForm.editableUnitCostProducts}
               onProductsChange={quotationForm.setEditableUnitCostProducts}
               totalImportCosts={calculations.finalTotal || 0}
+              totalInvestmentImport={calculations.finalTotal || 0}
+              onCommercialValueChange={(value) => {
+                // Actualizar el valor comercial en el formulario dinámico
+                quotationForm.updateDynamicValue("comercialValue", value);
+              }}
               productQuotationState={quotationForm.productQuotationState}
               variantQuotationState={quotationForm.variantQuotationState}
               onProductQuotationChange={
@@ -725,3 +734,4 @@ export default function QuotationResponseView({
     </div>
   );
 }
+

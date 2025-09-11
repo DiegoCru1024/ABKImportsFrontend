@@ -1,5 +1,5 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import type { ProductRow, ProductVariant } from "../views/tables/editable-unit-cost-table";
+import type { ProductRow, ProductVariant } from "../views/editableunitcosttable";
 import { EditableNumericField } from "@/components/ui/editableNumberFieldProps";
 import { Checkbox } from "@/components/ui/checkbox";
 

@@ -19,10 +19,7 @@ export { default as EditableUnitCostTable } from "./views/tables/editable-unit-c
 // Managers
 export { default as ProductManager } from "./views/managers/product-manager";
 
-// Legacy Components (DEPRECATED - Use new components above)
-export { default as DetailsResponse } from "./views/detailsreponse";
-export { default as ListResponses } from "./views/listreponses";
-export { default as ProductRow } from "./views/ProductRow";
+
 
 // Hooks
 export { useQuotationList } from "../hooks/use-quotation-list";

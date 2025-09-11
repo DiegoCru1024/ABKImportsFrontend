@@ -22,7 +22,7 @@ import Calculador from "./pages/calculator";
 import Tarifas from "./pages/Tarifas";
 import Educacion from "./pages/Educacion";
 import Herramientas from "./pages/Herramientas";
-import EditResponse from './pages/gestion-de-cotizacion/components/views/editresponse';
+
 import { QuotationResponseView } from "./pages/gestion-de-cotizacion/components";
 
 function App() {

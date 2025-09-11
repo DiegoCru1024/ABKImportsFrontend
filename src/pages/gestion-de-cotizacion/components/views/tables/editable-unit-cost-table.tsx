@@ -209,10 +209,74 @@ export default function EditableUnitCostTable({
     }
   }, [data, productQuotationState, onCommercialValueChange, calculateCommercialValue]);
 
+  // Totales de footer (considerando productos/variantes seleccionados)
+  const totals = React.useMemo(() => {
+    let totalQuantity = 0;
+    let totalAmount = 0;
+    let totalEquivalence = 0;
+    let totalImportCosts = 0;
+    let totalCost = 0;
+
+    data.forEach((product) => {
+      const isProductSelected =
+        productQuotationState[product.id] !== undefined
+          ? productQuotationState[product.id]
+          : true;
+
+      if (!isProductSelected) return;
+
+      const hasVariants = product.variants && product.variants.length > 0;
+
+      if (hasVariants && product.variants) {
+        product.variants.forEach((variant) => {
+          const isVariantSelected =
+            variantQuotationState[product.id]?.[variant.id] !== undefined
+              ? variantQuotationState[product.id][variant.id]
+              : true;
+          if (!isVariantSelected) return;
+
+          totalQuantity += variant.quantity || 0;
+          totalAmount += variant.total || (variant.price || 0) * (variant.quantity || 0);
+          totalEquivalence += variant.equivalence || 0;
+          totalImportCosts += variant.importCosts || 0;
+          totalCost += variant.totalCost || 0;
+        });
+      } else {
+        totalQuantity += product.quantity || 0;
+        totalAmount += product.total || (product.price || 0) * (product.quantity || 0);
+        totalEquivalence += product.equivalence || 0;
+        totalImportCosts += product.importCosts || 0;
+        totalCost += product.totalCost || 0;
+      }
+    });
+
+    return {
+      totalQuantity,
+      totalAmount,
+      totalEquivalence,
+      totalImportCosts,
+      totalCost,
+    };
+  }, [data, productQuotationState, variantQuotationState]);
+
+  // Factor M: basado en el primer producto seleccionado con precio y costo unitario válidos
+  const factorM = React.useMemo(() => {
+    const selectedProduct = data.find((p) => {
+      const isSelected =
+        productQuotationState[p.id] !== undefined
+          ? productQuotationState[p.id]
+          : true;
+      return isSelected && (p.price || 0) > 0 && (p.unitCost || 0) > 0;
+    });
+
+    if (!selectedProduct) return 0;
+    return (selectedProduct.unitCost || 0) / (selectedProduct.price || 1);
+  }, [data, productQuotationState]);
+
   return (
     <Card className="bg-white shadow-lg border border-gray-100 rounded-2xl overflow-hidden">
       <CardHeader>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between gap-3">
           <div className="p-2 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg shadow-sm">
             <Package className="h-5 w-5 text-white" />
           </div>
@@ -223,6 +287,12 @@ export default function EditableUnitCostTable({
             <p className="text-slate-600 text-sm mt-1">
               Gestiona los costos unitarios de los productos seleccionados
             </p>
+          </div>
+          <div className="ml-auto">
+            <div className="text-right">
+              <div className="text-[10px] font-bold text-slate-600 leading-none">FACTOR M.</div>
+              <div className="text-lg font-extrabold text-slate-900">{factorM.toFixed(2)}</div>
+            </div>
           </div>
         </div>
       </CardHeader>
@@ -449,15 +519,6 @@ export default function EditableUnitCostTable({
                                         />
                                       </div>
                                       <div className="col-span-2">
-                                        <label className="text-xs font-medium text-muted-foreground block mb-1">Equivalencia %</label>
-                                        <EditableNumericField
-                                          value={variant.equivalence || 0}
-                                          onChange={(value) => updateVariant(product.id, variant.id, 'equivalence', value)}
-                                          suffix="%"
-                                          decimalPlaces={2}
-                                        />
-                                      </div>
-                                      <div className="col-span-2">
                                         <label className="text-xs font-medium text-muted-foreground block mb-1">Total</label>
                                         <div className="h-8 flex items-center">
                                           <span className="text-sm font-semibold text-primary">
@@ -477,6 +538,20 @@ export default function EditableUnitCostTable({
                   );
                 })}
               </TableBody>
+              {/* Footer con totales */}
+              <tfoot>
+                <tr className="bg-orange-100 border-t-2 border-orange-200">
+                  <td className="p-2"></td>
+                  <td className="p-2 font-bold text-orange-800">Totales</td>
+                  <td className="p-2"></td>
+                  <td className="p-2 text-center font-bold text-orange-800">{totals.totalQuantity}</td>
+                  <td className="p-2 text-center font-bold text-orange-800">USD {totals.totalAmount.toFixed(2)}</td>
+                  <td className="p-2 text-center font-bold text-orange-800">{totals.totalEquivalence.toFixed(2)}%</td>
+                  <td className="p-2 text-center font-bold text-orange-800">USD {totals.totalImportCosts.toFixed(2)}</td>
+                  <td className="p-2 text-center font-bold text-orange-800">USD {totals.totalCost.toFixed(2)}</td>
+                  <td className="p-2"></td>
+                </tr>
+              </tfoot>
             </Table>
           </div>
         </div>

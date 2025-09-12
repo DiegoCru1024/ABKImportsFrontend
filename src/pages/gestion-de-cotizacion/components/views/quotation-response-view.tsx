@@ -307,7 +307,7 @@ export default function QuotationResponseView({
         currentUserId
       });
 
-      console.log("DTO construido:", quotationResponseDto);
+      console.log("DTO construido:", JSON.stringify(quotationResponseDto,null,2));
 
       // Enviar la cotización usando el hook
       await createQuotationResponseMutation.mutateAsync(quotationResponseDto);

@@ -219,6 +219,8 @@ function applyExemption(value: number, isExempted: boolean): number {
 }
 
 function buildProductsArray(productsData: any[], quotationForm: any): ProductDto[] {
+  const isPendingView = quotationForm.selectedServiceLogistic === "Pendiente";
+
   return productsData.map(product => {
     const isProductSelected = quotationForm.productQuotationState[product.id] !== undefined 
       ? quotationForm.productQuotationState[product.id] 
@@ -232,8 +234,12 @@ function buildProductsArray(productsData: any[], quotationForm: any): ProductDto
       return {
         variantId: variant.originalVariantId || variant.id,
         quantity: variant.quantity || 0,
-        precio_unitario: variant.price || 0,
-        precio_express_unitario: variant.priceExpress || 0,
+        precio_unitario: isPendingView 
+          ? (variant.price || 0)  // Para vista pendiente: obtener de quotation-product-row (variant.price)
+          : (variant.price || 0), // Para vista no pendiente: obtener de editable-unit-cost-table (variant.price)
+        precio_express_unitario: isPendingView 
+          ? (variant.priceExpress || 0) // Para vista pendiente: obtener de quotation-product-row (variant.priceExpress)
+          : 0, // Para vista no pendiente: por defecto 0
         seCotizaVariante: isVariantSelected,
         unitCost: variant.unitCost || undefined
       };

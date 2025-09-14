@@ -55,8 +55,46 @@ export default function QuotationResponseView({
 
   const quotationForm = useQuotationResponseForm();
 
+  // Estado local para productos pendientes con precios actualizables
+  const [pendingProducts, setPendingProducts] = useState<any[]>([]);
+
+  // Detectar si es vista "Pendiente" (administrativa) vs vista completa
+  const isPendingView = quotationForm.selectedServiceLogistic === "Pendiente";
+
+  // Inicializar productos pendientes cuando quotationDetail esté disponible
+  useEffect(() => {
+    if (quotationDetail?.products && pendingProducts.length === 0) {
+      setPendingProducts(
+        quotationDetail.products.map((product) => ({
+          id: product.productId,
+          name: product.name,
+          boxes: product.number_of_boxes,
+          priceXiaoYi: 0, // Valor por defecto
+          cbmTotal: parseFloat(product.volume) || 0,
+          express: 0, // Valor por defecto
+          total: 0, // Valor por defecto
+          cbm: parseFloat(product.volume) || 0,
+          weight: parseFloat(product.weight) || 0,
+          price: 0, // Valor por defecto
+          attachments: product.attachments || [], // Imágenes del producto
+          variants:
+            product.variants?.map((variant) => ({
+              id: variant.variantId,
+              name: `Nombre: ${variant.size} - Presentacion: ${variant.presentation} - Modelo: ${variant.model} - Color: ${variant.color}`,
+              quantity: variant.quantity || 1,
+              price: 0, // Valor por defecto
+              priceExpress: 0, // Valor por defecto para express
+              weight: 0, // Valor por defecto
+              cbm: 0, // Valor por defecto
+              express: 0, // Valor por defecto
+            })) || [],
+        }))
+      );
+    }
+  }, [quotationDetail]);
+
   // Mapear productos de la API al formato esperado por los cálculos
-  const mappedProducts = (quotationDetail?.products || []).map((product) => ({
+  const mappedProducts = isPendingView ? pendingProducts : (quotationDetail?.products || []).map((product) => ({
     id: product.productId,
     name: product.name,
     boxes: product.number_of_boxes,
@@ -118,9 +156,6 @@ export default function QuotationResponseView({
     }));
   }, [quotationDetail?.products]);
 
-  // Detectar si es vista "Pendiente" (administrativa) vs vista completa
-  const isPendingView = quotationForm.selectedServiceLogistic === "Pendiente";
-
   // Inicializar productos en el hook cuando cambien
   useEffect(() => {
     if (editableUnitCostTableProducts.length > 0 && !isPendingView) {
@@ -143,7 +178,7 @@ export default function QuotationResponseView({
         // Variantes por defecto en true
         if (product.variants && product.variants.length > 0) {
           const variantStates: Record<string, boolean> = {};
-          product.variants.forEach((variant) => {
+          product.variants.forEach((variant: any) => {
             if (
               !quotationForm.variantQuotationState[product.id]?.[variant.id]
             ) {
@@ -226,6 +261,31 @@ export default function QuotationResponseView({
     },
     []
   );
+
+  // Función para actualizar productos pendientes
+  const handlePendingProductUpdate = useCallback((productId: string, updates: any) => {
+    setPendingProducts(prev => prev.map(product =>
+      product.id === productId
+        ? { ...product, ...updates }
+        : product
+    ));
+  }, []);
+
+  // Función para actualizar variantes de productos pendientes
+  const handlePendingVariantUpdate = useCallback((productId: string, variantId: string, updates: any) => {
+    setPendingProducts(prev => prev.map(product =>
+      product.id === productId
+        ? {
+            ...product,
+            variants: product.variants?.map((variant: any) =>
+              variant.id === variantId
+                ? { ...variant, ...updates }
+                : variant
+            )
+          }
+        : product
+    ));
+  }, []);
 
   // Calcular totales generales para vista pendiente
   const pendingViewTotals = useMemo(() => {
@@ -507,7 +567,7 @@ export default function QuotationResponseView({
                           })
                         ) || [],
                       variants:
-                        product.variants?.map((variant) => ({
+                        product.variants?.map((variant: any) => ({
                           id: variant.id,
                           name: variant.name,
                           quantity: variant.quantity || 1,
@@ -539,19 +599,8 @@ export default function QuotationResponseView({
                         checked
                       );
                     }}
-                    onProductUpdate={(productId, updates) => {
-                      // Handle product updates if needed
-                      console.log("Product update:", productId, updates);
-                    }}
-                    onVariantUpdate={(productId, variantId, updates) => {
-                      // Handle variant updates if needed
-                      console.log(
-                        "Variant update:",
-                        productId,
-                        variantId,
-                        updates
-                      );
-                    }}
+                    onProductUpdate={handlePendingProductUpdate}
+                    onVariantUpdate={handlePendingVariantUpdate}
                     onAggregatedDataChange={handleAggregatedDataChange}
                   />
                 ))}

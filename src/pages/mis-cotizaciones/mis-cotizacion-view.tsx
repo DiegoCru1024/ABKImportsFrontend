@@ -89,9 +89,7 @@ export default function MisCotizacionesView() {
   };
 
   const handleViewDetails = (quotationId: string, correlative: string) => {
-    setSelectedQuotationId(quotationId);
-    setSelectedCorrelative(correlative);
-    setCurrentView("details");
+    navigate(`/dashboard/mis-cotizaciones/respuestas/${quotationId}`);
   };
 
   const handleEditQuotation = (

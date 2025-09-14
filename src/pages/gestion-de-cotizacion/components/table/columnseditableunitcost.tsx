@@ -1,7 +1,7 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import type { ProductRow, ProductVariant } from "../views/editableunitcosttable";
 import { EditableNumericField } from "@/components/ui/editableNumberFieldProps";
 import { Checkbox } from "@/components/ui/checkbox";
+import type { ProductRow, ProductVariant } from "../views/tables/editable-unit-cost-table";
 
 // Definición de columnas dentro del componente para usar callbacks
 export function columnsEditableUnitcost(

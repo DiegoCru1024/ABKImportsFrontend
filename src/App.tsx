@@ -17,6 +17,7 @@ import InspectionDetailView from "@/pages/gestion-de-mercancia/inspection-detail
 import CreateCotizacionView from "@/pages/cotizacion-page/create-cotizacion-view";
 import EditCotizacionView from "@/pages/cotizacion-page/edit-cotizacion-view";
 import MisCotizacionesView from "@/pages/mis-cotizaciones/mis-cotizacion-view";
+import RespuestasCotizacionView from "@/pages/mis-cotizaciones/respuestas-cotizacion-view";
 import ShipmentDetailView from "@/pages/shipment-detail-view";
 import Calculador from "./pages/calculator";
 import Tarifas from "./pages/Tarifas";
@@ -100,6 +101,10 @@ function App() {
           element={<MisCotizacionesView />}
         />
         <Route
+          path="/dashboard/mis-cotizaciones/respuestas/:quotationId"
+          element={<RespuestasCotizacionRoute />}
+        />
+        <Route
           path="/dashboard/editar/:quotationId"
           element={<EditarCotizacionRoute />}
         />
@@ -126,6 +131,10 @@ function GestionDeCotizacionResponderRoute() {
   const { quotationId } = useParams();
   if (!quotationId) return <Navigate to="/dashboard/gestion-de-cotizacion" replace />;
   return <QuotationResponseView selectedQuotationId={quotationId} />;
+}
+
+function RespuestasCotizacionRoute() {
+  return <RespuestasCotizacionView />;
 }
 
 function EditarCotizacionRoute() {

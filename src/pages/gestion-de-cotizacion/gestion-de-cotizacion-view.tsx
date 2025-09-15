@@ -43,7 +43,8 @@ export default function GestionDeCotizacionesView() {
   };
 
   const handleViewListResponses = (quotationId: string) => {
-    navigate(`/dashboard/gestion-de-cotizacion/respuestas/${quotationId}`);
+    setSelectedQuotationId(quotationId);
+    setMainTab("listResponses");
   };
 
   if (mainTab === "detalles" && selectedQuotationId) {

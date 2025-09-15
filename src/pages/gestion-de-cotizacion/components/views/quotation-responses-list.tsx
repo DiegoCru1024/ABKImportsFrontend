@@ -12,10 +12,9 @@ import { DataTable } from "@/components/table/data-table";
 import SendingModal from "@/components/sending-modal";
 import ConfirmationModal from "@/components/modal-confirmation";
 
-import type { contentQuotationResponseDTO } from "@/api/interface/quotationResponseInterfaces";
 import {
   useDeleteQuatitationResponse,
-  useGetListResponsesByQuotationId,
+  useListQuatitationResponse,
 } from "@/hooks/use-quatitation-response";
 
 interface QuotationResponsesListProps {
@@ -34,21 +33,19 @@ export default function QuotationResponsesList({
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false);
   const [isSendingModalOpen, setIsSendingModalOpen] = useState<boolean>(false);
   const [page, setPage] = useState(1);
-  const [size, setSize] = useState(10);
+  const [size] = useState(10);
 
   const {
     data: responses,
     isLoading,
     isError,
     refetch,
-  } = useGetListResponsesByQuotationId(selectedQuotationId, page, size);
+  } = useListQuatitationResponse(selectedQuotationId, page, size);
 
   const deleteResponseMutation = useDeleteQuatitationResponse();
 
   const handleCreateNewResponse = () => {
-    navigate(
-      `/dashboard/gestion-de-cotizacion/respuesta/${selectedQuotationId}`
-    );
+    navigate(`/dashboard/gestion-de-cotizacion/respuesta/${selectedQuotationId}`);
   };
 
   const handleEditResponse = (responseId: string) => {
@@ -78,14 +75,31 @@ export default function QuotationResponsesList({
     }
   };
 
+  const handleTablePageChange = (page: number) => {
+    setPage(page);
+  };
+
+  const handleSearch = (searchTerm: string) => {
+    setSearchTerm(searchTerm);
+  };
+
+  interface QuotationResponse {
+    id_quotation_response: string;
+    service_type: string;
+    cargo_type: string;
+    response_date: string;
+  }
+
   const filteredResponses =
     responses?.content?.filter(
-      (response: contentQuotationResponseDTO) =>
-        response.id
+      (response: QuotationResponse) =>
+        response.id_quotation_response
           ?.toString()
           .toLowerCase()
           .includes(searchTerm.toLowerCase()) ||
-        response.createdAt?.toLowerCase().includes(searchTerm.toLowerCase())
+        response.response_date?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        response.service_type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        response.cargo_type?.toLowerCase().includes(searchTerm.toLowerCase())
     ) || [];
 
   if (isLoading) {
@@ -143,15 +157,34 @@ export default function QuotationResponsesList({
 
           <CardContent className="space-y-6">
             {filteredResponses.length > 0 ? (
-              <DataTable
-                columns={columnsListResponses}
-                data={filteredResponses}
-                searchValue={searchTerm}
-                onSearchChange={setSearchTerm}
-                onEdit={handleEditResponse}
-                onDelete={handleDeleteResponse}
-                searchPlaceholder="Buscar por ID o fecha..."
-              />
+              <>
+                <DataTable
+                  columns={columnsListResponses({
+                    onEditQuotation: handleEditResponse,
+                    onDelete: handleDeleteResponse,
+                  })}
+                  data={filteredResponses}
+                  pageInfo={{
+                    pageNumber: responses ? responses.pageNumber : 1,
+                    pageSize: responses ? responses.pageSize : 10,
+                    totalElements: responses ? responses.totalElements : 0,
+                    totalPages: responses ? responses.totalPages : 1,
+                  }}
+                  onPageChange={handleTablePageChange}
+                  onSearch={handleSearch}
+                  searchTerm={searchTerm}
+                  isLoading={isLoading}
+                  toolbarOptions={{
+                    showSearch: true,
+                    showViewOptions: false,
+                  }}
+                  paginationOptions={{
+                    showSelectedCount: false,
+                    showPagination: true,
+                    showNavigation: true,
+                  }}
+                />
+              </>
             ) : (
               <div className="text-center py-12">
                 <FileText className="w-12 h-12 mx-auto mb-4 text-gray-400" />
@@ -190,8 +223,6 @@ export default function QuotationResponsesList({
       <SendingModal
         isOpen={isSendingModalOpen}
         onClose={() => setIsSendingModalOpen(false)}
-        title="Eliminando Respuesta"
-        message="Por favor espere mientras se elimina la respuesta..."
       />
     </div>
   );

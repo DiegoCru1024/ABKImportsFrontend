@@ -4,7 +4,8 @@
       "Bash(npx eslint:*)",
       "Bash(npm run type-check:*)",
       "Bash(npm run lint)",
-      "Bash(sed:*)"
+      "Bash(sed:*)",
+      "Bash(npm run build:*)"
     ],
     "deny": [],
     "ask": []

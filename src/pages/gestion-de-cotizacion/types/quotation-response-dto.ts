@@ -1,116 +1,85 @@
 export interface QuotationInfoDto {
   quotationId: string;
-  status: string;
   correlative: string;
   date: string;
-  serviceType: string;
+  advisorId: string;
+  serviceLogistic: string;
+  incoterm: string;
   cargoType: string;
   courier: string;
-  incoterm: string;
-  isFirstPurchase: boolean;
-  regime: string;
-  originCountry: string;
-  destinationCountry: string;
-  customs: string;
-  originPort: string;
-  destinationPort: string;
-  serviceTypeDetail: string;
-  transitTime: number;
-  naviera: string;
-  proformaValidity: string;
-  cbm_total: number;
-  peso_total: number;
-  id_asesor: string;
+  maritimeConfig?: {
+    regime: string;
+    originCountry: string;
+    destinationCountry: string;
+    customs: string;
+    originPort: string;
+    destinationPort: string;
+    serviceTypeDetail: string;
+    transitTime: number;
+    naviera: string;
+    proformaValidity: string;
+  };
 }
 
 export interface DynamicValuesDto {
   comercialValue: number;
   flete: number;
   cajas: number;
-  desaduanaje: number;
   kg: number;
-  ton: number;
-  kv: number;
+  ton?: number;
   fob: number;
   seguro: number;
   tipoCambio: number;
-  nroBultos: number;
-  volumenCBM: number;
-  calculoFlete: number;
+  volumenCBM?: number;
+  calculoFlete?: number;
   servicioConsolidado: number;
   separacionCarga: number;
   inspeccionProductos: number;
-  gestionCertificado: number;
-  inspeccionProducto: number;
-  inspeccionFabrica: number;
-  transporteLocal: number;
-  otrosServicios: number;
+  gestionCertificado?: number;
+  inspeccionProducto?: number;
+  transporteLocal?: number;
+  desaduanaje?: number;
   adValoremRate: number;
-  antidumpingGobierno: number;
-  antidumpingCantidad: number;
-  iscRate: number;
   igvRate: number;
   ipmRate: number;
-  percepcionRate: number;
-  transporteLocalChinaEnvio: number;
-  transporteLocalClienteEnvio: number;
+  antidumpingGobierno?: number;
+  antidumpingCantidad?: number;
   cif: number;
-  shouldExemptTaxes: boolean;
 }
 
 export interface ExemptionsDto {
-  servicioConsolidadoAereo: boolean;
-  servicioConsolidadoMaritimo: boolean;
+  servicioConsolidadoAereo?: boolean;
+  servicioConsolidadoMaritimo?: boolean;
   separacionCarga: boolean;
   inspeccionProductos: boolean;
   obligacionesFiscales: boolean;
-  desaduanajeFleteSaguro: boolean;
-  transporteLocalChina: boolean;
-  transporteLocalCliente: boolean;
-  gestionCertificado: boolean;
-  servicioInspeccion: boolean;
-  transporteLocal: boolean;
-  totalDerechos: boolean;
+  gestionCertificado?: boolean;
+  servicioInspeccion?: boolean;
+  transporteLocal?: boolean;
+  totalDerechos?: boolean;
 }
 
 export interface ServiceFieldsDto {
   servicioConsolidado: number;
   separacionCarga: number;
   inspeccionProductos: number;
+  gestionCertificado?: number;
+  inspeccionProducto?: number;
+  transporteLocal?: number;
 }
 
 export interface FiscalObligationsDto {
   adValorem: number;
-  totalDerechosDolares: number;
+  igv: number;
+  ipm: number;
+  antidumping?: number;
+  totalTaxes: number;
 }
 
-export interface FinalValuesDto {
-  servicioConsolidado: number;
-  gestionCertificado: number;
-  servicioInspeccion: number;
-  transporteLocal: number;
-  separacionCarga: number;
-  inspeccionProductos: number;
-  desaduanajeFleteSaguro: number;
-  transporteLocalChina: number;
-  transporteLocalCliente: number;
-}
-
-export interface ImportExpensesDto {
-  servicioConsolidadoFinal: number;
-  separacionCargaFinal: number;
-  inspeccionProductosFinal: number;
-  servicioConsolidadoMaritimoFinal: number;
-  gestionCertificadoFinal: number;
-  servicioInspeccionFinal: number;
-  transporteLocalFinal: number;
-  desaduanajeFleteSaguro: number;
-  finalValues: FinalValuesDto;
-  totalGastosImportacion: number;
-}
-
-export interface TotalsDto {
-  inversionTotal: number;
+export interface CommercialDetailsDto {
+  cif: number;
+  totalImportCosts: number;
+  totalInvestment: number;
 }
 
 export interface ServiceCalculationsDto {
@@ -118,41 +87,118 @@ export interface ServiceCalculationsDto {
   subtotalServices: number;
   igvServices: number;
   totalServices: number;
-  fiscalObligations: FiscalObligationsDto;
-  importExpenses: ImportExpensesDto;
-  totals: TotalsDto;
 }
 
-export interface CalculationsDto {
-  dynamicValues: DynamicValuesDto;
-  exemptions: ExemptionsDto;
-  serviceCalculations: ServiceCalculationsDto;
+export interface BasicInfoDto {
+  totalCBM: number;
+  totalWeight: number;
+  totalPrice: number;
+  totalExpress: number;
+  totalQuantity: number;
 }
 
-export interface ProductVariantDto {
+export interface PendingServiceData {
+  type: "PENDING";
+  basicInfo: BasicInfoDto;
+}
+
+export interface CompleteServiceData {
+  type: "EXPRESS" | "MARITIME";
+  basicInfo: BasicInfoDto;
+  calculations: {
+    dynamicValues: DynamicValuesDto;
+    fiscalObligations: FiscalObligationsDto;
+    serviceCalculations: ServiceCalculationsDto;
+    exemptions: ExemptionsDto;
+  };
+  commercialDetails: CommercialDetailsDto;
+}
+
+export interface PackingListDto {
+  nroBoxes: number;
+  cbm: number;
+  pesoKg: number;
+  pesoTn: number;
+}
+
+export interface CargoHandlingDto {
+  fragileProduct: boolean;
+  stackProduct: boolean;
+}
+
+export interface PendingProductPricingDto {
+  totalPrice: number;
+  totalWeight: number;
+  totalCBM: number;
+  totalQuantity: number;
+  totalExpress: number;
+}
+
+export interface CompleteProductPricingDto {
+  unitCost: number;
+  importCosts: number;
+  totalCost: number;
+  equivalence: number;
+}
+
+export interface PendingProductVariantDto {
   variantId: string;
   quantity: number;
-  precio_unitario: number;
-  precio_express_unitario: number;
-  seCotizaVariante: boolean;
-  unitCost?: number;
+  isQuoted: boolean;
+  pendingPricing: {
+    unitPrice: number;
+    expressPrice: number;
+  };
 }
 
-export interface ProductDto {
+export interface CompleteProductVariantDto {
+  variantId: string;
+  quantity: number;
+  isQuoted: boolean;
+  completePricing: {
+    unitCost: number;
+  };
+}
+
+export interface ProductResponseDto {
   productId: string;
   name: string;
-  adminComment: string;
-  seCotizaProducto: boolean;
-  variants: ProductVariantDto[];
+  isQuoted: boolean;
+  adminComment?: string;
+  ghostUrl?: string;
+  pricing: PendingProductPricingDto | CompleteProductPricingDto;
+  packingList?: PackingListDto;
+  cargoHandling?: CargoHandlingDto;
+  variants: PendingProductVariantDto[] | CompleteProductVariantDto[];
 }
 
-export interface QuotationResponseDto {
+export interface QuotationResponseBaseDto {
+  quotationId: string;
   quotationInfo: QuotationInfoDto;
-  calculations: CalculationsDto;
-  products: ProductDto[];
+  serviceType: "PENDING" | "EXPRESS" | "MARITIME";
+  responseData: PendingServiceData | CompleteServiceData;
+  products: ProductResponseDto[];
 }
 
 export interface QuotationResponseHookParams {
-  data: QuotationResponseDto;
+  data: QuotationResponseBaseDto;
   quotationId: string;
 }
+
+export interface PendingBuildData {
+  products: any[];
+  aggregatedTotals: any;
+  quotationStates: {
+    products: Record<string, boolean>;
+    variants: Record<string, Record<string, boolean>>;
+  };
+}
+
+export interface CompleteBuildData {
+  quotationForm: any;
+  calculations: any;
+  products: any[];
+  quotationDetail: any;
+}
+
+export type ServiceType = "PENDING" | "EXPRESS" | "MARITIME";

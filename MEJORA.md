@@ -93,8 +93,44 @@ interface ProductResponseDto {
   name: string;
   isQuoted: boolean;
   adminComment?: string; // Solo para vista pendiente
+  ghostUrl?: string; //Solo para vista pendiente
   pricing: PendingProductPricing | CompleteProductPricing;
-  variants: ProductVariantResponseDto[];
+  packingList?: PackigList; //Solo para vista pendiente
+  cargoHandling?: {
+    //Solo para vista pendiente
+    fragileProduct: true; //Producto fragil
+    stackProduct: false; //Producto manipulable
+  };
+  variants: PendingProductVariantResponseDTO[]|CompleteProductVariantResponseDTO[];
+}
+
+interface PendingProductVariantResponseDTO {
+  variantId: string; // ID único de la variante
+  quantity: number; // Cantidad de esta variante
+  isQuoted: boolean; // Indica si la variante será cotizada
+  // Precios específicos para vista pendiente
+  pendingPricing: {
+    unitPrice: number; // Precio unitario de la variante
+    expressPrice: number; // Precio express unitario
+  };
+}
+
+interface CompleteProductVariantResponseDTO {
+  variantId: string; // ID único de la variante
+  quantity: number; // Cantidad de esta variante
+  isQuoted: boolean; // Indica si la variante será cotizada
+
+  // Precios detallados para vista completa
+  completePricing: {
+    unitPrice: number; // Costo unitario
+  };
+}
+
+interface PackigList {
+  nroBoxes: number; //Cantidad de cajas
+  cbm: number; //CBM
+  pesoKg: number; //Peso en Kilogramos
+  pesoTn: number; //Peso en toneladas
 }
 
 interface PendingProductPricing {
@@ -284,7 +320,7 @@ const handleSubmitQuotation = async () => {
   "quotationInfo": {
     "quotationId": "4a77-8074-94a77-8074-94a77-8074-94a77-8074-9",
     "correlative": "COT-001-2024", // Correlativo interno del sistema
-    "date": "12/09/2024 14:30:00", // Fecha y hora de respuesta
+    "date": "12-09-2024 14:30:00", // Fecha y hora de respuesta
     "advisorId": "75500ef2-e35c-4a77-8074-9104c9d971cb", // ID del asesor que responde
     "serviceLogistic": "Pendiente", // Tipo de servicio logístico seleccionado
     "incoterm": "DDP", // Término de comercio internacional
@@ -315,7 +351,7 @@ const handleSubmitQuotation = async () => {
       "name": "Producto Ejemplo A", // Nombre del producto
       "isQuoted": true, // Indica si el producto será cotizado
       "adminComment": "Verificar disponibilidad en almacén", // Comentario administrativo
-      "ghostUrl":"https://mercadolibre.com" //URL de guia ,
+      "ghostUrl": "https://mercadolibre.com", //URL de guia ,
 
       // Precios y medidas agregadas del producto
       "pricing": {
@@ -329,16 +365,15 @@ const handleSubmitQuotation = async () => {
       //Información sobre el packing
       "packingList": {
         "nroBoxes": 10, //Cantidad de cajas
-        "cbm": 20.0,  //CBM
-        "pesoKg": 1000,  //Peso en Kilogramos
-        "pesoTn": 1   //Peso en toneladas
+        "cbm": 20.0, //CBM
+        "pesoKg": 1000, //Peso en Kilogramos
+        "pesoTn": 1 //Peso en toneladas
       },
 
       //Información sobre la manipulación de carga
-      "cargoHandling":{
-        "fragileProduct":true,  //Producto fragil
-        "stackProduct":false,  //Producto manipulable
-
+      "cargoHandling": {
+        "fragileProduct": true, //Producto fragil
+        "stackProduct": false //Producto manipulable
       },
 
       // Variantes del producto con información básica
@@ -353,15 +388,6 @@ const handleSubmitQuotation = async () => {
             "unitPrice": 50.0, // Precio unitario de la variante
             "expressPrice": 8.0 // Precio express unitario
           }
-        },
-        {
-          "variantId": "VAR-001-B",
-          "quantity": 5,
-          "isQuoted": true,
-          "pendingPricing": {
-            "unitPrice": 60.0,
-            "expressPrice": 8.0
-          }
         }
       ]
     }
@@ -373,12 +399,9 @@ const handleSubmitQuotation = async () => {
 
 ```json
 {
-  // ID único de la cotización a responder
-  "quotationId": "5c-4a77-80745c-4a77-80745c-4a77-80745c-4a77-8074",
-
   // Información básica de la cotización y configuración del servicio
   "quotationInfo": {
-    "quotationId": "COT-2024-002", // ID de la cotización
+    "quotationId": "5c-4a77-80745c-4a77-80745c-4a77-80745c-4a77-8074", // ID de la cotización
     "correlative": "COT-002-2024", // Correlativo interno del sistema
     "date": "12-09-2024 15:45:00", // Fecha y hora de respuesta
     "advisorId": "75500ef2-e35c-4a77-8074-9104c9d971cb", // ID del asesor que responde
@@ -467,6 +490,7 @@ const handleSubmitQuotation = async () => {
       "productId": "PROD-002", // ID único del producto
       "name": "Producto Express A", // Nombre del producto
       "isQuoted": true, // Indica si el producto será cotizado
+      "adminComment": "Verificar disponibilidad en almacén", // Comentario administrativo
 
       // Precios y costos calculados para vista completa
       "pricing": {
@@ -485,9 +509,7 @@ const handleSubmitQuotation = async () => {
 
           // Precios detallados para vista completa
           "completePricing": {
-            "unitPrice": 120.0, // Precio unitario de compra
-            "unitCost": 165.62, // Costo unitario final
-            "importCosts": 557.7 // Costos de importación por variante
+            "unitCost": 165.62 // Costo unitario final
           }
         }
       ]
@@ -500,12 +522,9 @@ const handleSubmitQuotation = async () => {
 
 ```json
 {
-  // ID único de la cotización a responder
-  "quotationId": "COT-2024-003",
-
   // Información básica de la cotización y configuración del servicio marítimo
   "quotationInfo": {
-    "quotationId": "COT-2024-003", // ID de la cotización
+    "quotationId": "4a77-8074-9104c9d971cb8074-9104c9d9", // ID de la cotización
     "correlative": "COT-003-2024", // Correlativo interno del sistema
     "date": "12-09-2024 16:20:00", // Fecha y hora de respuesta
     "advisorId": "75500ef2-e35c-4a77-8074-9104c9d971cb", // ID del asesor que responde
@@ -542,7 +561,7 @@ const handleSubmitQuotation = async () => {
       "totalPrice": 1200.0, // Precio total de productos
       "totalExpress": 180.0, // Costo total de servicio express
       "totalQuantity": 25 // Cantidad total de items
-    }
+    },
 
     // Cálculos detallados para servicio marítimo
     "calculations": {
@@ -633,9 +652,7 @@ const handleSubmitQuotation = async () => {
 
           // Precios detallados para vista marítima
           "completePricing": {
-            "unitPrice": 300.0, // Precio unitario de compra FOB
-            "unitCost": 414.74, // Costo unitario final CIF + costos
-            "importCosts": 2246.13 // Costos de importación distribuidos por variante
+            "unitCost": 414.74 // Costo unitario
           }
         }
       ]

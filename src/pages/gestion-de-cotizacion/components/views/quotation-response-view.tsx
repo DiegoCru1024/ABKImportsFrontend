@@ -20,7 +20,9 @@ import { ExemptionControls } from "../forms/exemption-controls";
 import { useQuotationResponseForm } from "../../hooks/use-quotation-response-form";
 import { useQuotationCalculations } from "../../hooks/use-quotation-calculations";
 import type { DetailsResponseProps } from "../utils/interface";
-import { buildQuotationResponseDto } from "../../utils/build-quotation-response-dto";
+import { QuotationResponseBuilder } from "../../utils/quotation-response-builder";
+import { adaptQuotationResponseToLegacyFormat } from "../../utils/quotation-response-adapter";
+import type { PendingBuildData, CompleteBuildData } from "../../types/quotation-response-dto";
 import {
   aduana,
   courier,
@@ -349,28 +351,35 @@ export default function QuotationResponseView({
   const handleSubmitQuotation = async () => {
     setIsSubmitting(true);
     try {
-      // Obtener el ID del usuario actual (esto debe venir del contexto de auth)
-      const currentUserId = "75500ef2-e35c-4a77-8074-9104c9d971cb"; // TODO: Obtener del contexto de auth
-      
-      // Obtener los datos de productos según el tipo de vista
-      const productsData = isPendingView 
-        ? mappedProducts 
-        : quotationForm.editableUnitCostProducts;
-
-      // Construir el DTO
-      const quotationResponseDto = buildQuotationResponseDto({
+      const builder = new QuotationResponseBuilder(
         selectedQuotationId,
-        quotationDetail,
-        quotationForm,
-        calculations,
-        productsData,
-        currentUserId
-      });
+        isPendingView ? "PENDING" : (quotationForm.isMaritimeService() ? "MARITIME" : "EXPRESS")
+      );
 
-      console.log("DTO construido:", JSON.stringify(quotationResponseDto,null,2));
+      const dto = isPendingView
+        ? builder.buildForPendingService({
+            products: mappedProducts,
+            aggregatedTotals: pendingViewTotals,
+            quotationStates: {
+              products: quotationForm.productQuotationState,
+              variants: quotationForm.variantQuotationState,
+            },
+          } as PendingBuildData)
+        : builder.buildForCompleteService({
+            quotationForm,
+            calculations,
+            products: quotationForm.editableUnitCostProducts,
+            quotationDetail,
+          } as CompleteBuildData);
+
+      console.log("DTO unificado construido:", JSON.stringify(dto, null, 2));
+
+      // Convertir al formato legacy para compatibilidad con el backend actual
+      const legacyDto = adaptQuotationResponseToLegacyFormat(dto);
+      console.log("DTO legacy adaptado:", JSON.stringify(legacyDto, null, 2));
 
       // Enviar la cotización usando el hook
-      await createQuotationResponseMutation.mutateAsync(quotationResponseDto);
+      await createQuotationResponseMutation.mutateAsync({ data: legacyDto, quotationId: selectedQuotationId });
 
       quotationForm.setIsSendingModalOpen(true);
     } catch (error) {
@@ -537,14 +546,14 @@ export default function QuotationResponseView({
         {isPendingView ? (
           /* Vista administrativa simplificada */
           <>
-            {/* Sección de productos con QuotationProductRow */}
+            {/* Sección de productos con QuotationProductRow para vista pendiente */}
             <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
               <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-6">
                 <h3 className="text-xl font-bold text-white">
-                  Productos de la Cotización
+                  Productos de la Cotización - Vista Administrativa
                 </h3>
                 <p className="text-blue-100 text-sm mt-1">
-                  Administrar y cotizar productos solicitados
+                  Gestión simplificada para servicios pendientes
                 </p>
               </div>
               <div className="p-6 space-y-4">
@@ -574,7 +583,7 @@ export default function QuotationResponseView({
                           price: variant.price || 0,
                           weight: variant.weight,
                           cbm: variant.cbm,
-                          images: [], // Las variantes no tienen imágenes en el API actual
+                          images: [],
                         })) || [],
                       adminComment: "",
                     }}
@@ -614,7 +623,7 @@ export default function QuotationResponseView({
 
           </>
         ) : (
-          /* Vista completa con todos los componentes */
+          /* Vista completa con componentes detallados para Express/Marítimo */
           <>
             <DynamicValuesForm
               dynamicValues={quotationForm.dynamicValues}
@@ -753,24 +762,36 @@ export default function QuotationResponseView({
               />
             </div>
 
-            <EditableUnitCostTable
-              products={quotationForm.editableUnitCostProducts}
-              onProductsChange={quotationForm.setEditableUnitCostProducts}
-              totalImportCosts={calculations.finalTotal || 0}
-              totalInvestmentImport={calculations.finalTotal || 0}
-              onCommercialValueChange={(value) => {
-                // Actualizar el valor comercial en el formulario dinámico
-                quotationForm.updateDynamicValue("comercialValue", value);
-              }}
-              productQuotationState={quotationForm.productQuotationState}
-              variantQuotationState={quotationForm.variantQuotationState}
-              onProductQuotationChange={
-                quotationForm.updateProductQuotationState
-              }
-              onVariantQuotationChange={
-                quotationForm.updateVariantQuotationState
-              }
-            />
+            {/* Tabla de productos con cálculos detallados para servicios completos */}
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+              <div className="bg-gradient-to-r from-green-500 to-green-600 p-6">
+                <h3 className="text-xl font-bold text-white">
+                  Gestión de Productos - Vista Completa
+                </h3>
+                <p className="text-green-100 text-sm mt-1">
+                  Cálculos detallados para servicios Express/Marítimo
+                </p>
+              </div>
+              <div className="p-6">
+                <EditableUnitCostTable
+                  products={quotationForm.editableUnitCostProducts}
+                  onProductsChange={quotationForm.setEditableUnitCostProducts}
+                  totalImportCosts={calculations.finalTotal || 0}
+                  totalInvestmentImport={calculations.finalTotal || 0}
+                  onCommercialValueChange={(value) => {
+                    quotationForm.updateDynamicValue("comercialValue", value);
+                  }}
+                  productQuotationState={quotationForm.productQuotationState}
+                  variantQuotationState={quotationForm.variantQuotationState}
+                  onProductQuotationChange={
+                    quotationForm.updateProductQuotationState
+                  }
+                  onVariantQuotationChange={
+                    quotationForm.updateVariantQuotationState
+                  }
+                />
+              </div>
+            </div>
           </>
         )}
       </div>

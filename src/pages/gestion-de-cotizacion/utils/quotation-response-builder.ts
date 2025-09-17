@@ -24,25 +24,28 @@ import type {
 export class QuotationResponseBuilder {
   private baseDto: QuotationResponseBaseDto;
 
-  constructor(quotationId: string, serviceType: ServiceType) {
+  constructor(quotationId: string, serviceType: ServiceType, quotationDetail?: any) {
     this.baseDto = {
       quotationId,
       serviceType,
-      quotationInfo: this.buildQuotationInfo(quotationId),
+      quotationInfo: this.buildQuotationInfo(quotationId, quotationDetail),
       responseData: null as any,
       products: [],
     };
   }
 
-  private buildQuotationInfo(quotationId: string): QuotationInfoDto {
+  private buildQuotationInfo(quotationId: string, quotationDetail?: any): QuotationInfoDto {
     const now = new Date();
     const formattedDate = `${now.getDate().toString().padStart(2, "0")}-${(now.getMonth() + 1).toString().padStart(2, "0")}-${now.getFullYear()} ${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}:${now.getSeconds().toString().padStart(2, "0")}`;
 
+    // **CORRECCIÓN 1**: Usar el correlativo real de la cotización existente en lugar de generar uno aleatorio
+    const correlative = quotationDetail?.correlative || `COT-${Math.random().toString(36).substr(2, 6).toUpperCase()}-${now.getFullYear()}`;
+
     return {
       quotationId,
-      correlative: `COT-${Math.random().toString(36).substr(2, 6).toUpperCase()}-${now.getFullYear()}`,
+      correlative, // Mapear el correlativo correcto desde quotationDetail
       date: formattedDate,
-      advisorId: "75500ef2-e35c-4a77-8074-9104c9d971cb", // TODO: Obtener del contexto de auth
+      advisorId: quotationDetail?.advisorId || "75500ef2-e35c-4a77-8074-9104c9d971cb",
       serviceLogistic: "Pendiente",
       incoterm: "DDP",
       cargoType: "mixto",
@@ -71,17 +74,22 @@ export class QuotationResponseBuilder {
   }
 
   private buildPendingProducts(data: PendingBuildData): ProductResponseDto[] {
-    return data.products.map((product) => ({
-      productId: product.id,
-      name: product.name,
-      isQuoted: data.quotationStates.products[product.id] !== false,
-      adminComment: product.adminComment || "",
-      ghostUrl: product.ghostUrl || "",
-      pricing: this.buildPendingProductPricing(product),
-      packingList: this.buildPackingList(product),
-      cargoHandling: this.buildCargoHandling(product),
-      variants: this.buildPendingVariants(product, data.quotationStates.variants[product.id] || {}),
-    }));
+    return data.products.map((product) => {
+      // **CORRECCIÓN 3**: Mapear correctamente el productId
+      const productId = product.productId || product.id;
+
+      return {
+        productId,
+        name: product.name,
+        isQuoted: data.quotationStates.products[productId] !== false,
+        adminComment: product.adminComment || "",
+        ghostUrl: product.ghostUrl || "",
+        pricing: this.buildPendingProductPricing(product),
+        packingList: this.buildPackingList(product),
+        cargoHandling: this.buildCargoHandling(product),
+        variants: this.buildPendingVariants(product, data.quotationStates.variants[productId] || {}),
+      };
+    });
   }
 
   private buildCompleteProducts(data: CompleteBuildData): ProductResponseDto[] {
@@ -114,13 +122,18 @@ export class QuotationResponseBuilder {
   }
 
   private buildPackingList(product: any): PackingListDto | undefined {
-    if (!product.packingList && !product.boxes) return undefined;
+    // **CORRECCIÓN 2**: Mapear correctamente los campos del packingList desde el estado local del producto
+    // El producto puede tener packingList actualizado desde la interfaz o usar valores por defecto
+    if (!product.packingList && !product.boxes && !product.number_of_boxes) return undefined;
 
     return {
-      nroBoxes: product.packingList?.nroBoxes || product.boxes || 0,
-      cbm: product.packingList?.cbm || product.cbm || 0,
-      pesoKg: product.packingList?.pesoKg || product.weight || 0,
-      pesoTn: product.packingList?.pesoTn || (product.weight / 1000) || 0,
+      // Mapear desde packingList.boxes en lugar de packingList.nroBoxes
+      nroBoxes: product.packingList?.boxes || product.number_of_boxes || product.boxes || 0,
+      cbm: product.packingList?.cbm || parseFloat(product.volume) || 0,
+      // Mapear desde packingList.weightKg en lugar de packingList.pesoKg
+      pesoKg: product.packingList?.weightKg || parseFloat(product.weight) || 0,
+      // Mapear desde packingList.weightTon en lugar de packingList.pesoTn
+      pesoTn: product.packingList?.weightTon || (parseFloat(product.weight) / 1000) || 0,
     };
   }
 
@@ -136,15 +149,21 @@ export class QuotationResponseBuilder {
   private buildPendingVariants(product: any, variantStates: Record<string, boolean>): PendingProductVariantDto[] {
     if (!product.variants) return [];
 
-    return product.variants.map((variant: any) => ({
-      variantId: variant.id,
-      quantity: variant.quantity || 1,
-      isQuoted: variantStates[variant.id] !== false,
-      pendingPricing: {
-        unitPrice: variant.price || 0,
-        expressPrice: variant.priceExpress || variant.express || 0,
-      },
-    }));
+    return product.variants.map((variant: any) => {
+      // **CORRECCIÓN 3**: Mapear correctamente el variantId y verificar estado de cotización
+      const variantId = variant.variantId || variant.id;
+      const isQuoted = variantStates[variantId] !== false; // Default a true si no está definido
+
+      return {
+        variantId,
+        quantity: variant.quantity || 1,
+        isQuoted,
+        pendingPricing: {
+          unitPrice: variant.price || 0,
+          expressPrice: variant.priceExpress || variant.express || 0,
+        },
+      };
+    });
   }
 
   private buildCompleteVariants(product: any): CompleteProductVariantDto[] {
@@ -260,6 +279,14 @@ export class QuotationResponseBuilder {
   buildForPendingService(data: PendingBuildData): QuotationResponseBaseDto {
     // Actualizar información de cotización para servicios pendientes
     this.baseDto.quotationInfo.serviceLogistic = "Pendiente";
+
+    // Actualizar configuración si está disponible en los datos
+    if (data.configuration) {
+      this.baseDto.quotationInfo.serviceLogistic = data.configuration.serviceLogistic || "Pendiente";
+      this.baseDto.quotationInfo.incoterm = data.configuration.incoterm || "DDP";
+      this.baseDto.quotationInfo.cargoType = data.configuration.cargoType || "mixto";
+      this.baseDto.quotationInfo.courier = data.configuration.courier || "ups";
+    }
 
     this.baseDto.responseData = {
       type: "PENDING",

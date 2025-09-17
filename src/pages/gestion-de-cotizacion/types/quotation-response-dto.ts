@@ -192,6 +192,13 @@ export interface PendingBuildData {
     products: Record<string, boolean>;
     variants: Record<string, Record<string, boolean>>;
   };
+  configuration?: {
+    serviceLogistic: string;
+    incoterm: string;
+    cargoType: string;
+    courier: string;
+  };
+  quotationDetail?: any;
 }
 
 export interface CompleteBuildData {

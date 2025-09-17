@@ -398,16 +398,18 @@ export default function QuotationResponseView({
 
   // Función para construir el DTO de servicio pendiente con configuración actualizada
   const buildPendingPayload = useCallback(() => {
+    // **CORRECCIÓN 1 & 2**: Pasar quotationDetail al builder para mapear correlativo correcto
     const builder = new QuotationResponseBuilder(
       selectedQuotationId,
-      "PENDING"
+      "PENDING",
+      quotationDetail // Pasar quotationDetail para acceder al correlativo real
     );
 
     // Preparar datos de productos con información completa
     const pendingData = {
       products: pendingProducts.map((product) => ({
         ...product,
-        // Asegurar que tengamos los datos actualizados de packing list y cargo handling
+        // **CORRECCIÓN 2**: Asegurar mapeo correcto del packingList con campos actualizados
         packingList: product.packingList || {
           boxes: product.number_of_boxes || 0,
           cbm: parseFloat(product.volume) || 0,
@@ -433,11 +435,14 @@ export default function QuotationResponseView({
         cargoType: quotationForm.selectedTypeLoad,
         courier: quotationForm.selectedCourier,
       },
+      // Pasar quotationDetail para acceso al correlativo y otros datos
+      quotationDetail,
     };
 
     return builder.buildForPendingService(pendingData);
   }, [
     selectedQuotationId,
+    quotationDetail, // Incluir quotationDetail en dependencias
     pendingProducts,
     pendingViewTotals,
     quotationForm.productQuotationState,
@@ -485,7 +490,8 @@ export default function QuotationResponseView({
         // Construir DTO para servicios completos
         const builder = new QuotationResponseBuilder(
           selectedQuotationId,
-          quotationForm.isMaritimeService() ? "MARITIME" : "EXPRESS"
+          quotationForm.isMaritimeService() ? "MARITIME" : "EXPRESS",
+          quotationDetail // También pasar quotationDetail para servicios completos
         );
 
         dto = builder.buildForCompleteService({

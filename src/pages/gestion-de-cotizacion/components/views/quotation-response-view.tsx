@@ -22,7 +22,10 @@ import { useQuotationCalculations } from "../../hooks/use-quotation-calculations
 import type { DetailsResponseProps } from "../utils/interface";
 import { QuotationResponseBuilder } from "../../utils/quotation-response-builder";
 import { adaptQuotationResponseToLegacyFormat } from "../../utils/quotation-response-adapter";
-import type { PendingBuildData, CompleteBuildData } from "../../types/quotation-response-dto";
+import type {
+  PendingBuildData,
+  CompleteBuildData,
+} from "../../types/quotation-response-dto";
 import {
   aduana,
   courier,
@@ -96,29 +99,30 @@ export default function QuotationResponseView({
   }, [quotationDetail]);
 
   // Mapear productos de la API al formato esperado por los cálculos
-  const mappedProducts = isPendingView ? pendingProducts : (quotationDetail?.products || []).map((product) => ({
-    id: product.productId,
-    name: product.name,
-    boxes: product.number_of_boxes,
-    priceXiaoYi: 0, // Valor por defecto
-    cbmTotal: parseFloat(product.volume) || 0,
-    express: 0, // Valor por defecto
-    total: 0, // Valor por defecto
-    cbm: parseFloat(product.volume) || 0,
-    weight: parseFloat(product.weight) || 0,
-    price: 0, // Valor por defecto
-    attachments: product.attachments || [], // Imágenes del producto
-    variants:
-      product.variants?.map((variant) => ({
-        id: variant.variantId,
-        name: `Nombre: ${variant.size} - Presentacion: ${variant.presentation} - Modelo: ${variant.model} - Color: ${variant.color}`,
-        quantity: variant.quantity || 1,
-        price: 0, // Valor por defecto
-        weight: 0, // Valor por defecto
-        cbm: 0, // Valor por defecto
-        express: 0, // Valor por defecto
-      })) || [],
-  }));
+  const mappedProducts = isPendingView
+    ? pendingProducts
+    : (quotationDetail?.products || []).map((product) => ({
+        id: product.productId,
+        name: product.name,
+        boxes: product.number_of_boxes,
+        cbmTotal: parseFloat(product.volume) || 0,
+        cbm: parseFloat(product.volume) || 0,
+        weight: parseFloat(product.weight) || 0,
+        attachments: product.attachments || [],
+        variants:
+          product.variants?.map((variant) => ({
+            id: variant.variantId,
+            size: variant.size,
+            presentation: variant.presentation,
+            model: variant.model,
+            color: variant.color,
+            quantity: variant.quantity || 1,
+            price: 0, // Se ingresará en el formulario
+            priceExpress: 0, // Se ingresará en el formulario
+            weight: 0, // Se calculará si es necesario
+            cbm: 0, // Se calculará si es necesario
+          })) || [],
+      }));
 
   // Mapear productos para EditableUnitCostTable (servicios no pendientes)
   const editableUnitCostTableProducts = useMemo(() => {
@@ -264,30 +268,91 @@ export default function QuotationResponseView({
     []
   );
 
-  // Función para actualizar productos pendientes
-  const handlePendingProductUpdate = useCallback((productId: string, updates: any) => {
-    setPendingProducts(prev => prev.map(product =>
-      product.id === productId
-        ? { ...product, ...updates }
-        : product
-    ));
-  }, []);
+  // Función helper para calcular datos agregados de un producto
+  const calculateProductAggregatedData = useCallback((product: any) => {
+    if (!product.variants || product.variants.length === 0) {
+      return {
+        totalPrice: 0,
+        totalWeight: product.packingList?.weightKg || parseFloat(product.weight) || 0,
+        totalCBM: product.packingList?.cbm || parseFloat(product.volume) || 0,
+        totalQuantity: product.quantityTotal || 0,
+        totalExpress: 0,
+      };
+    }
+
+    const selectedVariants = product.variants.filter((variant: any) => {
+      const variantStates = quotationForm.variantQuotationState[product.id] || {};
+      return variantStates[variant.id] !== false;
+    });
+
+    return selectedVariants.reduce(
+      (acc: any, variant: any) => ({
+        totalPrice: acc.totalPrice + (variant.price || 0) * (variant.quantity || 0),
+        totalWeight: acc.totalWeight + (variant.weight || 0),
+        totalCBM: acc.totalCBM + (variant.cbm || 0),
+        totalQuantity: acc.totalQuantity + (variant.quantity || 0),
+        totalExpress: acc.totalExpress + (variant.priceExpress || 0) * (variant.quantity || 0),
+      }),
+      {
+        totalPrice: 0,
+        totalWeight: 0,
+        totalCBM: 0,
+        totalQuantity: 0,
+        totalExpress: 0,
+      }
+    );
+  }, [quotationForm.variantQuotationState]);
+
+  // Función para actualizar productos pendientes con estado optimizado
+  const handlePendingProductUpdate = useCallback(
+    (productId: string, updates: any) => {
+      setPendingProducts((prev) => {
+        const updatedProducts = prev.map((product) =>
+          product.id === productId ? { ...product, ...updates } : product
+        );
+
+        // Notificar cambios para recálculos en tiempo real
+        const updatedProduct = updatedProducts.find(p => p.id === productId);
+        if (updatedProduct) {
+          const aggregatedData = calculateProductAggregatedData(updatedProduct);
+          handleAggregatedDataChange(productId, aggregatedData);
+        }
+
+        return updatedProducts;
+      });
+    },
+    [calculateProductAggregatedData, handleAggregatedDataChange]
+  );
 
   // Función para actualizar variantes de productos pendientes
-  const handlePendingVariantUpdate = useCallback((productId: string, variantId: string, updates: any) => {
-    setPendingProducts(prev => prev.map(product =>
-      product.id === productId
-        ? {
-            ...product,
-            variants: product.variants?.map((variant: any) =>
-              variant.id === variantId
-                ? { ...variant, ...updates }
-                : variant
-            )
-          }
-        : product
-    ));
-  }, []);
+  const handlePendingVariantUpdate = useCallback(
+    (productId: string, variantId: string, updates: any) => {
+      setPendingProducts((prev) => {
+        const updatedProducts = prev.map((product) =>
+          product.id === productId
+            ? {
+                ...product,
+                variants: product.variants?.map((variant: any) =>
+                  variant.id === variantId
+                    ? { ...variant, ...updates }
+                    : variant
+                ),
+              }
+            : product
+        );
+
+        // Notificar cambios para recálculos en tiempo real
+        const updatedProduct = updatedProducts.find(p => p.id === productId);
+        if (updatedProduct) {
+          const aggregatedData = calculateProductAggregatedData(updatedProduct);
+          handleAggregatedDataChange(productId, aggregatedData);
+        }
+
+        return updatedProducts;
+      });
+    },
+    [calculateProductAggregatedData, handleAggregatedDataChange]
+  );
 
   // Calcular totales generales para vista pendiente
   const pendingViewTotals = useMemo(() => {
@@ -323,6 +388,58 @@ export default function QuotationResponseView({
     );
   }, [productsAggregatedData, quotationForm.productQuotationState]);
 
+  // Función para construir el DTO de servicio pendiente con configuración actualizada
+  const buildPendingPayload = useCallback(() => {
+    const builder = new QuotationResponseBuilder(
+      selectedQuotationId,
+      "PENDING"
+    );
+
+    // Preparar datos de productos con información completa
+    const pendingData = {
+      products: pendingProducts.map(product => ({
+        ...product,
+        // Asegurar que tengamos los datos actualizados de packing list y cargo handling
+        packingList: product.packingList || {
+          boxes: product.number_of_boxes || 0,
+          cbm: parseFloat(product.volume) || 0,
+          weightKg: parseFloat(product.weight) || 0,
+          weightTon: (parseFloat(product.weight) || 0) / 1000,
+        },
+        cargoHandling: product.cargoHandling || {
+          fragileProduct: false,
+          stackProduct: false,
+        },
+        ghostUrl: product.ghostUrl || product.url || '',
+        adminComment: product.adminComment || '',
+      })),
+      aggregatedTotals: pendingViewTotals,
+      quotationStates: {
+        products: quotationForm.productQuotationState,
+        variants: quotationForm.variantQuotationState,
+      },
+      // Incluir datos de configuración
+      configuration: {
+        serviceLogistic: quotationForm.selectedServiceLogistic,
+        incoterm: quotationForm.selectedIncoterm,
+        cargoType: quotationForm.selectedTypeLoad,
+        courier: quotationForm.selectedCourier,
+      },
+    };
+
+    return builder.buildForPendingService(pendingData);
+  }, [
+    selectedQuotationId,
+    pendingProducts,
+    pendingViewTotals,
+    quotationForm.productQuotationState,
+    quotationForm.variantQuotationState,
+    quotationForm.selectedServiceLogistic,
+    quotationForm.selectedIncoterm,
+    quotationForm.selectedTypeLoad,
+    quotationForm.selectedCourier,
+  ]);
+
   // Calcular totales para vista no pendiente (basado en API data)
   const nonPendingViewTotals = useMemo(() => {
     const totalItems = (quotationDetail?.products || []).reduce(
@@ -351,39 +468,43 @@ export default function QuotationResponseView({
   const handleSubmitQuotation = async () => {
     setIsSubmitting(true);
     try {
-      const builder = new QuotationResponseBuilder(
-        selectedQuotationId,
-        isPendingView ? "PENDING" : (quotationForm.isMaritimeService() ? "MARITIME" : "EXPRESS")
-      );
+      let dto;
 
-      const dto = isPendingView
-        ? builder.buildForPendingService({
-            products: mappedProducts,
-            aggregatedTotals: pendingViewTotals,
-            quotationStates: {
-              products: quotationForm.productQuotationState,
-              variants: quotationForm.variantQuotationState,
-            },
-          } as PendingBuildData)
-        : builder.buildForCompleteService({
-            quotationForm,
-            calculations,
-            products: quotationForm.editableUnitCostProducts,
-            quotationDetail,
-          } as CompleteBuildData);
+      if (isPendingView) {
+        // Usar la función optimizada para construir el payload pendiente
+        dto = buildPendingPayload();
+      } else {
+        // Construir DTO para servicios completos
+        const builder = new QuotationResponseBuilder(
+          selectedQuotationId,
+          quotationForm.isMaritimeService() ? "MARITIME" : "EXPRESS"
+        );
 
-      console.log("DTO unificado construido:", JSON.stringify(dto, null, 2));
+        dto = builder.buildForCompleteService({
+          quotationForm,
+          calculations,
+          products: quotationForm.editableUnitCostProducts,
+          quotationDetail,
+        } as CompleteBuildData);
+      }
+
+      console.log(`DTO ${isPendingView ? 'Pendiente' : 'Completo'} construido:`, JSON.stringify(dto, null, 2));
 
       // Convertir al formato legacy para compatibilidad con el backend actual
       const legacyDto = adaptQuotationResponseToLegacyFormat(dto);
       console.log("DTO legacy adaptado:", JSON.stringify(legacyDto, null, 2));
 
       // Enviar la cotización usando el hook
-      await createQuotationResponseMutation.mutateAsync({ data: legacyDto, quotationId: selectedQuotationId });
+      await createQuotationResponseMutation.mutateAsync({
+        data: legacyDto,
+        quotationId: selectedQuotationId,
+      });
 
+      // Mostrar modal de éxito
       quotationForm.setIsSendingModalOpen(true);
     } catch (error) {
-      console.error("Error al enviar cotización:", error);
+      console.error(`Error al enviar cotización ${isPendingView ? 'pendiente' : 'completa'}:`, error);
+      // TODO: Agregar notificación de error al usuario
     } finally {
       setIsSubmitting(false);
     }
@@ -557,34 +678,31 @@ export default function QuotationResponseView({
                 </p>
               </div>
               <div className="p-6 space-y-4">
-                {mappedProducts.map((product, index) => (
+                {(quotationDetail?.products || []).map((product, index) => (
                   <QuotationProductRow
-                    key={product.id}
+                    key={product.productId}
                     product={{
-                      id: product.id,
+                      productId: product.productId,
                       name: product.name,
-                      quantity: product.boxes || 1,
-                      price: product.priceXiaoYi || 0,
+                      url: product.url || "",
+                      comment: product.comment || "",
+                      quantityTotal: product.quantityTotal,
                       weight: product.weight,
-                      cbm: product.cbm,
-                      images:
-                        product.attachments?.map(
-                          (url: string, index: number) => ({
-                            id: `${product.id}-img-${index}`,
-                            url: url,
-                            name: `Imagen ${index + 1}`,
-                          })
-                        ) || [],
-                      variants:
-                        product.variants?.map((variant: any) => ({
-                          id: variant.id,
-                          name: variant.name,
-                          quantity: variant.quantity || 1,
-                          price: variant.price || 0,
-                          weight: variant.weight,
-                          cbm: variant.cbm,
-                          images: [],
-                        })) || [],
+                      volume: product.volume,
+                      number_of_boxes: product.number_of_boxes,
+                      attachments: product.attachments || [],
+                      variants: product.variants?.map((variant: any) => ({
+                        variantId: variant.variantId,
+                        size: variant.size || '',
+                        presentation: variant.presentation || '',
+                        model: variant.model || '',
+                        color: variant.color || '',
+                        quantity: variant.quantity || 1,
+                        price: 0, // Se ingresará en el formulario
+                        priceExpress: 0, // Se ingresará en el formulario
+                        weight: 0, // Se calculará si es necesario
+                        cbm: 0, // Se calculará si es necesario
+                      })) || [],
                       adminComment: "",
                     }}
                     index={index}
@@ -613,14 +731,13 @@ export default function QuotationResponseView({
                     onAggregatedDataChange={handleAggregatedDataChange}
                   />
                 ))}
-                {mappedProducts.length === 0 && (
+                {(quotationDetail?.products || []).length === 0 && (
                   <div className="text-center py-8 text-gray-500">
                     <p>No hay productos disponibles para cotizar</p>
                   </div>
                 )}
               </div>
             </div>
-
           </>
         ) : (
           /* Vista completa con componentes detallados para Express/Marítimo */
@@ -804,4 +921,3 @@ export default function QuotationResponseView({
     </div>
   );
 }
-

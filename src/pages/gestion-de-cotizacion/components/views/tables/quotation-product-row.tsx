@@ -1,13 +1,9 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import {
   Eye,
-  Link as LinkIcon,
   MessageSquare,
   ChevronDown,
-  ChevronUp,
   ChevronRight,
-  Check,
-  X,
   Package,
 } from "lucide-react";
 
@@ -17,13 +13,6 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { EditableNumericField } from "@/components/ui/editableNumberFieldProps";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -31,15 +20,17 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent } from "@/components/ui/card";
+
 import ImageCarouselModal from "@/components/ImageCarouselModal";
 
 interface ProductVariant {
-  id: string;
-  name: string;
+  variantId: string;
+  size: string;
+  presentation: string;
+  model: string;
+  color: string;
   quantity: number;
-  price: number;
+  price?: number;
   priceExpress?: number;
   weight?: number;
   cbm?: number;
@@ -50,49 +41,74 @@ interface ProductVariant {
   }>;
 }
 
+interface PackingList {
+  boxes: number;
+  cbm: number;
+  weightKg: number;
+  weightTon: number;
+}
+
+interface CargoHandling {
+  fragileProduct: boolean;
+  stackProduct: boolean;
+}
+
 interface Product {
-  id: string;
+  productId: string;
   name: string;
-  quantity: number;
-  price: number;
-  weight?: number;
-  cbm?: number;
-  images?: Array<{
-    id: string;
-    url: string;
-    name?: string;
-  }>;
+  url?: string;
+  comment?: string;
+  quantityTotal: number;
+  weight: string;
+  volume: string;
+  number_of_boxes: number;
   variants?: ProductVariant[];
+  attachments?: string[];
   adminComment?: string;
+  packingList?: PackingList;
+  cargoHandling?: CargoHandling;
+  ghostUrl?: string;
 }
 
 interface QuotationProductRowProps {
   product: Product;
   index: number;
-  quotationDetail?: any;
-  onProductChange?: (productId: string, field: string, value: number | string) => void;
+  quotationDetail?: unknown;
+  onProductChange?: (
+    productId: string,
+    field: string,
+    value: number | string
+  ) => void;
   editableProducts?: Product[];
   productQuotationState?: Record<string, boolean>;
   variantQuotationState?: Record<string, Record<string, boolean>>;
   onProductQuotationToggle?: (productId: string, checked: boolean) => void;
-  onVariantQuotationToggle?: (productId: string, variantId: string, checked: boolean) => void;
+  onVariantQuotationToggle?: (
+    productId: string,
+    variantId: string,
+    checked: boolean
+  ) => void;
   onProductUpdate?: (productId: string, updates: Partial<Product>) => void;
-  onVariantUpdate?: (productId: string, variantId: string, updates: Partial<ProductVariant>) => void;
-  onAggregatedDataChange?: (productId: string, aggregatedData: {
-    totalPrice: number;
-    totalWeight: number;
-    totalCBM: number;
-    totalQuantity: number;
-    totalExpress: number;
-  }) => void;
+  onVariantUpdate?: (
+    productId: string,
+    variantId: string,
+    updates: Partial<ProductVariant>
+  ) => void;
+  onAggregatedDataChange?: (
+    productId: string,
+    aggregatedData: {
+      totalPrice: number;
+      totalWeight: number;
+      totalCBM: number;
+      totalQuantity: number;
+      totalExpress: number;
+    }
+  ) => void;
 }
 
 export default function QuotationProductRow({
   product,
   index,
-  quotationDetail,
-  onProductChange,
-  editableProducts = [],
   productQuotationState = {},
   variantQuotationState = {},
   onProductQuotationToggle,
@@ -104,76 +120,160 @@ export default function QuotationProductRow({
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
   const [isCommentModalOpen, setIsCommentModalOpen] = useState<boolean>(false);
   const [isImageModalOpen, setIsImageModalOpen] = useState<boolean>(false);
-  const [selectedImages, setSelectedImages] = useState<Array<{id: string, url: string, name?: string}>>([]);
-  const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
-  const [adminComment, setAdminComment] = useState<string>(product.adminComment || "");
-  
-  // Estado local para los valores del producto
-  const [localProduct, setLocalProduct] = useState<Product>(product);
-  
+  const [selectedImages, setSelectedImages] = useState<
+    Array<{ id: string; url: string; name?: string }>
+  >([]);
+  const [adminComment, setAdminComment] = useState<string>(
+    product.adminComment || ""
+  );
+
+  // Estado local para los valores del producto con valores extendidos para vista pendiente
+  const [localProduct, setLocalProduct] = useState<Product & {
+    packingList?: PackingList;
+    cargoHandling?: CargoHandling;
+    ghostUrl?: string;
+  }>({
+    ...product,
+    packingList: {
+      boxes: product.number_of_boxes || 0,
+      cbm: parseFloat(product.volume) || 0,
+      weightKg: parseFloat(product.weight) || 0,
+      weightTon: (parseFloat(product.weight) || 0) / 1000,
+    },
+    cargoHandling: {
+      fragileProduct: false,
+      stackProduct: false,
+    },
+    ghostUrl: product.url || '',
+  });
+
   // Solo actualizar el estado local si hay cambios significativos desde el padre
-  // y no estamos en medio de una edición
   useEffect(() => {
-    // Comparar solo propiedades clave para evitar actualizaciones innecesarias
-    const hasSignificantChange = (
-      product.id !== localProduct.id ||
+    const hasSignificantChange =
+      product.productId !== localProduct.productId ||
       product.name !== localProduct.name ||
-      (product.variants && localProduct.variants && product.variants.length !== localProduct.variants.length)
-    );
-    
+      product.attachments !== localProduct.attachments ||
+      (product.variants &&
+        localProduct.variants &&
+        product.variants.length !== localProduct.variants.length);
+
     if (hasSignificantChange) {
-      setLocalProduct(product);
+      setLocalProduct(prev => ({
+        ...product,
+        packingList: {
+          boxes: product.number_of_boxes || prev.packingList?.boxes || 0,
+          cbm: parseFloat(product.volume) || prev.packingList?.cbm || 0,
+          weightKg: parseFloat(product.weight) || prev.packingList?.weightKg || 0,
+          weightTon: (parseFloat(product.weight) || prev.packingList?.weightKg || 0) / 1000,
+        },
+        cargoHandling: prev.cargoHandling || {
+          fragileProduct: false,
+          stackProduct: false,
+        },
+        ghostUrl: product.url || prev.ghostUrl || '',
+      }));
     }
-  }, [product.id, product.name, product.variants?.length]);
+  }, [
+    product.productId,
+    product.name,
+    product.attachments,
+    product.variants,
+    product.number_of_boxes,
+    product.volume,
+    product.weight,
+    product.url,
+    localProduct.productId,
+    localProduct.name,
+    localProduct.attachments,
+    localProduct.variants,
+  ]);
 
   // Definir productVariants antes de usarlo en useMemo
-  const isProductSelected = productQuotationState[product.id] !== undefined ? productQuotationState[product.id] : true;
-  const productVariants = variantQuotationState[product.id] || {};
+  const isProductSelected =
+    productQuotationState[product.productId] !== undefined
+      ? productQuotationState[product.productId]
+      : true;
+  const productVariants = variantQuotationState[product.productId] || {};
 
   // Cálculos dinámicos agregados de las variantes
   const aggregatedData = useMemo(() => {
-    if (!localProduct.variants) {
+    if (!localProduct.variants || localProduct.variants.length === 0) {
       return {
-        totalPrice: localProduct.price || 0,
-        totalWeight: localProduct.weight || 0,
-        totalCBM: localProduct.cbm || 0,
-        totalQuantity: localProduct.quantity || 0,
-        totalExpress: 0
+        totalPrice: 0,
+        totalWeight: localProduct.packingList?.weightKg || 0,
+        totalCBM: localProduct.packingList?.cbm || 0,
+        totalQuantity: localProduct.quantityTotal || 0,
+        totalExpress: 0,
       };
     }
 
-    const selectedVariants = localProduct.variants.filter(variant => {
-      const isSelected = productVariants[variant.id] !== undefined ? productVariants[variant.id] : true;
+    const selectedVariants = localProduct.variants.filter((variant) => {
+      const isSelected =
+        productVariants[variant.variantId] !== undefined
+          ? productVariants[variant.variantId]
+          : true;
       return isSelected;
     });
 
     return selectedVariants.reduce(
-      (acc, variant) => ({
-        totalPrice: acc.totalPrice + ((variant.price || 0) * (variant.quantity || 0)),
-        totalWeight: acc.totalWeight + (variant.weight || 0),
-        totalCBM: acc.totalCBM + (variant.cbm || 0),
-        totalQuantity: acc.totalQuantity + (variant.quantity || 0),
-        totalExpress: acc.totalExpress + ((variant.priceExpress || 0) * (variant.quantity || 0))
-      }),
-      { totalPrice: 0, totalWeight: 0, totalCBM: 0, totalQuantity: 0, totalExpress: 0 }
+      (acc, variant) => {
+        // Calcular CBM del tamaño si existe (asumiendo formato "LxWxH")
+        let variantCBM = 0;
+        if (variant.size) {
+          const dimensions = variant.size.split('*').map((d: string) => parseFloat(d.trim()));
+          if (dimensions.length === 3 && dimensions.every((d: number) => !isNaN(d))) {
+            variantCBM = dimensions[0] * dimensions[1] * dimensions[2] / 1000000; // convertir a m3
+          }
+        }
+
+        return {
+          totalPrice:
+            acc.totalPrice + (variant.price || 0) * (variant.quantity || 0),
+          totalWeight: acc.totalWeight + (variant.weight || localProduct.packingList?.weightKg || 0),
+          totalCBM: acc.totalCBM + (variantCBM > 0 ? variantCBM : (localProduct.packingList?.cbm || 0) / (localProduct.variants?.length || 1)) * (variant.quantity || 1),
+          totalQuantity: acc.totalQuantity + (variant.quantity || 0),
+          totalExpress:
+            acc.totalExpress +
+            (variant.priceExpress || 0) * (variant.quantity || 0),
+        };
+      },
+      {
+        totalPrice: 0,
+        totalWeight: 0,
+        totalCBM: 0,
+        totalQuantity: 0,
+        totalExpress: 0,
+      }
     );
-  }, [localProduct.variants, productVariants, localProduct.price, localProduct.weight, localProduct.cbm, localProduct.quantity]);
+  }, [
+    localProduct.variants,
+    productVariants,
+    localProduct.packingList?.weightKg,
+    localProduct.packingList?.cbm,
+    localProduct.quantityTotal,
+  ]);
 
   // Usar ref para evitar llamadas innecesarias
-  const previousAggregatedDataRef = useRef<any>(null);
-  
+  const previousAggregatedDataRef = useRef<{
+    totalPrice: number;
+    totalWeight: number;
+    totalCBM: number;
+    totalQuantity: number;
+    totalExpress: number;
+  } | null>(null);
+
   // Notificar al padre cuando cambien los datos agregados
   useEffect(() => {
     if (onAggregatedDataChange) {
       const current = JSON.stringify(aggregatedData);
       const previous = JSON.stringify(previousAggregatedDataRef.current);
-      
+
       if (current !== previous) {
-        onAggregatedDataChange(product.id, aggregatedData);
+        onAggregatedDataChange(product.productId, aggregatedData);
         previousAggregatedDataRef.current = aggregatedData;
       }
     }
-  }, [aggregatedData, product.id]);
+  }, [aggregatedData, product.productId, onAggregatedDataChange]);
 
   const handleToggleExpanded = () => {
     setIsExpanded(!isExpanded);
@@ -181,306 +281,551 @@ export default function QuotationProductRow({
 
   const handleProductQuotationToggle = (checked: boolean) => {
     if (onProductQuotationToggle) {
-      onProductQuotationToggle(product.id, checked);
+      onProductQuotationToggle(product.productId, checked);
     }
   };
 
-  const handleVariantQuotationToggle = (variantId: string, checked: boolean) => {
+  const handleVariantQuotationToggle = (
+    variantId: string,
+    checked: boolean
+  ) => {
     if (onVariantQuotationToggle) {
-      onVariantQuotationToggle(product.id, variantId, checked);
+      onVariantQuotationToggle(product.productId, variantId, checked);
     }
   };
 
-  const handleOpenImages = (images: Array<{id: string, url: string, name?: string}>, startIndex: number = 0) => {
+  const handleOpenImages = (
+    images: Array<{ id: string; url: string; name?: string }>,
+    startIndex: number = 0
+  ) => {
     setSelectedImages(images);
-    setCurrentImageIndex(startIndex);
     setIsImageModalOpen(true);
   };
 
   const handleSaveComment = () => {
     if (onProductUpdate) {
-      onProductUpdate(product.id, { adminComment });
+      onProductUpdate(product.productId, { adminComment });
     }
     setIsCommentModalOpen(false);
   };
 
-  const handleProductFieldChange = (field: string, value: number | string) => {
-    // Actualizar estado local inmediatamente
-    setLocalProduct(prev => ({
+  // Función para manejar cambios en campos básicos del producto
+  // const handleProductFieldChange = (field: string, value: number | string) => {
+  //   setLocalProduct((prev) => ({
+  //     ...prev,
+  //     [field]: value,
+  //   }));
+  //   if (onProductUpdate) {
+  //     onProductUpdate(product.productId, { [field]: value });
+  //   }
+  // };
+
+  // Función específica para manejar cambios en packing list
+  const handlePackingListChange = (field: keyof PackingList, value: number) => {
+    setLocalProduct((prev) => ({
       ...prev,
-      [field]: value
+      packingList: {
+        ...prev.packingList!,
+        [field]: value,
+        // Auto-calcular peso en toneladas cuando cambie el peso en kg
+        ...(field === 'weightKg' ? { weightTon: value / 1000 } : {}),
+      },
     }));
-    
+
     // Notificar al padre
-    if (onProductChange) {
-      onProductChange(product.id, field, value);
-    }
     if (onProductUpdate) {
-      onProductUpdate(product.id, { [field]: value });
+      onProductUpdate(product.productId, {
+        packingList: {
+          ...localProduct.packingList!,
+          [field]: value,
+          ...(field === 'weightKg' ? { weightTon: value / 1000 } : {}),
+        },
+      });
     }
   };
 
-  const handleVariantFieldChange = (variantId: string, field: string, value: number | string) => {
-    // Actualizar estado local inmediatamente
-    setLocalProduct(prev => ({
+  // Función para manejar cambios en manipulación de carga
+  const handleCargoHandlingChange = (field: keyof CargoHandling, value: boolean) => {
+    setLocalProduct((prev) => ({
       ...prev,
-      variants: prev.variants?.map(variant =>
-        variant.id === variantId
-          ? { ...variant, [field]: value }
-          : variant
-      )
+      cargoHandling: {
+        ...prev.cargoHandling!,
+        [field]: value,
+      },
     }));
-    
+
+    // Notificar al padre
+    if (onProductUpdate) {
+      onProductUpdate(product.productId, {
+        cargoHandling: {
+          ...localProduct.cargoHandling!,
+          [field]: value,
+        },
+      });
+    }
+  };
+
+  // Función para manejar cambios en URL fantasma
+  const handleGhostUrlChange = (value: string) => {
+    setLocalProduct((prev) => ({
+      ...prev,
+      ghostUrl: value,
+    }));
+
+    // Notificar al padre
+    if (onProductUpdate) {
+      onProductUpdate(product.productId, { ghostUrl: value });
+    }
+  };
+
+  const handleVariantFieldChange = (
+    variantId: string,
+    field: string,
+    value: number | string
+  ) => {
+    // Actualizar estado local inmediatamente
+    setLocalProduct((prev) => ({
+      ...prev,
+      variants: prev.variants?.map((variant) =>
+        variant.variantId === variantId ? { ...variant, [field]: value } : variant
+      ),
+    }));
+
     // Notificar al padre
     if (onVariantUpdate) {
-      onVariantUpdate(product.id, variantId, { [field]: value });
+      onVariantUpdate(product.productId, variantId, { [field]: value });
     }
   };
 
   return (
-    <Card className="overflow-hidden">
-      <CardContent className="p-0">
-        {/* Main Product Row */}
-        <div className="p-6 border-b border-border">
-          <div className="flex items-center gap-4">
-            {/* Product Checkbox */}
-            <div className="flex-shrink-0">
-              <Checkbox
-                checked={isProductSelected}
-                onCheckedChange={handleProductQuotationToggle}
+    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+      {/* Header de la tabla */}
+      <div className="grid grid-cols-9 gap-4 p-4 bg-gray-50 border-b border-gray-200 text-sm font-semibold text-gray-700">
+        <div className="text-center">NRO.</div>
+        <div>IMAGEN</div>
+        <div>PRODUCTO & VARIANTES</div>
+        <div>PACKING LIST</div>
+        <div>MANIPULACIÓN DE CARGA</div>
+        <div>URL</div>
+        <div>PRECIO</div>
+        <div>EXPRESS</div>
+        <div>P. TOTAL</div>
+      </div>
+
+      {/* Fila del producto */}
+      <div className="grid grid-cols-9 gap-4 p-4 items-start">
+        {/* Columna 1: NRO. */}
+        <div className="flex flex-col items-center space-y-2">
+          <div className="text-lg font-bold text-gray-800">{index + 1}</div>
+          <Checkbox
+            checked={isProductSelected}
+            onCheckedChange={handleProductQuotationToggle}
+          />
+        </div>
+
+        {/* Columna 2: IMAGEN */}
+        <div className="flex justify-center">
+          {localProduct.attachments && localProduct.attachments.length > 0 ? (
+            <div className="relative">
+              <img
+                src={localProduct.attachments[0] || "/placeholder.svg"}
+                alt={localProduct.name}
+                className="w-16 h-16 object-cover rounded-lg border border-gray-200"
+                onError={(e) => {
+                  e.currentTarget.src = "/placeholder.svg";
+                }}
               />
+              <Button
+                size="sm"
+                variant="secondary"
+                className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0"
+                onClick={() =>
+                  handleOpenImages(
+                    localProduct.attachments?.map((url, index) => ({
+                      id: index.toString(),
+                      url,
+                      name: `Imagen ${index + 1}`
+                    })) || [],
+                    0
+                  )
+                }
+              >
+                <Eye className="h-3 w-3" />
+              </Button>
             </div>
+          ) : (
+            <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
+              <Package className="h-6 w-6 text-gray-400" />
+            </div>
+          )}
+        </div>
 
-            {/* Product Image */}
-            <div className="flex-shrink-0">
-              {localProduct.images && localProduct.images.length > 0 ? (
-                <div className="relative">
-                  <img
-                    src={localProduct.images[0]?.url || "/placeholder.svg"}
-                    alt={localProduct.name}
-                    className="w-20 h-20 object-cover rounded-lg border border-border"
-                  />
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
-                    onClick={() => handleOpenImages(localProduct.images || [], 0)}
-                  >
-                    <Eye className="h-3 w-3" />
-                  </Button>
+        {/* Columna 3: PRODUCTO & VARIANTES */}
+        <div className="min-w-0 space-y-2">
+          <div>
+            <h3 className="font-semibold text-gray-800 truncate">
+              {localProduct.name}
+            </h3>
+            <Badge variant="secondary" className="text-xs">
+              {localProduct.quantityTotal} items
+            </Badge>
+          </div>
+          
+          {/* Botón para ver comentarios y URL */}
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm" className="text-xs">
+                <MessageSquare className="h-3 w-3 mr-1" />
+                Ver Info
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Información del Producto</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium">URL:</label>
+                  <p className="text-sm text-blue-600 break-all">{localProduct.url || 'No disponible'}</p>
                 </div>
+                <div>
+                  <label className="text-sm font-medium">Comentario:</label>
+                  <p className="text-sm text-gray-600">{localProduct.comment || 'Sin comentarios'}</p>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          {/* Botón para expandir variantes */}
+          {localProduct.variants && localProduct.variants.length > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleToggleExpanded}
+              className="text-xs"
+            >
+              {isExpanded ? (
+                <ChevronDown className="h-3 w-3 mr-1" />
               ) : (
-                <div className="w-20 h-20 bg-muted rounded-lg flex items-center justify-center">
-                  <Package className="h-8 w-8 text-muted-foreground" />
-                </div>
+                <ChevronRight className="h-3 w-3 mr-1" />
               )}
-            </div>
+              Variantes ({localProduct.variants.length})
+            </Button>
+          )}
+        </div>
 
-            {/* Product Info */}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-3 mb-2">
-                <h3 className="font-heading text-lg font-bold text-foreground truncate">
-                  {localProduct.name}
-                </h3>
-                {localProduct.variants && localProduct.variants.length > 0 && (
-                  <Badge variant="secondary" className="font-body">
-                    {localProduct.variants.length} variante{localProduct.variants.length !== 1 ? "s" : ""}
-                  </Badge>
-                )}
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm font-body">
-                <div>
-                  <span className="text-muted-foreground">Cantidad:</span>
-                  <span className="ml-1 font-semibold">{aggregatedData.totalQuantity}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Precio:</span>
-                  <span className="ml-1 font-semibold">${aggregatedData.totalPrice.toFixed(2)}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Peso:</span>
-                  <span className="ml-1 font-semibold">{aggregatedData.totalWeight.toFixed(2)}kg</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">CBM:</span>
-                  <span className="ml-1 font-semibold">{aggregatedData.totalCBM.toFixed(3)}</span>
-                </div>
-              </div>
-              {aggregatedData.totalExpress > 0 && (
-                <div className="mt-2 text-sm font-body">
-                  <span className="text-muted-foreground">Express:</span>
-                  <span className="ml-1 font-semibold">${aggregatedData.totalExpress.toFixed(2)}</span>
-                </div>
-              )}
-            </div>
-
-            {/* Actions */}
-            <div className="flex items-center gap-2">
-              <Dialog open={isCommentModalOpen} onOpenChange={setIsCommentModalOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="font-body bg-transparent">
-                    <MessageSquare className="h-4 w-4 mr-2" />
-                    Comentario
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle className="font-heading">Comentario del Administrador</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <p className="font-body text-sm text-muted-foreground">
-                      Agregar comentario para: {localProduct.name}
-                    </p>
-                    <Textarea
-                      placeholder="Escriba un comentario sobre este producto..."
-                      value={adminComment}
-                      onChange={(e) => setAdminComment(e.target.value)}
-                      className="font-body"
-                    />
-                    <div className="flex justify-end gap-2">
-                      <Button 
-                        variant="outline" 
-                        className="font-body bg-transparent"
-                        onClick={() => setIsCommentModalOpen(false)}
-                      >
-                        Cancelar
-                      </Button>
-                      <Button 
-                        className="font-body"
-                        onClick={handleSaveComment}
-                      >
-                        Guardar Comentario
-                      </Button>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
-
-              {localProduct.variants && localProduct.variants.length > 0 && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleToggleExpanded}
-                  className="font-body"
-                >
-                  {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                  Variantes ({localProduct.variants.length})
-                </Button>
-              )}
-            </div>
+        {/* Columna 4: PACKING LIST */}
+        <div className="grid grid-cols-2 gap-2 text-xs">
+          <div>
+            <label className="block text-gray-600 mb-1">Nro. Cajas</label>
+            <Input
+              type="number"
+              value={localProduct.packingList?.boxes || 0}
+              onChange={(e) => handlePackingListChange('boxes', parseInt(e.target.value) || 0)}
+              className="h-8 text-xs"
+              min={0}
+            />
+          </div>
+          <div>
+            <label className="block text-gray-600 mb-1">CBM</label>
+            <Input
+              type="number"
+              step="0.01"
+              value={localProduct.packingList?.cbm || 0}
+              onChange={(e) => handlePackingListChange('cbm', parseFloat(e.target.value) || 0)}
+              className="h-8 text-xs"
+              min={0}
+            />
+          </div>
+          <div>
+            <label className="block text-gray-600 mb-1">PESO KG</label>
+            <Input
+              type="number"
+              step="0.1"
+              value={localProduct.packingList?.weightKg || 0}
+              onChange={(e) => handlePackingListChange('weightKg', parseFloat(e.target.value) || 0)}
+              className="h-8 text-xs"
+              min={0}
+            />
+          </div>
+          <div>
+            <label className="block text-gray-600 mb-1">PESO TON</label>
+            <Input
+              value={(localProduct.packingList?.weightTon || 0).toFixed(3)}
+              readOnly
+              className="h-8 text-xs bg-gray-50"
+            />
           </div>
         </div>
 
-        {/* Expanded Variants */}
-        {isExpanded && localProduct.variants && localProduct.variants.length > 0 && (
-          <div className="bg-muted/30">
+        {/* Columna 5: MANIPULACIÓN DE CARGA */}
+        <div className="space-y-2">
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id={`fragile-${product.productId}`}
+              checked={localProduct.cargoHandling?.fragileProduct || false}
+              onCheckedChange={(checked) => handleCargoHandlingChange('fragileProduct', checked as boolean)}
+            />
+            <label htmlFor={`fragile-${product.productId}`} className="text-xs text-gray-600">
+              Producto Frágil
+            </label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id={`stackable-${product.productId}`}
+              checked={localProduct.cargoHandling?.stackProduct || false}
+              onCheckedChange={(checked) => handleCargoHandlingChange('stackProduct', checked as boolean)}
+            />
+            <label htmlFor={`stackable-${product.productId}`} className="text-xs text-gray-600">
+              Producto Apilable
+            </label>
+          </div>
+        </div>
+
+        {/* Columna 6: URL */}
+        <div className="space-y-2">
+          <Input
+            placeholder="URL fantasma..."
+            value={localProduct.ghostUrl || ''}
+            onChange={(e) => handleGhostUrlChange(e.target.value)}
+            className="h-8 text-xs"
+          />
+          <Dialog
+            open={isCommentModalOpen}
+            onOpenChange={setIsCommentModalOpen}
+          >
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm" className="text-xs w-full">
+                <MessageSquare className="h-3 w-3 mr-1" />
+                Comentario
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Comentario del Administrador</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <p className="text-sm text-gray-600">
+                  Agregar comentario para: {localProduct.name}
+                </p>
+                <Textarea
+                  placeholder="Escriba un comentario sobre este producto..."
+                  value={adminComment}
+                  onChange={(e) => setAdminComment(e.target.value)}
+                />
+                <div className="flex justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsCommentModalOpen(false)}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button onClick={handleSaveComment}>
+                    Guardar Comentario
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+
+        {/* Columna 7: PRECIO */}
+        <div className="text-center">
+          <div className="text-xs text-gray-600 mb-1">USD</div>
+          <div className="text-lg font-semibold text-green-600 border border-green-200 rounded px-2 py-1 bg-green-50">
+            ${aggregatedData.totalPrice.toFixed(2)}
+          </div>
+        </div>
+
+        {/* Columna 8: EXPRESS */}
+        <div className="text-center">
+          <div className="text-xs text-gray-600 mb-1">USD</div>
+          <div className="text-lg font-semibold text-blue-600 border border-blue-200 rounded px-2 py-1 bg-blue-50">
+            ${aggregatedData.totalExpress.toFixed(2)}
+          </div>
+        </div>
+
+        {/* Columna 9: P. TOTAL */}
+        <div className="text-center">
+          <div className="text-xs text-gray-600 mb-1">USD</div>
+          <div className="text-lg font-semibold text-emerald-600 border border-emerald-200 rounded px-2 py-1 bg-emerald-50">
+            ${(aggregatedData.totalPrice + aggregatedData.totalExpress).toFixed(2)}
+          </div>
+        </div>
+      </div>
+
+      {/* Expanded Variants */}
+      {isExpanded &&
+        localProduct.variants &&
+        localProduct.variants.length > 0 && (
+          <div className="bg-gray-50 border-t border-gray-200">
             <div className="p-4">
-              <h4 className="font-heading text-sm font-bold text-foreground mb-3">Variantes del Producto</h4>
-              <div className="space-y-3">
-                {localProduct.variants.map((variant) => {
-                  const isVariantSelected = productVariants[variant.id] !== undefined ? productVariants[variant.id] : true;
-                  return (
-                    <div key={variant.id} className="bg-card rounded-lg p-4 border border-border">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2">
+              <h4 className="text-sm font-bold text-gray-800 mb-3">
+                Variantes del Producto
+              </h4>
+
+              {/* Tabla de variantes */}
+              <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                {/* Header de la tabla */}
+                <div className="grid grid-cols-8 gap-4 p-3 bg-gray-100 border-b border-gray-200 text-sm font-semibold text-gray-700">
+                  <div className="text-center">Cotizar</div>
+                  <div>Presentación</div>
+                  <div>Modelo</div>
+                  <div>Color</div>
+                  <div>Tamaño</div>
+                  <div className="text-orange-600">Cantidad</div>
+                  <div className="text-green-600">Precio unitario</div>
+                  <div className="text-blue-600">Express</div>
+                </div>
+
+                {/* Filas de variantes */}
+                <div className="divide-y divide-gray-200">
+                  {localProduct.variants.map((variant) => {
+                    const isVariantSelected =
+                      productVariants[variant.variantId] !== undefined
+                        ? productVariants[variant.variantId]
+                        : true;
+
+                    return (
+                      <div
+                        key={variant.variantId}
+                        className="grid grid-cols-8 gap-4 p-3 items-center text-sm"
+                      >
+                        {/* Checkbox para seleccionar */}
+                        <div className="flex justify-center">
                           <Checkbox
                             checked={isVariantSelected}
-                            onCheckedChange={(checked) => 
-                              handleVariantQuotationToggle(variant.id, checked as boolean)
+                            onCheckedChange={(checked) =>
+                              handleVariantQuotationToggle(
+                                variant.variantId,
+                                checked as boolean
+                              )
                             }
                           />
-                          <div className="w-2 h-2 bg-primary rounded-full"></div>
-                          <span className="font-body font-semibold text-sm">
-                            {variant.name}
-                          </span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="font-body text-xs">
-                            Cantidad: {variant.quantity}
-                          </Badge>
-                          {variant.images && variant.images.length > 0 && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleOpenImages(variant.images || [], 0)}
-                              className="flex items-center gap-1"
-                            >
-                              <Eye className="w-4 h-4" />
-                              Ver ({variant.images.length})
-                            </Button>
-                          )}
-                        </div>
-                      </div>
 
-                      {/* Campos editables para variantes seleccionadas */}
-                      {isVariantSelected && (
-                        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-xs font-body">
-                          <div className="bg-background rounded p-2 text-center">
-                            <div className="text-muted-foreground mb-1">Precio Unitario</div>
-                            <EditableNumericField
-                              value={variant.price || 0}
-                              onChange={(value) => handleVariantFieldChange(variant.id, 'price', value)}
-                              prefix="$"
-                              decimalPlaces={2}
-                            />
-                          </div>
-                          <div className="bg-background rounded p-2 text-center">
-                            <div className="text-muted-foreground mb-1">Precio Express</div>
-                            <EditableNumericField
-                              value={variant.priceExpress || 0}
-                              onChange={(value) => handleVariantFieldChange(variant.id, 'priceExpress', value)}
-                              prefix="$"
-                              decimalPlaces={2}
-                            />
-                          </div>
-                          <div className="bg-background rounded p-2 text-center">
-                            <div className="text-muted-foreground mb-1">Cantidad</div>
+                        {/* Presentación */}
+                        <div>
+                          <Badge
+                            variant="secondary"
+                            className="bg-green-100 text-green-800 border-green-200"
+                          >
+                            {variant.presentation || 'N/A'}
+                          </Badge>
+                        </div>
+
+                        {/* Modelo */}
+                        <div>
+                          <Badge
+                            variant="secondary"
+                            className="bg-blue-100 text-blue-800 border-blue-200"
+                          >
+                            {variant.model || 'N/A'}
+                          </Badge>
+                        </div>
+
+                        {/* Color */}
+                        <div>
+                          <Badge
+                            variant="secondary"
+                            className="bg-pink-100 text-pink-800 border-pink-200"
+                          >
+                            {variant.color || 'N/A'}
+                          </Badge>
+                        </div>
+
+                        {/* Tamaño */}
+                        <div>
+                          <Badge
+                            variant="secondary"
+                            className="bg-purple-100 text-purple-800 border-purple-200"
+                          >
+                            {variant.size || 'N/A'}
+                          </Badge>
+                        </div>
+
+                        {/* Cantidad */}
+                        <div>
+                          {isVariantSelected ? (
                             <EditableNumericField
                               value={variant.quantity || 0}
-                              onChange={(value) => 
-                                handleVariantFieldChange(variant.id, 'quantity', value)
+                              onChange={(value) =>
+                                handleVariantFieldChange(
+                                  variant.variantId,
+                                  "quantity",
+                                  value
+                                )
                               }
                               decimalPlaces={0}
                               min={0}
                             />
-                          </div>
-                          <div className="bg-background rounded p-2 text-center">
-                            <div className="text-muted-foreground mb-1">Peso (kg)</div>
+                          ) : (
+                            <span className="text-gray-500">
+                              {variant.quantity || 0}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Precio unitario */}
+                        <div>
+                          {isVariantSelected ? (
                             <EditableNumericField
-                              value={variant.weight || 0}
-                              onChange={(value) => handleVariantFieldChange(variant.id, 'weight', value)}
-                              suffix="kg"
+                              value={variant.price || 0}
+                              onChange={(value) =>
+                                handleVariantFieldChange(
+                                  variant.variantId,
+                                  "price",
+                                  value
+                                )
+                              }
+                              prefix="$"
                               decimalPlaces={2}
                             />
-                          </div>
-                          <div className="bg-background rounded p-2 text-center">
-                            <div className="text-muted-foreground mb-1">CBM</div>
-                            <EditableNumericField
-                              value={variant.cbm || 0}
-                              onChange={(value) => handleVariantFieldChange(variant.id, 'cbm', value)}
-                              suffix="m³"
-                              decimalPlaces={3}
-                            />
-                          </div>
+                          ) : (
+                            <span className="text-gray-500">
+                              ${(variant.price || 0).toFixed(2)}
+                            </span>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  );
-                })}
+
+                        {/* Express */}
+                        <div>
+                          {isVariantSelected ? (
+                            <EditableNumericField
+                              value={variant.priceExpress || 0}
+                              onChange={(value) =>
+                                handleVariantFieldChange(
+                                  variant.variantId,
+                                  "priceExpress",
+                                  value
+                                )
+                              }
+                              prefix="$"
+                              decimalPlaces={2}
+                            />
+                          ) : (
+                            <span className="text-gray-500">
+                              ${(variant.priceExpress || 0).toFixed(2)}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           </div>
         )}
-      </CardContent>
 
       {/* Modal de imágenes */}
       <ImageCarouselModal
         isOpen={isImageModalOpen}
         onClose={() => setIsImageModalOpen(false)}
         files={[]}
-        attachments={selectedImages.map(img => img.url)}
+        attachments={selectedImages.map((img) => img.url)}
         productName={localProduct.name}
       />
-    </Card>
+    </div>
   );
 }

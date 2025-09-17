@@ -77,7 +77,7 @@ export function QuotationSummaryCard({
         <Card className="bg-white shadow-sm hover:shadow-md transition-shadow">
           <CardContent className="p-4 text-center">
             <div className="text-lg font-bold text-slate-800 mb-1">{formatCurrency(totalPrice)}</div>
-            <div className="text-xs text-slate-600 font-medium">P. TOTAL</div>
+            <div className="text-xs text-slate-600 font-medium">PRECIO</div>
           </CardContent>
         </Card>
 
@@ -93,7 +93,7 @@ export function QuotationSummaryCard({
         <Card className="bg-emerald-500 shadow-sm hover:shadow-md transition-shadow col-span-2 sm:col-span-1">
           <CardContent className="p-4 text-center">
             <div className="text-lg font-bold text-white mb-1">{formatCurrency(totalGeneral)}</div>
-            <div className="text-xs text-emerald-100 font-medium">TOTAL</div>
+            <div className="text-xs text-emerald-100 font-medium">P. TOTAL</div>
           </CardContent>
         </Card>
       </div>

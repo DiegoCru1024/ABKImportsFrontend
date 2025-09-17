@@ -269,39 +269,47 @@ export default function QuotationResponseView({
   );
 
   // Función helper para calcular datos agregados de un producto
-  const calculateProductAggregatedData = useCallback((product: any) => {
-    if (!product.variants || product.variants.length === 0) {
-      return {
-        totalPrice: 0,
-        totalWeight: product.packingList?.weightKg || parseFloat(product.weight) || 0,
-        totalCBM: product.packingList?.cbm || parseFloat(product.volume) || 0,
-        totalQuantity: product.quantityTotal || 0,
-        totalExpress: 0,
-      };
-    }
-
-    const selectedVariants = product.variants.filter((variant: any) => {
-      const variantStates = quotationForm.variantQuotationState[product.id] || {};
-      return variantStates[variant.id] !== false;
-    });
-
-    return selectedVariants.reduce(
-      (acc: any, variant: any) => ({
-        totalPrice: acc.totalPrice + (variant.price || 0) * (variant.quantity || 0),
-        totalWeight: acc.totalWeight + (variant.weight || 0),
-        totalCBM: acc.totalCBM + (variant.cbm || 0),
-        totalQuantity: acc.totalQuantity + (variant.quantity || 0),
-        totalExpress: acc.totalExpress + (variant.priceExpress || 0) * (variant.quantity || 0),
-      }),
-      {
-        totalPrice: 0,
-        totalWeight: 0,
-        totalCBM: 0,
-        totalQuantity: 0,
-        totalExpress: 0,
+  const calculateProductAggregatedData = useCallback(
+    (product: any) => {
+      if (!product.variants || product.variants.length === 0) {
+        return {
+          totalPrice: 0,
+          totalWeight:
+            product.packingList?.weightKg || parseFloat(product.weight) || 0,
+          totalCBM: product.packingList?.cbm || parseFloat(product.volume) || 0,
+          totalQuantity: product.quantityTotal || 0,
+          totalExpress: 0,
+        };
       }
-    );
-  }, [quotationForm.variantQuotationState]);
+
+      const selectedVariants = product.variants.filter((variant: any) => {
+        const variantStates =
+          quotationForm.variantQuotationState[product.id] || {};
+        return variantStates[variant.id] !== false;
+      });
+
+      return selectedVariants.reduce(
+        (acc: any, variant: any) => ({
+          totalPrice:
+            acc.totalPrice + (variant.price || 0) * (variant.quantity || 0),
+          totalWeight: acc.totalWeight + (variant.weight || 0),
+          totalCBM: acc.totalCBM + (variant.cbm || 0),
+          totalQuantity: acc.totalQuantity + (variant.quantity || 0),
+          totalExpress:
+            acc.totalExpress +
+            (variant.priceExpress || 0) * (variant.quantity || 0),
+        }),
+        {
+          totalPrice: 0,
+          totalWeight: 0,
+          totalCBM: 0,
+          totalQuantity: 0,
+          totalExpress: 0,
+        }
+      );
+    },
+    [quotationForm.variantQuotationState]
+  );
 
   // Función para actualizar productos pendientes con estado optimizado
   const handlePendingProductUpdate = useCallback(
@@ -312,7 +320,7 @@ export default function QuotationResponseView({
         );
 
         // Notificar cambios para recálculos en tiempo real
-        const updatedProduct = updatedProducts.find(p => p.id === productId);
+        const updatedProduct = updatedProducts.find((p) => p.id === productId);
         if (updatedProduct) {
           const aggregatedData = calculateProductAggregatedData(updatedProduct);
           handleAggregatedDataChange(productId, aggregatedData);
@@ -342,7 +350,7 @@ export default function QuotationResponseView({
         );
 
         // Notificar cambios para recálculos en tiempo real
-        const updatedProduct = updatedProducts.find(p => p.id === productId);
+        const updatedProduct = updatedProducts.find((p) => p.id === productId);
         if (updatedProduct) {
           const aggregatedData = calculateProductAggregatedData(updatedProduct);
           handleAggregatedDataChange(productId, aggregatedData);
@@ -397,7 +405,7 @@ export default function QuotationResponseView({
 
     // Preparar datos de productos con información completa
     const pendingData = {
-      products: pendingProducts.map(product => ({
+      products: pendingProducts.map((product) => ({
         ...product,
         // Asegurar que tengamos los datos actualizados de packing list y cargo handling
         packingList: product.packingList || {
@@ -410,8 +418,8 @@ export default function QuotationResponseView({
           fragileProduct: false,
           stackProduct: false,
         },
-        ghostUrl: product.ghostUrl || product.url || '',
-        adminComment: product.adminComment || '',
+        ghostUrl: product.ghostUrl || product.url || "",
+        adminComment: product.adminComment || "",
       })),
       aggregatedTotals: pendingViewTotals,
       quotationStates: {
@@ -488,22 +496,30 @@ export default function QuotationResponseView({
         } as CompleteBuildData);
       }
 
-      console.log(`DTO ${isPendingView ? 'Pendiente' : 'Completo'} construido:`, JSON.stringify(dto, null, 2));
+      console.log(
+        `DTO ${isPendingView ? "Pendiente" : "Completo"} construido:`,
+        JSON.stringify(dto, null, 2)
+      );
 
       // Convertir al formato legacy para compatibilidad con el backend actual
-      const legacyDto = adaptQuotationResponseToLegacyFormat(dto);
-      console.log("DTO legacy adaptado:", JSON.stringify(legacyDto, null, 2));
+      //const legacyDto = adaptQuotationResponseToLegacyFormat(dto);
+      //console.log("DTO legacy adaptado:", JSON.stringify(legacyDto, null, 2));
 
       // Enviar la cotización usando el hook
       await createQuotationResponseMutation.mutateAsync({
-        data: legacyDto,
+        data: dto,
         quotationId: selectedQuotationId,
       });
 
       // Mostrar modal de éxito
       quotationForm.setIsSendingModalOpen(true);
     } catch (error) {
-      console.error(`Error al enviar cotización ${isPendingView ? 'pendiente' : 'completa'}:`, error);
+      console.error(
+        `Error al enviar cotización ${
+          isPendingView ? "pendiente" : "completa"
+        }:`,
+        error
+      );
       // TODO: Agregar notificación de error al usuario
     } finally {
       setIsSubmitting(false);
@@ -691,18 +707,19 @@ export default function QuotationResponseView({
                       volume: product.volume,
                       number_of_boxes: product.number_of_boxes,
                       attachments: product.attachments || [],
-                      variants: product.variants?.map((variant: any) => ({
-                        variantId: variant.variantId,
-                        size: variant.size || '',
-                        presentation: variant.presentation || '',
-                        model: variant.model || '',
-                        color: variant.color || '',
-                        quantity: variant.quantity || 1,
-                        price: 0, // Se ingresará en el formulario
-                        priceExpress: 0, // Se ingresará en el formulario
-                        weight: 0, // Se calculará si es necesario
-                        cbm: 0, // Se calculará si es necesario
-                      })) || [],
+                      variants:
+                        product.variants?.map((variant: any) => ({
+                          variantId: variant.variantId,
+                          size: variant.size || "",
+                          presentation: variant.presentation || "",
+                          model: variant.model || "",
+                          color: variant.color || "",
+                          quantity: variant.quantity || 1,
+                          price: 0, // Se ingresará en el formulario
+                          priceExpress: 0, // Se ingresará en el formulario
+                          weight: 0, // Se calculará si es necesario
+                          cbm: 0, // Se calculará si es necesario
+                        })) || [],
                       adminComment: "",
                     }}
                     index={index}

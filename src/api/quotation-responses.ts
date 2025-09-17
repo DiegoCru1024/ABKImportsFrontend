@@ -12,7 +12,7 @@ import type {
  * @returns {Promise<any>} - La respuesta de la cotización
  */
 export const createQuatitationResponse = async (
-  data: QuotationCreateUpdateResponseDTO,
+  data: any,
   quotationId: string
 ) => {
   try {

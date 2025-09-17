@@ -26,7 +26,7 @@ export function useCreateQuatitationResponse() {
       data,
       quotationId,
     }: {
-      data: QuotationCreateUpdateResponseDTO;
+      data: any;
       quotationId: string;
     }) => {
       return createQuatitationResponse(data, quotationId);

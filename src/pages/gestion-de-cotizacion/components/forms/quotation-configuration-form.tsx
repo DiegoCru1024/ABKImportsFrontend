@@ -48,34 +48,34 @@ export function QuotationConfigurationForm({
   courier,
 }: QuotationConfigurationFormProps) {
   return (
-    <Card className="bg-white shadow-lg border border-gray-100 rounded-2xl overflow-hidden">
-      <CardHeader>
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-gradient-to-br from-orange-500 to-amber-600 rounded-lg shadow-sm">
-            <Settings className="h-5 w-5 text-white" />
+    <Card className="bg-white shadow-sm border border-gray-200 rounded-lg overflow-hidden">
+      <CardHeader className="pb-3">
+        <div className="flex items-center gap-2">
+          <div className="p-1.5 bg-gradient-to-br from-orange-500 to-amber-600 rounded-md shadow-sm">
+            <Settings className="h-4 w-4 text-white" />
           </div>
           <div>
-            <CardTitle className="text-xl font-semibold text-slate-800">
+            <CardTitle className="text-lg font-medium text-slate-800">
               Configuración General
             </CardTitle>
-            <CardDescription className="text-slate-600 mt-1">
-              Configure los parámetros generales de la cotización
+            <CardDescription className="text-slate-500 text-sm">
+              Parámetros básicos de la cotización
             </CardDescription>
           </div>
         </div>
       </CardHeader>
       
-      <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <Label htmlFor="servicio-logistico" className="text-sm font-medium text-slate-700">
+      <CardContent className="space-y-3 pt-0">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="space-y-1">
+            <Label htmlFor="servicio-logistico" className="text-xs font-medium text-slate-600">
               Servicio Logístico
             </Label>
             <Select
               value={selectedServiceLogistic}
               onValueChange={onServiceLogisticChange}
             >
-              <SelectTrigger className="w-full">
+              <SelectTrigger className="w-full h-8 text-sm">
                 <SelectValue placeholder="Seleccionar servicio" />
               </SelectTrigger>
               <SelectContent>
@@ -88,15 +88,15 @@ export function QuotationConfigurationForm({
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="incoterm" className="text-sm font-medium text-slate-700">
+          <div className="space-y-1">
+            <Label htmlFor="incoterm" className="text-xs font-medium text-slate-600">
               Incoterm
             </Label>
             <Select
               value={selectedIncoterm}
               onValueChange={onIncotermChange}
             >
-              <SelectTrigger className="w-full">
+              <SelectTrigger className="w-full h-8 text-sm">
                 <SelectValue placeholder="Seleccionar incoterm" />
               </SelectTrigger>
               <SelectContent>
@@ -109,15 +109,15 @@ export function QuotationConfigurationForm({
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="tipo-carga" className="text-sm font-medium text-slate-700">
+          <div className="space-y-1">
+            <Label htmlFor="tipo-carga" className="text-xs font-medium text-slate-600">
               Tipo de Carga
             </Label>
             <Select
               value={selectedTypeLoad}
               onValueChange={onTypeLoadChange}
             >
-              <SelectTrigger className="w-full">
+              <SelectTrigger className="w-full h-8 text-sm">
                 <SelectValue placeholder="Seleccionar tipo" />
               </SelectTrigger>
               <SelectContent>
@@ -130,15 +130,15 @@ export function QuotationConfigurationForm({
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="courier" className="text-sm font-medium text-slate-700">
+          <div className="space-y-1">
+            <Label htmlFor="courier" className="text-xs font-medium text-slate-600">
               Courier
             </Label>
             <Select
               value={selectedCourier}
               onValueChange={onCourierChange}
             >
-              <SelectTrigger className="w-full">
+              <SelectTrigger className="w-full h-8 text-sm">
                 <SelectValue placeholder="Seleccionar courier" />
               </SelectTrigger>
               <SelectContent>

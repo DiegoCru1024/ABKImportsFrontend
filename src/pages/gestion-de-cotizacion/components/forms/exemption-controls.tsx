@@ -104,25 +104,25 @@ export function ExemptionControls({
   const visibleExemptions = exemptions.filter(exemption => exemption.show);
 
   return (
-    <Card className="bg-white shadow-lg border border-gray-100 rounded-2xl overflow-hidden">
-      <CardHeader>
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg shadow-sm">
-            <Shield className="h-5 w-5 text-white" />
+    <Card className="bg-white shadow-sm border border-gray-200 rounded-lg overflow-hidden">
+      <CardHeader className="pb-3">
+        <div className="flex items-center gap-2">
+          <div className="p-1.5 bg-gradient-to-br from-amber-500 to-orange-600 rounded-md shadow-sm">
+            <Shield className="h-4 w-4 text-white" />
           </div>
           <div>
-            <CardTitle className="text-xl font-semibold text-slate-800">
+            <CardTitle className="text-lg font-medium text-slate-800">
               Exoneraciones de Conceptos
             </CardTitle>
-            <CardDescription className="text-slate-600 mt-1">
-              Configure las exoneraciones aplicables a los gastos de importación
+            <CardDescription className="text-slate-500 text-sm">
+              Configure las exoneraciones aplicables
             </CardDescription>
           </div>
         </div>
       </CardHeader>
       
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <CardContent className="space-y-3 pt-0">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
           {visibleExemptions.map((exemption) => (
             <div key={exemption.id} className="flex items-center space-x-2">
               <Checkbox
@@ -131,10 +131,11 @@ export function ExemptionControls({
                 onCheckedChange={(checked) => 
                   onExemptionChange(exemption.id as keyof ExemptionState, checked as boolean)
                 }
+                className="h-4 w-4"
               />
               <Label 
                 htmlFor={exemption.id}
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
               >
                 {exemption.label}
               </Label>
@@ -143,16 +144,15 @@ export function ExemptionControls({
         </div>
         
         {Object.values(exemptionState).some(Boolean) && (
-          <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <Shield className="h-4 w-4 text-amber-600" />
-              <span className="text-sm font-medium text-amber-800">
+          <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-md">
+            <div className="flex items-center gap-2 mb-1">
+              <Shield className="h-3 w-3 text-amber-600" />
+              <span className="text-xs font-medium text-amber-800">
                 Exoneraciones Activas
               </span>
             </div>
             <p className="text-xs text-amber-700">
-              Se han aplicado {Object.values(exemptionState).filter(Boolean).length} exoneraciones 
-              que afectarán los cálculos finales de la cotización.
+              {Object.values(exemptionState).filter(Boolean).length} exoneraciones aplicadas
             </p>
           </div>
         )}

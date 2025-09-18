@@ -14,8 +14,7 @@ import SendingModal from "@/components/sending-modal";
 import { QuotationSummaryCard } from "../forms/quotation-summary-card";
 import { QuotationConfigurationForm } from "../forms/quotation-configuration-form";
 import { MaritimeServiceForm } from "../forms/maritime-service-form";
-import { DynamicValuesForm } from "../forms/dynamic-values-form";
-import { ExemptionControls } from "../forms/exemption-controls";
+import { UnifiedConfigurationForm } from "../forms/unified-configuration-form";
 
 import { useQuotationResponseForm } from "../../hooks/use-quotation-response-form";
 import { useQuotationCalculations } from "../../hooks/use-quotation-calculations";
@@ -566,7 +565,7 @@ export default function QuotationResponseView({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-500/5 via-background to-orange-400/10">
+    <div className="min-h-screen bg-gray-50 overflow-x-hidden grid grid-cols-1">
       <SectionHeader
         icon={<FileText className="h-6 w-6 text-white" />}
         title={
@@ -597,7 +596,7 @@ export default function QuotationResponseView({
         }
       />
 
-      <div className="container mx-auto px-4 py-6 space-y-8 max-w-full overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         {/* Resumen de productos */}
         <QuotationSummaryCard
           productCount={
@@ -688,18 +687,18 @@ export default function QuotationResponseView({
         {/* Vista específica según el tipo de servicio */}
         {isPendingView ? (
           /* Vista administrativa simplificada */
-          <>
+          <div className="space-y-6">
             {/* Sección de productos con QuotationProductRow para vista pendiente */}
             <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-              <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-6">
-                <h3 className="text-xl font-bold text-white">
+              <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-4 sm:p-6">
+                <h3 className="text-lg sm:text-xl font-bold text-white">
                   Productos de la Cotización - Vista Administrativa
                 </h3>
                 <p className="text-blue-100 text-sm mt-1">
                   Gestión simplificada para servicios pendientes
                 </p>
               </div>
-              <div className="p-6 space-y-4">
+              <div className="p-4 sm:p-6 space-y-4">
                 {(quotationDetail?.products || []).map((product, index) => (
                   <QuotationProductRow
                     key={product.productId}
@@ -761,17 +760,21 @@ export default function QuotationResponseView({
                 )}
               </div>
             </div>
-          </>
+          </div>
         ) : (
           /* Vista completa con componentes detallados para Express/Marítimo */
-          <>
-            <DynamicValuesForm
+          <div className="space-y-6">
+            {/* Componente unificado de configuración */}
+            <UnifiedConfigurationForm
               dynamicValues={quotationForm.dynamicValues}
               onUpdateValue={quotationForm.updateDynamicValue}
               onKgChange={quotationForm.handleKgChange}
+              exemptionState={quotationForm.exemptionState}
+              onExemptionChange={quotationForm.updateExemptionState}
               isMaritimeService={quotationForm.isMaritimeService()}
             />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6">
               <ServiceConsolidationCard
                 title={quotationForm.getServiceName()}
                 serviceFields={quotationForm.getServiceFields()}
@@ -836,7 +839,7 @@ export default function QuotationResponseView({
                 }}
               />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6">
               <ImportExpensesCard
                 isMaritime={quotationForm.isMaritimeService()}
                 values={{
@@ -884,12 +887,6 @@ export default function QuotationResponseView({
                 totalGastosImportacion={calculations.finalTotal}
               />
 
-              <ExemptionControls
-                exemptionState={quotationForm.exemptionState}
-                onExemptionChange={quotationForm.updateExemptionState}
-                isMaritimeService={quotationForm.isMaritimeService()}
-              />
-
               <ImportSummaryCard
                 cif={quotationForm.cif}
                 taxCalculations={calculations}
@@ -904,35 +901,37 @@ export default function QuotationResponseView({
 
             {/* Tabla de productos con cálculos detallados para servicios completos */}
             <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-              <div className="bg-gradient-to-r from-green-500 to-green-600 p-6">
-                <h3 className="text-xl font-bold text-white">
+              <div className="bg-gradient-to-r from-green-500 to-green-600 p-4 sm:p-6">
+                <h3 className="text-lg sm:text-xl font-bold text-white">
                   Gestión de Productos - Vista Completa
                 </h3>
                 <p className="text-green-100 text-sm mt-1">
                   Cálculos detallados para servicios Express/Marítimo
                 </p>
               </div>
-              <div className="p-6">
-                <EditableUnitCostTable
-                  products={quotationForm.editableUnitCostProducts}
-                  onProductsChange={quotationForm.setEditableUnitCostProducts}
-                  totalImportCosts={calculations.finalTotal || 0}
-                  totalInvestmentImport={calculations.finalTotal || 0}
-                  onCommercialValueChange={(value) => {
-                    quotationForm.updateDynamicValue("comercialValue", value);
-                  }}
-                  productQuotationState={quotationForm.productQuotationState}
-                  variantQuotationState={quotationForm.variantQuotationState}
-                  onProductQuotationChange={
-                    quotationForm.updateProductQuotationState
-                  }
-                  onVariantQuotationChange={
-                    quotationForm.updateVariantQuotationState
-                  }
-                />
+              <div className="p-4 sm:p-6 overflow-x-auto">
+                <div className="min-w-full">
+                  <EditableUnitCostTable
+                    products={quotationForm.editableUnitCostProducts}
+                    onProductsChange={quotationForm.setEditableUnitCostProducts}
+                    totalImportCosts={calculations.finalTotal || 0}
+                    totalInvestmentImport={calculations.finalTotal || 0}
+                    onCommercialValueChange={(value) => {
+                      quotationForm.updateDynamicValue("comercialValue", value);
+                    }}
+                    productQuotationState={quotationForm.productQuotationState}
+                    variantQuotationState={quotationForm.variantQuotationState}
+                    onProductQuotationChange={
+                      quotationForm.updateProductQuotationState
+                    }
+                    onVariantQuotationChange={
+                      quotationForm.updateVariantQuotationState
+                    }
+                  />
+                </div>
               </div>
             </div>
-          </>
+          </div>
         )}
       </div>
 

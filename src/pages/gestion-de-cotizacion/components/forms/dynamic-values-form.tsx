@@ -77,7 +77,9 @@ export function DynamicValuesForm({
       </CardHeader>
       
       <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4" >
+          
+        <div className="grid grid-cols-1 md:grid-cols-2  gap-4">
           <div className="space-y-2">
             <Label className="text-sm font-medium text-slate-700">
               Valor Comercial
@@ -238,6 +240,63 @@ export function DynamicValuesForm({
 
         <div className="pt-4 border-t border-gray-200">
           <h3 className="text-lg font-semibold text-slate-800 mb-4">
+            Porcentajes de Impuestos
+          </h3>
+          <div className="grid grid-cols-1 gap-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-slate-700">
+                Ad Valorem (%)
+              </Label>
+              <EditableNumericField
+                value={dynamicValues.adValoremRate}
+                onChange={(value) => onUpdateValue("adValoremRate", value)}
+                suffix="%"
+                decimalPlaces={2}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-slate-700">
+                IGV (%)
+              </Label>
+              <EditableNumericField
+                value={dynamicValues.igvRate}
+                onChange={(value) => onUpdateValue("igvRate", value)}
+                suffix="%"
+                decimalPlaces={2}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-slate-700">
+                IPM (%)
+              </Label>
+              <EditableNumericField
+                value={dynamicValues.ipmRate}
+                onChange={(value) => onUpdateValue("ipmRate", value)}
+                suffix="%"
+                decimalPlaces={2}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-slate-700">
+                Percepción (%)
+              </Label>
+              <EditableNumericField
+                value={dynamicValues.percepcionRate}
+                onChange={(value) => onUpdateValue("percepcionRate", value)}
+                suffix="%"
+                decimalPlaces={2}
+              />
+            </div>
+          </div>
+        </div>
+        </div>
+
+
+        {/*<div className="pt-4 border-t border-gray-200">
+          <h3 className="text-lg font-semibold text-slate-800 mb-4">
             Servicios de Consolidación
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -341,62 +400,8 @@ export function DynamicValuesForm({
               </>
             )}
           </div>
-        </div>
+        </div>*/}
 
-        <div className="pt-4 border-t border-gray-200">
-          <h3 className="text-lg font-semibold text-slate-800 mb-4">
-            Porcentajes de Impuestos
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="space-y-2">
-              <Label className="text-sm font-medium text-slate-700">
-                Ad Valorem (%)
-              </Label>
-              <EditableNumericField
-                value={dynamicValues.adValoremRate}
-                onChange={(value) => onUpdateValue("adValoremRate", value)}
-                suffix="%"
-                decimalPlaces={2}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-sm font-medium text-slate-700">
-                IGV (%)
-              </Label>
-              <EditableNumericField
-                value={dynamicValues.igvRate}
-                onChange={(value) => onUpdateValue("igvRate", value)}
-                suffix="%"
-                decimalPlaces={2}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-sm font-medium text-slate-700">
-                IPM (%)
-              </Label>
-              <EditableNumericField
-                value={dynamicValues.ipmRate}
-                onChange={(value) => onUpdateValue("ipmRate", value)}
-                suffix="%"
-                decimalPlaces={2}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-sm font-medium text-slate-700">
-                Percepción (%)
-              </Label>
-              <EditableNumericField
-                value={dynamicValues.percepcionRate}
-                onChange={(value) => onUpdateValue("percepcionRate", value)}
-                suffix="%"
-                decimalPlaces={2}
-              />
-            </div>
-          </div>
-        </div>
       </CardContent>
     </Card>
   );

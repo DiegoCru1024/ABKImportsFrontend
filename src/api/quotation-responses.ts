@@ -107,11 +107,11 @@ export const listQuatitationResponses = async (
 /**
  * Obtiene las respuestas del administrador para un usuario para una cotización (Usuarios no administradores)
  * @param {string} quotationId - El ID de la cotización
- * @returns {Promise<QuotationGetResponsesForUsersDTO[]>} - Las respuestas de la cotización
+ * @returns {Promise<QuotationGetResponsesForUsersDTO>} - Las respuestas de la cotización
  */
 export const getResponsesForUsers = async (quotationId: string) => {
   try {
-    const response: QuotationGetResponsesForUsersDTO[] = await apiFetch(
+    const response: QuotationGetResponsesForUsersDTO = await apiFetch(
       `/quotation-responses/get-responses/${quotationId}`,
       {
         method: "GET",

@@ -113,13 +113,36 @@ export interface ProductsQuotationResponseDTO {
   name: string;
   url: string;
   comment: string;
-  quantityTotal: number;
-  weight: string;
-  volume: string;
-  number_of_boxes: number;
+  quantityTotal?: number;
+  weight?: string;
+  volume?: string;
+  number_of_boxes?: number;
   adminComment: string;
-  seCotizaProducto: boolean;
+  seCotizaProducto?: boolean;
+  isQuoted: boolean;
   attachments: string[];
+  ghostUrl?: string;
+  cargoHandling?: {
+    fragileProduct: boolean;
+    stackProduct: boolean;
+  };
+  packingList?: {
+    nroBoxes: number;
+    cbm: number;
+    pesoKg: number;
+    pesoTn: number;
+  };
+  pricing?: {
+    totalPrice: number;
+    totalWeight: number;
+    totalCBM: number;
+    totalQuantity: number;
+    totalExpress: number;
+    unitCost?: number;
+    importCosts?: number;
+    totalCost?: number;
+    equivalence?: number;
+  };
   variants: VariantQuotationResponseDTO[];
 }
 
@@ -138,10 +161,19 @@ export interface VariantQuotationResponseDTO {
   model: string;
   color: string;
   quantity: number;
-  price: string;
-  unitCost: string;
-  importCosts: string;
-  seCotizaVariante: boolean;
+  price?: string;
+  unitCost?: string;
+  importCosts?: string;
+  seCotizaVariante?: boolean;
+  isQuoted: boolean;
+  attachments?: string[];
+  pendingPricing?: {
+    unitPrice: number;
+    expressPrice: number;
+  };
+  completePricing?: {
+    unitCost: number;
+  };
 }
 
 // Nueva interfaz para variantes de creación con la estructura correcta
@@ -181,16 +213,32 @@ export interface contentQuotationResponseDTO {
 //!Interfaz para listar las respuestas del administrador y sean vistas por el usuario
 export interface QuotationGetResponsesForUsersDTO {
   quotationInfo: {
+    quotationId: string;
     correlative: string;
     date: string;
-    serviceType: string;
+    advisorId: string;
+    serviceLogistic: string;
+    incoterm: string;
     cargoType: string;
     courier: string;
-    incoterm: string;
   };
   user: UserInfo;
-  serviceType: string;
-  products: ProductsQuotationResponseDTO[];
+  responseData: {
+    serviceType: string;
+    type: string;
+    serviceLogistic: string;
+    incoterm: string;
+    cargoType: string;
+    courier: string;
+    basicInfo: {
+      totalCBM: string;
+      totalWeight: string;
+      totalPrice: number;
+      totalExpress: number;
+      totalQuantity: number;
+    };
+    products: ProductsQuotationResponseDTO[];
+  }[];
 }
 
 //!Interfaz para listar las respuestas de una cotización

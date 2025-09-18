@@ -3,15 +3,28 @@ import { Badge } from "@/components/ui/badge";
 
 import { QuotationResponseSummaryCard } from "./quotation-response-summary-card";
 import { QuotationResponseProductRow } from "./quotation-response-product-row";
+import type { ProductsQuotationResponseDTO } from "@/api/interface/quotationResponseInterfaces";
 
 interface PendingServiceViewProps {
-  serviceResponse: any;
+  serviceResponse: {
+    serviceLogistic: string;
+    incoterm: string;
+    cargoType: string;
+    courier: string;
+    basicInfo: {
+      totalCBM: string;
+      totalWeight: string;
+      totalPrice: number;
+      totalExpress: number;
+      totalQuantity: number;
+    };
+    products: ProductsQuotationResponseDTO[];
+  };
 }
 
 export function PendingServiceView({ serviceResponse }: PendingServiceViewProps) {
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="w-full space-y-6">
         <Card>
           <CardHeader>
             <CardTitle className="text-xl font-bold text-gray-800">
@@ -67,7 +80,6 @@ export function PendingServiceView({ serviceResponse }: PendingServiceViewProps)
             ))}
           </CardContent>
         </Card>
-      </div>
     </div>
   );
 }

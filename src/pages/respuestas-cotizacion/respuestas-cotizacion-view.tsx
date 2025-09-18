@@ -88,9 +88,9 @@ export default function RespuestasCotizacionView() {
   const currentResponseData = responseData;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 grid grid-cols-1">
       <div className="sticky top-0 bg-white border-b border-gray-200 z-10">
-        <div className="max-w-7xl mx-auto px-6 py-4">
+        <div className="w-full px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Button variant="outline" onClick={handleGoBack}>
@@ -113,7 +113,7 @@ export default function RespuestasCotizacionView() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto p-6 space-y-6">
+      <div className="w-full px-4 py-6 space-y-6">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
@@ -168,7 +168,7 @@ export default function RespuestasCotizacionView() {
 
         {currentResponseData?.responseData && currentResponseData.responseData.length > 1 ? (
           <Tabs value={selectedResponseIndex.toString()} onValueChange={(value) => setSelectedResponseIndex(parseInt(value))}>
-            <TabsList className="grid w-full grid-cols-2 lg:grid-cols-3">
+            <TabsList className="grid w-full grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {currentResponseData.responseData.map((response: any, index: number) => (
                 <TabsTrigger
                   key={index}

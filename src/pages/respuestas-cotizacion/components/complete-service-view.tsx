@@ -32,8 +32,7 @@ export function CompleteServiceView({ serviceResponse }: CompleteServiceViewProp
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="w-full space-y-6">
         <Card>
           <CardHeader>
             <CardTitle className="text-xl font-bold text-gray-800">
@@ -84,7 +83,6 @@ export function CompleteServiceView({ serviceResponse }: CompleteServiceViewProp
             </div>
           </CardContent>
         </Card>
-      </div>
     </div>
   );
 }

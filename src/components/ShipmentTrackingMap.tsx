@@ -198,7 +198,45 @@ export default function ShipmentTrackingMap({ className, shipmentData }: Shipmen
       };
     }).filter(point => point.coordinates !== null);
 
-    const positions = trackingPoints.map(point => point.coordinates!) as [number, number][];
+    // Crear ruta con puntos intermedios para rutas transpacíficas
+    const createPacificRoute = (points: [number, number][]): [number, number][] => {
+      const routePoints: [number, number][] = [];
+
+      for (let i = 0; i < points.length; i++) {
+        routePoints.push(points[i]);
+
+        // Si hay un siguiente punto, verificar si necesitamos puntos intermedios
+        if (i < points.length - 1) {
+          const current = points[i];
+          const next = points[i + 1];
+
+          const lngDiff = Math.abs(next[1] - current[1]);
+
+          // Si la diferencia de longitud es mayor a 180°, agregar puntos intermedios por el Pacífico
+          if (lngDiff > 180) {
+            // Determinar si vamos de Asia a América (Este a Oeste por el Pacífico)
+            if (current[1] > 0 && next[1] < 0) {
+              // Asia (positivo) a América (negativo) - ruta por el Pacífico Este
+              routePoints.push(
+                [current[0], 180],  // Línea de fecha internacional (este)
+                [next[0], -180]     // Línea de fecha internacional (oeste)
+              );
+            }
+            // América a Asia (Oeste a Este por el Pacífico)
+            else if (current[1] < 0 && next[1] > 0) {
+              routePoints.push(
+                [current[0], -180], // Línea de fecha internacional (oeste)
+                [next[0], 180]      // Línea de fecha internacional (este)
+              );
+            }
+          }
+        }
+      }
+
+      return routePoints;
+    };
+
+    const positions = createPacificRoute(trackingPoints.map(point => point.coordinates!) as [number, number][]);
 
     return { positions, trackingPoints };
   }, [trackingStatuses]);

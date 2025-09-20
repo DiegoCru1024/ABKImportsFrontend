@@ -198,47 +198,52 @@ export default function ShipmentTrackingMap({ className, shipmentData }: Shipmen
       };
     }).filter(point => point.coordinates !== null);
 
-    // Crear ruta con puntos intermedios para rutas transpacíficas
-    const createPacificRoute = (points: [number, number][]): [number, number][] => {
-      const routePoints: [number, number][] = [];
+    // Replicar puntos en múltiples copias del mapa para asegurar la ruta más corta
+    const createOptimalRoute = (points: [number, number][]): [number, number][] => {
+      if (points.length < 2) return points;
+
+      const optimizedPoints: [number, number][] = [];
 
       for (let i = 0; i < points.length; i++) {
-        routePoints.push(points[i]);
+        const currentPoint = points[i];
 
-        // Si hay un siguiente punto, verificar si necesitamos puntos intermedios
-        if (i < points.length - 1) {
-          const current = points[i];
-          const next = points[i + 1];
+        if (i === 0) {
+          // Primer punto sin modificar
+          optimizedPoints.push(currentPoint);
+        } else {
+          const prevPoint = optimizedPoints[i - 1];
+          const [lat, lng] = currentPoint;
 
-          const lngDiff = Math.abs(next[1] - current[1]);
+          // Crear tres versiones del punto actual: original, +360°, -360°
+          const variants = [
+            [lat, lng] as [number, number],           // Original
+            [lat, lng + 360] as [number, number],     // +360° (mover hacia el este)
+            [lat, lng - 360] as [number, number]      // -360° (mover hacia el oeste)
+          ];
 
-          // Si la diferencia de longitud es mayor a 180°, agregar puntos intermedios por el Pacífico
-          if (lngDiff > 180) {
-            // Determinar si vamos de Asia a América (Este a Oeste por el Pacífico)
-            if (current[1] > 0 && next[1] < 0) {
-              // Asia (positivo) a América (negativo) - ruta por el Pacífico Este
-              routePoints.push(
-                [current[0], 180],  // Línea de fecha internacional (este)
-                [next[0], -180]     // Línea de fecha internacional (oeste)
-              );
-            }
-            // América a Asia (Oeste a Este por el Pacífico)
-            else if (current[1] < 0 && next[1] > 0) {
-              routePoints.push(
-                [current[0], -180], // Línea de fecha internacional (oeste)
-                [next[0], 180]      // Línea de fecha internacional (este)
-              );
+          // Encontrar la variante que esté más cerca del punto anterior
+          let bestVariant = variants[0];
+          let minDistance = Math.abs(variants[0][1] - prevPoint[1]);
+
+          for (const variant of variants) {
+            const distance = Math.abs(variant[1] - prevPoint[1]);
+            if (distance < minDistance) {
+              minDistance = distance;
+              bestVariant = variant;
             }
           }
+
+          optimizedPoints.push(bestVariant);
         }
       }
 
-      return routePoints;
+      return optimizedPoints;
     };
 
-    const positions = createPacificRoute(trackingPoints.map(point => point.coordinates!) as [number, number][]);
+    const originalPositions = trackingPoints.map(point => point.coordinates!) as [number, number][];
+    const optimizedPositions = createOptimalRoute(originalPositions);
 
-    return { positions, trackingPoints };
+    return { positions: optimizedPositions, trackingPoints };
   }, [trackingStatuses]);
 
   // Centro del mapa predeterminado (Shenzhen)
@@ -326,7 +331,7 @@ export default function ShipmentTrackingMap({ className, shipmentData }: Shipmen
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
 
-          {/* Línea azul que conecta todos los puntos (si hay múltiples ubicaciones) */}
+          {/* Línea de ruta optimizada que evita cruces incorrectos de línea de fecha */}
           {processedData.positions.length > 1 && (
             <Polyline
               positions={processedData.positions}
@@ -340,10 +345,12 @@ export default function ShipmentTrackingMap({ className, shipmentData }: Shipmen
           {/* Marcadores para cada estado de tracking */}
           {processedData.trackingPoints.map((point, index) => {
             const pointStatus = getPointStatus(point.order, currentTrackingOrder);
+            // Usar las coordenadas optimizadas de la ruta
+            const optimizedPosition = processedData.positions[index] || [point.lat, point.lng];
             return (
               <Marker
                 key={index}
-                position={[point.lat, point.lng]}
+                position={optimizedPosition}
                 icon={createCustomIcon(
                   point.shipmentStatus,
                   getIconColor(point.order, currentTrackingOrder),

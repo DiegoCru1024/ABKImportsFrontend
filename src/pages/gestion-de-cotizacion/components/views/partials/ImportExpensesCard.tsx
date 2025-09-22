@@ -24,7 +24,7 @@ export interface ImportExpensesCardProps {
   separacionCargaFinal: number;
   inspeccionProductosFinal: number;
   shouldExemptTaxes: boolean;
-  totalGastosImportacion: number;
+  serviceType?: string;
 }
 
 export default function ImportExpensesCard({
@@ -37,7 +37,7 @@ export default function ImportExpensesCard({
   separacionCargaFinal,
   inspeccionProductosFinal,
   shouldExemptTaxes,
-  totalGastosImportacion,
+  serviceType,
 }: ImportExpensesCardProps) {
   const getExpenseIcon = (id: string) => {
     switch (id) {
@@ -95,38 +95,49 @@ export default function ImportExpensesCard({
     },
   ];
 
-  const airExpenses = [
-    {
-      id: "servicioConsolidadoAereo",
-      label: "Servicio Consolidado Aéreo",
-      value: servicioConsolidadoFinal,
-    },
-    {
-      id: "separacionCarga",
-      label: "Separación de Carga",
-      value: separacionCargaFinal,
-    },
-    {
-      id: "inspeccionProductos",
-      label: "Inspección de Productos",
-      value: inspeccionProductosFinal,
-    },
-    {
-      id: "desaduanajeFleteSaguro",
-      label: "Desaduanaje + Flete + Seguro",
-      value: values.desaduanajeFleteSaguro,
-    },
-    {
-      id: "transporteLocalChina",
-      label: "Transporte Local China",
-      value: values.transporteLocalChinaEnvio,
-    },
-    {
-      id: "transporteLocalCliente",
-      label: "Transporte Local Cliente",
-      value: values.transporteLocalClienteEnvio,
-    },
-  ];
+  const getAirExpenses = () => {
+    const baseExpenses = [
+      {
+        id: "servicioConsolidadoAereo",
+        label: "Servicio Consolidado Aéreo",
+        value: servicioConsolidadoFinal * 1.18,
+      },
+      {
+        id: serviceType === "Consolidado Grupal Express" ? "seguroProductos" : "separacionCarga",
+        label: serviceType === "Consolidado Grupal Express" ? "Seguro de Productos" : "Separación de Carga",
+        value: separacionCargaFinal * 1.18,
+      },
+      {
+        id: "inspeccionProductos",
+        label: "Inspección de Productos",
+        value: inspeccionProductosFinal * 1.18,
+      },
+      {
+        id: "adValoremIgvIpm",
+        label: "AD/VALOREM+IGV+IPM",
+        value: values.totalDerechosDolaresFinal * (exemptionState.descuentoGrupalExpress ? 0.5 : 1),
+      },
+      {
+        id: "desaduanajeFleteSaguro",
+        label: "Desaduanaje + Flete + Seguro",
+        value: values.desaduanajeFleteSaguro,
+      },
+      {
+        id: "transporteLocalChina",
+        label: "Transporte Local China",
+        value: values.transporteLocalChinaEnvio,
+      },
+      {
+        id: "transporteLocalCliente",
+        label: "Transporte Local Cliente",
+        value: values.transporteLocalClienteEnvio,
+      },
+    ];
+
+    return baseExpenses;
+  };
+
+  const airExpenses = getAirExpenses();
 
   const expenses = isMaritime ? maritimeExpenses : airExpenses;
 
@@ -208,47 +219,6 @@ export default function ImportExpensesCard({
                 </div>
               </div>
             ))}
-
-            {/* Total de Derechos */}
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-50 rounded-lg">
-                  <DollarSign className="h-4 w-4 text-blue-500" />
-                </div>
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    id="totalDerechos"
-                    className="border-blue-500 border-2 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500"
-                    checked={exemptionState.totalDerechos}
-                    onCheckedChange={(checked) =>
-                      handleExemptionChange("totalDerechos", checked as boolean)
-                    }
-                  />
-                  <div>
-                    <div className="font-medium text-gray-900 text-sm">
-                      Total de Derechos
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      Impuestos y aranceles
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-3">
-                {exemptionState.totalDerechos && (
-                  <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 text-xs">
-                    <CheckCircle className="h-3 w-3 mr-1" />
-                    EXONERADO
-                  </Badge>
-                )}
-                <div className="text-right min-w-[100px]">
-                  <div className="font-semibold text-gray-900">
-                    USD {values.totalDerechosDolaresFinal.toFixed(2)}
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
           
           <Separator className="my-4" />
@@ -269,7 +239,7 @@ export default function ImportExpensesCard({
             </div>
             <div className="text-right">
               <div className="font-bold text-2xl">
-                USD {totalGastosImportacion.toFixed(2)}
+                USD {expenses.reduce((total, expense) => total + (exemptionState[expense.id] ? 0 : expense.value), 0).toFixed(2)}
               </div>
               <div className="text-sm opacity-90">
                 Total consolidado

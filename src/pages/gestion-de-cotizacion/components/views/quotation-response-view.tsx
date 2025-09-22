@@ -511,13 +511,13 @@ export default function QuotationResponseView({
       //console.log("DTO legacy adaptado:", JSON.stringify(legacyDto, null, 2));
 
       // Enviar la cotización usando el hook
-      await createQuotationResponseMutation.mutateAsync({
+      /*await createQuotationResponseMutation.mutateAsync({
         data: dto,
         quotationId: selectedQuotationId,
       });
 
       // Mostrar modal de éxito
-      quotationForm.setIsSendingModalOpen(true);
+      quotationForm.setIsSendingModalOpen(true);*/
     } catch (error) {
       console.error(
         `Error al enviar cotización ${
@@ -772,6 +772,7 @@ export default function QuotationResponseView({
               exemptionState={quotationForm.exemptionState}
               onExemptionChange={quotationForm.updateExemptionState}
               isMaritimeService={quotationForm.isMaritimeService()}
+              cif={quotationForm.cif}
             />
             
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6">
@@ -796,6 +797,7 @@ export default function QuotationResponseView({
                     0
                   ) * 1.18
                 }
+                serviceType={quotationForm.selectedServiceLogistic}
               />
 
               <TaxObligationsCard
@@ -830,12 +832,12 @@ export default function QuotationResponseView({
                 }
                 values={{
                   adValorem: calculations.adValoremAmount,
-                  igvFiscal: calculations.igv,
-                  ipm: calculations.ipm,
+                  igvFiscal: calculations.igvAmount,
+                  ipm: calculations.ipmAmount,
                   isc: 0, // ISC no está calculado en este contexto
-                  percepcion: calculations.percepcion,
-                  totalDerechosDolares: calculations.finalTotal,
-                  totalDerechosSoles: calculations.finalTotalInSoles,
+                  percepcion: calculations.percepcionAmount,
+                  totalDerechosDolares: calculations.totalTaxes,
+                  totalDerechosSoles: calculations.totalTaxesInSoles || (calculations.totalTaxes * quotationForm.dynamicValues.tipoCambio),
                 }}
               />
             </div>
@@ -851,9 +853,9 @@ export default function QuotationResponseView({
                     quotationForm.dynamicValues.inspeccionProducto,
                   transporteLocalFinal:
                     quotationForm.dynamicValues.transporteLocal,
-                  totalDerechosDolaresFinal: calculations.finalTotal,
+                  totalDerechosDolaresFinal: calculations.totalTaxes,
                   desaduanajeFleteSaguro:
-                    quotationForm.dynamicValues.desaduanaje,
+                    quotationForm.dynamicValues.desaduanaje + quotationForm.dynamicValues.flete + quotationForm.dynamicValues.seguro,
                   transporteLocalChinaEnvio:
                     quotationForm.dynamicValues.transporteLocalChinaEnvio,
                   transporteLocalClienteEnvio:
@@ -884,18 +886,18 @@ export default function QuotationResponseView({
                 shouldExemptTaxes={
                   quotationForm.exemptionState.obligacionesFiscales
                 }
-                totalGastosImportacion={calculations.finalTotal}
+                serviceType={quotationForm.selectedServiceLogistic}
               />
 
               <ImportSummaryCard
-                cif={quotationForm.cif}
-                taxCalculations={calculations}
                 exemptionState={{
                   adValorem: quotationForm.exemptionState.totalDerechos,
                   igv: quotationForm.exemptionState.obligacionesFiscales,
                   ipm: quotationForm.exemptionState.totalDerechos,
                   percepcion: quotationForm.exemptionState.obligacionesFiscales,
                 }}
+                comercialValue={quotationForm.dynamicValues.comercialValue}
+                totalImportCosts={calculations.totalTaxes + (quotationForm.dynamicValues.servicioConsolidado * 1.18) + (quotationForm.dynamicValues.separacionCarga * 1.18) + (quotationForm.dynamicValues.inspeccionProductos * 1.18) + quotationForm.dynamicValues.desaduanaje + quotationForm.dynamicValues.flete + quotationForm.dynamicValues.seguro + quotationForm.dynamicValues.transporteLocalChinaEnvio + quotationForm.dynamicValues.transporteLocalClienteEnvio}
               />
             </div>
 

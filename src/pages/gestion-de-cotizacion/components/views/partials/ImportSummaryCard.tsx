@@ -5,67 +5,47 @@ import { ChartBar, DollarSign, FileText, TrendingUp, AlertTriangle } from "lucid
 import { Badge } from "@/components/ui/badge";
 
 export interface ImportSummaryCardProps {
-  cif: number;
-  taxCalculations: {
-    finalTotal: number;
-    finalTotalInSoles: number;
-    totalExempted: number;
-    adValorem: number;
-    igv: number;
-    ipm: number;
-    percepcion: number;
-    adValoremAmount: number;
-    igvAmount: number;
-    ipmAmount: number;
-    percepcionAmount: number;
-    totalTaxes: number;
-    totalTaxesInSoles: number;
-    totalCBM: number;
-    totalWeight: number;
-    totalPrice: number;
-    totalExpress: number;
-    totalGeneral: number;
-    productCount: number;
-  };
   exemptionState: {
     adValorem: boolean;
     igv: boolean;
     ipm: boolean;
     percepcion: boolean;
   };
+  comercialValue: number;
+  totalImportCosts: number;
 }
 
 export default function ImportSummaryCard({
-  cif,
-  taxCalculations,
   exemptionState,
+  comercialValue,
+  totalImportCosts,
 }: ImportSummaryCardProps) {
   const isAnyExempted = Object.values(exemptionState).some(Boolean);
   
   const summaryItems = [
     {
-      key: 'cif',
-      label: 'VALOR CIF',
-      value: `USD ${cif.toFixed(2)}`,
+      key: 'comercialValue',
+      label: 'VALOR DE COMPRA FACTURA COMERCIAL',
+      value: `USD ${comercialValue.toFixed(2)}`,
       icon: <FileText className="h-4 w-4 text-blue-500" />,
       color: 'blue',
-      category: 'Términos'
+      category: 'Compra'
     },
     {
-      key: 'totalTaxes',
-      label: 'TOTAL IMPUESTOS',
-      value: `USD ${taxCalculations.totalTaxes.toFixed(2)}`,
+      key: 'totalImportCosts',
+      label: 'TOTAL GASTOS DE IMPORTACIÓN',
+      value: `USD ${totalImportCosts.toFixed(2)}`,
       icon: <DollarSign className="h-4 w-4 text-green-500" />,
       color: 'green',
-      category: 'Impuestos'
+      category: 'Gastos'
     },
     {
-      key: 'finalTotal',
-      label: 'TOTAL FINAL',
-      value: `USD ${taxCalculations.finalTotal.toFixed(2)}`,
+      key: 'totalInvestment',
+      label: 'INVERSIÓN TOTAL DE IMPORTACIÓN',
+      value: `USD ${(comercialValue + totalImportCosts).toFixed(2)}`,
       icon: <TrendingUp className="h-4 w-4 text-orange-500" />,
       color: 'orange',
-      category: 'Total'
+      category: 'Inversión'
     }
   ];
 
@@ -138,10 +118,10 @@ export default function ImportSummaryCard({
               </div>
               <div className="text-right">
                 <div className="font-bold text-2xl">
-                  USD {taxCalculations.finalTotal.toFixed(2)}
+                  USD {(comercialValue + totalImportCosts).toFixed(2)}
                 </div>
                 <div className="text-sm opacity-90">
-                  Total final
+                  Compra + Gastos
                 </div>
               </div>
             </div>

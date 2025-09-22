@@ -44,6 +44,8 @@ export interface DynamicValuesDto {
   ipmRate: number;
   antidumpingGobierno?: number;
   antidumpingCantidad?: number;
+  transporteLocalChinaEnvio?: number;
+  transporteLocalClienteEnvio?: number;
   cif: number;
 }
 
@@ -57,11 +59,13 @@ export interface ExemptionsDto {
   servicioInspeccion?: boolean;
   transporteLocal?: boolean;
   totalDerechos?: boolean;
+  descuentoGrupalExpress?: boolean;
 }
 
 export interface ServiceFieldsDto {
   servicioConsolidado: number;
-  separacionCarga: number;
+  separacionCarga?: number;
+  seguroProductos?: number;
   inspeccionProductos: number;
   gestionCertificado?: number;
   inspeccionProducto?: number;

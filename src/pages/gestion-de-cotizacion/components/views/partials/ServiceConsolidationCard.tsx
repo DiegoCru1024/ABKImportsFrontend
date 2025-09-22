@@ -11,6 +11,7 @@ export interface ServiceConsolidationCardProps {
   updateDynamicValue: (key: string, value: number) => void;
   igvServices: number;
   totalServices: number;
+  serviceType?: string;
 }
 
 export default function ServiceConsolidationCard({
@@ -19,17 +20,24 @@ export default function ServiceConsolidationCard({
   updateDynamicValue,
   igvServices,
   totalServices,
+  serviceType,
 }: ServiceConsolidationCardProps) {
-  const fieldNames: { [key: string]: string } = {
-    servicioConsolidado: "SERVICIO CONSOLIDADO",
-    separacionCarga: "SEPARACION DE CARGA",
-    inspeccionProductos: "INSPECCION DE PRODUCTOS",
-    gestionCertificado: "GESTION DE CERTIFICADO DE ORIGEN",
-    inspeccionProducto: "INSPECCION DE PRODUCTO",
-    inspeccionFabrica: "INSPECCION DE FABRICA",
-    transporteLocal: "TRANSPORTE A LOCAL",
-    otrosServicios: "OTROS SERVICIOS",
+  const getFieldNames = (serviceType?: string): { [key: string]: string } => {
+    const baseNames = {
+      servicioConsolidado: "SERVICIO CONSOLIDADO",
+      separacionCarga: serviceType === "Consolidado Grupal Express" ? "SEGURO DE PRODUCTOS" : "SEPARACION DE CARGA",
+      seguroProductos: "SEGURO DE PRODUCTOS",
+      inspeccionProductos: "INSPECCION DE PRODUCTOS",
+      gestionCertificado: "GESTION DE CERTIFICADO DE ORIGEN",
+      inspeccionProducto: "INSPECCION DE PRODUCTO",
+      inspeccionFabrica: "INSPECCION DE FABRICA",
+      transporteLocal: "TRANSPORTE A LOCAL",
+      otrosServicios: "OTROS SERVICIOS",
+    };
+    return baseNames;
   };
+
+  const fieldNames = getFieldNames(serviceType);
 
   const getFieldIcon = (key: string) => {
     switch (key) {

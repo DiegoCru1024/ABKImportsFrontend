@@ -24,7 +24,11 @@ import type {
 export class QuotationResponseBuilder {
   private baseDto: QuotationResponseBaseDto;
 
-  constructor(quotationId: string, serviceType: ServiceType, quotationDetail?: any) {
+  constructor(
+    quotationId: string,
+    serviceType: ServiceType,
+    quotationDetail?: any
+  ) {
     this.baseDto = {
       quotationId,
       serviceType,
@@ -34,18 +38,37 @@ export class QuotationResponseBuilder {
     };
   }
 
-  private buildQuotationInfo(quotationId: string, quotationDetail?: any): QuotationInfoDto {
+  private buildQuotationInfo(
+    quotationId: string,
+    quotationDetail?: any
+  ): QuotationInfoDto {
     const now = new Date();
-    const formattedDate = `${now.getDate().toString().padStart(2, "0")}-${(now.getMonth() + 1).toString().padStart(2, "0")}-${now.getFullYear()} ${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}:${now.getSeconds().toString().padStart(2, "0")}`;
+    const formattedDate = `${now.getDate().toString().padStart(2, "0")}/${(
+      now.getMonth() + 1
+    )
+      .toString()
+      .padStart(2, "0")}/${now.getFullYear()} ${now
+      .getHours()
+      .toString()
+      .padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}:${now
+      .getSeconds()
+      .toString()
+      .padStart(2, "0")}`;
 
     // **CORRECCIÓN 1**: Usar el correlativo real de la cotización existente en lugar de generar uno aleatorio
-    const correlative = quotationDetail?.correlative || `COT-${Math.random().toString(36).substr(2, 6).toUpperCase()}-${now.getFullYear()}`;
+    const correlative =
+      quotationDetail?.correlative ||
+      `COT-${Math.random()
+        .toString(36)
+        .substr(2, 6)
+        .toUpperCase()}-${now.getFullYear()}`;
 
     return {
       quotationId,
       correlative, // Mapear el correlativo correcto desde quotationDetail
       date: formattedDate,
-      advisorId: quotationDetail?.advisorId || "75500ef2-e35c-4a77-8074-9104c9d971cb",
+      advisorId:
+        quotationDetail?.advisorId || "75500ef2-e35c-4a77-8074-9104c9d971cb",
       serviceLogistic: "Pendiente",
       incoterm: "DDP",
       cargoType: "mixto",
@@ -87,7 +110,10 @@ export class QuotationResponseBuilder {
         pricing: this.buildPendingProductPricing(product),
         packingList: this.buildPackingList(product),
         cargoHandling: this.buildCargoHandling(product),
-        variants: this.buildPendingVariants(product, data.quotationStates.variants[productId] || {}),
+        variants: this.buildPendingVariants(
+          product,
+          data.quotationStates.variants[productId] || {}
+        ),
       };
     });
   }
@@ -124,16 +150,24 @@ export class QuotationResponseBuilder {
   private buildPackingList(product: any): PackingListDto | undefined {
     // **CORRECCIÓN 2**: Mapear correctamente los campos del packingList desde el estado local del producto
     // El producto puede tener packingList actualizado desde la interfaz o usar valores por defecto
-    if (!product.packingList && !product.boxes && !product.number_of_boxes) return undefined;
+    if (!product.packingList && !product.boxes && !product.number_of_boxes)
+      return undefined;
 
     return {
       // Mapear desde packingList.boxes en lugar de packingList.nroBoxes
-      nroBoxes: product.packingList?.boxes || product.number_of_boxes || product.boxes || 0,
+      nroBoxes:
+        product.packingList?.boxes ||
+        product.number_of_boxes ||
+        product.boxes ||
+        0,
       cbm: product.packingList?.cbm || parseFloat(product.volume) || 0,
       // Mapear desde packingList.weightKg en lugar de packingList.pesoKg
       pesoKg: product.packingList?.weightKg || parseFloat(product.weight) || 0,
       // Mapear desde packingList.weightTon en lugar de packingList.pesoTn
-      pesoTn: product.packingList?.weightTon || (parseFloat(product.weight) / 1000) || 0,
+      pesoTn:
+        product.packingList?.weightTon ||
+        parseFloat(product.weight) / 1000 ||
+        0,
     };
   }
 
@@ -146,7 +180,10 @@ export class QuotationResponseBuilder {
     };
   }
 
-  private buildPendingVariants(product: any, variantStates: Record<string, boolean>): PendingProductVariantDto[] {
+  private buildPendingVariants(
+    product: any,
+    variantStates: Record<string, boolean>
+  ): PendingProductVariantDto[] {
     if (!product.variants) return [];
 
     return product.variants.map((variant: any) => {
@@ -179,16 +216,21 @@ export class QuotationResponseBuilder {
     }));
   }
 
-  private determineServiceType(serviceLogistic: string): "EXPRESS" | "MARITIME" {
-    const maritimeServices = ["Consolidado Maritimo", "Contenedor Completo"];
+  private determineServiceType(
+    serviceLogistic: string
+  ): "EXPRESS" | "MARITIME" {
+    const maritimeServices = ["Consolidado Maritimo", "Consolidado Grupal Maritimo"];
     return maritimeServices.includes(serviceLogistic) ? "MARITIME" : "EXPRESS";
   }
 
   private extractCalculations(data: CompleteBuildData) {
     return {
       dynamicValues: this.extractDynamicValues(data),
+      //Obligaciones fiscales
       fiscalObligations: this.extractFiscalObligations(data),
+      //Servicios de Carga
       serviceCalculations: this.extractServiceCalculations(data),
+      //Excepciones
       exemptions: this.extractExemptions(data),
     };
   }
@@ -218,29 +260,45 @@ export class QuotationResponseBuilder {
       ipmRate: dynamicValues.ipmRate || 2.0,
       antidumpingGobierno: dynamicValues.antidumpingGobierno,
       antidumpingCantidad: dynamicValues.antidumpingCantidad,
+      transporteLocalChinaEnvio: dynamicValues.transporteLocalChinaEnvio || 0,
+      transporteLocalClienteEnvio:
+        dynamicValues.transporteLocalClienteEnvio || 0,
       cif: dynamicValues.cif || 0,
     };
   }
 
-  private extractFiscalObligations(data: CompleteBuildData): FiscalObligationsDto {
+  private extractFiscalObligations(
+    data: CompleteBuildData
+  ): FiscalObligationsDto {
     const calculations = data.calculations;
     return {
       adValorem: calculations.adValoremAmount || 0,
       igv: calculations.igv || 0,
       ipm: calculations.ipm || 0,
       antidumping: calculations.antidumping || 0,
-      totalTaxes: (calculations.adValoremAmount || 0) + (calculations.igv || 0) + (calculations.ipm || 0) + (calculations.antidumping || 0),
+      totalTaxes:
+        (calculations.adValoremAmount || 0) +
+        (calculations.igv || 0) +
+        (calculations.ipm || 0) +
+        (calculations.antidumping || 0),
     };
   }
 
-  private extractServiceCalculations(data: CompleteBuildData): ServiceCalculationsDto {
+  private extractServiceCalculations(
+    data: CompleteBuildData
+  ): ServiceCalculationsDto {
     const serviceFields = data.quotationForm.getServiceFields();
-    const subtotal = Object.values(serviceFields).reduce((sum, value) => sum + (value || 0), 0);
+    const subtotal = Object.values(serviceFields).reduce(
+      (sum: number, value: unknown) =>
+        sum + ((typeof value === "number" ? value : 0) || 0),
+      0
+    );
 
     return {
       serviceFields: {
         servicioConsolidado: serviceFields.servicioConsolidado || 0,
         separacionCarga: serviceFields.separacionCarga || 0,
+        seguroProductos: serviceFields.seguroProductos || 0,
         inspeccionProductos: serviceFields.inspeccionProductos || 0,
         gestionCertificado: serviceFields.gestionCertificado,
         inspeccionProducto: serviceFields.inspeccionProducto,
@@ -264,15 +322,19 @@ export class QuotationResponseBuilder {
       servicioInspeccion: exemptions.servicioInspeccion,
       transporteLocal: exemptions.transporteLocal,
       totalDerechos: exemptions.totalDerechos,
+      descuentoGrupalExpress: exemptions.descuentoGrupalExpress || false,
     };
   }
 
-  private extractCommercialDetails(data: CompleteBuildData): CommercialDetailsDto {
+  private extractCommercialDetails(
+    data: CompleteBuildData
+  ): CommercialDetailsDto {
     const calculations = data.calculations;
     return {
       cif: data.quotationForm.cif || 0,
       totalImportCosts: calculations.finalTotal || 0,
-      totalInvestment: (data.quotationForm.cif || 0) + (calculations.finalTotal || 0),
+      totalInvestment:
+        (data.quotationForm.cif || 0) + (calculations.finalTotal || 0),
     };
   }
 
@@ -282,9 +344,12 @@ export class QuotationResponseBuilder {
 
     // Actualizar configuración si está disponible en los datos
     if (data.configuration) {
-      this.baseDto.quotationInfo.serviceLogistic = data.configuration.serviceLogistic || "Pendiente";
-      this.baseDto.quotationInfo.incoterm = data.configuration.incoterm || "DDP";
-      this.baseDto.quotationInfo.cargoType = data.configuration.cargoType || "mixto";
+      this.baseDto.quotationInfo.serviceLogistic =
+        data.configuration.serviceLogistic || "Pendiente";
+      this.baseDto.quotationInfo.incoterm =
+        data.configuration.incoterm || "DDP";
+      this.baseDto.quotationInfo.cargoType =
+        data.configuration.cargoType || "mixto";
       this.baseDto.quotationInfo.courier = data.configuration.courier || "ups";
     }
 
@@ -298,11 +363,14 @@ export class QuotationResponseBuilder {
   }
 
   buildForCompleteService(data: CompleteBuildData): QuotationResponseBaseDto {
-    const serviceType = this.determineServiceType(data.quotationForm.selectedServiceLogistic);
+    const serviceType = this.determineServiceType(
+      data.quotationForm.selectedServiceLogistic
+    );
 
     // Actualizar información de cotización para servicios completos
     this.baseDto.serviceType = serviceType;
-    this.baseDto.quotationInfo.serviceLogistic = data.quotationForm.selectedServiceLogistic;
+    this.baseDto.quotationInfo.serviceLogistic =
+      data.quotationForm.selectedServiceLogistic;
     this.baseDto.quotationInfo.incoterm = data.quotationForm.selectedIncoterm;
     this.baseDto.quotationInfo.cargoType = data.quotationForm.selectedTypeLoad;
     this.baseDto.quotationInfo.courier = data.quotationForm.selectedCourier;
@@ -324,7 +392,7 @@ export class QuotationResponseBuilder {
     }
 
     this.baseDto.responseData = {
-      type: serviceType,
+      type: data.quotationForm.selectedServiceLogistic,
       basicInfo: this.extractCompleteBasicInfo(data),
       calculations: this.extractCalculations(data),
       commercialDetails: this.extractCommercialDetails(data),

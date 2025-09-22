@@ -94,7 +94,7 @@ export function useQuotationCalculations({
     const adValoremAmount = (cif * dynamicValues.adValoremRate) / 100;
     const baseIGV = cif + adValoremAmount;
     const igvAmount = (baseIGV * dynamicValues.igvRate) / 100;
-    const ipmAmount = (cif * dynamicValues.ipmRate) / 100;
+    const ipmAmount = (baseIGV * dynamicValues.ipmRate) / 100; // IPM también se calcula sobre CIF + AD/VALOREM
     const percepcionAmount = (igvAmount * dynamicValues.percepcionRate) / 100;
     
     const totalTaxes = adValoremAmount + igvAmount + ipmAmount + percepcionAmount;

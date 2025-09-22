@@ -32,6 +32,8 @@ interface DynamicValues {
   igvRate: number;
   ipmRate: number;
   percepcionRate: number;
+  transporteLocalChinaEnvio: number;
+  transporteLocalClienteEnvio: number;
 }
 
 interface ExemptionState {
@@ -47,6 +49,7 @@ interface ExemptionState {
   servicioInspeccion: boolean;
   transporteLocal: boolean;
   totalDerechos: boolean;
+  descuentoGrupalExpress: boolean;
 }
 
 interface UnifiedConfigurationFormProps {
@@ -56,6 +59,7 @@ interface UnifiedConfigurationFormProps {
   exemptionState: ExemptionState;
   onExemptionChange: (field: keyof ExemptionState, value: boolean) => void;
   isMaritimeService: boolean;
+  cif?: number;
 }
 
 export function UnifiedConfigurationForm({
@@ -65,6 +69,7 @@ export function UnifiedConfigurationForm({
   exemptionState,
   onExemptionChange,
   isMaritimeService,
+  cif = 0,
 }: UnifiedConfigurationFormProps) {
   const [showConfig, setShowConfig] = useState(false);
 
@@ -85,7 +90,7 @@ export function UnifiedConfigurationForm({
       show: !isMaritimeService,
     },
     {
-      id: "servicioConsolidadoMaritimo", 
+      id: "servicioConsolidadoMaritimo",
       label: "Servicio Consolidado Marítimo",
       show: isMaritimeService,
     },
@@ -121,7 +126,7 @@ export function UnifiedConfigurationForm({
     },
     {
       id: "transporteLocalCliente",
-      label: "Transporte Local Cliente", 
+      label: "Transporte Local Cliente",
       show: true,
     },
     {
@@ -129,9 +134,14 @@ export function UnifiedConfigurationForm({
       label: "Total Derechos",
       show: true,
     },
+    {
+      id: "descuentoGrupalExpress",
+      label: "Descuento 50% (Express Grupal)",
+      show: !isMaritimeService,
+    },
   ];
 
-  const visibleExemptions = exemptions.filter(exemption => exemption.show);
+  const visibleExemptions = exemptions.filter((exemption) => exemption.show);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -162,7 +172,7 @@ export function UnifiedConfigurationForm({
               Configurar
             </Button>
           </CardHeader>
-          
+
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Columna Izquierda */}
@@ -173,7 +183,9 @@ export function UnifiedConfigurationForm({
                   </Label>
                   <EditableNumericField
                     value={dynamicValues.comercialValue}
-                    onChange={(value: number) => onUpdateValue("comercialValue", value)}
+                    onChange={(value: number) =>
+                      onUpdateValue("comercialValue", value)
+                    }
                     prefix="$"
                     decimalPlaces={2}
                   />
@@ -225,6 +237,19 @@ export function UnifiedConfigurationForm({
                   />
                 </div>
 
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-slate-700">
+                    Transporte Local  (China)
+                  </Label>
+                  <EditableNumericField
+                    value={dynamicValues.transporteLocalChinaEnvio}
+                    onChange={(value: number) =>
+                      onUpdateValue("transporteLocalChinaEnvio", value)
+                    }
+                    decimalPlaces={2}
+                  />
+                </div>
+
                 {isMaritimeService && (
                   <>
                     <div className="space-y-2">
@@ -233,7 +258,9 @@ export function UnifiedConfigurationForm({
                       </Label>
                       <EditableNumericField
                         value={dynamicValues.nroBultos}
-                        onChange={(value: number) => onUpdateValue("nroBultos", value)}
+                        onChange={(value: number) =>
+                          onUpdateValue("nroBultos", value)
+                        }
                         decimalPlaces={0}
                       />
                     </div>
@@ -244,7 +271,9 @@ export function UnifiedConfigurationForm({
                       </Label>
                       <EditableNumericField
                         value={dynamicValues.calculoFlete}
-                        onChange={(value: number) => onUpdateValue("calculoFlete", value)}
+                        onChange={(value: number) =>
+                          onUpdateValue("calculoFlete", value)
+                        }
                         prefix="$"
                         decimalPlaces={2}
                       />
@@ -273,7 +302,9 @@ export function UnifiedConfigurationForm({
                   </Label>
                   <EditableNumericField
                     value={dynamicValues.desaduanaje}
-                    onChange={(value: number) => onUpdateValue("desaduanaje", value)}
+                    onChange={(value: number) =>
+                      onUpdateValue("desaduanaje", value)
+                    }
                     prefix="$"
                     decimalPlaces={2}
                   />
@@ -306,11 +337,39 @@ export function UnifiedConfigurationForm({
 
                 <div className="space-y-2">
                   <Label className="text-sm font-medium text-slate-700">
+                    CIF
+                  </Label>
+                  <EditableNumericField
+                    value={cif}
+                    onChange={() => {}}
+                    prefix="$"
+                    decimalPlaces={2}
+                    readOnly
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-slate-700">
                     Tipo de Cambio
                   </Label>
                   <EditableNumericField
                     value={dynamicValues.tipoCambio}
-                    onChange={(value: number) => onUpdateValue("tipoCambio", value)}
+                    onChange={(value: number) =>
+                      onUpdateValue("tipoCambio", value)
+                    }
+                    decimalPlaces={2}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-slate-700">
+                    Transporte Local (Destino)
+                  </Label>
+                  <EditableNumericField
+                    value={dynamicValues.transporteLocalClienteEnvio}
+                    onChange={(value: number) =>
+                      onUpdateValue("transporteLocalClienteEnvio", value)
+                    }
                     decimalPlaces={2}
                   />
                 </div>
@@ -322,7 +381,9 @@ export function UnifiedConfigurationForm({
                     </Label>
                     <EditableNumericField
                       value={dynamicValues.volumenCBM}
-                      onChange={(value: number) => onUpdateValue("volumenCBM", value)}
+                      onChange={(value: number) =>
+                        onUpdateValue("volumenCBM", value)
+                      }
                       suffix="m³"
                       decimalPlaces={2}
                     />
@@ -340,7 +401,7 @@ export function UnifiedConfigurationForm({
         <div
           className={cn(
             "transition-all duration-300 ease-in-out",
-            showConfig ? "opacity-100 translate-x-0" : "opacity-30",
+            showConfig ? "opacity-100 translate-x-0" : "opacity-30"
           )}
         >
           <Card
@@ -362,7 +423,9 @@ export function UnifiedConfigurationForm({
                   </Label>
                   <EditableNumericField
                     value={dynamicValues.adValoremRate}
-                    onChange={(value: number) => onUpdateValue("adValoremRate", value)}
+                    onChange={(value: number) =>
+                      onUpdateValue("adValoremRate", value)
+                    }
                     suffix="%"
                     decimalPlaces={2}
                     disabled={!showConfig}
@@ -375,7 +438,9 @@ export function UnifiedConfigurationForm({
                   </Label>
                   <EditableNumericField
                     value={dynamicValues.igvRate}
-                    onChange={(value: number) => onUpdateValue("igvRate", value)}
+                    onChange={(value: number) =>
+                      onUpdateValue("igvRate", value)
+                    }
                     suffix="%"
                     decimalPlaces={2}
                     disabled={!showConfig}
@@ -388,7 +453,9 @@ export function UnifiedConfigurationForm({
                   </Label>
                   <EditableNumericField
                     value={dynamicValues.ipmRate}
-                    onChange={(value: number) => onUpdateValue("ipmRate", value)}
+                    onChange={(value: number) =>
+                      onUpdateValue("ipmRate", value)
+                    }
                     suffix="%"
                     decimalPlaces={2}
                     disabled={!showConfig}
@@ -401,7 +468,9 @@ export function UnifiedConfigurationForm({
                   </Label>
                   <EditableNumericField
                     value={dynamicValues.percepcionRate}
-                    onChange={(value: number) => onUpdateValue("percepcionRate", value)}
+                    onChange={(value: number) =>
+                      onUpdateValue("percepcionRate", value)
+                    }
                     suffix="%"
                     decimalPlaces={2}
                     disabled={!showConfig}
@@ -416,7 +485,7 @@ export function UnifiedConfigurationForm({
         <div
           className={cn(
             "transition-all duration-300 ease-in-out",
-            showConfig ? "opacity-100 translate-x-0" : "opacity-30",
+            showConfig ? "opacity-100 translate-x-0" : "opacity-30"
           )}
         >
           <Card
@@ -440,21 +509,31 @@ export function UnifiedConfigurationForm({
                 </div>
               </div>
             </CardHeader>
-            
+
             <CardContent className="space-y-3 pt-0">
               <div className="grid grid-cols-1 gap-3">
                 {visibleExemptions.map((exemption) => (
-                  <div key={exemption.id} className="flex items-center space-x-2">
+                  <div
+                    key={exemption.id}
+                    className="flex items-center space-x-2"
+                  >
                     <Checkbox
                       id={exemption.id}
-                      checked={exemptionState[exemption.id as keyof typeof exemptionState]}
-                      onCheckedChange={(checked) => 
-                        onExemptionChange(exemption.id as keyof ExemptionState, checked as boolean)
+                      checked={
+                        exemptionState[
+                          exemption.id as keyof typeof exemptionState
+                        ]
+                      }
+                      onCheckedChange={(checked) =>
+                        onExemptionChange(
+                          exemption.id as keyof ExemptionState,
+                          checked as boolean
+                        )
                       }
                       className="h-4 w-4"
                       disabled={!showConfig}
                     />
-                    <Label 
+                    <Label
                       htmlFor={exemption.id}
                       className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                     >
@@ -463,7 +542,7 @@ export function UnifiedConfigurationForm({
                   </div>
                 ))}
               </div>
-              
+
               {Object.values(exemptionState).some(Boolean) && (
                 <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-md">
                   <div className="flex items-center gap-2 mb-1">
@@ -473,7 +552,8 @@ export function UnifiedConfigurationForm({
                     </span>
                   </div>
                   <p className="text-xs text-amber-700">
-                    {Object.values(exemptionState).filter(Boolean).length} exoneraciones aplicadas
+                    {Object.values(exemptionState).filter(Boolean).length}{" "}
+                    exoneraciones aplicadas
                   </p>
                 </div>
               )}
@@ -484,9 +564,9 @@ export function UnifiedConfigurationForm({
         {/* Botón de cerrar configuración */}
         {showConfig && (
           <div className="flex justify-center">
-            <Button 
-              onClick={() => setShowConfig(false)} 
-              variant="outline" 
+            <Button
+              onClick={() => setShowConfig(false)}
+              variant="outline"
               className="px-8"
             >
               Cerrar Configuración

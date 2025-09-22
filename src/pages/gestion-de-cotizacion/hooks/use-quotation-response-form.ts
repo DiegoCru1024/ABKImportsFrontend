@@ -47,6 +47,7 @@ interface ExemptionState {
   servicioInspeccion: boolean;
   transporteLocal: boolean;
   totalDerechos: boolean;
+  descuentoGrupalExpress: boolean;
 }
 
 interface UseQuotationResponseFormProps {
@@ -140,6 +141,7 @@ export function useQuotationResponseForm({
     servicioInspeccion: false,
     transporteLocal: false,
     totalDerechos: false,
+    descuentoGrupalExpress: false,
   });
   
   // Estados para productos editables
@@ -168,10 +170,19 @@ export function useQuotationResponseForm({
   
   // Función para actualizar valores dinámicos
   const updateDynamicValue = (field: keyof DynamicValues, value: number) => {
-    setDynamicValues(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    setDynamicValues(prev => {
+      const updated = {
+        ...prev,
+        [field]: value
+      };
+
+      // Si se actualiza el valor comercial, sincronizar FOB
+      if (field === "comercialValue") {
+        updated.fob = value;
+      }
+
+      return updated;
+    });
   };
   
   // Lógica automática para conversión KG a TON
@@ -210,12 +221,19 @@ export function useQuotationResponseForm({
   
   // Función para obtener los campos del servicio según el tipo
   const getServiceFields = (serviceType: string) => {
-    const aereoServices = [
-      "Consolidado Express",
-      "Consolidado Grupal Express",
-      "Almacenaje de mercancías",
-    ];
-    if (aereoServices.includes(serviceType)) {
+    if (serviceType === "Consolidado Express") {
+      return {
+        servicioConsolidado: dynamicValues.servicioConsolidado,
+        separacionCarga: dynamicValues.separacionCarga,
+        inspeccionProductos: dynamicValues.inspeccionProductos,
+      };
+    } else if (serviceType === "Consolidado Grupal Express") {
+      return {
+        servicioConsolidado: dynamicValues.servicioConsolidado,
+        seguroProductos: dynamicValues.separacionCarga, // Reutilizamos el valor pero con diferente etiqueta
+        inspeccionProductos: dynamicValues.inspeccionProductos,
+      };
+    } else if (serviceType === "Almacenaje de mercancías") {
       return {
         servicioConsolidado: dynamicValues.servicioConsolidado,
         separacionCarga: dynamicValues.separacionCarga,

@@ -104,6 +104,12 @@ export interface BasicInfoDto {
 export interface PendingServiceData {
   type: "PENDING";
   basicInfo: BasicInfoDto;
+  generalInformation: {
+    serviceLogistic: string;
+    incoterm: string;
+    cargoType: string;
+    courier: string;
+  };
 }
 
 export interface CompleteServiceData {

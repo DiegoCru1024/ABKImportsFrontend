@@ -21,6 +21,8 @@ import type {
   CargoHandlingDto,
 } from "../types/quotation-response-dto";
 
+import type { QuotationResponseDTO } from "@/types/quotation-response-dto";
+
 export class QuotationResponseBuilder {
   private baseDto: QuotationResponseBaseDto;
 
@@ -300,9 +302,9 @@ export class QuotationResponseBuilder {
         separacionCarga: serviceFields.separacionCarga || 0,
         seguroProductos: serviceFields.seguroProductos || 0,
         inspeccionProductos: serviceFields.inspeccionProductos || 0,
-        gestionCertificado: serviceFields.gestionCertificado,
-        inspeccionProducto: serviceFields.inspeccionProducto,
-        transporteLocal: serviceFields.transporteLocal,
+        gestionCertificado: serviceFields.gestionCertificado || 0,
+        inspeccionProducto: serviceFields.inspeccionProducto || 0,
+        transporteLocal: serviceFields.transporteLocal || 0,
       },
       subtotalServices: subtotal,
       igvServices: subtotal * 0.18,
@@ -342,6 +344,8 @@ export class QuotationResponseBuilder {
     // Actualizar información de cotización para servicios pendientes
     this.baseDto.quotationInfo.serviceLogistic = "Pendiente";
 
+
+
     // Actualizar configuración si está disponible en los datos
     if (data.configuration) {
       this.baseDto.quotationInfo.serviceLogistic =
@@ -356,6 +360,12 @@ export class QuotationResponseBuilder {
     this.baseDto.responseData = {
       type: "PENDING",
       basicInfo: this.extractPendingBasicInfo(data),
+      generalInformation:{
+        serviceLogistic: data?.configuration?.serviceLogistic || "Pendiente",
+        incoterm: data?.configuration?.incoterm || "DDP",
+        cargoType:data?.configuration?.cargoType || "mixto",
+        courier: data?.configuration?.courier || "ups"
+      }
     } as PendingServiceData;
 
     this.baseDto.products = this.buildPendingProducts(data);
@@ -400,5 +410,211 @@ export class QuotationResponseBuilder {
 
     this.baseDto.products = this.buildCompleteProducts(data);
     return this.baseDto;
+  }
+
+  buildForCompleteServiceNew(data: CompleteBuildData): QuotationResponseDTO {
+    const serviceType = this.determineServiceType(
+      data.quotationForm.selectedServiceLogistic
+    );
+
+    // Construir la configuración marítima si aplica
+    const maritimeConfig = serviceType === "MARITIME" ? {
+      regime: data.quotationForm.selectedRegimen || "",
+      originCountry: data.quotationForm.selectedPaisOrigen || "",
+      destinationCountry: data.quotationForm.selectedPaisDestino || "",
+      customs: data.quotationForm.selectedAduana || "",
+      originPort: data.quotationForm.selectedPuertoSalida || "",
+      destinationPort: data.quotationForm.selectedPuertoDestino || "",
+      serviceTypeDetail: data.quotationForm.selectedTipoServicio || "",
+      transitTime: data.quotationForm.tiempoTransito || 0,
+      naviera: data.quotationForm.naviera || "",
+      proformaValidity: data.quotationForm.selectedProformaVigencia || "5",
+    } : {
+      regime: "",
+      originCountry: "",
+      destinationCountry: "",
+      customs: "",
+      originPort: "",
+      destinationPort: "",
+      serviceTypeDetail: "",
+      transitTime: 0,
+      naviera: "",
+      proformaValidity: "5",
+    };
+
+    return {
+      quotationId: this.baseDto.quotationId,
+      serviceType,
+      quotationInfo: {
+        quotationId: this.baseDto.quotationId,
+        correlative: this.baseDto.quotationInfo.correlative,
+        date: this.baseDto.quotationInfo.date,
+        advisorId: this.baseDto.quotationInfo.advisorId,
+      },
+      responseData: {
+        type: data.quotationForm.selectedServiceLogistic,
+        basicInfo: this.extractCompleteBasicInfo(data),
+        generalInformation: {
+          serviceLogistic: data.quotationForm.selectedServiceLogistic,
+          incoterm: data.quotationForm.selectedIncoterm,
+          cargoType: data.quotationForm.selectedTypeLoad,
+          courier: data.quotationForm.selectedCourier,
+        },
+        maritimeConfig,
+        calculations: {
+          dynamicValues: this.extractDynamicValuesNew(data),
+          taxPercentage: {
+            adValoremRate: data.quotationForm.dynamicValues.adValoremRate || 4,
+            igvRate: data.quotationForm.dynamicValues.igvRate || 16,
+            ipmRate: data.quotationForm.dynamicValues.ipmRate || 2,
+            percepcion: data.quotationForm.dynamicValues.percepcionRate || 5,
+          },
+          exemptions: this.extractExemptionsNew(data),
+        },
+        serviceCalculations: this.extractServiceCalculationsNew(data),
+        fiscalObligations: this.extractFiscalObligationsNew(data),
+        importCosts: this.extractImportCosts(data),
+        quoteSummary: this.extractQuoteSummary(data),
+      },
+      products: this.buildCompleteProductsNew(data),
+    };
+  }
+
+  private extractImportCosts(data: CompleteBuildData) {
+    const serviceFields = data.quotationForm.getServiceFields();
+    const calculations = data.calculations;
+
+    return {
+      expenseFields: {
+        servicioConsolidado: serviceFields.servicioConsolidado || 0,
+        separacionCarga: serviceFields.separacionCarga || 0,
+        seguroProductos: serviceFields.seguroProductos || 0,
+        inspeccionProducts: serviceFields.inspeccionProductos || 0,
+        addvaloremigvipm: {
+          descuento: data.quotationForm.exemptionState.obligacionesFiscales || false,
+          valor: calculations.totalTaxes || 0,
+        },
+        desadunajefleteseguro: data.quotationForm.dynamicValues.desaduanaje || 0,
+        transporteLocal: serviceFields.transporteLocal || 0,
+        transporteLocalChinaEnvio: data.quotationForm.dynamicValues.transporteLocalChinaEnvio || 0,
+        transporteLocalClienteEnvio: data.quotationForm.dynamicValues.transporteLocalClienteEnvio || 0,
+      },
+      totalExpenses: calculations.finalTotal || 0,
+    };
+  }
+
+  private extractDynamicValuesNew(data: CompleteBuildData) {
+    const dynamicValues = data.quotationForm.dynamicValues;
+    return {
+      comercialValue: dynamicValues.comercialValue || 0,
+      flete: dynamicValues.flete || 0,
+      cajas: dynamicValues.cajas || 0,
+      kg: dynamicValues.kg || 0,
+      ton: dynamicValues.ton || 0,
+      fob: dynamicValues.fob || 0,
+      seguro: dynamicValues.seguro || 0,
+      tipoCambio: dynamicValues.tipoCambio || 3.7,
+      volumenCBM: dynamicValues.volumenCBM || 0,
+      calculoFlete: dynamicValues.calculoFlete || 0,
+      servicioConsolidado: dynamicValues.servicioConsolidado || 0,
+      separacionCarga: dynamicValues.separacionCarga || 0,
+      inspeccionProductos: dynamicValues.inspeccionProductos || 0,
+      gestionCertificado: dynamicValues.gestionCertificado || 0,
+      inspeccionProducto: dynamicValues.inspeccionProducto || 0,
+      transporteLocal: dynamicValues.transporteLocal || 0,
+      desaduanaje: dynamicValues.desaduanaje || 0,
+      antidumpingGobierno: dynamicValues.antidumpingGobierno || 0,
+      antidumpingCantidad: dynamicValues.antidumpingCantidad || 0,
+      transporteLocalChinaEnvio: dynamicValues.transporteLocalChinaEnvio || 0,
+      transporteLocalClienteEnvio: dynamicValues.transporteLocalClienteEnvio || 0,
+      cif: dynamicValues.cif || 0,
+    };
+  }
+
+  private extractExemptionsNew(data: CompleteBuildData) {
+    const exemptions = data.quotationForm.exemptionState;
+    return {
+      servicioConsolidadoAereo: exemptions.servicioConsolidadoAereo || false,
+      servicioConsolidadoMaritimo: exemptions.servicioConsolidadoMaritimo || false,
+      separacionCarga: exemptions.separacionCarga || false,
+      inspeccionProductos: exemptions.inspeccionProductos || false,
+      obligacionesFiscales: exemptions.obligacionesFiscales || false,
+      gestionCertificado: exemptions.gestionCertificado || false,
+      servicioInspeccion: exemptions.servicioInspeccion || false,
+      transporteLocal: exemptions.transporteLocal || false,
+      totalDerechos: exemptions.totalDerechos || false,
+      descuentoGrupalExpress: exemptions.descuentoGrupalExpress || false,
+    };
+  }
+
+  private extractFiscalObligationsNew(data: CompleteBuildData) {
+    const calculations = data.calculations;
+    return {
+      adValorem: calculations.adValoremAmount || 0,
+      igv: calculations.igv || 0,
+      ipm: calculations.ipm || 0,
+      antidumping: calculations.antidumping || 0,
+      totalTaxes:
+        (calculations.adValoremAmount || 0) +
+        (calculations.igv || 0) +
+        (calculations.ipm || 0) +
+        (calculations.antidumping || 0),
+    };
+  }
+
+  private extractServiceCalculationsNew(data: CompleteBuildData) {
+    const serviceFields = data.quotationForm.getServiceFields();
+    const subtotal = Object.values(serviceFields).reduce(
+      (sum: number, value: unknown) =>
+        sum + ((typeof value === "number" ? value : 0) || 0),
+      0
+    );
+
+    return {
+      serviceFields: {
+        servicioConsolidado: serviceFields.servicioConsolidado || 0,
+        separacionCarga: serviceFields.separacionCarga || 0,
+        seguroProductos: serviceFields.seguroProductos || 0,
+        inspeccionProductos: serviceFields.inspeccionProductos || 0,
+        gestionCertificado: serviceFields.gestionCertificado || 0,
+        inspeccionProducto: serviceFields.inspeccionProducto || 0,
+        transporteLocal: serviceFields.transporteLocal || 0,
+      },
+      subtotalServices: subtotal,
+      igvServices: subtotal * 0.18,
+      totalServices: subtotal * 1.18,
+    };
+  }
+
+  private extractQuoteSummary(data: CompleteBuildData) {
+    const calculations = data.calculations;
+
+    return {
+      comercialValue: data.quotationForm.dynamicValues.comercialValue || 0,
+      totalExpenses: calculations.finalTotal || 0,
+      totalInvestment: (data.quotationForm.dynamicValues.comercialValue || 0) + (calculations.finalTotal || 0),
+    };
+  }
+
+  private buildCompleteProductsNew(data: CompleteBuildData) {
+    return data.products.map((product) => ({
+      productId: product.id,
+      name: product.name,
+      isQuoted: product.seCotiza !== false,
+      pricing: {
+        unitCost: product.unitCost || 0,
+        importCosts: product.importCosts || 0,
+        totalCost: product.totalCost || 0,
+        equivalence: product.equivalence || 0,
+      },
+      variants: (product.variants || []).map((variant: any) => ({
+        variantId: variant.originalVariantId || variant.id,
+        quantity: variant.quantity || 1,
+        isQuoted: variant.seCotiza !== false,
+        completePricing: {
+          unitCost: variant.unitCost || 0,
+        },
+      })),
+    }));
   }
 }

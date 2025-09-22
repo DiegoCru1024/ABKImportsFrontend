@@ -20,7 +20,6 @@ import { useQuotationResponseForm } from "../../hooks/use-quotation-response-for
 import { useQuotationCalculations } from "../../hooks/use-quotation-calculations";
 import type { DetailsResponseProps } from "../utils/interface";
 import { QuotationResponseBuilder } from "../../utils/quotation-response-builder";
-import { adaptQuotationResponseToLegacyFormat } from "../../utils/quotation-response-adapter";
 import type {
   PendingBuildData,
   CompleteBuildData,
@@ -493,7 +492,7 @@ export default function QuotationResponseView({
           quotationDetail // También pasar quotationDetail para servicios completos
         );
 
-        dto = builder.buildForCompleteService({
+        dto = builder.buildForCompleteServiceNew({
           quotationForm,
           calculations,
           products: quotationForm.editableUnitCostProducts,
@@ -506,9 +505,6 @@ export default function QuotationResponseView({
         JSON.stringify(dto, null, 2)
       );
 
-      // Convertir al formato legacy para compatibilidad con el backend actual
-      //const legacyDto = adaptQuotationResponseToLegacyFormat(dto);
-      //console.log("DTO legacy adaptado:", JSON.stringify(legacyDto, null, 2));
 
       // Enviar la cotización usando el hook
       /*await createQuotationResponseMutation.mutateAsync({

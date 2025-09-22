@@ -4,7 +4,7 @@ const objeto = {
   quotationInfo: {
     quotationId: "5356e493-7847-492c-a56e-79e0b7a15e97",
     correlative: "COT-00003-2025",
-    date: "21:09:2025 22:50:43",
+    date: "21/09/2025 22:50:43",
     advisorId: "75500ef2-e35c-4a77-8074-9104c9d971cb",
   },
   responseData: {
@@ -65,13 +65,13 @@ const objeto = {
         cif: 0,
       },
       //Porcentaje de Impuestos
-      taxPercentage:{
+      taxPercentage: {
         adValoremRate: 4,
         igvRate: 16,
         ipmRate: 2,
-        percepcion:5
-       },
-       //Exoneracion de conceptos
+        percepcion: 5,
+      },
+      //Exoneracion de conceptos
       exemptions: {
         servicioConsolidadoAereo: false,
         servicioConsolidadoMaritimo: false,
@@ -86,8 +86,8 @@ const objeto = {
       },
     },
 
-     //Servicios de Carga Consolidada Aérea
-     serviceCalculations: {
+    //Servicios de Carga Consolidada Aérea
+    serviceCalculations: {
       serviceFields: {
         servicioConsolidado: 32,
         separacionCarga: 0,
@@ -102,9 +102,8 @@ const objeto = {
       totalServices: 37.76,
     },
 
-
-     //Obligaciones Fiscales
-     fiscalObligations: {
+    //Obligaciones Fiscales
+    fiscalObligations: {
       adValorem: 11592.16,
       igv: 48223.385599999994,
       ipm: 6027.923199999999,
@@ -113,20 +112,29 @@ const objeto = {
     },
 
     //Gastos de importacion
-    importCosts:{
-      servicioConsolidado:50,
+    importCosts: {
+      expenseFields: {
+        servicioConsolidado: 50,
+        separacionCarga: 10,
+        seguroProductos: 10,
+        inspeccionProducts: 5,
+        addvaloremigvipm: {
+          descuento: true,
+          valor: 23,
+        },
+        desadunajefleteseguro: 10,
+        transporteLocal: 50,
+        transporteLocalChinaEnvio: 44,
+        transporteLocalClienteEnvio: 55,
+      },
+      totalExpenses: 37.76,
+    },
 
-    },
-   
     // Resumen de cotizacion
-    quoteSummary:{
-      comercialValue:30,
-      
-    },
-    commercialDetails: {
-      cif: 289804,
-      totalImportCosts: 358058.63808,
-      totalInvestment: 647862.63808,
+    quoteSummary: {
+      comercialValue: 30,
+      totalExpenses: 37.76,
+      totalInvestment:67.76
     },
   },
   products: [

@@ -31,11 +31,13 @@ interface QuotationResponseBaseDto {
 Se han implementado **DOS estructuras diferentes** para diferentes propósitos:
 
 #### 1. **QuotationResponseBaseDto** (Estructura Unificada)
+
 - Mantiene la estructura propuesta en MEJORA.md
 - Usado para servicios pendientes y completos básicos
 - **Optimizada para reducir redundancia de datos**
 
 #### 2. **QuotationResponseDTO** (Estructura Extendida)
+
 - **NUEVA implementación** para servicios completos avanzados
 - Incluye campos adicionales como `taxPercentage`, `importCosts`, `quoteSummary`
 - **Estructura más detallada** para cálculos complejos
@@ -45,6 +47,7 @@ Se han implementado **DOS estructuras diferentes** para diferentes propósitos:
 ## 🛠️ Nuevos Métodos en QuotationResponseBuilder
 
 ### 1. **buildForPendingService()** - Para Vista Administrativa
+
 ```typescript
 buildForPendingService(data: PendingBuildData): QuotationResponseBaseDto
 ```
@@ -52,12 +55,14 @@ buildForPendingService(data: PendingBuildData): QuotationResponseBaseDto
 **Propósito:** Generar DTO optimizado para servicios pendientes (vista administrativa)
 
 **Características clave:**
+
 - ✅ Incluye `packingList` y `cargoHandling` para productos
 - ✅ Agrega `generalInformation` en `responseData`
 - ✅ Maneja estados de cotización de productos y variantes
 - ✅ Reduce datos innecesarios (~70% menor que estructura anterior)
 
 ### 2. **buildForCompleteService()** - Para Servicios Express/Marítimo
+
 ```typescript
 buildForCompleteService(data: CompleteBuildData): QuotationResponseBaseDto
 ```
@@ -65,6 +70,7 @@ buildForCompleteService(data: CompleteBuildData): QuotationResponseBaseDto
 **Propósito:** Generar DTO para servicios express y marítimos (estructura original)
 
 ### 3. **buildForCompleteServiceNew()** - Para Servicios Completos Avanzados ⭐
+
 ```typescript
 buildForCompleteServiceNew(data: CompleteBuildData): QuotationResponseDTO
 ```
@@ -72,6 +78,7 @@ buildForCompleteServiceNew(data: CompleteBuildData): QuotationResponseDTO
 **Propósito:** Generar DTO extendido con **cálculos fiscales detallados** y **resumen de cotización**
 
 **Nuevas características:**
+
 - 🆕 **taxPercentage**: Porcentajes de impuestos separados
 - 🆕 **importCosts**: Costos de importación detallados con campo `addvaloremigvipm`
 - 🆕 **quoteSummary**: Resumen comercial de la cotización
@@ -83,44 +90,47 @@ buildForCompleteServiceNew(data: CompleteBuildData): QuotationResponseDTO
 ## 📊 Cambios Específicos Implementados
 
 ### **Corrección 1**: Manejo Correcto del Correlativo
+
 ```typescript
 // ANTES: Generación aleatoria
-const correlative = `COT-${Math.random()}`
+const correlative = `COT-${Math.random()}`;
 
 // AHORA: Uso del correlativo real
-const correlative = quotationDetail?.correlative || `COT-${Math.random()}`
+const correlative = quotationDetail?.correlative || `COT-${Math.random()}`;
 ```
 
 ### **Corrección 2**: Mapeo Correcto del PackingList
+
 ```typescript
 // ANTES: Campos incorrectos
-packingList.nroBoxes // ❌ No existía
+packingList.nroBoxes; // ❌ No existía
 
 // AHORA: Mapeo correcto desde la interfaz
-nroBoxes: product.packingList?.boxes || product.number_of_boxes
-pesoKg: product.packingList?.weightKg
-pesoTn: product.packingList?.weightTon
+nroBoxes: product.packingList?.boxes || product.number_of_boxes;
+pesoKg: product.packingList?.weightKg;
+pesoTn: product.packingList?.weightTon;
 ```
 
 ### **Corrección 3**: IDs de Productos y Variantes
+
 ```typescript
 // ANTES: Solo product.id
-const productId = product.id
+const productId = product.id;
 
 // AHORA: Fallback mejorado
-const productId = product.productId || product.id
-const variantId = variant.variantId || variant.id
+const productId = product.productId || product.id;
+const variantId = variant.variantId || variant.id;
 ```
 
 ---
 
 ## 🎯 Casos de Uso por Método
 
-| Método | Caso de Uso | Estructura Retornada | Tamaño Aprox. |
-|--------|-------------|---------------------|---------------|
-| `buildForPendingService()` | Vista administrativa/pendiente | `QuotationResponseBaseDto` | ~0.9 KB |
-| `buildForCompleteService()` | Servicios express/marítimo básicos | `QuotationResponseBaseDto` | ~3.1 KB |
-| `buildForCompleteServiceNew()` | Servicios con cálculos fiscales completos | `QuotationResponseDTO` | ~4.2 KB |
+| Método                         | Caso de Uso                               | Estructura Retornada       | Tamaño Aprox. |
+| ------------------------------ | ----------------------------------------- | -------------------------- | ------------- |
+| `buildForPendingService()`     | Vista administrativa/pendiente            | `QuotationResponseBaseDto` | ~0.9 KB       |
+| `buildForCompleteService()`    | Servicios express/marítimo básicos        | `QuotationResponseBaseDto` | ~3.1 KB       |
+| `buildForCompleteServiceNew()` | Servicios con cálculos fiscales completos | `QuotationResponseDTO`     | ~4.2 KB       |
 
 ---
 
@@ -130,28 +140,19 @@ const variantId = variant.variantId || variant.id
 
 ```json
 {
-  "quotationId": "4a77-8074-94a77-8074-94a77-8074",
-  "serviceType": "PENDING",
-  "quotationInfo": {
-    "quotationId": "4a77-8074-94a77-8074-94a77-8074",
-    "correlative": "COT-001-2024",
-    "date": "22/09/2025 14:30:00",
-    "advisorId": "75500ef2-e35c-4a77-8074-9104c9d971cb",
-    "serviceLogistic": "Pendiente",
-    "incoterm": "DDP",
-    "cargoType": "mixto",
-    "courier": "ups"
-  },
-  "responseData": {
-    "type": "PENDING",
-    "basicInfo": {
+  "quotationId": "4a77-8074-94a77-8074-94a77-8074", // Id de la cotizacion asociada
+  "response_date": "22/09/2025 14:30:00",   // Se guarda en el entity de quotation-response.entity.ts , en el campo de response_date
+  "advisorId": "75500ef2-e35c-4a77-8074-9104c9d971cb" , //Se guarda en el entity de quotation-response.entity.ts, y hace referencia al ID de la persona que responde la cotizacion
+  "serviceType": "PENDING", // Se guarda en el entity de quotation-response.entity.ts ,en el campo de service_type
+  "responseData": {   
+    "resumenInfo": { // Se guarda en el entity de quotation-response.entity.ts ,en el campo jsonb de resumen_info
       "totalCBM": 2.5,
       "totalWeight": 150.0,
       "totalPrice": 1200.0,
       "totalExpress": 180.0,
       "totalQuantity": 25
     },
-    "generalInformation": {
+    "generalInformation": {  // Se guarda en el entity de quotation-response.entity.ts ,en el campo jsonb de general_information
       "serviceLogistic": "Pendiente",
       "incoterm": "DDP",
       "cargoType": "mixto",
@@ -160,36 +161,28 @@ const variantId = variant.variantId || variant.id
   },
   "products": [
     {
-      "productId": "PROD-001",
-      "name": "Producto Ejemplo A",
-      "isQuoted": true,
-      "adminComment": "Verificar disponibilidad en almacén",
-      "ghostUrl": "https://mercadolibre.com/producto",
-      "pricing": {
-        "totalPrice": 800.0,
-        "totalWeight": 100.0,
-        "totalCBM": 1.5,
-        "totalQuantity": 15,
-        "totalExpress": 120.0
-      },
-      "packingList": {
+      "productId": "PROD-001",  //Id producto de products-quotation.entity.ts 
+      "isQuoted": true, // Se guarda en el entity de quotation-response-products.entity.ts ,en el campo jsonb de se_cotiza_producto
+      "adminComment": "Verificar disponibilidad en almacén", // Se guarda en el entity de quotation-response-products.entity.ts ,en el campo de admin_comment
+      "ghostUrl": "https://mercadolibre.com/producto",  // Se guarda en el entity de quotation-response-products.entity.ts ,en el campo ghost_url
+      "packingList": { // Se guarda en el entity de quotation-response-products.entity.ts ,en el campo jsonb de packing_list
         "nroBoxes": 10,
         "cbm": 1.5,
         "pesoKg": 100,
         "pesoTn": 0.1
       },
-      "cargoHandling": {
+      "cargoHandling": { // Se guarda en el entity de quotation-response-products.entity.ts ,en el campo jsonb de cargo_handling
         "fragileProduct": true,
         "stackProduct": false
       },
       "variants": [
         {
-          "variantId": "VAR-001-A",
-          "quantity": 10,
-          "isQuoted": true,
-          "pendingPricing": {
-            "unitPrice": 50.0,
-            "expressPrice": 8.0
+          "variantId": "VAR-001-A",    //Id de la variante del producto de products-variant.entity.ts 
+          "quantity": 10,  // Se guarda en el entity de quotation-response-variants.entity.ts ,en el campo de quantity
+          "isQuoted": true,  // Se guarda en el entity de quotation-response-variants.entity.ts ,en el campo de se_cotiza_variante
+          "pendingPricing": {  
+            "unitPrice": 50.0,  // Se guarda en el entity de quotation-response-variants.entity.ts ,en el campo de precio_unitario
+            "expressPrice": 8.0 // Se guarda en el entity de quotation-response-variants.entity.ts ,en el campo de precio_express_unitario
           }
         }
       ]
@@ -207,18 +200,19 @@ const variantId = variant.variantId || variant.id
   "quotationInfo": {
     "quotationId": "5c-4a77-80745c-4a77-8074",
     "correlative": "COT-002-2024",
-    "date": "22/09/2025 15:45:00",
+    "response_date": "22/09/2025 15:45:00",
     "advisorId": "75500ef2-e35c-4a77-8074-9104c9d971cb"
   },
   "responseData": {
-    "type": "Consolidado Express",
-    "basicInfo": {
+    //Informacion Resumen
+    "resumenInfo": {
       "totalCBM": 2.5,
       "totalWeight": 150.0,
       "totalPrice": 1200.0,
       "totalExpress": 180.0,
       "totalQuantity": 25
     },
+    //Informacion general
     "generalInformation": {
       "serviceLogistic": "Consolidado Express",
       "incoterm": "DDP",
@@ -359,8 +353,14 @@ const variantId = variant.variantId || variant.id
 
 ```typescript
 // dto/quotation-response.dto.ts
-import { IsString, IsNumber, IsBoolean, IsOptional, ValidateNested } from 'class-validator';
-import { Type } from 'class-transformer';
+import {
+  IsString,
+  IsNumber,
+  IsBoolean,
+  IsOptional,
+  ValidateNested,
+} from "class-validator";
+import { Type } from "class-transformer";
 
 export class QuotationInfoDto {
   @IsString()
@@ -475,29 +475,33 @@ export class QuoteSummaryDto {
 
 ```typescript
 // quotation-response.controller.ts
-@Controller('quotation-response')
+@Controller("quotation-response")
 export class QuotationResponseController {
-
   @Post()
   async createQuotationResponse(
     @Body() createDto: QuotationResponseBaseDto | QuotationResponseDTO
   ) {
     // Determinar el tipo de DTO basado en la estructura
-    const isExtendedDto = 'importCosts' in createDto.responseData;
+    const isExtendedDto = "importCosts" in createDto.responseData;
 
     if (isExtendedDto) {
       // Procesar DTO extendido (buildForCompleteServiceNew)
-      return this.processExtendedQuotationResponse(createDto as QuotationResponseDTO);
+      return this.processExtendedQuotationResponse(
+        createDto as QuotationResponseDTO
+      );
     } else {
       // Procesar DTO base (buildForPendingService o buildForCompleteService)
-      return this.processBaseQuotationResponse(createDto as QuotationResponseBaseDto);
+      return this.processBaseQuotationResponse(
+        createDto as QuotationResponseBaseDto
+      );
     }
   }
 
   private async processExtendedQuotationResponse(dto: QuotationResponseDTO) {
     // Lógica específica para DTO extendido
     // Acceso a: taxPercentage, importCosts, quoteSummary
-    const { taxPercentage, importCosts, quoteSummary } = dto.responseData.calculations;
+    const { taxPercentage, importCosts, quoteSummary } =
+      dto.responseData.calculations;
 
     // Procesar descuento de impuestos
     const taxDiscount = importCosts.expenseFields.addvaloremigvipm;
@@ -513,7 +517,7 @@ export class QuotationResponseController {
 
   private async processBaseQuotationResponse(dto: QuotationResponseBaseDto) {
     // Lógica para DTO base
-    if (dto.serviceType === 'PENDING') {
+    if (dto.serviceType === "PENDING") {
       // Procesar servicio pendiente
       this.processPendingService(dto);
     } else {
@@ -526,7 +530,7 @@ export class QuotationResponseController {
 
   private processPendingService(dto: QuotationResponseBaseDto) {
     // Acceso a campos específicos de servicios pendientes
-    dto.products.forEach(product => {
+    dto.products.forEach((product) => {
       if (product.packingList) {
         // Procesar información de empaque
         console.log(`Cajas: ${product.packingList.nroBoxes}`);
@@ -547,8 +551,9 @@ export class QuotationResponseController {
 // quotation-response.service.ts
 @Injectable()
 export class QuotationResponseService {
-
-  async saveQuotationResponse(dto: QuotationResponseBaseDto | QuotationResponseDTO) {
+  async saveQuotationResponse(
+    dto: QuotationResponseBaseDto | QuotationResponseDTO
+  ) {
     // Determinar el tipo y guardar según corresponda
     const isExtended = this.isExtendedDto(dto);
 
@@ -560,18 +565,17 @@ export class QuotationResponseService {
   }
 
   private isExtendedDto(dto: any): boolean {
-    return dto.responseData &&
-           dto.responseData.calculations &&
-           'taxPercentage' in dto.responseData.calculations;
+    return (
+      dto.responseData &&
+      dto.responseData.calculations &&
+      "taxPercentage" in dto.responseData.calculations
+    );
   }
 
   private async saveExtendedResponse(dto: QuotationResponseDTO) {
     // Extraer información específica del DTO extendido
-    const {
-      taxPercentage,
-      importCosts,
-      quoteSummary
-    } = dto.responseData.calculations;
+    const { taxPercentage, importCosts, quoteSummary } =
+      dto.responseData.calculations;
 
     // Guardar con información fiscal detallada
     return this.quotationRepository.save({
@@ -602,12 +606,14 @@ export class QuotationResponseService {
 ## ⚡ Ventajas de la Nueva Implementación
 
 ### **Para Servicios Pendientes:**
+
 - ✅ **Reducción del 70%** en tamaño de payload
 - ✅ Inclusión de `packingList` y `cargoHandling`
 - ✅ Campo `generalInformation` para configuración básica
 - ✅ Manejo optimizado de estados de cotización
 
 ### **Para Servicios Completos Extendidos:**
+
 - ✅ **Separación clara** de porcentajes de impuestos
 - ✅ **Campo `addvaloremigvipm`** con descuento fiscal
 - ✅ **Resumen comercial** completo (`quoteSummary`)
@@ -615,6 +621,7 @@ export class QuotationResponseService {
 - ✅ Soporte para transporte local China/Cliente
 
 ### **Para el Backend:**
+
 - ✅ **Validación específica** por tipo de servicio
 - ✅ **Procesamiento optimizado** según estructura
 - ✅ **Mantiene compatibilidad** con estructura anterior
@@ -625,16 +632,19 @@ export class QuotationResponseService {
 ## 🚀 Pasos de Migración Recomendados
 
 ### Fase 1: Preparación (Semana 1)
+
 1. ✅ Crear DTOs de validación en NestJS
 2. ✅ Implementar lógica de detección de tipo de DTO
 3. ✅ Preparar controladores para ambas estructuras
 
 ### Fase 2: Implementación (Semana 2)
+
 1. ✅ Desplegar endpoint que soporte ambas estructuras
 2. ✅ Testear con datos de ejemplo
 3. ✅ Validar procesamiento de campos nuevos
 
 ### Fase 3: Optimización (Semana 3)
+
 1. ✅ Optimizar consultas según tipo de servicio
 2. ✅ Implementar validaciones específicas
 3. ✅ Documentar API endpoints
@@ -644,6 +654,7 @@ export class QuotationResponseService {
 ## 📞 Contacto y Soporte
 
 **Equipo Frontend ABKImports**
+
 - **Slack:** #frontend-team
 - **Email:** frontend@abkimports.com
 

@@ -1,15 +1,11 @@
 const objeto = {
-  quotationId: "5356e493-7847-492c-a56e-79e0b7a15e97",
-  serviceType: "MARITIME",
-  quotationInfo: {
-    quotationId: "5356e493-7847-492c-a56e-79e0b7a15e97",
-    correlative: "COT-00003-2025",
-    date: "21/09/2025 22:50:43",
-    advisorId: "75500ef2-e35c-4a77-8074-9104c9d971cb",
-  },
+  quotationId: "5356e493-7847-492c-a56e-79e0b7a15e97", // Id de la cotizacion asociada
+  serviceType: "MARITIME", // Se guarda en el entity de quotation-response.entity.ts ,en el campo de service_type
+  response_date: "21/09/2025 22:50:43", // Se guarda en el entity de quotation-response.entity.ts , en el campo de response_date
+  advisorId: "75500ef2-e35c-4a77-8074-9104c9d971cb", //Se guarda en el entity de quotation-response.entity.ts, y hace referencia al ID de la persona que responde la cotizacion
   responseData: {
-    type: "Consolidado Grupal Maritimo",
-    basicInfo: {
+    type: "Consolidado Grupal Maritimo",  // Se guarda en el entity de quotation-response.entity.ts , en el campo de type
+    resumenInfo: { // Se guarda en el entity de quotation-response.entity.ts ,en el campo jsonb de resumen_info
       totalCBM: 0,
       totalWeight: 0,
       totalPrice: 0,
@@ -17,7 +13,7 @@ const objeto = {
       totalQuantity: 0,
     },
     //Información general
-    generalInformation: {
+    generalInformation: {   // Se guarda en el entity de quotation-response.entity.ts ,en el campo jsonb de general_information
       serviceLogistic: "Consolidado Grupal Maritimo",
       incoterm: "DDP",
       cargoType: "mixto",
@@ -25,7 +21,7 @@ const objeto = {
     },
 
     //Configuración Maritima
-    maritimeConfig: {
+    maritimeConfig: {  // Se guarda en el entity de quotation-response.entity.ts ,en el campo jsonb de maritime_config
       regime: "",
       originCountry: "",
       destinationCountry: "",
@@ -40,7 +36,7 @@ const objeto = {
 
     calculations: {
       //Valores Dinamicos
-      dynamicValues: {
+      dynamicValues: { // Se guarda en el entity de quotation-response.entity.ts ,en el campo jsonb de dynamic_values
         comercialValue: 0,
         flete: 390,
         cajas: 1,
@@ -65,14 +61,14 @@ const objeto = {
         cif: 0,
       },
       //Porcentaje de Impuestos
-      taxPercentage: {
+      taxPercentage: { // Se guarda en el entity de quotation-response.entity.ts ,en el campo jsonb de tax_percentage
         adValoremRate: 4,
         igvRate: 16,
         ipmRate: 2,
         percepcion: 5,
       },
       //Exoneracion de conceptos
-      exemptions: {
+      exemptions: { // Se guarda en el entity de quotation-response.entity.ts ,en el campo jsonb de exemptions
         servicioConsolidadoAereo: false,
         servicioConsolidadoMaritimo: false,
         separacionCarga: false,
@@ -86,8 +82,7 @@ const objeto = {
       },
     },
 
-    //Servicios de Carga Consolidada Aérea
-    serviceCalculations: {
+    serviceCalculations: { // Se guarda en el entity de quotation-response.entity.ts ,en el campo jsonb de service_calculations
       serviceFields: {
         servicioConsolidado: 32,
         separacionCarga: 0,
@@ -103,16 +98,16 @@ const objeto = {
     },
 
     //Obligaciones Fiscales
-    fiscalObligations: {
+    fiscalObligations: {  // Se guarda en el entity de quotation-response.entity.ts ,en el campo jsonb de fiscal_obligations
       adValorem: 11592.16,
-      igv: 48223.385599999994,
-      ipm: 6027.923199999999,
+      igv: 48223.38,
+      ipm: 6027.92,
       antidumping: 0,
-      totalTaxes: 65843.4688,
+      totalTaxes: 65843.46,
     },
 
     //Gastos de importacion
-    importCosts: {
+    importCosts: { // Se guarda en el entity de quotation-response.entity.ts ,en el campo jsonb de import_costs
       expenseFields: {
         servicioConsolidado: 50,
         separacionCarga: 10,
@@ -131,18 +126,17 @@ const objeto = {
     },
 
     // Resumen de cotizacion
-    quoteSummary: {
+    quoteSummary: { // Se guarda en el entity de quotation-response.entity.ts ,en el campo jsonb de quote_summary
       comercialValue: 30,
       totalExpenses: 37.76,
-      totalInvestment:67.76
+      totalInvestment: 67.76,
     },
   },
   products: [
     {
-      productId: "8afa06b2-4484-4c6f-8d76-7daf17db5739",
-      name: "<zxcasdasd",
-      isQuoted: true,
-      pricing: {
+      productId: "8afa06b2-4484-4c6f-8d76-7daf17db5739", //Id producto de products-quotation.entity.ts 
+      isQuoted: true, // Se guarda en el entity de quotation-response-products.entity.ts ,en el campo  de se_cotiza_producto
+      pricing: { // Se guarda en el entity de quotation-response.entity.ts ,en el campo jsonb de pricing
         unitCost: 0,
         importCosts: 0,
         totalCost: 0,
@@ -150,14 +144,122 @@ const objeto = {
       },
       variants: [
         {
-          variantId: "1bed3569-44ab-4cfb-988c-1b4cd75d7819",
-          quantity: 32,
-          isQuoted: true,
+          variantId: "1bed3569-44ab-4cfb-988c-1b4cd75d7819", //Id de la variante del producto de products-variant.entity.ts 
+          quantity: 32, // Se guarda en el entity de quotation-response-variants.entity.ts ,en el campo de quantity
+          isQuoted: true, // Se guarda en el entity de quotation-response-variants.entity.ts ,en el campo de se_cotiza_variante
           completePricing: {
-            unitCost: 0,
+            unitCost: 0,  // Se guarda en el entity de quotation-response-variants.entity.ts ,en el campo de precio_unitario
           },
         },
       ],
     },
   ],
+};
+
+const prueba2 = {
+  type: "Consolidado Grupal Express",
+  basicInfo: {
+    totalCBM: 0,
+    totalPrice: 0,
+    totalWeight: 0,
+    totalExpress: 0,
+    totalQuantity: 0,
+  },
+  importCosts: {
+    expenseFields: {
+      seguroProductos: 0,
+      separacionCarga: 0,
+      transporteLocal: 0,
+      addvaloremigvipm: { valor: 2281.71776, descuento: false },
+      inspeccionProducts: 876.5,
+      servicioConsolidado: 3222,
+      desadunajefleteseguro: 322,
+      transporteLocalChinaEnvio: 112,
+      transporteLocalClienteEnvio: 322,
+    },
+    totalExpenses: 11969.71776,
+  },
+  calculations: {
+    exemptions: {
+      totalDerechos: false,
+      separacionCarga: false,
+      transporteLocal: false,
+      gestionCertificado: false,
+      servicioInspeccion: false,
+      inspeccionProductos: false,
+      obligacionesFiscales: false,
+      descuentoGrupalExpress: false,
+      servicioConsolidadoAereo: false,
+      servicioConsolidadoMaritimo: false,
+    },
+    dynamicValues: {
+      kg: 32,
+      cif: 0,
+      fob: 4224,
+      ton: 0.032,
+      cajas: 21,
+      flete: 3232,
+      seguro: 2232,
+      tipoCambio: 3.7,
+      volumenCBM: 0,
+      desaduanaje: 322,
+      calculoFlete: 0,
+      comercialValue: 4224,
+      separacionCarga: 0,
+      transporteLocal: 0,
+      gestionCertificado: 0,
+      inspeccionProducto: 0,
+      antidumpingCantidad: 0,
+      antidumpingGobierno: 0,
+      inspeccionProductos: 876.5,
+      servicioConsolidado: 3222,
+      transporteLocalChinaEnvio: 112,
+      transporteLocalClienteEnvio: 322,
+    },
+    taxPercentage: { igvRate: 16, ipmRate: 2, percepcion: 5, adValoremRate: 4 },
+  },
+  quoteSummary: {
+    totalExpenses: 11969.71776,
+    comercialValue: 4224,
+    totalInvestment: 16193.71776,
+  },
+  maritimeConfig: {
+    regime: "",
+    customs: "",
+    naviera: "",
+    originPort: "",
+    transitTime: 0,
+    originCountry: "",
+    destinationPort: "",
+    proformaValidity: "5",
+    serviceTypeDetail: "",
+    destinationCountry: "",
+  },
+  fiscalObligations: {
+    igv: 1612.0832,
+    ipm: 201.5104,
+    adValorem: 387.52,
+    totalTaxes: 2201.1136,
+    antidumping: 0,
+  },
+  generalInformation: {
+    courier: "ups",
+    incoterm: "DDP",
+    cargoType: "mixto",
+    serviceLogistic: "Consolidado Grupal Express",
+  },
+  serviceCalculations: {
+    igvServices: 737.73,
+    serviceFields: {
+      seguroProductos: 0,
+      separacionCarga: 0,
+      transporteLocal: 0,
+      gestionCertificado: 0,
+      inspeccionProducto: 0,
+      inspeccionProductos: 876.5,
+      servicioConsolidado: 3222,
+    },
+    totalServices: 4836.23,
+    subtotalServices: 4098.5,
+  },
 };

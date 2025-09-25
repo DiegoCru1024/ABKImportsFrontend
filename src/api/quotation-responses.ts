@@ -1,4 +1,5 @@
 import { apiFetch } from "./apiFetch";
+import type { QuotationResponseBase } from "./interface/quotation-response/quotation-response-base";
 import type {
   QuotationGetResponsesForUsersDTO,
   QuotationResponseListDTO,
@@ -7,12 +8,12 @@ import type {
 
 /**
  * Crea una respuesta de una cotización (Admin Only)
- * @param {QuotationResponseDTO} data - Los datos a crear
+ * @param {QuotationResponseBase} data - Los datos a crear
  * @param {string} quotationId - El ID de la cotización
  * @returns {Promise<any>} - La respuesta de la cotización
  */
 export const createQuatitationResponse = async (
-  data: any,
+  data: QuotationResponseBase,
   quotationId: string
 ) => {
   try {

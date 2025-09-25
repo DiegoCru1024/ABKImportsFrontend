@@ -12,6 +12,7 @@ import type {
 } from "@/api/interface/quotationResponseInterfaces";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import type { QuotationResponseBase } from "@/api/interface/quotation-response/quotation-response-base";
 
 
 /**
@@ -26,7 +27,7 @@ export function useCreateQuatitationResponse() {
       data,
       quotationId,
     }: {
-      data: any;
+      data: QuotationResponseBase;
       quotationId: string;
     }) => {
       return createQuatitationResponse(data, quotationId);

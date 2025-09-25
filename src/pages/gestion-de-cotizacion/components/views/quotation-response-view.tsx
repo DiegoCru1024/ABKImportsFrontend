@@ -507,10 +507,11 @@ export default function QuotationResponseView({
 
 
       // Enviar la cotización usando el hook
-      await createQuotationResponseMutation.mutateAsync({
+      
+      /*await createQuotationResponseMutation.mutateAsync({
         data: dto,
         quotationId: selectedQuotationId,
-      });
+      });*/
 
       // Mostrar modal de éxito
       quotationForm.setIsSendingModalOpen(true);
@@ -521,7 +522,6 @@ export default function QuotationResponseView({
         }:`,
         error
       );
-      // TODO: Agregar notificación de error al usuario
     } finally {
       setIsSubmitting(false);
     }

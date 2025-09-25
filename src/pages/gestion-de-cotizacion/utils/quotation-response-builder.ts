@@ -1,3 +1,4 @@
+import type { QuotationResponseBase } from "@/api/interface/quotation-response/quotation-response-base";
 import type {
   QuotationResponseBaseDto,
   PendingServiceData,
@@ -6,7 +7,6 @@ import type {
   QuotationInfoDto,
   PendingBuildData,
   CompleteBuildData,
-  ServiceType,
   PendingProductVariantDto,
   CompleteProductVariantDto,
   BasicInfoDto,
@@ -22,9 +22,10 @@ import type {
 } from "../types/quotation-response-dto";
 
 import type { QuotationResponseDTO } from "@/types/quotation-response-dto";
+import type { ServiceType } from "@/api/interface/quotation-response/enums/enum";
 
 export class QuotationResponseBuilder {
-  private baseDto: QuotationResponseBaseDto;
+  private baseDto: QuotationResponseBase;
 
   constructor(
     quotationId: string,
@@ -45,30 +46,11 @@ export class QuotationResponseBuilder {
     quotationDetail?: any
   ): QuotationInfoDto {
     const now = new Date();
-    const formattedDate = `${now.getDate().toString().padStart(2, "0")}/${(
-      now.getMonth() + 1
-    )
-      .toString()
-      .padStart(2, "0")}/${now.getFullYear()} ${now
-      .getHours()
-      .toString()
-      .padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}:${now
-      .getSeconds()
-      .toString()
-      .padStart(2, "0")}`;
-
-    // **CORRECCIÓN 1**: Usar el correlativo real de la cotización existente en lugar de generar uno aleatorio
-    const correlative =
-      quotationDetail?.correlative ||
-      `COT-${Math.random()
-        .toString(36)
-        .substr(2, 6)
-        .toUpperCase()}-${now.getFullYear()}`;
 
     return {
       quotationId,
-      correlative, // Mapear el correlativo correcto desde quotationDetail
-      date: formattedDate,
+
+      date: now,
       advisorId:
         quotationDetail?.advisorId || "75500ef2-e35c-4a77-8074-9104c9d971cb",
       serviceLogistic: "Pendiente",

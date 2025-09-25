@@ -218,4 +218,4 @@ export interface CompleteBuildData {
   quotationDetail: any;
 }
 
-export type ServiceType = "PENDING" | "EXPRESS" | "MARITIME";
+//export type ServiceType = "PENDING" | "EXPRESS" | "MARITIME";

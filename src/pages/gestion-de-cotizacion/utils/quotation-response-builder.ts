@@ -35,7 +35,6 @@ export class QuotationResponseBuilder {
     this.baseDto = {
       quotationId,
       serviceType,
-      quotationInfo: this.buildQuotationInfo(quotationId, quotationDetail),
       responseData: null as any,
       products: [],
     };

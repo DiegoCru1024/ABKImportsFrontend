@@ -20,6 +20,7 @@ import { useQuotationResponseForm } from "../../hooks/use-quotation-response-for
 import { useQuotationCalculations } from "../../hooks/use-quotation-calculations";
 import type { DetailsResponseProps } from "../utils/interface";
 import { QuotationResponseBuilder } from "../../utils/quotation-response-builder";
+import { QuotationResponseDirector } from "../../utils/quotation-response-director";
 import type {
   PendingBuildData,
   CompleteBuildData,
@@ -394,53 +395,54 @@ export default function QuotationResponseView({
     );
   }, [productsAggregatedData, quotationForm.productQuotationState]);
 
-  // Función para construir el DTO de servicio pendiente con configuración actualizada
+  // Función para construir el DTO de servicio pendiente usando Director Pattern
   const buildPendingPayload = useCallback(() => {
-    // **CORRECCIÓN 1 & 2**: Pasar quotationDetail al builder para mapear correlativo correcto
-    const builder = new QuotationResponseBuilder(
-      selectedQuotationId,
-      "PENDING",
-      quotationDetail // Pasar quotationDetail para acceder al correlativo real
-    );
-
-    // Preparar datos de productos con información completa
-    const pendingData = {
-      products: pendingProducts.map((product) => ({
-        ...product,
-        // **CORRECCIÓN 2**: Asegurar mapeo correcto del packingList con campos actualizados
-        packingList: product.packingList || {
-          boxes: product.number_of_boxes || 0,
-          cbm: parseFloat(product.volume) || 0,
-          weightKg: parseFloat(product.weight) || 0,
-          weightTon: (parseFloat(product.weight) || 0) / 1000,
-        },
-        cargoHandling: product.cargoHandling || {
-          fragileProduct: false,
-          stackProduct: false,
-        },
-        ghostUrl: product.ghostUrl || product.url || "",
-        adminComment: product.adminComment || "",
-      })),
-      aggregatedTotals: pendingViewTotals,
-      quotationStates: {
-        products: quotationForm.productQuotationState,
-        variants: quotationForm.variantQuotationState,
+    // Preparar productos en el formato esperado por el Director
+    const directorProducts = pendingProducts.map((product) => ({
+      productId: product.id,
+      isQuoted: quotationForm.productQuotationState[product.id] !== false,
+      adminComment: product.adminComment || "",
+      ghostUrl: product.ghostUrl || product.url || "",
+      packingList: product.packingList || {
+        boxes: product.number_of_boxes || 0,
+        cbm: parseFloat(product.volume) || 0,
+        weightKg: parseFloat(product.weight) || 0,
+        weightTon: (parseFloat(product.weight) || 0) / 1000,
       },
-      // Incluir datos de configuración
-      configuration: {
+      cargoHandling: product.cargoHandling || {
+        fragileProduct: false,
+        stackProduct: false,
+      },
+      variants: (product.variants || []).map((variant: any) => ({
+        variantId: variant.id,
+        quantity: variant.quantity || 1,
+        isQuoted: quotationForm.variantQuotationState[product.id]?.[variant.id] !== false,
+        unitPrice: variant.price || 0,
+        expressPrice: variant.priceExpress || variant.express || 0,
+      })),
+    }));
+
+    // Usar Director Pattern para construir la respuesta
+    return QuotationResponseDirector.buildPendingService({
+      quotationId: selectedQuotationId,
+      advisorId: quotationDetail?.advisorId || "75500ef2-e35c-4a77-8074-9104c9d971cb",
+      logisticConfig: {
         serviceLogistic: quotationForm.selectedServiceLogistic,
         incoterm: quotationForm.selectedIncoterm,
         cargoType: quotationForm.selectedTypeLoad,
         courier: quotationForm.selectedCourier,
       },
-      // Pasar quotationDetail para acceso al correlativo y otros datos
+      products: directorProducts,
+      aggregatedTotals: pendingViewTotals,
+      quotationStates: {
+        products: quotationForm.productQuotationState,
+        variants: quotationForm.variantQuotationState,
+      },
       quotationDetail,
-    };
-
-    return builder.buildForPendingService(pendingData);
+    });
   }, [
     selectedQuotationId,
-    quotationDetail, // Incluir quotationDetail en dependencias
+    quotationDetail,
     pendingProducts,
     pendingViewTotals,
     quotationForm.productQuotationState,
@@ -481,23 +483,176 @@ export default function QuotationResponseView({
     try {
       let dto;
 
+      // ✅ IMPLEMENTACIÓN CON DIRECTOR PATTERN
+      // Se utiliza QuotationResponseDirector para orquestar la construcción
+      // de las respuestas de cotización de manera más organizada y mantenible
+
       if (isPendingView) {
         // Usar la función optimizada para construir el payload pendiente
         dto = buildPendingPayload();
       } else {
-        // Construir DTO para servicios completos
-        const builder = new QuotationResponseBuilder(
-          selectedQuotationId,
-          quotationForm.isMaritimeService() ? "MARITIME" : "EXPRESS",
-          quotationDetail // También pasar quotationDetail para servicios completos
-        );
+        // Construir DTO para servicios completos usando Director Pattern
+        const isMaritimeService = quotationForm.isMaritimeService();
 
-        dto = builder.buildForCompleteServiceNew({
-          quotationForm,
-          calculations,
-          products: quotationForm.editableUnitCostProducts,
-          quotationDetail,
-        } as CompleteBuildData);
+        // Preparar productos en el formato esperado por el Director
+        const directorProducts = quotationForm.editableUnitCostProducts.map((product: any) => ({
+          productId: product.id,
+          isQuoted: product.seCotiza !== false,
+          unitCost: product.unitCost || 0,
+          importCosts: product.importCosts || 0,
+          totalCost: product.totalCost || 0,
+          equivalence: product.equivalence || 0,
+          variants: (product.variants || []).map((variant: any) => ({
+            variantId: variant.originalVariantId || variant.id,
+            quantity: variant.quantity || 1,
+            isQuoted: variant.seCotiza !== false,
+            unitCost: variant.unitCost || 0,
+          })),
+        }));
+
+        // Preparar configuraciones comunes
+        const logisticConfig = {
+          serviceLogistic: quotationForm.selectedServiceLogistic,
+          incoterm: quotationForm.selectedIncoterm,
+          cargoType: quotationForm.selectedTypeLoad,
+          courier: quotationForm.selectedCourier,
+        };
+
+        const calculationsData = {
+          dynamicValues: {
+            comercialValue: quotationForm.dynamicValues.comercialValue || 0,
+            flete: quotationForm.dynamicValues.flete || 0,
+            seguro: quotationForm.dynamicValues.seguro || 0,
+            tipoCambio: quotationForm.dynamicValues.tipoCambio || 3.7,
+            cif: quotationForm.cif || 0,
+            servicioConsolidado: quotationForm.dynamicValues.servicioConsolidado || 0,
+            separacionCarga: quotationForm.dynamicValues.separacionCarga || 0,
+            inspeccionProductos: quotationForm.dynamicValues.inspeccionProductos || 0,
+            desaduanaje: quotationForm.dynamicValues.desaduanaje || 0,
+            transporteLocalChinaEnvio: quotationForm.dynamicValues.transporteLocalChinaEnvio || 0,
+            transporteLocalClienteEnvio: quotationForm.dynamicValues.transporteLocalClienteEnvio || 0,
+            adValoremRate: quotationForm.dynamicValues.adValoremRate || 4,
+            igvRate: quotationForm.dynamicValues.igvRate || 18,
+            ipmRate: quotationForm.dynamicValues.ipmRate || 2,
+            antidumpingAmount: quotationForm.dynamicValues.antidumpingCantidad || 0,
+          },
+          taxPercentage: {
+            adValoremRate: quotationForm.dynamicValues.adValoremRate || 4,
+            igvRate: quotationForm.dynamicValues.igvRate || 18,
+            ipmRate: quotationForm.dynamicValues.ipmRate || 2,
+            percepcion: quotationForm.dynamicValues.percepcionRate || 5,
+          },
+          exemptions: {
+            obligacionesFiscales: quotationForm.exemptionState.obligacionesFiscales || false,
+            separacionCarga: quotationForm.exemptionState.separacionCarga || false,
+            inspeccionProductos: quotationForm.exemptionState.inspeccionProductos || false,
+            servicioConsolidadoAereo: quotationForm.exemptionState.servicioConsolidadoAereo || false,
+            servicioConsolidadoMaritimo: quotationForm.exemptionState.servicioConsolidadoMaritimo || false,
+            totalDerechos: quotationForm.exemptionState.totalDerechos || false,
+            descuentoGrupalExpress: quotationForm.exemptionState.descuentoGrupalExpress || false,
+          },
+        };
+
+        const serviceCalculationsData = {
+          serviceFields: {
+            servicioConsolidado: quotationForm.getServiceFields().servicioConsolidado || 0,
+            separacionCarga: quotationForm.getServiceFields().separacionCarga || 0,
+            seguroProductos: quotationForm.getServiceFields().seguroProductos || 0,
+            inspeccionProductos: quotationForm.getServiceFields().inspeccionProductos || 0,
+            gestionCertificado: quotationForm.getServiceFields().gestionCertificado || 0,
+            inspeccionProducto: quotationForm.getServiceFields().inspeccionProducto || 0,
+            transporteLocal: quotationForm.getServiceFields().transporteLocal || 0,
+          },
+          subtotalServices: 0, // Se calculará automáticamente
+          igvServices: 0, // Se calculará automáticamente
+          totalServices: 0, // Se calculará automáticamente
+        };
+
+        // Calcular subtotales
+        const subtotal = Object.values(serviceCalculationsData.serviceFields).reduce(
+          (sum, value) => sum + (value || 0),
+          0
+        );
+        serviceCalculationsData.subtotalServices = subtotal;
+        serviceCalculationsData.igvServices = subtotal * 0.18;
+        serviceCalculationsData.totalServices = subtotal * 1.18;
+
+        const importCostsData = {
+          expenseFields: {
+            servicioConsolidado: serviceCalculationsData.serviceFields.servicioConsolidado,
+            separacionCarga: serviceCalculationsData.serviceFields.separacionCarga,
+            seguroProductos: serviceCalculationsData.serviceFields.seguroProductos,
+            inspeccionProducts: serviceCalculationsData.serviceFields.inspeccionProductos,
+            addvaloremigvipm: {
+              descuento: calculationsData.exemptions.obligacionesFiscales,
+              valor: calculations.totalTaxes || 0,
+            },
+            desadunajefleteseguro: calculationsData.dynamicValues.desaduanaje,
+            transporteLocal: serviceCalculationsData.serviceFields.transporteLocal,
+            transporteLocalChinaEnvio: calculationsData.dynamicValues.transporteLocalChinaEnvio,
+            transporteLocalClienteEnvio: calculationsData.dynamicValues.transporteLocalClienteEnvio,
+          },
+          totalExpenses: calculations.finalTotal || 0,
+        };
+
+        const quoteSummaryData = {
+          comercialValue: calculationsData.dynamicValues.comercialValue,
+          totalExpenses: importCostsData.totalExpenses,
+          totalInvestment: calculationsData.dynamicValues.comercialValue + importCostsData.totalExpenses,
+        };
+
+        const taxRates = {
+          adValoremRate: calculationsData.taxPercentage.adValoremRate,
+          igvRate: calculationsData.taxPercentage.igvRate,
+          ipmRate: calculationsData.taxPercentage.ipmRate,
+          antidumpingAmount: calculationsData.dynamicValues.antidumpingAmount,
+        };
+
+        if (isMaritimeService) {
+          // Usar Director para servicio marítimo
+          const maritimeConfig = QuotationResponseDirector.createDefaultMaritimeConfig({
+            regime: quotationForm.selectedRegimen || "Importación Definitiva",
+            originCountry: quotationForm.selectedPaisOrigen || "China",
+            destinationCountry: quotationForm.selectedPaisDestino || "Perú",
+            customs: quotationForm.selectedAduana || "Callao",
+            originPort: quotationForm.selectedPuertoSalida || "Shanghai",
+            destinationPort: quotationForm.selectedPuertoDestino || "Callao",
+            serviceTypeDetail: quotationForm.selectedTipoServicio || "FCL",
+            transitTime: quotationForm.tiempoTransito || 25,
+            naviera: quotationForm.naviera || "COSCO",
+            proformaValidity: quotationForm.selectedProformaVigencia || "30 días",
+          });
+
+          dto = QuotationResponseDirector.buildCompleteMaritimeService({
+            quotationId: selectedQuotationId,
+            advisorId: quotationDetail?.advisorId || "75500ef2-e35c-4a77-8074-9104c9d971cb",
+            logisticConfig,
+            maritimeConfig,
+            products: directorProducts,
+            calculations: calculationsData,
+            serviceCalculations: serviceCalculationsData,
+            importCosts: importCostsData,
+            quoteSummary: quoteSummaryData,
+            cifValue: quotationForm.cif || 0,
+            taxRates,
+            quotationDetail,
+          });
+        } else {
+          // Usar Director para servicio express
+          dto = QuotationResponseDirector.buildCompleteExpressService({
+            quotationId: selectedQuotationId,
+            advisorId: quotationDetail?.advisorId || "75500ef2-e35c-4a77-8074-9104c9d971cb",
+            logisticConfig,
+            products: directorProducts,
+            calculations: calculationsData,
+            serviceCalculations: serviceCalculationsData,
+            importCosts: importCostsData,
+            quoteSummary: quoteSummaryData,
+            cifValue: quotationForm.cif || 0,
+            taxRates,
+            quotationDetail,
+          });
+        }
       }
 
       console.log(

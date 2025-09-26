@@ -1,3 +1,4 @@
+// UI-specific types - keep only what's needed for forms and UI
 export interface FilterOption {
   value: string;
   label: string;
@@ -48,98 +49,8 @@ export interface QuotationDetail {
   updatedAt: string;
 }
 
-export interface DynamicValues {
-  comercialValue: number;
-  flete: number;
-  cajas: number;
-  desaduanaje: number;
-  kg: number;
-  ton: number;
-  kv: number;
-  fob: number;
-  seguro: number;
-  tipoCambio: number;
-  nroBultos: number;
-  volumenCBM: number;
-  calculoFlete: number;
-  servicioConsolidado: number;
-  separacionCarga: number;
-  inspeccionProductos: number;
-  gestionCertificado: number;
-  inspeccionProducto: number;
-  inspeccionFabrica: number;
-  transporteLocal: number;
-  otrosServicios: number;
-  adValoremRate: number;
-  antidumpingGobierno: number;
-  antidumpingCantidad: number;
-  iscRate: number;
-  igvRate: number;
-  ipmRate: number;
-  percepcionRate: number;
-  transporteLocalChinaEnvio: number;
-  transporteLocalClienteEnvio: number;
-}
-
-export interface ExemptionState {
-  servicioConsolidadoAereo: boolean;
-  separacionCarga: boolean;
-  inspeccionProductos: boolean;
-  obligacionesFiscales: boolean;
-  desaduanajeFleteSaguro: boolean;
-  transporteLocalChina: boolean;
-  transporteLocalCliente: boolean;
-  servicioConsolidadoMaritimo: boolean;
-  gestionCertificado: boolean;
-  servicioInspeccion: boolean;
-  transporteLocal: boolean;
-  totalDerechos: boolean;
-}
-
-export interface QuotationResponseDTO {
-  quotationInfo: {
-    quotationId: string;
-    status: string;
-    correlative: string;
-    date: string;
-    serviceType: string;
-    cargoType: string;
-    courier: string;
-    incoterm: string;
-    isFirstPurchase: boolean;
-    regime?: string;
-    originCountry?: string;
-    destinationCountry?: string;
-    customs?: string;
-    originPort?: string;
-    destinationPort?: string;
-    serviceTypeDetail?: string;
-    transitTime?: number;
-    naviera?: string;
-    proformaValidity: string;
-    cbm_total: number;
-    peso_total: number;
-    id_asesor: string;
-  };
-  calculations: {
-    serviceCalculations: Record<string, any>;
-    exemptions: ExemptionState;
-    dynamicValues: DynamicValues & {
-      cif: number;
-      shouldExemptTaxes: boolean;
-    };
-  };
-  products: Array<{
-    productId: string;
-    name: string;
-    adminComment: string;
-    seCotizaProducto: boolean;
-    variants: Array<{
-      variantId: string;
-      quantity: number;
-      precio_unitario: number;
-      precio_express: number;
-      seCotizaVariante: boolean;
-    }>;
-  }>;
-}
+// NOTE: DynamicValues, ExemptionState, and QuotationResponseDTO interfaces
+// have been removed - use official API interfaces from:
+// @/api/interface/quotation-response/dto/complete/objects/dynamic-values
+// @/api/interface/quotation-response/dto/complete/objects/exemptions
+// @/api/interface/quotation-response/quotation-response-base

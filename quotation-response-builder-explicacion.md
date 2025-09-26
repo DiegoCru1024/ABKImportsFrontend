@@ -694,7 +694,7 @@ export class QuotationResponseDirector {
       }>;
     }>;
   }): QuotationResponseBase {
-    const builder = new PendingServiceBuilder(data.quotationId, data.advisorId);
+    const builder = new se-(data.quotationId, data.advisorId);
 
     // Configurar información logística
     builder.setLogisticConfig(data.logisticConfig);

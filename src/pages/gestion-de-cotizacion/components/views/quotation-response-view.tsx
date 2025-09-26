@@ -19,7 +19,6 @@ import { UnifiedConfigurationForm } from "../forms/unified-configuration-form";
 import { useQuotationResponseForm } from "../../hooks/use-quotation-response-form";
 import { useQuotationCalculations } from "../../hooks/use-quotation-calculations";
 import type { DetailsResponseProps } from "../utils/interface";
-import { QuotationResponseBuilder } from "../../utils/quotation-response-builder";
 import { QuotationResponseDirector } from "../../utils/quotation-response-director";
 import type {
   PendingBuildData,
@@ -425,7 +424,7 @@ export default function QuotationResponseView({
     // Usar Director Pattern para construir la respuesta
     return QuotationResponseDirector.buildPendingService({
       quotationId: selectedQuotationId,
-      advisorId: quotationDetail?.advisorId || "75500ef2-e35c-4a77-8074-9104c9d971cb",
+      advisorId:  "75500ef2-e35c-4a77-8074-9104c9d971cb",
       logisticConfig: {
         serviceLogistic: quotationForm.selectedServiceLogistic,
         incoterm: quotationForm.selectedIncoterm,
@@ -519,22 +518,30 @@ export default function QuotationResponseView({
         };
 
         const calculationsData = {
+          //? Valores dinamicos
           dynamicValues: {
             comercialValue: quotationForm.dynamicValues.comercialValue || 0,
             flete: quotationForm.dynamicValues.flete || 0,
+            cajas: quotationForm.dynamicValues.cajas || 0,
+            kg: quotationForm.dynamicValues.kg || 0,
+            ton: quotationForm.dynamicValues.ton  || 0,
+            fob:quotationForm.dynamicValues.fob ||0,
             seguro: quotationForm.dynamicValues.seguro || 0,
             tipoCambio: quotationForm.dynamicValues.tipoCambio || 3.7,
-            cif: quotationForm.cif || 0,
+            volumenCBM: quotationForm.dynamicValues.volumenCBM|| 0,
+            calculoFlete: quotationForm.dynamicValues.calculoFlete|| 0,
             servicioConsolidado: quotationForm.dynamicValues.servicioConsolidado || 0,
             separacionCarga: quotationForm.dynamicValues.separacionCarga || 0,
             inspeccionProductos: quotationForm.dynamicValues.inspeccionProductos || 0,
+            gestionCertificado: quotationForm.dynamicValues.gestionCertificado || 0,
+            inspeccionProducto:quotationForm.dynamicValues.inspeccionProductos || 0, //? Arreglar inspeccionProducto por inspeccionProductos
+            transporteLocal:quotationForm.dynamicValues.transporteLocal || 0,
             desaduanaje: quotationForm.dynamicValues.desaduanaje || 0,
+            antidumpingGobierno:quotationForm.dynamicValues.antidumpingGobierno|| 0,
+            antidumpingCantidad:quotationForm.dynamicValues.antidumpingCantidad|| 0,
             transporteLocalChinaEnvio: quotationForm.dynamicValues.transporteLocalChinaEnvio || 0,
-            transporteLocalClienteEnvio: quotationForm.dynamicValues.transporteLocalClienteEnvio || 0,
-            adValoremRate: quotationForm.dynamicValues.adValoremRate || 4,
-            igvRate: quotationForm.dynamicValues.igvRate || 18,
-            ipmRate: quotationForm.dynamicValues.ipmRate || 2,
-            antidumpingAmount: quotationForm.dynamicValues.antidumpingCantidad || 0,
+            transporteLocalClienteEnvio: quotationForm.dynamicValues.transporteLocalClienteEnvio || 0,            
+            cif: quotationForm.cif || 0,
           },
           taxPercentage: {
             adValoremRate: quotationForm.dynamicValues.adValoremRate || 4,
@@ -548,6 +555,9 @@ export default function QuotationResponseView({
             inspeccionProductos: quotationForm.exemptionState.inspeccionProductos || false,
             servicioConsolidadoAereo: quotationForm.exemptionState.servicioConsolidadoAereo || false,
             servicioConsolidadoMaritimo: quotationForm.exemptionState.servicioConsolidadoMaritimo || false,
+            gestionCertificado: quotationForm.exemptionState.gestionCertificado || false,
+            servicioInspeccion: quotationForm.exemptionState.servicioInspeccion || false,
+            transporteLocal: quotationForm.exemptionState.transporteLocal || false,
             totalDerechos: quotationForm.exemptionState.totalDerechos || false,
             descuentoGrupalExpress: quotationForm.exemptionState.descuentoGrupalExpress || false,
           },
@@ -605,7 +615,7 @@ export default function QuotationResponseView({
           adValoremRate: calculationsData.taxPercentage.adValoremRate,
           igvRate: calculationsData.taxPercentage.igvRate,
           ipmRate: calculationsData.taxPercentage.ipmRate,
-          antidumpingAmount: calculationsData.dynamicValues.antidumpingAmount,
+          antidumpingAmount: calculationsData.dynamicValues.antidumpingCantidad,
         };
 
         if (isMaritimeService) {
@@ -625,7 +635,7 @@ export default function QuotationResponseView({
 
           dto = QuotationResponseDirector.buildCompleteMaritimeService({
             quotationId: selectedQuotationId,
-            advisorId: quotationDetail?.advisorId || "75500ef2-e35c-4a77-8074-9104c9d971cb",
+            advisorId:  "75500ef2-e35c-4a77-8074-9104c9d971cb",
             logisticConfig,
             maritimeConfig,
             products: directorProducts,
@@ -641,7 +651,7 @@ export default function QuotationResponseView({
           // Usar Director para servicio express
           dto = QuotationResponseDirector.buildCompleteExpressService({
             quotationId: selectedQuotationId,
-            advisorId: quotationDetail?.advisorId || "75500ef2-e35c-4a77-8074-9104c9d971cb",
+            advisorId: "75500ef2-e35c-4a77-8074-9104c9d971cb",
             logisticConfig,
             products: directorProducts,
             calculations: calculationsData,

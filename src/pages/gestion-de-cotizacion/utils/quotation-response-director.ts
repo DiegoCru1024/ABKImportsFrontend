@@ -1,44 +1,23 @@
-import { QuotationResponseBuilder } from "./quotation-response-builder";
-import type { QuotationResponseDTO } from "@/types/quotation-response-dto";
+
+
+// Clean Code: Only import official API interfaces
 import type { ServiceType } from "@/api/interface/quotation-response/enums/enum";
-import type {
-  PendingBuildData,
-  CompleteBuildData,
-  QuotationResponseBaseDto
-} from "../types/quotation-response-dto";
+import type { QuotationResponseBase } from "@/api/interface/quotation-response/quotation-response-base";
+import type { GeneralInformationInterface } from "@/api/interface/quotation-response/dto/shared/general-information";
+import type { MaritimeConfigInterface } from "@/api/interface/quotation-response/dto/complete/objects/maritime-config";
+import type { PackingListInterface } from "@/api/interface/quotation-response/dto/pending/products/packing-list";
+import type { CargoHandlingInterface } from "@/api/interface/quotation-response/dto/pending/products/cargo-handling";
+import type { CalculationsInterface } from "@/api/interface/quotation-response/dto/complete/objects/calculations";
+import type { ServiceCalculationsInterface } from "@/api/interface/quotation-response/dto/complete/service-calculations";
+// FiscalObligationsInterface not directly used in director
+import type { ImportCostsInterface } from "@/api/interface/quotation-response/dto/complete/objects/import-costs";
+import type { QuoteSummaryInterface } from "@/api/interface/quotation-response/dto/complete/objects/quote-summary";
+import type { PendingBuildData, CompleteBuildData } from "../types/quotation-response-dto";
+import { QuotationResponseBuilder } from "./quotation-response-builder";
 
-export interface GeneralInformationInterface {
-  serviceLogistic: string;
-  incoterm: string;
-  cargoType: string;
-  courier: string;
-}
+// REMOVED: Use official API interfaces instead
 
-export interface MaritimeConfigInterface {
-  regime: string;
-  originCountry: string;
-  destinationCountry: string;
-  customs: string;
-  originPort: string;
-  destinationPort: string;
-  serviceTypeDetail: string;
-  transitTime: number;
-  naviera: string;
-  proformaValidity: string;
-}
-
-export interface PackingListInterface {
-  boxes: number;
-  cbm: number;
-  weightKg: number;
-  weightTon: number;
-}
-
-export interface CargoHandlingInterface {
-  fragileProduct: boolean;
-  stackProduct: boolean;
-}
-
+// Data transfer interfaces for Director Pattern
 export interface PendingProductData {
   productId: string;
   isQuoted: boolean;
@@ -70,87 +49,9 @@ export interface CompleteProductData {
   }>;
 }
 
-export interface CalculationsInterface {
-  dynamicValues: {
-    comercialValue: number;
-    flete: number;
-    seguro: number;
-    tipoCambio: number;
-    cif: number;
-    servicioConsolidado: number;
-    separacionCarga: number;
-    inspeccionProductos: number;
-    desaduanaje: number;
-    transporteLocalChinaEnvio: number;
-    transporteLocalClienteEnvio: number;
-    adValoremRate: number;
-    igvRate: number;
-    ipmRate: number;
-    antidumpingAmount?: number;
-  };
-  taxPercentage: {
-    adValoremRate: number;
-    igvRate: number;
-    ipmRate: number;
-    percepcion?: number;
-  };
-  exemptions: {
-    obligacionesFiscales: boolean;
-    separacionCarga: boolean;
-    inspeccionProductos: boolean;
-    servicioConsolidadoAereo?: boolean;
-    servicioConsolidadoMaritimo?: boolean;
-    totalDerechos?: boolean;
-    descuentoGrupalExpress?: boolean;
-  };
-}
+// REMOVED: Use official API CalculationsInterface instead
 
-export interface ServiceCalculationsInterface {
-  serviceFields: {
-    servicioConsolidado: number;
-    separacionCarga: number;
-    seguroProductos: number;
-    inspeccionProductos: number;
-    gestionCertificado: number;
-    inspeccionProducto: number;
-    transporteLocal: number;
-  };
-  subtotalServices: number;
-  igvServices: number;
-  totalServices: number;
-}
-
-export interface FiscalObligationsInterface {
-  adValorem: number;
-  igv: number;
-  ipm: number;
-  antidumping: number;
-  totalTaxes: number;
-}
-
-export interface ImportCostsInterface {
-  expenseFields: {
-    servicioConsolidado: number;
-    separacionCarga: number;
-    seguroProductos: number;
-    inspeccionProducts: number;
-    addvaloremigvipm: {
-      descuento: boolean;
-      valor: number;
-    };
-    desadunajefleteseguro: number;
-    transporteLocal: number;
-    transporteLocalChinaEnvio: number;
-    transporteLocalClienteEnvio: number;
-  };
-  totalExpenses: number;
-}
-
-export interface QuoteSummaryInterface {
-  comercialValue: number;
-  totalExpenses: number;
-  totalInvestment: number;
-}
+// REMOVED: Use official API interfaces instead
 
 /**
  * QuotationResponseDirector - Implementa el patrón Director para orquestar
@@ -181,8 +82,8 @@ export class QuotationResponseDirector {
       products: Record<string, boolean>;
       variants: Record<string, Record<string, boolean>>;
     };
-    quotationDetail?: any;
-  }): QuotationResponseBaseDto {
+    quotationDetail?: unknown;
+  }): QuotationResponseBase {
     // Crear el builder para servicios pendientes
     const builder = new QuotationResponseBuilder(
       data.quotationId,
@@ -198,12 +99,7 @@ export class QuotationResponseDirector {
         name: product.productId, // Se puede mejorar con más información
         adminComment: product.adminComment || "",
         ghostUrl: product.ghostUrl || "",
-        packingList: product.packingList ? {
-          boxes: product.packingList.boxes,
-          cbm: product.packingList.cbm,
-          weightKg: product.packingList.weightKg,
-          weightTon: product.packingList.weightTon,
-        } : undefined,
+        packingList: product.packingList,
         cargoHandling: product.cargoHandling,
         variants: product.variants.map(variant => ({
           id: variant.variantId,
@@ -254,8 +150,8 @@ export class QuotationResponseDirector {
       ipmRate: number;
       antidumpingAmount?: number;
     };
-    quotationDetail?: any;
-  }): QuotationResponseDTO {
+    quotationDetail?: unknown;
+  }): QuotationResponseBase {
     // Crear el builder para servicios marítimos
     const builder = new QuotationResponseBuilder(
       data.quotationId,
@@ -321,11 +217,11 @@ export class QuotationResponseDirector {
     };
 
     // Calcular totalTaxes automáticamente
-    completeBuildData.calculations.totalTaxes =
+    /*completeBuildData.calculations.totalTaxes =
       completeBuildData.calculations.adValoremAmount +
       completeBuildData.calculations.igv +
       completeBuildData.calculations.ipm +
-      completeBuildData.calculations.antidumping;
+      completeBuildData.calculations.antidumping;*/
 
     return builder.buildForCompleteServiceNew(completeBuildData);
   }
@@ -351,8 +247,8 @@ export class QuotationResponseDirector {
       ipmRate: number;
       antidumpingAmount?: number;
     };
-    quotationDetail?: any;
-  }): QuotationResponseDTO {
+    quotationDetail?: unknown;
+  }): QuotationResponseBase {
     // Crear el builder para servicios express
     const builder = new QuotationResponseBuilder(
       data.quotationId,
@@ -408,11 +304,11 @@ export class QuotationResponseDirector {
     };
 
     // Calcular totalTaxes automáticamente
-    completeBuildData.calculations.totalTaxes =
+    /*completeBuildData.calculations.totalTaxes =
       completeBuildData.calculations.adValoremAmount +
       completeBuildData.calculations.igv +
       completeBuildData.calculations.ipm +
-      completeBuildData.calculations.antidumping;
+      completeBuildData.calculations.antidumping;*/
 
     return builder.buildForCompleteServiceNew(completeBuildData);
   }
@@ -473,7 +369,7 @@ export class QuotationResponseDirector {
    */
   static validateBuildData(data: {
     quotationId?: string;
-    products?: any[];
+    products?: unknown[];
     logisticConfig?: GeneralInformationInterface;
   }): string[] {
     const errors: string[] = [];

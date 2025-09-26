@@ -181,7 +181,7 @@ const variantId = variant.variantId || variant.id;
           "quantity": 10,  // Se guarda en el entity de quotation-response-variants.entity.ts ,en el campo de quantity
           "isQuoted": true,  // Se guarda en el entity de quotation-response-variants.entity.ts ,en el campo de se_cotiza_variante
           "pendingPricing": {  
-            "unitPrice": 50.0,  // Se guarda en el entity de quotation-response-variants.entity.ts ,en el campo de precio_unitario
+            "unitPrice": 50.0,  / 
             "expressPrice": 8.0 // Se guarda en el entity de quotation-response-variants.entity.ts ,en el campo de precio_express_unitario
           }
         }
@@ -194,15 +194,11 @@ const variantId = variant.variantId || variant.id;
 ### 2. Servicio Completo Nuevo (buildForCompleteServiceNew)
 
 ```json
-{
-  "quotationId": "5c-4a77-80745c-4a77-8074",
-  "serviceType": "EXPRESS",
-  "quotationInfo": {
-    "quotationId": "5c-4a77-80745c-4a77-8074",
-    "correlative": "COT-002-2024",
-    "response_date": "22/09/2025 15:45:00",
-    "advisorId": "75500ef2-e35c-4a77-8074-9104c9d971cb"
-  },
+ {
+  "quotationId": "4a77-8074-94a77-8074-94a77-8074", // Id de la cotizacion asociada
+  "response_date": "22/09/2025 14:30:00",   // Se guarda en el entity de quotation-response.entity.ts , en el campo de response_date
+  "advisorId": "75500ef2-e35c-4a77-8074-9104c9d971cb" , //Se guarda en el entity de quotation-response.entity.ts, y hace referencia al ID de la persona que responde la cotizacion
+  "serviceType": "PENDING", // Se guarda en el entity de quotation-response.entity.ts ,en el campo de service_type
   "responseData": {
     //Informacion Resumen
     "resumenInfo": {

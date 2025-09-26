@@ -5,7 +5,7 @@ import type { FiscalObligationsInterface } from "./objects/fiscal-obligations";
 import type { ImportCostsInterface } from "./objects/import-costs";
 import type { MaritimeConfigInterface } from "./objects/maritime-config";
 import type { QuoteSummaryInterface } from "./objects/quote-summary";
-import type { ServiceCalculationsInterface } from "./objects/service-calculations";
+import type { ServiceCalculationsInterface } from "./service-calculations";
 
 
 export interface ResponseDataComplete {

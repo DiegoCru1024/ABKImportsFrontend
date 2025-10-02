@@ -18,7 +18,7 @@ export const createQuatitationResponse = async (
 ) => {
   try {
     const response = await apiFetch(
-      `/quotation-responses/quotation/${quotationId}/complete-response`,
+      `/quotation-responses/quotation/${quotationId}/complete-service`,
       {
         method: "POST",
         body: JSON.stringify(data),

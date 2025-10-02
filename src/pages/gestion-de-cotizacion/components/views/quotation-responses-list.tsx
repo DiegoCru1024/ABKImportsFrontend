@@ -83,23 +83,16 @@ export default function QuotationResponsesList({
     setSearchTerm(searchTerm);
   };
 
-  interface QuotationResponse {
-    id_quotation_response: string;
-    service_type: string;
-    cargo_type: string;
-    response_date: string;
-  }
-
   const filteredResponses =
     responses?.content?.filter(
-      (response: QuotationResponse) =>
+      (response) =>
         response.id_quotation_response
           ?.toString()
           .toLowerCase()
           .includes(searchTerm.toLowerCase()) ||
         response.response_date?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        response.service_type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        response.cargo_type?.toLowerCase().includes(searchTerm.toLowerCase())
+        response.serviceType?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        response.advisorName?.toLowerCase().includes(searchTerm.toLowerCase())
     ) || [];
 
   if (isLoading) {

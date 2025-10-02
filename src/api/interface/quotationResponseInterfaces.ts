@@ -205,9 +205,9 @@ export interface QuotationCreateUpdateResponseDTO {
 
 export interface contentQuotationResponseDTO {
   id_quotation_response: string;
-  service_type: string;
-  cargo_type: string;
   response_date: string;
+  advisorName: string;
+  serviceType: string;
 }
 
 //!Interfaz para listar las respuestas del administrador y sean vistas por el usuario

@@ -22,19 +22,19 @@ export function columnsListResponses({
       header: "ID de la Respuesta",
     },*/
     {
-      id: "service_type",
-      accessorKey: "service_type",
+      id: "serviceType",
+      accessorKey: "serviceType",
       header: "Tipo de Servicio",
       cell: ({ row }) => {
-        return <div className="uppercase">{row.original.service_type}</div>;
+        return <div className="uppercase">{row.original.serviceType}</div>;
       },
     },
     {
-      id: "cargo_type",
-      accessorKey: "cargo_type",
-      header: "Tipo de Carga",
+      id: "advisorName",
+      accessorKey: "advisorName",
+      header: "Nombre administrador",
       cell: ({ row }) => {
-        return <div className="uppercase">{row.original.cargo_type}</div>;
+        return <div className="uppercase">{row.original.advisorName}</div>;
       },
     },
     {

@@ -93,7 +93,7 @@ export const listQuatitationResponses = async (
 
   try {
     const response: QuotationResponseListDTO = await apiFetch(
-      `/quotation-responses/list/${quotationId}?${queryParams.toString()}`,
+      `/quotation-responses/list-responses/${quotationId}?${queryParams.toString()}`,
       {
         method: "GET",
       }

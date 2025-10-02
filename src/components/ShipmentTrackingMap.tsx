@@ -315,7 +315,7 @@ export default function ShipmentTrackingMap({ className, shipmentData }: Shipmen
         </div>
       </div>
 
-      <div className="h-96 relative">
+      <div className="h-96 relative z-0">
         <MapContainer
           center={center}
           zoom={12}
@@ -325,6 +325,7 @@ export default function ShipmentTrackingMap({ className, shipmentData }: Shipmen
           doubleClickZoom={true}
           dragging={true}
           touchZoom={true}
+          className="z-0"
         >
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

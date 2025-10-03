@@ -172,3 +172,4 @@ export const getDetailsResponse = async (quotationId: string, quotationResponseI
     throw error;
   }
 }
+

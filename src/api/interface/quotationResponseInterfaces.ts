@@ -1,3 +1,10 @@
+import type { CompleteProductInterface } from "./quotation-response/dto/complete/products/complete-products";
+import type { ResponseDataComplete } from "./quotation-response/dto/complete/response-data-complete";
+import type { PendingProductInterface } from "./quotation-response/dto/pending/products/pending-products";
+import type { ResponseDataPending } from "./quotation-response/dto/pending/response-data-pending";
+import type { ServiceType } from "./quotation-response/enums/enum";
+import type { UserDTO } from "./user";
+
 export interface UserInfo {
   id: string;
   name: string;
@@ -210,35 +217,22 @@ export interface contentQuotationResponseDTO {
   serviceType: string;
 }
 
+
+export interface ResponseInformationDTO{
+  responseId: string | null;
+  response_date: Date;
+  advisorId: string;
+  serviceType: ServiceType;
+  responseData: ResponseDataPending | ResponseDataComplete;
+  products: PendingProductInterface[]|CompleteProductInterface[];
+}
+
 //!Interfaz para listar las respuestas del administrador y sean vistas por el usuario
 export interface QuotationGetResponsesForUsersDTO {
-  quotationInfo: {
-    quotationId: string;
-    correlative: string;
-    date: string;
-    advisorId: string;
-    serviceLogistic: string;
-    incoterm: string;
-    cargoType: string;
-    courier: string;
-  };
-  user: UserInfo;
-  responseData: {
-    serviceType: string;
-    type: string;
-    serviceLogistic: string;
-    incoterm: string;
-    cargoType: string;
-    courier: string;
-    basicInfo: {
-      totalCBM: string;
-      totalWeight: string;
-      totalPrice: number;
-      totalExpress: number;
-      totalQuantity: number;
-    };
-    products: ProductsQuotationResponseDTO[];
-  }[];
+  quotationId: string;
+  correlative: string;
+  user: UserDTO;
+  responses: ResponseInformationDTO[];
 }
 
 //!Interfaz para listar las respuestas de una cotización

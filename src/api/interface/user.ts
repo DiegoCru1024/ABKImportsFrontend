@@ -32,4 +32,10 @@ export interface UserProfile {
   createdAt: string;
   updatedAt: string;
 }
-  
+
+
+export interface UserDTO{
+  id: string;
+  name: string;
+  email: string;
+}

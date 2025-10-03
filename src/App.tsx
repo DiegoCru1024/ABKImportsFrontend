@@ -24,7 +24,10 @@ import Tarifas from "./pages/Tarifas";
 import Educacion from "./pages/Educacion";
 import Herramientas from "./pages/Herramientas";
 
-import { QuotationResponseView } from "./pages/gestion-de-cotizacion/components";
+import {
+  QuotationResponseView,
+  EditQuotationResponseView,
+} from "./pages/gestion-de-cotizacion/components";
 import RespuestasCotizacionView from "./pages/respuestas-cotizacion";
 
 function App() {
@@ -44,7 +47,10 @@ function App() {
           path="/dashboard/gestion-de-cotizacion/respuesta/:quotationId"
           element={<GestionDeCotizacionRespuestaRoute />}
         />
-       
+        <Route
+          path="/dashboard/gestion-de-cotizacion/respuesta/:quotationId/:responseId"
+          element={<EditQuotationResponseView />}
+        />
         <Route
           path="/dashboard/gestion-de-cotizacion/respuestas/:quotationId/responder"
           element={<GestionDeCotizacionResponderRoute />}

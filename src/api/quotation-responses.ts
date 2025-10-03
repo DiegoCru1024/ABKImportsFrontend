@@ -52,13 +52,13 @@ export const deleteQuatitationResponse = async (id: string) => {
  * Actualiza el estado de una respuesta de una cotización por su ID (Admin Only)
  * @param {string} quotationId - El ID de la cotización
  * @param {string} quotationResponseId - El ID de la respuesta
- * @param {QuotationResponseDTO} data - Los datos a actualizar
+ * @param {QuotationResponseBase} data - Los datos a actualizar
  * @returns {Promise<any>} - La respuesta de la cotización
  */
 export const patchQuatitationResponse = async (
   quotationId: string,
   quotationResponseId: string,
-  data: QuotationCreateUpdateResponseDTO
+  data: QuotationResponseBase
 ) => {
   try {
     const response = await apiFetch(
@@ -126,6 +126,11 @@ export const getResponsesForUsers = async (quotationId: string) => {
 };
 
 
+
+
+
+
+
 /**
  * Obtiene las respuestas de una cotización por su ID (Admin Only)
  * @param {string} quotationId - El ID de la cotización
@@ -154,14 +159,14 @@ export const getListResponsesByQuotationId = async (quotationId: string, page: n
 
 /**
  * Obtiene los detalles de una respuesta de una cotización por su ID (Admin Only)
- * @param {string} quotationId - El ID de la cotización
- * @param {string} quotationResponseId - El ID de la respuesta
- * @returns {Promise<QuotationCreateUpdateResponseDTO>} - Los detalles de la respuesta
+ * @param {string} quotationResponseId - El ID de la cotización
+ * @param {string} serviceType - El ID de la respuesta
+ * @returns {Promise<QuotationResponseBase>} - Los detalles de la respuesta
  */
-export const getDetailsResponse = async (quotationId: string, quotationResponseId: string) => {
+export const getDetailsResponse = async (quotationResponseId: string, serviceType: string) => {
   try {
-    const response: QuotationCreateUpdateResponseDTO = await apiFetch<QuotationCreateUpdateResponseDTO>(
-      `/quotation-responses/details/${quotationId}/${quotationResponseId}`,
+    const response: QuotationResponseBase = await apiFetch(
+      `/quotation-responses/details/${quotationResponseId}/${serviceType}`,
       {
         method: "GET",
       }

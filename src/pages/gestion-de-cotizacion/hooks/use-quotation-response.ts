@@ -3,11 +3,7 @@ import { useGetQuotationById } from "@/hooks/use-quation";
 import { useCreateQuatitationResponse } from "@/hooks/use-quatitation-response";
 import { obtenerUser } from "@/lib/functions";
 import { formatDate } from "@/lib/format-time";
-import type { 
-  DynamicValues, 
-  ExemptionState, 
-  QuotationResponseDTO 
-} from "../types/quotation-types";
+import type { DynamicValuesInterface } from "@/api/interface/quotation-response/dto/complete/objects/dynamic-values";
 
 interface UseQuotationResponseProps {
   selectedQuotationId: string;
@@ -48,7 +44,7 @@ export function useQuotationResponse({ selectedQuotationId }: UseQuotationRespon
   const [naviera, setNaviera] = useState<string>("");
 
   // Dynamic values state
-  const [dynamicValues, setDynamicValues] = useState<DynamicValues>({
+  const [dynamicValues, setDynamicValues] = useState<DynamicValuesInterface>({
     comercialValue: 0.0,
     flete: 0.0,
     cajas: 0.0,
@@ -158,7 +154,7 @@ export function useQuotationResponse({ selectedQuotationId }: UseQuotationRespon
     updateDynamicValue("ton", value / 1000);
   };
 
-  const handleExemptionChange = (field: keyof ExemptionState, checked: boolean) => {
+  const handleExemptionChange = (field: keyof ExemptionState  , checked: boolean) => {
     setExemptionState((prev) => ({
       ...prev,
       [field]: checked,

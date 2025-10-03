@@ -11,6 +11,7 @@ export { ExemptionControls } from "./forms/exemption-controls";
 
 // Main Views
 export { default as QuotationResponseView } from "./views/quotation-response-view";
+export { default as EditQuotationResponseView } from "./views/edit-quotation-response-view";
 export { default as QuotationResponsesList } from "./views/quotation-responses-list";
 
 // Table Components  

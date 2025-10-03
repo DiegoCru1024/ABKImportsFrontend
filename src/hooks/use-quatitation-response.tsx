@@ -160,14 +160,15 @@ export function useGetListResponsesByQuotationId(quotationId: string, page: numb
 
 /**
  * Hook para obtener los detalles de una respuesta de una cotización por su ID (Admin Only)
- * @param {string} quotationId - El ID de la cotización
  * @param {string} quotationResponseId - El ID de la respuesta
+ * @param {string} serviceType - El tipo de servicio de la respuesta
  * @returns {useQuery} - Los detalles de la respuesta
  */
 export function useGetDetailsResponse(quotationResponseId: string, serviceType: string) {
   return useQuery({
     queryKey: ["getDetailsResponse", quotationResponseId, serviceType],
     queryFn: () => getDetailsResponse(quotationResponseId, serviceType),
+    enabled: Boolean(quotationResponseId) && Boolean(serviceType),
   });
 }
 

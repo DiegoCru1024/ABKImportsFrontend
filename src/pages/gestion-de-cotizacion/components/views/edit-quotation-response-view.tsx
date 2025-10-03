@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { FileText, ArrowLeft, Loader2, Save } from "lucide-react";
 
 import { useGetQuotationById } from "@/hooks/use-quation";
@@ -7,6 +7,9 @@ import {
   useGetDetailsResponse,
   usePatchQuatitationResponse,
 } from "@/hooks/use-quatitation-response";
+
+import type { ResponseDataComplete } from "@/api/interface/quotation-response/dto/complete/response-data-complete";
+import type { ResponseDataPending } from "@/api/interface/quotation-response/dto/pending/response-data-pending";
 
 import { Button } from "@/components/ui/button";
 import { SectionHeader } from "@/components/ui/section-header";
@@ -49,12 +52,20 @@ import EditableUnitCostTable from "./tables/editable-unit-cost-table";
 import QuotationProductRow from "./tables/quotation-product-row";
 import { useCallback, useMemo } from "react";
 
+function isResponseDataComplete(
+  data: ResponseDataPending | ResponseDataComplete
+): data is ResponseDataComplete {
+  return "calculations" in data;
+}
+
 export default function EditQuotationResponseView() {
   const { quotationId, responseId } = useParams<{
     quotationId: string;
     responseId: string;
   }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const serviceType = (location.state as { serviceType?: string })?.serviceType || "PENDING";
 
   const {
     data: quotationDetail,
@@ -66,7 +77,7 @@ export default function EditQuotationResponseView() {
     data: responseDetails,
     isLoading: isLoadingResponse,
     isError: isErrorResponse,
-  } = useGetDetailsResponse(quotationId || "", responseId || "");
+  } = useGetDetailsResponse(responseId || "", serviceType);
 
   const patchQuotationResponseMutation = usePatchQuatitationResponse(
     quotationId || "",
@@ -90,18 +101,20 @@ export default function EditQuotationResponseView() {
       quotationForm.setSelectedTypeLoad(genInfo.cargoType);
       quotationForm.setSelectedCourier(genInfo.courier);
 
-      if (responseDetails.serviceType === "MARITIME" && resData.maritimeConfig) {
+      if (responseDetails.serviceType === "MARITIME" && isResponseDataComplete(resData)) {
         const maritime = resData.maritimeConfig;
-        quotationForm.setSelectedRegimen(maritime.regime);
-        quotationForm.setSelectedPaisOrigen(maritime.originCountry);
-        quotationForm.setSelectedPaisDestino(maritime.destinationCountry);
-        quotationForm.setSelectedAduana(maritime.customs);
-        quotationForm.setSelectedPuertoSalida(maritime.originPort);
-        quotationForm.setSelectedPuertoDestino(maritime.destinationPort);
-        quotationForm.setSelectedTipoServicio(maritime.serviceTypeDetail);
-        quotationForm.setTiempoTransito(maritime.transitTime);
-        quotationForm.setNaviera(maritime.naviera);
-        quotationForm.setSelectedProformaVigencia(maritime.proformaValidity);
+        if (maritime) {
+          quotationForm.setSelectedRegimen(maritime.regime);
+          quotationForm.setSelectedPaisOrigen(maritime.originCountry);
+          quotationForm.setSelectedPaisDestino(maritime.destinationCountry);
+          quotationForm.setSelectedAduana(maritime.customs);
+          quotationForm.setSelectedPuertoSalida(maritime.originPort);
+          quotationForm.setSelectedPuertoDestino(maritime.destinationPort);
+          quotationForm.setSelectedTipoServicio(maritime.serviceTypeDetail);
+          quotationForm.setTiempoTransito(maritime.transitTime);
+          quotationForm.setNaviera(maritime.naviera);
+          quotationForm.setSelectedProformaVigencia(maritime.proformaValidity);
+        }
       }
 
       if (responseDetails.serviceType === "PENDING") {
@@ -163,7 +176,7 @@ export default function EditQuotationResponseView() {
           });
         });
       } else {
-        if (resData.calculations) {
+        if (isResponseDataComplete(resData)) {
           const calc = resData.calculations;
           Object.entries(calc.dynamicValues).forEach(([key, value]) => {
             quotationForm.updateDynamicValue(

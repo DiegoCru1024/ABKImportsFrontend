@@ -48,9 +48,10 @@ export default function QuotationResponsesList({
     navigate(`/dashboard/gestion-de-cotizacion/respuesta/${selectedQuotationId}`);
   };
 
-  const handleEditResponse = (responseId: string) => {
+  const handleEditResponse = (responseId: string, serviceType: string) => {
     navigate(
-      `/dashboard/gestion-de-cotizacion/respuesta/${selectedQuotationId}/${responseId}`
+      `/dashboard/gestion-de-cotizacion/respuesta/${selectedQuotationId}/${responseId}`,
+      { state: { serviceType } }
     );
   };
 

@@ -4,7 +4,7 @@ import { Edit, Eye, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface ColumnsListResponsesProps {
-  onEditQuotation: (id: string) => void;
+  onEditQuotation: (id: string, serviceType: string) => void;
   onDelete: (id: string) => void;
 }
 
@@ -54,7 +54,7 @@ export function columnsListResponses({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => onEditQuotation(row.original.id_quotation_response)}
+            onClick={() => onEditQuotation(row.original.id_quotation_response, row.original.serviceType)}
             className="h-8 w-8 p-0 text-blue-500 hover:text-blue-700"
             title="Editar respuesta"
           >

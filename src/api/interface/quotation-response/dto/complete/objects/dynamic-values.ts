@@ -19,18 +19,6 @@ export interface DynamicValuesInterface {
 
   calculoFlete: number;
 
-  servicioConsolidado: number;
-
-  separacionCarga: number;
-
-  inspeccionProductos: number;
-
-  gestionCertificado: number;
-
-  inspeccionProducto: number;
-
-  transporteLocal: number;
-
   desaduanaje: number;
 
   antidumpingGobierno: number;

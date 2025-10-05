@@ -154,7 +154,7 @@ export function UnifiedConfigurationForm({
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Valores Dinámicos - Columna Izquierda */}
       <div>
-        <Accordion type="single" collapsible defaultValue="valores-dinamicos">
+        <Accordion type="single" collapsible>
           <AccordionItem value="valores-dinamicos" className="border-0">
             <Card className="bg-gradient-to-br from-emerald-50/40 to-green-50/30 shadow-lg border border-emerald-200/60 rounded-2xl overflow-hidden">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
@@ -172,237 +172,249 @@ export function UnifiedConfigurationForm({
                       </CardDescription>
                     </div>
                   </div>
-                </AccordionTrigger>
-                <Button
+                  <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setShowConfig(!showConfig)}
                   className="flex items-center gap-2 ml-4"
                 >
                   <Settings className="w-4 h-4" />
-                  Configurar
                 </Button>
+                </AccordionTrigger>
+               
               </CardHeader>
 
               <AccordionContent>
                 <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Columna Izquierda */}
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-slate-700">
-                    Valor Comercial
-                  </Label>
-                  <EditableNumericField
-                    value={dynamicValues.comercialValue}
-                    onChange={(value: number) =>
-                      onUpdateValue("comercialValue", value)
-                    }
-                    prefix="$"
-                    decimalPlaces={2}
-                  />
-                </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Columna Izquierda */}
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium text-slate-700">
+                          Valor Comercial
+                        </Label>
+                        <EditableNumericField
+                          value={dynamicValues.comercialValue}
+                          onChange={(value: number) =>
+                            onUpdateValue("comercialValue", value)
+                          }
+                          prefix="$"
+                          decimalPlaces={2}
+                        />
+                      </div>
 
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-slate-700">
-                    Cajas
-                  </Label>
-                  <EditableNumericField
-                    value={dynamicValues.cajas}
-                    onChange={(value: number) => onUpdateValue("cajas", value)}
-                    decimalPlaces={0}
-                  />
-                </div>
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium text-slate-700">
+                          Cajas
+                        </Label>
+                        <EditableNumericField
+                          value={dynamicValues.cajas}
+                          onChange={(value: number) =>
+                            onUpdateValue("cajas", value)
+                          }
+                          decimalPlaces={0}
+                        />
+                      </div>
 
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-slate-700">
-                    Peso (KG)
-                  </Label>
-                  <EditableNumericField
-                    value={dynamicValues.kg}
-                    onChange={onKgChange}
-                    suffix="kg"
-                    decimalPlaces={2}
-                  />
-                </div>
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium text-slate-700">
+                          Peso (KG)
+                        </Label>
+                        <EditableNumericField
+                          value={dynamicValues.kg}
+                          onChange={onKgChange}
+                          suffix="kg"
+                          decimalPlaces={2}
+                        />
+                      </div>
 
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-slate-700">
-                    KV
-                  </Label>
-                  <EditableNumericField
-                    value={dynamicValues.kv}
-                    onChange={(value: number) => onUpdateValue("kv", value)}
-                    decimalPlaces={2}
-                  />
-                </div>
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium text-slate-700">
+                          KV
+                        </Label>
+                        <EditableNumericField
+                          value={dynamicValues.kv}
+                          onChange={(value: number) =>
+                            onUpdateValue("kv", value)
+                          }
+                          decimalPlaces={2}
+                        />
+                      </div>
 
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-slate-700">
-                    Seguro
-                  </Label>
-                  <EditableNumericField
-                    value={dynamicValues.seguro}
-                    onChange={(value: number) => onUpdateValue("seguro", value)}
-                    prefix="$"
-                    decimalPlaces={2}
-                  />
-                </div>
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium text-slate-700">
+                          Seguro
+                        </Label>
+                        <EditableNumericField
+                          value={dynamicValues.seguro}
+                          onChange={(value: number) =>
+                            onUpdateValue("seguro", value)
+                          }
+                          prefix="$"
+                          decimalPlaces={2}
+                        />
+                      </div>
 
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-slate-700">
-                    Transporte Local  (China)
-                  </Label>
-                  <EditableNumericField
-                    value={dynamicValues.transporteLocalChinaEnvio}
-                    onChange={(value: number) =>
-                      onUpdateValue("transporteLocalChinaEnvio", value)
-                    }
-                    decimalPlaces={2}
-                  />
-                </div>
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium text-slate-700">
+                          Transporte Local (China)
+                        </Label>
+                        <EditableNumericField
+                          value={dynamicValues.transporteLocalChinaEnvio}
+                          onChange={(value: number) =>
+                            onUpdateValue("transporteLocalChinaEnvio", value)
+                          }
+                          decimalPlaces={2}
+                        />
+                      </div>
 
-                {isMaritimeService && (
-                  <>
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium text-slate-700">
-                        Nro. Bultos
-                      </Label>
-                      <EditableNumericField
-                        value={dynamicValues.nroBultos}
-                        onChange={(value: number) =>
-                          onUpdateValue("nroBultos", value)
-                        }
-                        decimalPlaces={0}
-                      />
+                      {isMaritimeService && (
+                        <>
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium text-slate-700">
+                              Nro. Bultos
+                            </Label>
+                            <EditableNumericField
+                              value={dynamicValues.nroBultos}
+                              onChange={(value: number) =>
+                                onUpdateValue("nroBultos", value)
+                              }
+                              decimalPlaces={0}
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium text-slate-700">
+                              Cálculo Flete
+                            </Label>
+                            <EditableNumericField
+                              value={dynamicValues.calculoFlete}
+                              onChange={(value: number) =>
+                                onUpdateValue("calculoFlete", value)
+                              }
+                              prefix="$"
+                              decimalPlaces={2}
+                            />
+                          </div>
+                        </>
+                      )}
                     </div>
 
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium text-slate-700">
-                        Cálculo Flete
-                      </Label>
-                      <EditableNumericField
-                        value={dynamicValues.calculoFlete}
-                        onChange={(value: number) =>
-                          onUpdateValue("calculoFlete", value)
-                        }
-                        prefix="$"
-                        decimalPlaces={2}
-                      />
+                    {/* Columna Derecha */}
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium text-slate-700">
+                          Flete
+                        </Label>
+                        <EditableNumericField
+                          value={dynamicValues.flete}
+                          onChange={(value: number) =>
+                            onUpdateValue("flete", value)
+                          }
+                          prefix="$"
+                          decimalPlaces={2}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium text-slate-700">
+                          Desaduanaje
+                        </Label>
+                        <EditableNumericField
+                          value={dynamicValues.desaduanaje}
+                          onChange={(value: number) =>
+                            onUpdateValue("desaduanaje", value)
+                          }
+                          prefix="$"
+                          decimalPlaces={2}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium text-slate-700">
+                          Peso (TON)
+                        </Label>
+                        <EditableNumericField
+                          value={dynamicValues.ton}
+                          onChange={(value: number) =>
+                            onUpdateValue("ton", value)
+                          }
+                          suffix="ton"
+                          decimalPlaces={3}
+                          readOnly
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium text-slate-700">
+                          FOB
+                        </Label>
+                        <EditableNumericField
+                          value={dynamicValues.fob}
+                          onChange={(value: number) =>
+                            onUpdateValue("fob", value)
+                          }
+                          prefix="$"
+                          decimalPlaces={2}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium text-slate-700">
+                          CIF
+                        </Label>
+                        <EditableNumericField
+                          value={cif}
+                          onChange={() => {}}
+                          prefix="$"
+                          decimalPlaces={2}
+                          readOnly
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium text-slate-700">
+                          Tipo de Cambio
+                        </Label>
+                        <EditableNumericField
+                          value={dynamicValues.tipoCambio}
+                          onChange={(value: number) =>
+                            onUpdateValue("tipoCambio", value)
+                          }
+                          decimalPlaces={2}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium text-slate-700">
+                          Transporte Local (Destino)
+                        </Label>
+                        <EditableNumericField
+                          value={dynamicValues.transporteLocalClienteEnvio}
+                          onChange={(value: number) =>
+                            onUpdateValue("transporteLocalClienteEnvio", value)
+                          }
+                          decimalPlaces={2}
+                        />
+                      </div>
+
+                      {isMaritimeService && (
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-slate-700">
+                            Volumen CBM
+                          </Label>
+                          <EditableNumericField
+                            value={dynamicValues.volumenCBM}
+                            onChange={(value: number) =>
+                              onUpdateValue("volumenCBM", value)
+                            }
+                            suffix="m³"
+                            decimalPlaces={2}
+                          />
+                        </div>
+                      )}
                     </div>
-                  </>
-                )}
-              </div>
-
-              {/* Columna Derecha */}
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-slate-700">
-                    Flete
-                  </Label>
-                  <EditableNumericField
-                    value={dynamicValues.flete}
-                    onChange={(value: number) => onUpdateValue("flete", value)}
-                    prefix="$"
-                    decimalPlaces={2}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-slate-700">
-                    Desaduanaje
-                  </Label>
-                  <EditableNumericField
-                    value={dynamicValues.desaduanaje}
-                    onChange={(value: number) =>
-                      onUpdateValue("desaduanaje", value)
-                    }
-                    prefix="$"
-                    decimalPlaces={2}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-slate-700">
-                    Peso (TON)
-                  </Label>
-                  <EditableNumericField
-                    value={dynamicValues.ton}
-                    onChange={(value: number) => onUpdateValue("ton", value)}
-                    suffix="ton"
-                    decimalPlaces={3}
-                    readOnly
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-slate-700">
-                    FOB
-                  </Label>
-                  <EditableNumericField
-                    value={dynamicValues.fob}
-                    onChange={(value: number) => onUpdateValue("fob", value)}
-                    prefix="$"
-                    decimalPlaces={2}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-slate-700">
-                    CIF
-                  </Label>
-                  <EditableNumericField
-                    value={cif}
-                    onChange={() => {}}
-                    prefix="$"
-                    decimalPlaces={2}
-                    readOnly
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-slate-700">
-                    Tipo de Cambio
-                  </Label>
-                  <EditableNumericField
-                    value={dynamicValues.tipoCambio}
-                    onChange={(value: number) =>
-                      onUpdateValue("tipoCambio", value)
-                    }
-                    decimalPlaces={2}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-slate-700">
-                    Transporte Local (Destino)
-                  </Label>
-                  <EditableNumericField
-                    value={dynamicValues.transporteLocalClienteEnvio}
-                    onChange={(value: number) =>
-                      onUpdateValue("transporteLocalClienteEnvio", value)
-                    }
-                    decimalPlaces={2}
-                  />
-                </div>
-
-                {isMaritimeService && (
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-slate-700">
-                      Volumen CBM
-                    </Label>
-                    <EditableNumericField
-                      value={dynamicValues.volumenCBM}
-                      onChange={(value: number) =>
-                        onUpdateValue("volumenCBM", value)
-                      }
-                      suffix="m³"
-                      decimalPlaces={2}
-                    />
                   </div>
-                )}
-              </div>
-            </div>
                 </CardContent>
               </AccordionContent>
             </Card>
@@ -419,6 +431,8 @@ export function UnifiedConfigurationForm({
             showConfig ? "opacity-100 translate-x-0" : "opacity-30"
           )}
         >
+           <Accordion type="single" collapsible>
+           <AccordionItem value="porcentajes-impuestos" className="border-0">
           <Card
             className={cn(
               "bg-white shadow-lg border border-gray-100 rounded-2xl overflow-hidden transition-all duration-300",
@@ -426,10 +440,13 @@ export function UnifiedConfigurationForm({
             )}
           >
             <CardHeader>
+            <AccordionTrigger className="flex-1 hover:no-underline py-0">
               <CardTitle className="text-lg font-semibold text-slate-800">
                 Porcentajes de Impuestos
               </CardTitle>
+              </AccordionTrigger>
             </CardHeader>
+            <AccordionContent>
             <CardContent>
               <div className="space-y-4">
                 <div className="space-y-2">
@@ -493,7 +510,10 @@ export function UnifiedConfigurationForm({
                 </div>
               </div>
             </CardContent>
+            </AccordionContent>
           </Card>
+          </AccordionItem>
+          </Accordion>
         </div>
 
         {/* Exoneraciones de Conceptos */}
@@ -503,29 +523,31 @@ export function UnifiedConfigurationForm({
             showConfig ? "opacity-100 translate-x-0" : "opacity-30"
           )}
         >
-          <Card
-            className={cn(
-              "bg-white shadow-lg border border-gray-100 rounded-2xl overflow-hidden transition-all duration-300",
-              showConfig ? "shadow-lg border-orange-200" : "shadow-sm"
-            )}
-          >
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <div className="p-1.5 bg-gradient-to-br from-amber-500 to-orange-600 rounded-md shadow-sm">
-                  <Shield className="h-4 w-4 text-white" />
-                </div>
-                <div>
-                  <CardTitle className="text-lg font-semibold text-slate-800">
-                    Exoneraciones de Conceptos
-                  </CardTitle>
-                  <CardDescription className="text-slate-500 text-sm">
-                    Configure las exoneraciones aplicables
-                  </CardDescription>
-                </div>
-              </div>
-            </CardHeader>
+          <Accordion type="single" collapsible>
+            <AccordionItem value="exoneraciones" className="border-0">
+              <Card
+                className={cn(
+                  "bg-white shadow-lg border border-gray-100 rounded-2xl overflow-hidden transition-all duration-300",
+                  showConfig ? "shadow-lg border-orange-200" : "shadow-sm"
+                )}
+              >
+                <CardHeader>
+                  <AccordionTrigger className="flex-1 hover:no-underline py-0">
+                    <div className="flex items-center gap-3">
+                      <div>
+                        <CardTitle className="text-lg font-semibold text-slate-800">
+                          Exoneraciones
+                        </CardTitle>
+                        <CardDescription className="text-slate-500 text-sm">
+                          Configure las exoneraciones aplicables
+                        </CardDescription>
+                      </div>
+                    </div>
+                  </AccordionTrigger>
+                </CardHeader>
 
-            <CardContent className="space-y-3 pt-0">
+                <AccordionContent>
+                  <CardContent className="space-y-3 pt-0">
               <div className="grid grid-cols-1 gap-3">
                 {visibleExemptions.map((exemption) => (
                   <div
@@ -572,8 +594,11 @@ export function UnifiedConfigurationForm({
                   </p>
                 </div>
               )}
-            </CardContent>
-          </Card>
+                  </CardContent>
+                </AccordionContent>
+              </Card>
+            </AccordionItem>
+          </Accordion>
         </div>
 
         {/* Botón de cerrar configuración */}
@@ -584,7 +609,7 @@ export function UnifiedConfigurationForm({
               variant="outline"
               className="px-8"
             >
-              Cerrar Configuración
+              Deshabilitar Configuración
             </Button>
           </div>
         )}

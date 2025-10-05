@@ -1,9 +1,16 @@
 import React from "react";
+import { Badge } from "@/components/ui/badge";
+import { CheckCircle, DollarSign, FileText, Plane, Shield, Ship, Truck } from "lucide-react";
+
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
-import { DollarSign, Ship, Plane, Truck, FileText, Shield, CheckCircle } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 
 export interface ImportExpensesCardProps {
   isMaritime: boolean;
@@ -142,21 +149,26 @@ export default function ImportExpensesCard({
   const expenses = isMaritime ? maritimeExpenses : airExpenses;
 
   return (
-    <Card className="shadow-lg border-1 border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50">
-      <CardHeader >
-        <CardTitle className="flex items-center gap-3 text-xl font-bold">
-          <div className="p-2 bg-orange-200 rounded-lg">
-            <DollarSign className="h-6 w-6 text-orange-700" />
-          </div>
-          <div>
-            <div>Gastos de Importación</div>
-            <div className="text-sm font-normal text-orange-700">
-              {isMaritime ? 'Servicios Marítimos' : 'Servicios Aéreos'}
-            </div>
-          </div>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4 p-6">
+    <Accordion type="single" collapsible defaultValue="import-expenses">
+      <AccordionItem value="import-expenses" className="border-0">
+        <Card className="shadow-lg border-1 border-orange-200/60 bg-gradient-to-br from-orange-50/40 to-amber-50/30">
+          <CardHeader>
+            <AccordionTrigger className="hover:no-underline py-0">
+              <CardTitle className="flex items-center gap-3 text-xl font-bold">
+                <div className="p-2 bg-gradient-to-br from-orange-100/60 to-amber-100/50 rounded-lg">
+                  <DollarSign className="h-6 w-6 text-orange-700" />
+                </div>
+                <div className="text-left">
+                  <div>Gastos de Importación</div>
+                  <div className="text-sm font-normal text-orange-700">
+                    {isMaritime ? 'Servicios Marítimos' : 'Servicios Aéreos'}
+                  </div>
+                </div>
+              </CardTitle>
+            </AccordionTrigger>
+          </CardHeader>
+          <AccordionContent>
+            <CardContent className="space-y-4 p-6">
         <div className="space-y-4">
           <div className="flex items-center gap-2 mb-4">
             <Badge variant="secondary" className="bg-orange-100 text-orange-800 border-orange-200">
@@ -247,8 +259,11 @@ export default function ImportExpensesCard({
             </div>
           </div>
         </div>
-      </CardContent>
-    </Card>
+            </CardContent>
+          </AccordionContent>
+        </Card>
+      </AccordionItem>
+    </Accordion>
   );
 }
 

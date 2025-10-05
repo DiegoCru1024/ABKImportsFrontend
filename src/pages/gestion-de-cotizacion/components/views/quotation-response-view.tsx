@@ -726,7 +726,7 @@ export default function QuotationResponseView({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 overflow-x-hidden grid grid-cols-1">
+    <div className="min-h-screen min-w-full bg-gray-50 overflow-x-hidden grid grid-cols-1">
       <SectionHeader
         icon={<FileText className="h-6 w-6 text-white" />}
         title={
@@ -757,7 +757,7 @@ export default function QuotationResponseView({
         }
       />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+      <div className=" min-w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         {/* Resumen de productos */}
         <QuotationSummaryCard
           productCount={
@@ -851,11 +851,11 @@ export default function QuotationResponseView({
           <div className="space-y-6">
             {/* Sección de productos con QuotationProductRow para vista pendiente */}
             <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-              <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-4 sm:p-6">
-                <h3 className="text-lg sm:text-xl font-bold text-white">
+              <div className="bg-gradient-to-r from-blue-400/50 to-blue-400/50 p-4 sm:p-6">
+                <h3 className="text-lg sm:text-xl font-bold ">
                   Productos de la Cotización - Vista Administrativa
                 </h3>
-                <p className="text-blue-100 text-sm mt-1">
+                <p className="text-blue-500 text-sm mt-1">
                   Gestión simplificada para servicios pendientes
                 </p>
               </div>
@@ -1063,12 +1063,12 @@ export default function QuotationResponseView({
             </div>
 
             {/* Tabla de productos con cálculos detallados para servicios completos */}
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-              <div className="bg-gradient-to-r from-green-500 to-green-600 p-4 sm:p-6">
-                <h3 className="text-lg sm:text-xl font-bold text-white">
+            <div className="bg-gradient-to-br from-white via-blue-50/20 to-indigo-50/30   rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+              <div className="bg-gradient-to-br from-white via-blue-50/20 to-indigo-50/30 border border-slate-200/60 overflow-hidden p-4 sm:p-6 ">
+                <h3 className="text-lg sm:text-xl font-bold">
                   Gestión de Productos - Vista Completa
                 </h3>
-                <p className="text-green-100 text-sm mt-1">
+                <p className="text-green-800 text-sm mt-1">
                   Cálculos detallados para servicios Express/Marítimo
                 </p>
               </div>

@@ -4,20 +4,26 @@ import {
   Eye,
   EyeOff,
   Package,
-  ChevronDown,
-  ChevronUp,
 } from "lucide-react";
+
+import { ProductGrid } from "./product-grid";
+
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/ui/status-badge";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+
 import { formatDate, formatDateTime } from "@/lib/format-time";
-import { ProductGrid } from "./product-grid";
+
 import type { QuotationsByUserResponseInterfaceContent } from "@/api/interface/quotationInterface";
 
 interface QuotationCardProps {
   quotation: QuotationsByUserResponseInterfaceContent;
-  isExpanded: boolean;
-  onToggleExpanded: () => void;
   onViewDetails: (id: string) => void;
   onViewResponses: (id: string) => void;
   onOpenImageModal: (
@@ -29,8 +35,6 @@ interface QuotationCardProps {
 
 export function QuotationCard({
   quotation,
-  isExpanded,
-  onToggleExpanded,
   onViewDetails,
   onViewResponses,
   onOpenImageModal,
@@ -44,7 +48,7 @@ export function QuotationCard({
       return (
         <Button
           onClick={() => onViewResponses(quotation.quotationId)}
-          className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
+          className="flex items-center gap-2 bg-emerald-400 hover:bg-emerald-500 text-emerald-900 shadow-sm transition-colors"
         >
           <Eye className="w-4 h-4" />
           Ver respuestas
@@ -56,7 +60,7 @@ export function QuotationCard({
       return (
         <Button
           onClick={() => onViewDetails(quotation.quotationId)}
-          className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white shadow-sm"
+          className="flex items-center gap-2 bg-orange-300 hover:bg-orange-400 text-orange-900 shadow-sm transition-colors"
         >
           <Eye className="w-4 h-4" />
           Responder
@@ -67,7 +71,7 @@ export function QuotationCard({
     return (
       <Button
         disabled
-        className="flex items-center gap-2 bg-slate-400 text-white cursor-not-allowed"
+        className="flex items-center gap-2 bg-slate-300 text-slate-600 cursor-not-allowed"
       >
         <EyeOff className="w-4 h-4" />
         Cotización en borrador
@@ -76,97 +80,69 @@ export function QuotationCard({
   };
 
   return (
-  
-      <Card className=" hover:shadow-lg transition-all duration-300 border border-gray-100 rounded-2xl overflow-hidden bg-white">
-        {/* Header */}
-        <div className="p-6 pb-4 border-b border-gray-50">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-4">
-              <div>
-                <div className="flex items-center gap-3 mb-2">
-                  <h3 className="font-bold text-2xl text-gray-900">
-                    {quotation.correlative}
-                  </h3>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-gray-600">
-                    Estado de respuesta:
-                  </span>
-                  <StatusBadge status={quotation.status} variant="with-dot" />
-                </div>
-              </div>
+    <Card className="flex flex-col h-full hover:shadow-lg transition-all duration-300 border border-slate-200/60 rounded-2xl overflow-hidden bg-gradient-to-br from-white via-slate-50/30 to-blue-50/20">
+      <div className="p-6 pb-4 border-b border-slate-200/60">
+        <div className="flex items-start justify-between gap-4 mb-4">
+          <div className="flex-1 min-w-0">
+            <h3 className="font-bold text-xl text-slate-800 mb-2">
+              {quotation.correlative}
+            </h3>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-slate-600">
+                Estado de respuesta:
+              </span>
+              <StatusBadge status={quotation.status} variant="with-dot" />
             </div>
+          </div>
 
-            <div className="flex items-center gap-6">
-              <div className="text-right">
-                <p className="font-semibold text-gray-900">
-                  Cliente: {quotation.user?.name}
-                </p>
-                <p className="text-sm text-gray-600">
-                  Correo: {quotation.user?.email}
-                </p>
-              </div>
-              <div className="text-center space-y-1">
-                <div className="flex items-center gap-2 text-gray-600">
-                  <Calendar className="w-4 h-4" />
-                  <span className="text-sm font-medium">
-                    {formatDate(quotation.createdAt)}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 text-gray-600">
-                  <Clock className="w-4 h-4" />
-                  <span className="text-sm font-medium">
-                    {formatDateTime(quotation.createdAt)}
-                  </span>
-                </div>
-              </div>
+          <div className="flex flex-col gap-2 text-right">
+            <div className="flex items-center gap-2 text-slate-600">
+              <Calendar className="w-4 h-4 text-blue-400" />
+              <span className="text-sm font-medium">
+                {formatDate(quotation.createdAt)}
+              </span>
+            </div>
+            <div className="flex items-center gap-2 text-slate-600">
+              <Clock className="w-4 h-4 text-blue-400" />
+              <span className="text-sm font-medium">
+                {formatDateTime(quotation.createdAt)}
+              </span>
             </div>
           </div>
         </div>
 
-        {/* Products Section */}
-        <div className="px-6 flex-1 min-h-0">
-          <div className="flex items-center justify-between py-4 border-b border-gray-50">
-            <h4 className="text-sm font-semibold text-gray-800 flex items-center gap-2">
-              <Package className="w-4 h-4 text-blue-600" />
-              Productos ({quotation.products.length})
-            </h4>
+        <div className="p-4 bg-gradient-to-r from-blue-50/50 to-indigo-50/40 rounded-xl border border-blue-200/40">
+          <p className="text-sm font-semibold text-slate-800 mb-1">
+            Cliente: {quotation.user?.name}
+          </p>
+          <p className="text-sm text-slate-600">
+            Correo: {quotation.user?.email}
+          </p>
+        </div>
+      </div>
 
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onToggleExpanded}
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-800 hover:bg-gray-50"
-            >
-              {isExpanded ? (
-                <>
-                  <ChevronUp className="h-4 w-4" />
-                  Ocultar productos
-                </>
-              ) : (
-                <>
-                  <ChevronDown className="h-4 w-4" />
-                  Mostrar productos
-                </>
-              )}
-            </Button>
-          </div>
-
-          {isExpanded && (
-            <div className="py-4">
+      <div className="flex-1 px-6 min-h-0">
+        <Accordion type="single" collapsible className="w-full">
+          <AccordionItem value="products" className="border-0">
+            <AccordionTrigger className="py-4 hover:no-underline">
+              <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+                <Package className="w-4 h-4 text-orange-400" />
+                Productos ({quotation?.products?.length})
+              </div>
+            </AccordionTrigger>
+            <AccordionContent>
               <ProductGrid
-                products={quotation.products}
+                products={quotation?.products}
                 onOpenImageModal={onOpenImageModal}
               />
-            </div>
-          )}
-        </div>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      </div>
 
-        {/* Footer */}
-        <div className="p-6 pt-4 bg-gradient-to-r from-gray-50/50 to-gray-100/50 border-t border-gray-100">
-          <div className="flex justify-end">{renderActionButton()}</div>
-        </div>
-      </Card>
-   
+      <div className="p-6 pt-4 bg-gradient-to-r from-slate-50/40 to-blue-50/30 border-t border-slate-200/60">
+        <div className="flex justify-end">{renderActionButton()}</div>
+      </div>
+    </Card>
   );
 }

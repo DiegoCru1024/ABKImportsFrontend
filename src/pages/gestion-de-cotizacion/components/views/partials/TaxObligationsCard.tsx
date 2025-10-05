@@ -1,9 +1,16 @@
 import React from "react";
+import { Badge } from "@/components/ui/badge";
+import { Calculator, DollarSign, Percent, Receipt, TrendingUp } from "lucide-react";
+
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EditableNumericField } from "@/components/ui/editableNumberFieldProps";
 import { Separator } from "@/components/ui/separator";
-import { Calculator, Percent, DollarSign, Receipt, TrendingUp } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 
 export interface TaxObligationsCardProps {
   adValoremRate: number;
@@ -98,19 +105,24 @@ export default function TaxObligationsCard({
   ];
 
   return (
-    <Card className="shadow-lg border-1 border-green-200 bg-gradient-to-br from-green-50 to-emerald-50">
-      <CardHeader >
-        <CardTitle className="flex items-center gap-3 text-xl font-bold">
-          <div className="p-2 bg-green-200 rounded-lg">
-            <Calculator className="h-6 w-6 text-green-700" />
-          </div>
-          <div>
-            <div>Obligaciones Fiscales</div>
-            <div className="text-sm font-normal text-green-700">Impuestos y Derechos</div>
-          </div>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4 p-6">
+    <Accordion type="single" collapsible defaultValue="tax-obligations">
+      <AccordionItem value="tax-obligations" className="border-0">
+        <Card className="shadow-lg border-1 border-emerald-200/60 bg-gradient-to-br from-emerald-50/40 to-green-50/30">
+          <CardHeader>
+            <AccordionTrigger className="hover:no-underline py-0">
+              <CardTitle className="flex items-center gap-3 text-xl font-bold">
+                <div className="p-2 bg-gradient-to-br from-emerald-100/60 to-green-100/50 rounded-lg">
+                  <Calculator className="h-6 w-6 text-emerald-700" />
+                </div>
+                <div className="text-left">
+                  <div>Obligaciones Fiscales</div>
+                  <div className="text-sm font-normal text-emerald-700">Impuestos y Derechos</div>
+                </div>
+              </CardTitle>
+            </AccordionTrigger>
+          </CardHeader>
+          <AccordionContent>
+            <CardContent className="space-y-4 p-6">
         <div className="space-y-4">
           <div className="flex items-center gap-2 mb-4">
             <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">
@@ -223,8 +235,11 @@ export default function TaxObligationsCard({
             </div>
           </div>
         </div>
-      </CardContent>
-    </Card>
+            </CardContent>
+          </AccordionContent>
+        </Card>
+      </AccordionItem>
+    </Accordion>
   );
 }
 

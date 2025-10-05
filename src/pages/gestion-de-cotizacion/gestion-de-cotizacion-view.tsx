@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  FileText,
   ChevronLeft,
+  FileText,
 } from "lucide-react";
 
 import QuotationResponseView from "./components/views/quotation-response-view";
 import QuotationResponsesList from "./components/views/quotation-responses-list";
 import { QuotationCard } from "./components/shared/quotation-card";
+
 import { useQuotationList } from "./hooks/use-quotation-list";
 import { useImageModal } from "./hooks/use-image-modal";
 
@@ -32,6 +33,7 @@ const filterOptions = [
 
 export default function GestionDeCotizacionesView() {
   const navigate = useNavigate();
+
   const [mainTab, setMainTab] = useState<string>("solicitudes");
   const [selectedQuotationId, setSelectedQuotationId] = useState<string>("");
 
@@ -94,15 +96,14 @@ export default function GestionDeCotizacionesView() {
   }
 
   return (
-    <div>
-    <div className="min-h-screen bg-gradient-to-br from-orange-500/5 via-background to-orange-400/10">
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-orange-500/5 via-background to-orange-400/10">
       <SectionHeader
         icon={<FileText className="h-6 w-6 text-white" />}
         title="Panel de Administración de Cotizaciones"
         description="Gestiona las cotizaciones de tus productos"
       />
 
-      <div className="container mx-auto px-4 py-6 max-w-full overflow-hidden">
+      <div className="flex-1 flex flex-col container mx-auto px-4 py-6 max-w-full">
         <SearchFilters
           searchValue={quotationList.searchTerm}
           onSearchChange={quotationList.handleSearchChange}
@@ -128,13 +129,11 @@ export default function GestionDeCotizacionesView() {
 
         {!quotationList.isLoading && !quotationList.isError && (
           <>
-            <div className="space-y-6 grid gap-4 grid-cols-1 md:grid-cols-2">
+            <div className="grid gap-6 grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3">
               {quotationList.data.map((quotation) => (
                 <QuotationCard
                   key={quotation.quotationId}
                   quotation={quotation}
-                  isExpanded={quotationList.expandedProducts[quotation.quotationId] || false}
-                  onToggleExpanded={() => quotationList.toggleProductsAccordion(quotation.quotationId)}
                   onViewDetails={handleViewDetails}
                   onViewResponses={handleViewListResponses}
                   onOpenImageModal={imageModal.openModal}
@@ -151,32 +150,29 @@ export default function GestionDeCotizacionesView() {
             />
 
             {quotationList.data.length === 0 && (
-              <div className="text-center py-12">
-                <div className="text-gray-500">
-                  <FileText className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    No se encontraron cotizaciones
-                  </h3>
-                  <p className="text-sm">No hay cotizaciones que coincidan con tu búsqueda.</p>
-                </div>
+              <div className="flex flex-col items-center justify-center flex-1 py-12">
+                <FileText className="w-16 h-16 mb-4 text-gray-400" />
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  No se encontraron cotizaciones
+                </h3>
+                <p className="text-sm text-gray-600">No hay cotizaciones que coincidan con tu búsqueda.</p>
               </div>
             )}
           </>
         )}
       </div>
 
-        <ImageCarouselModal
-          isOpen={imageModal.isOpen}
-          onClose={imageModal.closeModal}
-          images={imageModal.selectedImages}
-          currentIndex={imageModal.currentImageIndex}
-          productName={imageModal.productName}
-          onPrevious={imageModal.previousImage}
-          onNext={imageModal.nextImage}
-          onGoToImage={imageModal.goToImage}
-          onDownload={imageModal.downloadImage}
-        />
-      </div>
+      <ImageCarouselModal
+        isOpen={imageModal.isOpen}
+        onClose={imageModal.closeModal}
+        images={imageModal.selectedImages}
+        currentIndex={imageModal.currentImageIndex}
+        productName={imageModal.productName}
+        onPrevious={imageModal.previousImage}
+        onNext={imageModal.nextImage}
+        onGoToImage={imageModal.goToImage}
+        onDownload={imageModal.downloadImage}
+      />
     </div>
   );
 }

@@ -1,6 +1,16 @@
 import { useState } from "react";
-import { Calculator, Shield, Settings } from "lucide-react";
+import { Calculator, Settings, Shield } from "lucide-react";
 
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { EditableNumericField } from "@/components/ui/editableNumberFieldProps";
+import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
@@ -8,10 +18,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { EditableNumericField } from "@/components/ui/editableNumberFieldProps";
+
 import { cn } from "@/lib/utils";
 
 interface DynamicValues {
@@ -147,33 +154,38 @@ export function UnifiedConfigurationForm({
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Valores Dinámicos - Columna Izquierda */}
       <div>
-        <Card className="bg-white shadow-lg border border-gray-100 rounded-2xl overflow-hidden">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg shadow-sm">
-                <Calculator className="h-5 w-5 text-white" />
-              </div>
-              <div>
-                <CardTitle className="text-xl font-semibold text-slate-800">
-                  Valores Dinámicos
-                </CardTitle>
-                <CardDescription className="text-slate-600 mt-1">
-                  Configure los valores de cálculo para la cotización
-                </CardDescription>
-              </div>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowConfig(!showConfig)}
-              className="flex items-center gap-2"
-            >
-              <Settings className="w-4 h-4" />
-              Configurar
-            </Button>
-          </CardHeader>
+        <Accordion type="single" collapsible defaultValue="valores-dinamicos">
+          <AccordionItem value="valores-dinamicos" className="border-0">
+            <Card className="bg-gradient-to-br from-emerald-50/40 to-green-50/30 shadow-lg border border-emerald-200/60 rounded-2xl overflow-hidden">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                <AccordionTrigger className="flex-1 hover:no-underline py-0">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-gradient-to-br from-emerald-100/60 to-green-100/50 rounded-lg shadow-sm">
+                      <Calculator className="h-5 w-5 text-emerald-700" />
+                    </div>
+                    <div className="text-left">
+                      <CardTitle className="text-xl font-semibold text-slate-800">
+                        Valores Dinámicos
+                      </CardTitle>
+                      <CardDescription className="text-slate-600 mt-1">
+                        Configure los valores de cálculo para la cotización
+                      </CardDescription>
+                    </div>
+                  </div>
+                </AccordionTrigger>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowConfig(!showConfig)}
+                  className="flex items-center gap-2 ml-4"
+                >
+                  <Settings className="w-4 h-4" />
+                  Configurar
+                </Button>
+              </CardHeader>
 
-          <CardContent>
+              <AccordionContent>
+                <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Columna Izquierda */}
               <div className="space-y-4">
@@ -391,8 +403,11 @@ export function UnifiedConfigurationForm({
                 )}
               </div>
             </div>
-          </CardContent>
-        </Card>
+                </CardContent>
+              </AccordionContent>
+            </Card>
+          </AccordionItem>
+        </Accordion>
       </div>
 
       {/* Columna Derecha */}

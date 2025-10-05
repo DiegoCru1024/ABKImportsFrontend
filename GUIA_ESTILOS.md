@@ -43,6 +43,8 @@ Colores Principales: Usa un color dominante para botones, enlaces y elementos in
 
 Colores Neutrales: Utiliza una gama de grises y blancos cálidos o fríos para fondos, bordes y texto secundario.
 
+Colores pasteles: A el cliente le gusta los colores pasteles
+
 Colores de Acento: Selecciona uno o dos colores para destacar información crucial, como errores (rojo), éxitos (verde) o alertas (amarillo).
 
 Ejemplo de Paleta:

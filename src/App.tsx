@@ -24,11 +24,10 @@ import Tarifas from "./pages/Tarifas";
 import Educacion from "./pages/Educacion";
 import Herramientas from "./pages/Herramientas";
 
-import {
-  QuotationResponseView,
-  EditQuotationResponseView,
-} from "./pages/gestion-de-cotizacion/components";
+
 import RespuestasCotizacionView from "./pages/respuestas-cotizacion";
+import EditQuotationResponseView from "./pages/gestion-de-cotizacion/components/views/edit-quotation-response-view";
+import QuotationResponseView from "./pages/gestion-de-cotizacion/components/views/quotation-response-view";
 
 function App() {
   return (  

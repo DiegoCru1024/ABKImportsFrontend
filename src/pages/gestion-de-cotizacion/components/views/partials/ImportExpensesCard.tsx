@@ -149,16 +149,16 @@ export default function ImportExpensesCard({
   const expenses = isMaritime ? maritimeExpenses : airExpenses;
 
   return (
-    <Accordion type="single" collapsible defaultValue="import-expenses">
+    <Accordion type="single" collapsible>
       <AccordionItem value="import-expenses" className="border-0">
-        <Card className="shadow-lg border-1 border-orange-200/60 bg-gradient-to-br from-orange-50/40 to-amber-50/30">
-          <CardHeader>
+        <div className="shadow-lg border-1 border-orange-200 bg-white rounded-lg">
+          <div className="bg-gradient-to-br from-orange-50 to-amber-50 p-4 rounded-lg rounded-b-none">
             <AccordionTrigger className="hover:no-underline py-0">
               <CardTitle className="flex items-center gap-3 text-xl font-bold">
-                <div className="p-2 bg-gradient-to-br from-orange-100/60 to-amber-100/50 rounded-lg">
+                <div className="p-2 bg-orange-200 rounded-lg">
                   <DollarSign className="h-6 w-6 text-orange-700" />
                 </div>
-                <div className="text-left">
+                <div>
                   <div>Gastos de Importación</div>
                   <div className="text-sm font-normal text-orange-700">
                     {isMaritime ? 'Servicios Marítimos' : 'Servicios Aéreos'}
@@ -166,9 +166,10 @@ export default function ImportExpensesCard({
                 </div>
               </CardTitle>
             </AccordionTrigger>
-          </CardHeader>
+          </div>
+
           <AccordionContent>
-            <CardContent className="space-y-4 p-6">
+            <div className="space-y-4 p-6">
         <div className="space-y-4">
           <div className="flex items-center gap-2 mb-4">
             <Badge variant="secondary" className="bg-orange-100 text-orange-800 border-orange-200">
@@ -259,9 +260,9 @@ export default function ImportExpensesCard({
             </div>
           </div>
         </div>
-            </CardContent>
+            </div>
           </AccordionContent>
-        </Card>
+        </div>
       </AccordionItem>
     </Accordion>
   );

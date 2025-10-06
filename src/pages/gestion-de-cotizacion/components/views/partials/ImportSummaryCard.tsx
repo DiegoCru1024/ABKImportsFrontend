@@ -57,24 +57,25 @@ export default function ImportSummaryCard({
   ];
 
   return (
-    <Accordion type="single" collapsible defaultValue="import-summary">
+    <Accordion type="single" collapsible>
       <AccordionItem value="import-summary" className="border-0">
-        <Card className="shadow-lg border-1 border-purple-200/60 bg-gradient-to-br from-purple-50/40 to-indigo-50/30">
-          <CardHeader>
+        <div className="shadow-lg border-1 border-purple-200 bg-white rounded-lg">
+          <div className="bg-gradient-to-br from-purple-50 to-indigo-50 p-4 rounded-lg rounded-b-none">
             <AccordionTrigger className="hover:no-underline py-0">
               <CardTitle className="flex items-center gap-3 text-xl font-bold">
-                <div className="p-2 bg-gradient-to-br from-purple-100/60 to-indigo-100/50 rounded-lg">
+                <div className="p-2 bg-purple-200 rounded-lg">
                   <ChartBar className="h-6 w-6 text-purple-700" />
                 </div>
-                <div className="text-left">
+                <div>
                   <div>Resumen de Gastos de Importación</div>
                   <div className="text-sm font-normal text-purple-700">Resumen consolidado</div>
                 </div>
               </CardTitle>
             </AccordionTrigger>
-          </CardHeader>
+          </div>
+
           <AccordionContent>
-            <CardContent className="space-y-4 p-6">
+            <div className="space-y-4 p-6">
         <div className="space-y-4">
           <div className="flex items-center gap-2 mb-4">
             <Badge variant="secondary" className="bg-purple-100 text-purple-800 border-purple-200">
@@ -166,9 +167,9 @@ export default function ImportSummaryCard({
             )}
           </div>
         </div>
-            </CardContent>
+            </div>
           </AccordionContent>
-        </Card>
+        </div>
       </AccordionItem>
     </Accordion>
   );

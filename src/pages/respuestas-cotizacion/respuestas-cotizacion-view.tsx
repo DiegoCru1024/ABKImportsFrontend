@@ -38,18 +38,7 @@ export default function RespuestasCotizacionView() {
     navigate(-1);
   };
 
-  const formatDate = (dateString: string) => {
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString("es-ES", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      });
-    } catch {
-      return dateString;
-    }
-  };
+
 
   const getTabLabel = (response: any, index: number) => {
     const serviceLabel = response.responseData?.generalInformation?.serviceLogistic || response.serviceType;

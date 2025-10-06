@@ -68,9 +68,8 @@ export default function ServiceConsolidationCard({
   return (
     <Accordion type="single" collapsible defaultValue="service-consolidation">
       <AccordionItem value="service-consolidation" className="border-0">
-        <Card className="shadow-lg border-1 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50">
-          
-            <CardHeader>
+        <div className="shadow-lg border-1 border-blue-200 bg-white rounded-lg ">
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-4  rounded-lg rounded-b-none">
             <AccordionTrigger className="hover:no-underline py-0">
               <CardTitle className="flex items-center gap-3 text-xl font-bold">
                 <div className="p-2 bg-blue-200 rounded-lg">
@@ -83,11 +82,11 @@ export default function ServiceConsolidationCard({
                   </div>
                 </div>
               </CardTitle>
-              </AccordionTrigger>
-            </CardHeader>
-        
+            </AccordionTrigger>
+          </div>
+
           <AccordionContent>
-            <CardContent className="space-y-4 p-6">
+            <div className="space-y-4 p-6">
               <div className="space-y-4">
                 <div className="flex items-center gap-2 mb-4">
                   <Badge
@@ -173,9 +172,9 @@ export default function ServiceConsolidationCard({
                   </div>
                 </div>
               </div>
-            </CardContent>
+            </div>
           </AccordionContent>
-        </Card>
+        </div>
       </AccordionItem>
     </Accordion>
   );

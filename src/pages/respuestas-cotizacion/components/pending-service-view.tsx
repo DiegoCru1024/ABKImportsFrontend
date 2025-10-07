@@ -11,17 +11,22 @@ interface PendingServiceViewProps {
   quotationDetail?: any;
 }
 
-export function PendingServiceView({ serviceResponse, quotationDetail }: PendingServiceViewProps) {
+export function PendingServiceView({
+  serviceResponse,
+  quotationDetail,
+}: PendingServiceViewProps) {
   const responseData = serviceResponse.responseData as ResponseDataPending;
   const products = serviceResponse.products as PendingProductInterface[];
 
   return (
-    <div className="w-full space-y-6">
-      <QuotationConfigurationFormView
-        generalInformation={responseData.generalInformation}
-      />
+    <div className="w-full space-y-8 pt-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <QuotationConfigurationFormView
+          generalInformation={responseData.generalInformation}
+        />
 
-      <QuotationSummaryCardView resumenInfo={responseData.resumenInfo} />
+        <QuotationSummaryCardView resumenInfo={responseData.resumenInfo} />
+      </div>
 
       {products && products.length > 0 && (
         <div className="space-y-4">

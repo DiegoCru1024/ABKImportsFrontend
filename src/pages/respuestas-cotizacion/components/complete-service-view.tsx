@@ -16,44 +16,53 @@ interface CompleteServiceViewProps {
   quotationDetail?: any;
 }
 
-export function CompleteServiceView({ serviceResponse, quotationDetail }: CompleteServiceViewProps) {
+export function CompleteServiceView({
+  serviceResponse,
+  quotationDetail,
+}: CompleteServiceViewProps) {
   const responseData = serviceResponse.responseData as ResponseDataComplete;
   const products = serviceResponse.products as CompleteProductInterface[];
   const isMaritime = serviceResponse.serviceType === "MARITIME";
 
   return (
-    <div className="w-full space-y-6">
-      <QuotationConfigurationFormView
-        generalInformation={responseData.generalInformation}
-      />
+    <div className="w-full space-y-8 pt-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <QuotationConfigurationFormView
+          generalInformation={responseData.generalInformation}
+        />
 
-      <QuotationSummaryCardView resumenInfo={responseData.resumenInfo} />
+        <QuotationSummaryCardView resumenInfo={responseData.resumenInfo} />
+      </div>
 
       {isMaritime && responseData.maritimeConfig && (
         <MaritimeServiceFormView maritimeConfig={responseData.maritimeConfig} />
       )}
 
-      {responseData.serviceCalculations && (
-        <ServiceConsolidationCardView
-          serviceCalculations={responseData.serviceCalculations}
-          title={responseData.type || "Servicios de Consolidación"}
-        />
-      )}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {responseData.serviceCalculations && (
+          <ServiceConsolidationCardView
+            serviceCalculations={responseData.serviceCalculations}
+            title={responseData.type || "Servicios de Consolidación"}
+          />
+        )}
 
-      {responseData.fiscalObligations && (
-        <TaxObligationsCardView
-          fiscalObligations={responseData.fiscalObligations}
-          isMaritime={isMaritime}
-        />
-      )}
+        {responseData.fiscalObligations && (
+          <TaxObligationsCardView
+            fiscalObligations={responseData.fiscalObligations}
+            isMaritime={isMaritime}
+          />
+        )}
+      </div>
 
-      {responseData.importCosts && (
-        <ImportExpensesCardView importCosts={responseData.importCosts} />
-      )}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {responseData.importCosts && (
+          <ImportExpensesCardView importCosts={responseData.importCosts} />
+        )}
 
-      {responseData.quoteSummary && (
-        <ImportSummaryCardView quoteSummary={responseData.quoteSummary} />
-      )}
+        {responseData.quoteSummary && (
+          <ImportSummaryCardView quoteSummary={responseData.quoteSummary} />
+        )}
+      </div>
 
       {products && products.length > 0 && (
         <div className="space-y-4">

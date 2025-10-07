@@ -1,10 +1,4 @@
-import {
-  Calendar,
-  Clock,
-  Eye,
-  EyeOff,
-  Package,
-} from "lucide-react";
+import { Calendar, Clock, Eye, EyeOff, Package, Trash } from "lucide-react";
 
 import { ProductGrid } from "./product-grid";
 
@@ -17,10 +11,13 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 import { formatDate, formatDateTime } from "@/lib/format-time";
+import { deleteQuotation } from "@/api/quotations";
 
 import type { QuotationsByUserResponseInterfaceContent } from "@/api/interface/quotationInterface";
+import { useDeleteQuotation } from "@/hooks/use-quation";
 
 interface QuotationCardProps {
   quotation: QuotationsByUserResponseInterfaceContent;
@@ -31,6 +28,7 @@ interface QuotationCardProps {
     productName: string,
     index?: number
   ) => void;
+  onDelete?: (id: string) => void;
 }
 
 export function QuotationCard({
@@ -38,10 +36,21 @@ export function QuotationCard({
   onViewDetails,
   onViewResponses,
   onOpenImageModal,
+  onDelete,
 }: QuotationCardProps) {
   const canRespond =
     quotation.status !== "pending" && quotation.status !== "draft";
   const isDraft = quotation.status === "draft";
+
+  const { mutateAsync:mutationDelete}= useDeleteQuotation()
+
+  const handleDeleteQuotation = async () => {
+    try {
+      await mutationDelete(quotation.quotationId);
+    } catch (error) {
+      console.error("Error al eliminar la cotización:", error);
+    }
+  };
 
   const renderActionButton = () => {
     if (canRespond) {
@@ -95,18 +104,35 @@ export function QuotationCard({
             </div>
           </div>
 
-          <div className="flex flex-col gap-2 text-right">
-            <div className="flex items-center gap-2 text-slate-600">
-              <Calendar className="w-4 h-4 text-blue-400" />
-              <span className="text-sm font-medium">
-                {formatDate(quotation.createdAt)}
-              </span>
+          <div className="flex  gap-2 text-right">
+            <div className="flex flex-col ">
+              <div className="flex items-center gap-2 text-slate-600">
+                <Calendar className="w-4 h-4 text-blue-400" />
+                <span className="text-sm font-medium">
+                  {formatDate(quotation.createdAt)}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 text-slate-600">
+                <Clock className="w-4 h-4 text-blue-400" />
+                <span className="text-sm font-medium">
+                  {formatDateTime(quotation.createdAt)}
+                </span>
+              </div>
             </div>
-            <div className="flex items-center gap-2 text-slate-600">
-              <Clock className="w-4 h-4 text-blue-400" />
-              <span className="text-sm font-medium">
-                {formatDateTime(quotation.createdAt)}
-              </span>
+            <div>
+              <ConfirmDialog
+                trigger={
+                  <Button variant="outline">
+                    <Trash className="text-red-600" />
+                  </Button>
+                }
+                title="¿Eliminar cotización?"
+                description={`¿Estás seguro de que deseas eliminar la cotización ${quotation.correlative}? Esta acción no se puede deshacer.`}
+                confirmText="Eliminar"
+                cancelText="Cancelar"
+                onConfirm={handleDeleteQuotation}
+                variant="destructive"
+              />
             </div>
           </div>
         </div>

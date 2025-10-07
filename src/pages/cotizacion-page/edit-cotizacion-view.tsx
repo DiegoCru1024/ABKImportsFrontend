@@ -45,13 +45,21 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useGetQuotationById, usePatchQuotation, useSubmitDraft } from "@/hooks/use-quation";
+import {
+  useGetQuotationById,
+  usePatchQuotation,
+  useSubmitDraft,
+} from "@/hooks/use-quation";
 import { uploadMultipleFiles } from "@/api/fileUpload";
 import { toast } from "sonner";
 import SendingModal from "@/components/sending-modal";
 
 import { Label } from "@/components/ui/label";
-import { productoSchema, type ProductVariant, type ProductWithVariants } from "@/pages/cotizacion-page/utils/schema";
+import {
+  productoSchema,
+  type ProductVariant,
+  type ProductWithVariants,
+} from "@/pages/cotizacion-page/utils/schema";
 import { columnasCotizacion } from "@/pages/cotizacion-page/components/table/columnasCotizacion";
 import { servicios } from "@/pages/cotizacion-page/components/data/static";
 import type { QuotationDTO } from "@/pages/cotizacion-page/utils/interface";
@@ -66,9 +74,11 @@ interface EditCotizacionViewProps {
 export default function EditCotizacionView({
   quotationId,
   onBack,
-  statusQuotation
+  statusQuotation,
 }: EditCotizacionViewProps) {
-  const [productos, setProductos] = useState<(ProductWithVariants & { files?: File[] })[]>([]);
+  const [productos, setProductos] = useState<
+    (ProductWithVariants & { files?: File[] })[]
+  >([]);
   const [service, setService] = useState("pending");
   const [resetCounter, setResetCounter] = useState(0);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
@@ -78,7 +88,7 @@ export default function EditCotizacionView({
   const [tableKey, setTableKey] = useState(0); // Para forzar re-renderización de la tabla
   //Navegacion
   const navigate = useNavigate();
-  
+
   // Estados para las variantes
   const [variants, setVariants] = useState<ProductVariant[]>([
     {
@@ -136,9 +146,12 @@ export default function EditCotizacionView({
     };
     const updatedVariants = [...variants, newVariant];
     setVariants(updatedVariants);
-    
+
     // Actualizar quantityTotal en el formulario
-    const totalQuantity = updatedVariants.reduce((total, variant) => total + variant.quantity, 0);
+    const totalQuantity = updatedVariants.reduce(
+      (total, variant) => total + variant.quantity,
+      0
+    );
     form.setValue("quantityTotal", totalQuantity);
   };
 
@@ -146,27 +159,47 @@ export default function EditCotizacionView({
     if (variants.length > 1) {
       const updatedVariants = variants.filter((variant) => variant.id !== id);
       setVariants(updatedVariants);
-      
+
       // Actualizar quantityTotal en el formulario
-      const totalQuantity = updatedVariants.reduce((total, variant) => total + variant.quantity, 0);
+      const totalQuantity = updatedVariants.reduce(
+        (total, variant) => total + variant.quantity,
+        0
+      );
       form.setValue("quantityTotal", totalQuantity);
     }
   };
 
-  const updateVariant = (id: string, field: keyof ProductVariant, value: string | number) => {
-    const updatedVariants = variants.map((variant) => (variant.id === id ? { ...variant, [field]: value } : variant));
+  const updateVariant = (
+    id: string,
+    field: keyof ProductVariant,
+    value: string | number
+  ) => {
+    const updatedVariants = variants.map((variant) =>
+      variant.id === id ? { ...variant, [field]: value } : variant
+    );
     setVariants(updatedVariants);
-    
+
     // Actualizar quantityTotal en el formulario cuando cambie la cantidad
-    if (field === 'quantity') {
-      const totalQuantity = updatedVariants.reduce((total, variant) => total + variant.quantity, 0);
+    if (field === "quantity") {
+      const totalQuantity = updatedVariants.reduce(
+        (total, variant) => total + variant.quantity,
+        0
+      );
       form.setValue("quantityTotal", totalQuantity);
     }
   };
 
   const getTotalQuantity = () => {
-    const total = variants.reduce((total, variant) => total + variant.quantity, 0);
-    console.log("Calculando cantidad total - Variantes:", variants, "Total:", total);
+    const total = variants.reduce(
+      (total, variant) => total + variant.quantity,
+      0
+    );
+    console.log(
+      "Calculando cantidad total - Variantes:",
+      variants,
+      "Total:",
+      total
+    );
     return total;
   };
 
@@ -195,7 +228,7 @@ export default function EditCotizacionView({
             model: "",
             color: product.color || "",
             quantity: product.quantity || 0,
-          }
+          },
         ], // Convertir datos legacy a formato de variantes
         attachments: product.attachments || [],
         files: [], // Los archivos originales no están disponibles, solo las URLs
@@ -209,7 +242,7 @@ export default function EditCotizacionView({
   const handleEliminar = (index: number) => {
     setProductos((prev) => prev.filter((_, i) => i !== index));
     // Forzar re-renderización de la tabla
-    setTableKey(prev => prev + 1);
+    setTableKey((prev) => prev + 1);
   };
 
   //* Función para editar producto
@@ -232,7 +265,10 @@ export default function EditCotizacionView({
     setVariants(productVariants);
 
     // Calcular y establecer quantityTotal
-    const totalQuantity = productVariants.reduce((total, variant) => total + variant.quantity, 0);
+    const totalQuantity = productVariants.reduce(
+      (total, variant) => total + variant.quantity,
+      0
+    );
     form.setValue("quantityTotal", totalQuantity);
 
     // Establecer archivos seleccionados (vacío porque no tenemos los archivos originales)
@@ -241,7 +277,7 @@ export default function EditCotizacionView({
     // Establecer modo edición
     setEditingIndex(index);
     setIsEditing(true);
-    
+
     console.log("Modo edición activado para índice:", index);
   };
 
@@ -260,10 +296,10 @@ export default function EditCotizacionView({
       },
     ];
     setVariants(defaultVariants);
-    
+
     // Actualizar quantityTotal en el formulario
     form.setValue("quantityTotal", 0);
-    
+
     setEditingIndex(null);
     setIsEditing(false);
     setResetCounter((prev) => prev + 1);
@@ -272,74 +308,96 @@ export default function EditCotizacionView({
   //* Función para agregar o actualizar producto
   const handleAgregar = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
+
     console.log("=== INICIO DE handleAgregar ===");
     console.log("Evento submit capturado");
 
     // Validar que haya al menos una variante con cantidad mayor a 0
     const totalQuantityValidation = getTotalQuantity();
     console.log("Cantidad total validada:", totalQuantityValidation);
-    
+
     if (totalQuantityValidation === 0) {
       console.log("ERROR: Cantidad total es 0, deteniendo ejecución");
       toast.error("Debe agregar al menos una variante con cantidad mayor a 0.");
       return;
     }
-    
+
     console.log("Validación de cantidad total pasada");
 
     // Validar formulario antes de proceder
     console.log("Iniciando validación del formulario...");
     const isValid = await form.trigger();
     console.log("Resultado de validación del formulario:", isValid);
-    
+
     if (!isValid) {
-      console.log("ERROR: Validación del formulario falló, deteniendo ejecución");
-      
+      console.log(
+        "ERROR: Validación del formulario falló, deteniendo ejecución"
+      );
+
       // Obtener los errores específicos del formulario
       const formErrors = form.formState.errors;
       console.log("Errores del formulario:", formErrors);
-      
+
       // Mostrar valores actuales del formulario para debugging
       const currentValues = form.getValues();
-      console.log("Valores actuales del formulario:", JSON.stringify(currentValues, null, 2)  );
-      
+      console.log(
+        "Valores actuales del formulario:",
+        JSON.stringify(currentValues, null, 2)
+      );
+
       // Mostrar toast con los errores específicos
-      const errorMessages = Object.entries(formErrors).map(([field, error]) => {
-        return `${field}: ${error?.message || 'Campo requerido'}`;
-      }).join(', ');
-      
+      const errorMessages = Object.entries(formErrors)
+        .map(([field, error]) => {
+          return `${field}: ${error?.message || "Campo requerido"}`;
+        })
+        .join(", ");
+
       toast.error(`Errores de validación: ${errorMessages}`);
       return;
     }
-    
+
     console.log("Validación del formulario pasada");
 
     // Para productos editados, permitir sin archivos (mantener los existentes)
     // Para productos nuevos, requerir archivos
-    console.log("Verificando archivos - isEditing:", isEditing, "selectedFiles.length:", selectedFiles.length);
-    
+    console.log(
+      "Verificando archivos - isEditing:",
+      isEditing,
+      "selectedFiles.length:",
+      selectedFiles.length
+    );
+
     if (!isEditing && selectedFiles.length === 0) {
-      console.log("ERROR: No hay archivos seleccionados para producto nuevo, deteniendo ejecución");
+      console.log(
+        "ERROR: No hay archivos seleccionados para producto nuevo, deteniendo ejecución"
+      );
       toast.error(
         "Por favor, adjunte al menos un archivo antes de agregar el producto."
       );
       return;
     }
-    
+
     console.log("Validación de archivos pasada");
 
     // Obtener los valores del formulario
     const values = form.getValues();
     const totalQuantityForProduct = getTotalQuantity();
-    
+
     console.log("=== DEBUGGING ACTUALIZACIÓN DE PRODUCTO ===");
     console.log("Editando producto - Valores del formulario:", values);
     console.log("Editando producto - Variantes actuales:", variants);
-    console.log("Editando producto - Cantidad total calculada:", totalQuantityForProduct);
-    console.log("Estado actual - isEditing:", isEditing, "editingIndex:", editingIndex);
+    console.log(
+      "Editando producto - Cantidad total calculada:",
+      totalQuantityForProduct
+    );
+    console.log(
+      "Estado actual - isEditing:",
+      isEditing,
+      "editingIndex:",
+      editingIndex
+    );
     console.log("Productos antes de procesar:", productos);
-    
+
     const productData: ProductWithVariants & { files?: File[] } = {
       name: values.name,
       url: values.url || "",
@@ -348,17 +406,17 @@ export default function EditCotizacionView({
       volume: values.volume || 0,
       number_of_boxes: values.number_of_boxes || 0,
       quantityTotal: totalQuantityForProduct, // Agregar quantityTotal calculado
-      variants: variants.filter(v => v.quantity > 0), // Solo incluir variantes con cantidad > 0
+      variants: variants.filter((v) => v.quantity > 0), // Solo incluir variantes con cantidad > 0
       attachments: [], // Se llenará al enviar
       files: selectedFiles, // Guardar archivos originales
     };
-    
+
     console.log("Editando producto - ProductData a guardar:", productData);
 
     if (isEditing && editingIndex !== null) {
       console.log("Actualizando producto en índice:", editingIndex);
       console.log("Productos antes de actualizar:", productos);
-      
+
       // Actualizar producto existente usando una función más robusta
       setProductos((prev) => {
         const updatedProductos = [...prev]; // Crear una copia del array
@@ -366,24 +424,22 @@ export default function EditCotizacionView({
           ...productData,
           // Mantener attachments existentes si no hay nuevos archivos
           attachments:
-            selectedFiles.length > 0
-              ? []
-              : prev[editingIndex].attachments,
+            selectedFiles.length > 0 ? [] : prev[editingIndex].attachments,
         };
-        
+
         console.log("Productos después de actualizar:", updatedProductos);
         return updatedProductos;
       });
-      
+
       toast.success("Producto actualizado correctamente");
 
       // Salir del modo edición
       setEditingIndex(null);
       setIsEditing(false);
-      
+
       // Forzar re-renderización de la tabla
-      setTableKey(prev => prev + 1);
-      
+      setTableKey((prev) => prev + 1);
+
       console.log("=== ACTUALIZACIÓN COMPLETADA ===");
       console.log("Nueva key de tabla:", tableKey + 1);
       console.log("Estado final - isEditing:", false, "editingIndex:", null);
@@ -391,9 +447,9 @@ export default function EditCotizacionView({
       // Agregar nuevo producto
       setProductos((prev) => [...prev, productData]);
       toast.success("Producto agregado correctamente");
-      
+
       // Forzar re-renderización de la tabla
-      setTableKey(prev => prev + 1);
+      setTableKey((prev) => prev + 1);
     }
 
     // Resetear el formulario y los archivos
@@ -411,7 +467,7 @@ export default function EditCotizacionView({
       },
     ];
     setVariants(defaultVariants);
-    
+
     // Actualizar quantityTotal en el formulario
     form.setValue("quantityTotal", 0);
   };
@@ -420,61 +476,75 @@ export default function EditCotizacionView({
   const uploadFilesInBatches = async (files: File[]): Promise<string[]> => {
     const batchSize = 10;
     const allUrls: string[] = [];
-    
+
     for (let i = 0; i < files.length; i += batchSize) {
       const batch = files.slice(i, i + batchSize);
-      console.log(`Subiendo lote ${Math.floor(i / batchSize) + 1}: ${batch.length} archivos`);
-      
+      console.log(
+        `Subiendo lote ${Math.floor(i / batchSize) + 1}: ${
+          batch.length
+        } archivos`
+      );
+
       try {
         const uploadResponse = await uploadMultipleFiles(batch);
         allUrls.push(...uploadResponse.urls);
-        console.log(`Lote ${Math.floor(i / batchSize) + 1} completado: ${uploadResponse.urls.length} URLs obtenidas`);
+        console.log(
+          `Lote ${Math.floor(i / batchSize) + 1} completado: ${
+            uploadResponse.urls.length
+          } URLs obtenidas`
+        );
       } catch (error) {
-        console.error(`Error al subir lote ${Math.floor(i / batchSize) + 1}:`, error);
+        console.error(
+          `Error al subir lote ${Math.floor(i / batchSize) + 1}:`,
+          error
+        );
         throw error;
       }
     }
-    
+
     return allUrls;
   };
 
-  //* Función para actualizar cotización
-  const handleActualizar = async () => {
-    if (productos.length === 0) {
-      toast.error("No hay productos para actualizar");
-      return;
-    }
+  //* Función auxiliar para procesar productos y subir archivos
+  const procesarProductos = async () => {
+    return await Promise.all(
+      productos.map(async (producto, productIndex) => {
+        console.log(
+          `Procesando producto ${productIndex + 1}: ${producto.name}`
+        );
 
-    try {
-      setIsLoading(true);
-      
-      // 1. Procesar cada producto individualmente para subir archivos nuevos en lotes
-      const productosConUrls = await Promise.all(
-        productos.map(async (producto, productIndex) => {
-          console.log(`Procesando producto ${productIndex + 1}: ${producto.name}`);
-          
-          let finalAttachments = producto.attachments || [];
-          
-          // Si hay archivos nuevos para este producto, subirlos en lotes
+        let finalAttachments = producto.attachments || [];
+
+        // Si hay archivos nuevos para este producto, subirlos en lotes
         if (producto.files && producto.files.length > 0) {
-            console.log(`Producto ${producto.name} tiene ${producto.files.length} archivos nuevos`);
-            
-            let newUrls: string[] = [];
-            
-            // Subir archivos nuevos del producto en lotes de 10 si hay más de 10 archivos
-            if (producto.files.length > 10) {
-              console.log(`Producto ${producto.name} tiene ${producto.files.length} archivos nuevos, subiendo en lotes...`);
-              newUrls = await uploadFilesInBatches(producto.files);
-            } else {
-              console.log(`Producto ${producto.name} tiene ${producto.files.length} archivos nuevos, subiendo en un solo lote...`);
-              const uploadResponse = await uploadMultipleFiles(producto.files);
-              newUrls = uploadResponse.urls;
-            }
-            
-            finalAttachments = newUrls;
-            console.log(`Producto ${producto.name}: ${newUrls.length} URLs nuevas obtenidas`);
+          console.log(
+            `Producto ${producto.name} tiene ${producto.files.length} archivos nuevos`
+          );
+
+          let newUrls: string[] = [];
+
+          // Subir archivos nuevos del producto en lotes de 10 si hay más de 10 archivos
+          if (producto.files.length > 10) {
+            console.log(
+              `Producto ${producto.name} tiene ${producto.files.length} archivos nuevos, subiendo en lotes...`
+            );
+            newUrls = await uploadFilesInBatches(producto.files);
           } else {
-            console.log(`Producto ${producto.name}: manteniendo archivos existentes (${finalAttachments.length} URLs)`);
+            console.log(
+              `Producto ${producto.name} tiene ${producto.files.length} archivos nuevos, subiendo en un solo lote...`
+            );
+            const uploadResponse = await uploadMultipleFiles(producto.files);
+            newUrls = uploadResponse.urls;
+          }
+
+          finalAttachments = newUrls;
+          console.log(
+            `Producto ${producto.name}: ${newUrls.length} URLs nuevas obtenidas`
+          );
+        } else {
+          console.log(
+            `Producto ${producto.name}: manteniendo archivos existentes (${finalAttachments.length} URLs)`
+          );
         }
 
         return {
@@ -485,7 +555,7 @@ export default function EditCotizacionView({
           weight: producto.weight || 0,
           volume: producto.volume || 0,
           number_of_boxes: producto.number_of_boxes || 0,
-          variants: producto.variants.map(variant => ({
+          variants: producto.variants.map((variant) => ({
             id: variant.id,
             size: variant.size || "",
             presentation: variant.presentation || "",
@@ -495,8 +565,21 @@ export default function EditCotizacionView({
           })),
           attachments: finalAttachments,
         };
-        })
-      );
+      })
+    );
+  };
+
+  //* Función para editar borrador (solo guarda cambios)
+  const handleEditarBorrador = async () => {
+    if (productos.length === 0) {
+      toast.error("No hay productos para guardar");
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      const productosConUrls = await procesarProductos();
 
       const dataToSend = {
         service_type: service,
@@ -504,46 +587,140 @@ export default function EditCotizacionView({
       };
 
       console.log(
-        "Informacion a enviar :",
+        "Guardando borrador:",
         JSON.stringify(dataToSend, null, 2)
       );
 
-      if (statusQuotation === "draft") {
-        submitDraftMut.mutate({ data: dataToSend }, {
+      patchQuotationMut.mutate(
+        { data: dataToSend },
+        {
           onSuccess: () => {
-            
+            console.log("Borrador guardado exitosamente");
             console.log("Redirigiendo a mis cotizaciones en 1.2 segundos...");
             setTimeout(() => {
-              console.log("Ejecutando navegación a /dashboard/mis-cotizaciones");
+              console.log(
+                "Ejecutando navegación a /dashboard/mis-cotizaciones"
+              );
               try {
                 navigate("/dashboard/mis-cotizaciones");
               } catch (error) {
-                console.error("Error en navigate, usando window.location:", error);
+                console.error(
+                  "Error en navigate, usando window.location:",
+                  error
+                );
+                window.location.href = "/dashboard/mis-cotizaciones";
+              }
+            }, 1200);
+          },
+          onError: () => toast.error("Error al guardar el borrador"),
+        }
+      );
+    } catch (error) {
+      console.error("Error durante el proceso de guardado:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  //* Función para enviar borrador al administrador
+  const handleEnviarBorrador = async () => {
+    if (productos.length === 0) {
+      toast.error("No hay productos para enviar");
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      const productosConUrls = await procesarProductos();
+
+      const dataToSend = {
+        service_type: service,
+        products: productosConUrls,
+      };
+
+      console.log(
+        "Enviando borrador:",
+        JSON.stringify(dataToSend, null, 2)
+      );
+
+      submitDraftMut.mutate(
+        { data: dataToSend },
+        {
+          onSuccess: () => {
+            console.log("Borrador enviado exitosamente");
+            console.log("Redirigiendo a mis cotizaciones en 1.2 segundos...");
+            setTimeout(() => {
+              console.log(
+                "Ejecutando navegación a /dashboard/mis-cotizaciones"
+              );
+              try {
+                navigate("/dashboard/mis-cotizaciones");
+              } catch (error) {
+                console.error(
+                  "Error en navigate, usando window.location:",
+                  error
+                );
                 window.location.href = "/dashboard/mis-cotizaciones";
               }
             }, 1200);
           },
           onError: () => toast.error("Error al enviar el borrador"),
-        });
-      } else {
-        patchQuotationMut.mutate({ data: dataToSend }, {
+        }
+      );
+    } catch (error) {
+      console.error("Error durante el proceso de envío:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  //* Función para actualizar cotización (estado pending)
+  const handleActualizarCotizacion = async () => {
+    if (productos.length === 0) {
+      toast.error("No hay productos para actualizar");
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      const productosConUrls = await procesarProductos();
+
+      const dataToSend = {
+        service_type: service,
+        products: productosConUrls,
+      };
+
+      console.log(
+        "Actualizando cotización:",
+        JSON.stringify(dataToSend, null, 2)
+      );
+
+      patchQuotationMut.mutate(
+        { data: dataToSend },
+        {
           onSuccess: () => {
             console.log("Cotización actualizada exitosamente");
-            
             console.log("Redirigiendo a mis cotizaciones en 1.2 segundos...");
             setTimeout(() => {
-              console.log("Ejecutando navegación a /dashboard/mis-cotizaciones");
+              console.log(
+                "Ejecutando navegación a /dashboard/mis-cotizaciones"
+              );
               try {
                 navigate("/dashboard/mis-cotizaciones");
               } catch (error) {
-                console.error("Error en navigate, usando window.location:", error);
+                console.error(
+                  "Error en navigate, usando window.location:",
+                  error
+                );
                 window.location.href = "/dashboard/mis-cotizaciones";
               }
             }, 1200);
           },
           onError: () => toast.error("Error al actualizar la cotización"),
-        });
-      }
+        }
+      );
     } catch (error) {
       console.error("Error durante el proceso de actualización:", error);
     } finally {
@@ -553,16 +730,21 @@ export default function EditCotizacionView({
 
   useEffect(() => {
     console.log("Productos actuales:", productos);
-    console.log("Estado de edición - isEditing:", isEditing, "editingIndex:", editingIndex);
+    console.log(
+      "Estado de edición - isEditing:",
+      isEditing,
+      "editingIndex:",
+      editingIndex
+    );
   }, [productos, isEditing, editingIndex]);
 
   // Forzar re-renderización de la tabla cuando se actualiza un producto
   useEffect(() => {
     if (!isEditing && editingIndex === null) {
       // Forzar re-renderización de la tabla
-      const tableElement = document.querySelector('[data-table]');
+      const tableElement = document.querySelector("[data-table]");
       if (tableElement) {
-        tableElement.dispatchEvent(new Event('update'));
+        tableElement.dispatchEvent(new Event("update"));
       }
     }
   }, [isEditing, editingIndex]);
@@ -607,7 +789,8 @@ export default function EditCotizacionView({
                     Editar Cotización
                   </h1>
                   <p className="text-sm font-normal text-gray-500 dark:text-gray-400 mt-1">
-                    Edita los productos de tu cotización y actualiza la información.
+                    Edita los productos de tu cotización y actualiza la
+                    información.
                   </p>
                 </>
               ) : (
@@ -618,7 +801,7 @@ export default function EditCotizacionView({
                   <p className="text-sm font-normal text-gray-500 dark:text-gray-400 mt-1">
                     Edita y envia productos de tu borrador.
                   </p>
-                </> 
+                </>
               )}
             </div>
           </div>
@@ -1022,58 +1205,111 @@ export default function EditCotizacionView({
                   </span>
                 </h3>
               </div>
-               <div className="w-full overflow-x-auto px-6 py-4 bg-white dark:bg-gray-900">
-                 <DataTable
-                   key={tableKey} // Forzar re-renderización cuando cambie
-                   columns={columns}
-                   data={productos}
-                   toolbarOptions={{ showSearch: false, showViewOptions: false }}
-                   paginationOptions={{
-                     showSelectedCount: false,
-                     showPagination: false,
-                     showNavigation: false,
-                   }}
-                   pageInfo={{
-                     pageNumber: 1,
-                     pageSize: productos?.length || 100,
-                     totalElements: 0,
-                     totalPages: 0,
-                   }}
-                   onPageChange={() => {}}
-                   onSearch={() => {}}
-                   searchTerm={""}
-                   isLoading={false}
-                 />
-               </div>
+              <div className="w-full overflow-x-auto px-6 py-4 bg-white dark:bg-gray-900">
+                <DataTable
+                  key={tableKey} // Forzar re-renderización cuando cambie
+                  columns={columns}
+                  data={productos}
+                  toolbarOptions={{ showSearch: false, showViewOptions: false }}
+                  paginationOptions={{
+                    showSelectedCount: false,
+                    showPagination: false,
+                    showNavigation: false,
+                  }}
+                  pageInfo={{
+                    pageNumber: 1,
+                    pageSize: productos?.length || 100,
+                    totalElements: 0,
+                    totalPages: 0,
+                  }}
+                  onPageChange={() => {}}
+                  onSearch={() => {}}
+                  searchTerm={""}
+                  isLoading={false}
+                />
+              </div>
             </div>
           </div>
 
           {/* Botones de acción finales */}
           <div className="flex justify-end gap-4 pt-8">
-            {/* Botón Actualizar con confirmación */}
-            <ConfirmDialog
-              trigger={
-                <Button
-                  disabled={isLoading || productos.length === 0}
-                  className="bg-orange-500 hover:bg-orange-600 text-white px-10 py-4 rounded-xl shadow-lg flex items-center gap-3 disabled:opacity-50 transition-all duration-200 hover:shadow-xl"
-                >
-                  {isLoading ? (
-                    <Loader2 className="w-6 h-6 animate-spin" />
-                  ) : (
-                    <Send className="w-6 h-6" />
-                  )}
-                  {statusQuotation === "pending" ? "Actualizar Cotización" : "Enviar Borrador"} ({productos.length} producto
-                  {productos.length !== 1 ? "s" : ""})
-                </Button>
-              }
-              title="Confirmar actualización de cotización"
-              description={`¿Está seguro de actualizar la cotización con ${
-                productos.length
-              } producto${productos.length !== 1 ? "s" : ""}?`}
-              confirmText="Actualizar"
-              cancelText="Cancelar"
-              onConfirm={handleActualizar}
-            />
+            {statusQuotation === "pending" ? (
+              /* Estado PENDING - Solo botón de Actualizar Cotización */
+              <ConfirmDialog
+                trigger={
+                  <Button
+                    disabled={isLoading || productos.length === 0}
+                    className="bg-orange-500 hover:bg-orange-600 text-white px-10 py-4 rounded-xl shadow-lg flex items-center gap-3 disabled:opacity-50 transition-all duration-200 hover:shadow-xl"
+                  >
+                    {isLoading ? (
+                      <Loader2 className="w-6 h-6 animate-spin" />
+                    ) : (
+                      <Edit2 className="w-6 h-6" />
+                    )}
+                    Actualizar Cotización ({productos.length} producto
+                    {productos.length !== 1 ? "s" : ""})
+                  </Button>
+                }
+                title="Confirmar actualización de cotización"
+                description={`¿Está seguro de actualizar la cotización con ${
+                  productos.length
+                } producto${productos.length !== 1 ? "s" : ""}?`}
+                confirmText="Actualizar"
+                cancelText="Cancelar"
+                onConfirm={handleActualizarCotizacion}
+              />
+            ) : (
+              /* Estado DRAFT - Botones de Editar Borrador y Enviar Borrador */
+              <>
+                <ConfirmDialog
+                  trigger={
+                    <Button
+                      disabled={isLoading || productos.length === 0}
+                      className="bg-gray-500 hover:bg-gray-600 text-white px-10 py-4 rounded-xl shadow-lg flex items-center gap-3 disabled:opacity-50 transition-all duration-200 hover:shadow-xl"
+                    >
+                      {isLoading ? (
+                        <Loader2 className="w-6 h-6 animate-spin" />
+                      ) : (
+                        <Edit2 className="w-6 h-6" />
+                      )}
+                      Editar Borrador ({productos.length} producto
+                      {productos.length !== 1 ? "s" : ""})
+                    </Button>
+                  }
+                  title="Confirmar edición de borrador"
+                  description={`¿Está seguro de guardar los cambios en el borrador con ${
+                    productos.length
+                  } producto${productos.length !== 1 ? "s" : ""}?`}
+                  confirmText="Guardar Cambios"
+                  cancelText="Cancelar"
+                  onConfirm={handleEditarBorrador}
+                />
+
+                <ConfirmDialog
+                  trigger={
+                    <Button
+                      disabled={isLoading || productos.length === 0}
+                      className="bg-orange-500 hover:bg-orange-600 text-white px-10 py-4 rounded-xl shadow-lg flex items-center gap-3 disabled:opacity-50 transition-all duration-200 hover:shadow-xl"
+                    >
+                      {isLoading ? (
+                        <Loader2 className="w-6 h-6 animate-spin" />
+                      ) : (
+                        <Send className="w-6 h-6" />
+                      )}
+                      Enviar Borrador ({productos.length} producto
+                      {productos.length !== 1 ? "s" : ""})
+                    </Button>
+                  }
+                  title="Confirmar envío de borrador"
+                  description={`¿Está seguro de enviar el borrador con ${
+                    productos.length
+                  } producto${productos.length !== 1 ? "s" : ""} al administrador para revisión?`}
+                  confirmText="Enviar"
+                  cancelText="Cancelar"
+                  onConfirm={handleEnviarBorrador}
+                />
+              </>
+            )}
           </div>
         </div>
       </div>

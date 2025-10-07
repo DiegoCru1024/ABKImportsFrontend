@@ -51,9 +51,9 @@ export function DashboardSwitcher({
           >
             <SidebarMenuItem>
               <CollapsibleTrigger asChild>
-                <SidebarMenuButton tooltip={item.title}>
-                  {item.icon && <item.icon />}
-                  <span>{item.title}</span>
+                <SidebarMenuButton tooltip={item.title} className="flex items-center gap-3 ">
+                  {item.icon && <item.icon className="w-6 h-6" />}
+                  <span className="text-base text-gray-700  font-semibold uppercase">{item.title}</span>
                 </SidebarMenuButton>
               </CollapsibleTrigger>
             </SidebarMenuItem>

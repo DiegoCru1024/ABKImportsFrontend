@@ -15,9 +15,9 @@ export function TeamSwitcher() {
         >
           <div className="bg-sidebar-secondary text-sidebar-primary-foreground flex items-center justify-center rounded-lg mb-2 w-full p-2">
             <img
-              src="/abk-white.png"
+              src="/LOGO-02.webp"
               alt="ABK Imports Logo"
-              className="w-full h-auto object-contain max-h-16"
+              className="w-full h-auto object-contain max-h-12"
             />
           </div>
           {/* <span className="truncate font-medium text-sm text-center">{activeTeam.name}</span> */}

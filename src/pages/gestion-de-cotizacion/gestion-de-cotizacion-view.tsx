@@ -137,6 +137,7 @@ export default function GestionDeCotizacionesView() {
                   onViewDetails={handleViewDetails}
                   onViewResponses={handleViewListResponses}
                   onOpenImageModal={imageModal.openModal}
+                 
                 />
               ))}
             </div>

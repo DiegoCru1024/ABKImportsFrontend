@@ -6,7 +6,8 @@ import Tracking from "@/pages/Tracking";
 import GestionDeCotizacionesView from "@/pages/gestion-de-cotizacion/gestion-de-cotizacion-view";
 
 
-import LoginPage from "@/pages/login";  
+import LoginPage from "@/pages/login";
+import SesionPorExpirar from "@/pages/sesion-por-expirar";
 import DashboardPage from "@/pages/dashboard";
 import BasicLayout from "@/layouts/basic-layout";
 import DashboardLayout from "@/layouts/dashboard-layout";
@@ -35,6 +36,7 @@ function App() {
       {/* Layout básico para login */}
       <Route element={<BasicLayout />}>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/sesion-por-expirar" element={<SesionPorExpirar />} />
         <Route path="/" element={<Navigate to="/login" replace />} />
       </Route>
 

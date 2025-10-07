@@ -52,7 +52,12 @@ export default function LoginPage() {
         localStorage.setItem("user.id_usuario", res.data?.user?.id_usuario);
         localStorage.setItem("user.name", res.data?.user?.name);
         localStorage.setItem("user.email", res.data?.user?.email);
-        localStorage.setItem("user.type", res.data?.user?.type); 
+        localStorage.setItem("user.type", res.data?.user?.type);
+
+        // Guardar fecha de expiración del token (7 días desde ahora)
+        const expirationDate = new Date();
+        expirationDate.setDate(expirationDate.getDate() + 7);
+        localStorage.setItem("token_expiration", expirationDate.toISOString());
 
         // Espera 300ms antes de redirigir
         setTimeout(() => {

@@ -41,10 +41,9 @@ interface EditUserForm {
 
 interface EditUserDialogProps {
   user: UserProfile;
-  onOpen?: () => void;
 }
 
-const EditUserDialog: React.FC<EditUserDialogProps> = ({ user, onOpen }) => {
+const EditUserDialog: React.FC<EditUserDialogProps> = ({ user }) => {
   const updateMutation = useUpdateUserProfile(String(user.id));
 
   const [open, setOpen] = useState(false);
@@ -109,20 +108,21 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({ user, onOpen }) => {
     (form.last_name?.trim() || "").length > 0 &&
     (form.email?.trim() || "").length > 0;
 
-  const handleOpenChange = (newOpen: boolean) => {
-    setOpen(newOpen);
-    if (newOpen && onOpen) {
-      onOpen();
-    }
+  const handleTriggerClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setOpen(true);
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={open} onOpenChange={setOpen} modal={true}>
       <DialogTrigger asChild>
         <Button
           variant="ghost"
           size="sm"
           className="text-blue-600 hover:text-blue-700"
+          onClick={handleTriggerClick}
+          type="button"
         >
           <Edit className="h-4 w-4 mr-1" />
         </Button>

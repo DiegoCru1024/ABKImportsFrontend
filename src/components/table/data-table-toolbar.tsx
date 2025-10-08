@@ -86,11 +86,14 @@ export function DataTableToolbar<TData>({
               onFocus={handleInputFocus}
               onBlur={handleInputBlur}
               className="h-8 w-48 md:w-72"
-              autoComplete="off"
+              name={`search-${Math.random().toString(36).substring(7)}`}
+              autoComplete="new-password"
               autoCorrect="off"
               autoCapitalize="off"
               spellCheck="false"
               data-form-type="other"
+              data-lpignore="true"
+              data-1p-ignore="true"
             />
             <Search className="absolute right-2 top-1.5 h-4 w-4 text-muted-foreground" />
           </div>

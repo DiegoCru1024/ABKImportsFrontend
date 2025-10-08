@@ -19,10 +19,9 @@ import type { UserProfile } from "@/api/interface/user";
 
 interface ChangePasswordDialogProps {
   user: UserProfile;
-  onOpen?: () => void;
 }
 
-const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({ user, onOpen }) => {
+const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({ user }) => {
   const changePasswordMutation = useChangePassword(String(user.id));
   const [open, setOpen] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -58,17 +57,22 @@ const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({ user, onOpe
 
   const isFormValid = newPassword.length >= 6 && newPassword === confirmPassword;
 
-  const handleOpenChange = (newOpen: boolean) => {
-    setOpen(newOpen);
-    if (newOpen && onOpen) {
-      onOpen();
-    }
+  const handleTriggerClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setOpen(true);
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={open} onOpenChange={setOpen} modal={true}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" title="Cambiar contraseña">
+        <Button
+          variant="ghost"
+          size="icon"
+          title="Cambiar contraseña"
+          onClick={handleTriggerClick}
+          type="button"
+        >
           <Lock className="h-4 w-4 text-blue-600" />
         </Button>
       </DialogTrigger>

@@ -374,7 +374,7 @@ export default function CreateCotizacionView() {
 
       console.log("Datos a enviar:", JSON.stringify(dataToSend, null, 2));
 
-      /*const response = await createQuotationMut.mutateAsync({
+      const response = await createQuotationMut.mutateAsync({
         data: dataToSend,
       });
       if (response) {
@@ -383,7 +383,7 @@ export default function CreateCotizacionView() {
         }, 1200);
       } else {
         toast.error("Error al crear la cotización");
-      }*/
+      }
     } catch (error) {
       console.error(
         "Error durante el proceso de " +

@@ -220,9 +220,16 @@ export default function EditCotizacionView({
         volume: Number(product.volume) || 0,
         number_of_boxes: product.number_of_boxes || 0,
         quantityTotal: product.quantity || 0, // Agregar quantityTotal
-        variants: product.variants || [
+        variants: product.variants?.map((v: any) => ({
+          id: v.variantId || v.id || Date.now().toString(),
+          size: v.size || "",
+          presentation: v.presentation || "",
+          model: v.model || "",
+          color: v.color || "",
+          quantity: v.quantity || 0,
+        })) || [
           {
-            id: product.id || null,
+            id: Date.now().toString(),
             size: product.size || "",
             presentation: "",
             model: "",
@@ -1265,7 +1272,7 @@ export default function EditCotizacionView({
                   trigger={
                     <Button
                       disabled={isLoading || productos.length === 0}
-                      className="bg-gray-500 hover:bg-gray-600 text-white px-10 py-4 rounded-xl shadow-lg flex items-center gap-3 disabled:opacity-50 transition-all duration-200 hover:shadow-xl"
+                      className="bg-amber-500 hover:bg-amber-600 text-white px-10 py-4 rounded-xl shadow-lg flex items-center gap-3 disabled:opacity-50 transition-all duration-200 hover:shadow-xl"
                     >
                       {isLoading ? (
                         <Loader2 className="w-6 h-6 animate-spin" />
@@ -1289,14 +1296,14 @@ export default function EditCotizacionView({
                   trigger={
                     <Button
                       disabled={isLoading || productos.length === 0}
-                      className="bg-orange-500 hover:bg-orange-600 text-white px-10 py-4 rounded-xl shadow-lg flex items-center gap-3 disabled:opacity-50 transition-all duration-200 hover:shadow-xl"
+                      className="bg-blue-500 hover:bg-blue-600 text-white px-10 py-4 rounded-xl shadow-lg flex items-center gap-3 disabled:opacity-50 transition-all duration-200 hover:shadow-xl"
                     >
                       {isLoading ? (
                         <Loader2 className="w-6 h-6 animate-spin" />
                       ) : (
                         <Send className="w-6 h-6" />
                       )}
-                      Enviar Borrador ({productos.length} producto
+                      Enviar Cotización ({productos.length} producto
                       {productos.length !== 1 ? "s" : ""})
                     </Button>
                   }

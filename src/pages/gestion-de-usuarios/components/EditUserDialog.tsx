@@ -145,24 +145,32 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({ user }) => {
                 <Label htmlFor="edit_first_name">Nombres *</Label>
                 <Input
                   id="edit_first_name"
+                  name="edit-user-first-name"
                   value={form.first_name || ""}
                   onChange={(e) =>
                     setForm({ ...form, first_name: e.target.value })
                   }
                   placeholder="Ingrese nombres"
                   className="focus:ring-orange-500 focus:border-orange-500"
+                  autoComplete="off"
+                  data-lpignore="true"
+                  data-1p-ignore="true"
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="edit_last_name">Apellidos *</Label>
                 <Input
                   id="edit_last_name"
+                  name="edit-user-last-name"
                   value={form.last_name || ""}
                   onChange={(e) =>
                     setForm({ ...form, last_name: e.target.value })
                   }
                   placeholder="Ingrese apellidos"
                   className="focus:ring-orange-500 focus:border-orange-500"
+                  autoComplete="off"
+                  data-lpignore="true"
+                  data-1p-ignore="true"
                 />
               </div>
             </div>
@@ -171,11 +179,15 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({ user }) => {
               <Label htmlFor="edit_email">Email *</Label>
               <Input
                 id="edit_email"
+                name="edit-user-email"
                 type="email"
                 value={form.email || ""}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
                 placeholder="usuario@ejemplo.com"
                 className="focus:ring-orange-500 focus:border-orange-500"
+                autoComplete="off"
+                data-lpignore="true"
+                data-1p-ignore="true"
               />
             </div>
           </div>

@@ -854,7 +854,7 @@ export default function CreateCotizacionView() {
               variant="secondary"
               onClick={handleGuardarBorrador}
               disabled={isLoading || productos.length === 0}
-              className="bg-orange-500 hover:bg-orange-600 text-white px-10 py-4 rounded-xl shadow-lg flex items-center gap-3 disabled:opacity-50 transition-all duration-200 hover:shadow-xl"
+              className="bg-amber-700 hover:bg-amber-600 text-white px-10 py-4 rounded-xl shadow-lg flex items-center gap-3 disabled:opacity-50 transition-all duration-200 hover:shadow-xl"
             >
               {isLoading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
@@ -869,7 +869,7 @@ export default function CreateCotizacionView() {
               trigger={
                 <Button
                   disabled={isLoading || productos.length === 0}
-                  className="bg-orange-500 hover:bg-orange-600 text-white px-10 py-4 rounded-xl shadow-lg flex items-center gap-3 disabled:opacity-50 transition-all duration-200 hover:shadow-xl"
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-10 py-4 rounded-xl shadow-lg flex items-center gap-3 disabled:opacity-50 transition-all duration-200 hover:shadow-xl"
                 >
                   {isLoading ? (
                     <Loader2 className="w-6 h-6 animate-spin" />

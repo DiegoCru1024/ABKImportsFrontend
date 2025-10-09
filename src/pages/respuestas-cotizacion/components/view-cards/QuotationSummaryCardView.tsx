@@ -158,7 +158,7 @@ export default function QuotationSummaryCardView({
                       <div className="p-2 bg-orange-300 rounded-lg">
                         <DollarSign className="h-5 w-5 text-orange-800" />
                       </div>
-                      <div className="font-bold text-base">P. TOTAL</div>
+                      <div className="font-bold text-base">COSTO TOTAL</div>
                     </div>
                     <div>
                       <div className="font-bold text-2xl sm:text-3xl">

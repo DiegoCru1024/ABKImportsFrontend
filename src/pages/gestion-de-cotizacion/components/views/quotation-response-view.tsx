@@ -647,7 +647,7 @@ export default function QuotationResponseView({
               serviceCalculationsData.serviceFields.separacionCarga,
             seguroProductos:
               serviceCalculationsData.serviceFields.seguroProductos,
-            inspeccionProducts:
+            inspeccionProductos:
               serviceCalculationsData.serviceFields.inspeccionProductos,
             addvaloremigvipm: {
               descuento: calculationsData.exemptions.obligacionesFiscales,
@@ -660,6 +660,7 @@ export default function QuotationResponseView({
               calculationsData.dynamicValues.transporteLocalChinaEnvio,
             transporteLocalClienteEnvio:
               calculationsData.dynamicValues.transporteLocalClienteEnvio,
+            otrosServicios:0
           },
           totalExpenses: calculations.finalTotal || 0,
         };
@@ -735,10 +736,10 @@ export default function QuotationResponseView({
 
       // Enviar la cotización usando el hook
 
-      await createQuotationResponseMutation.mutateAsync({
+      /*await createQuotationResponseMutation.mutateAsync({
         data: dto,
         quotationId: selectedQuotationId,
-      });
+      });*/
 
       // Mostrar modal de éxito
       quotationForm.setIsSendingModalOpen(true);

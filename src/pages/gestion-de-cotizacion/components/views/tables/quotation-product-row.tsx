@@ -127,6 +127,13 @@ export default function QuotationProductRow({
     product.adminComment || ""
   );
 
+  // Sincronizar adminComment cuando cambie desde el padre
+  useEffect(() => {
+    if (product.adminComment !== undefined && product.adminComment !== adminComment) {
+      setAdminComment(product.adminComment);
+    }
+  }, [product.adminComment]);
+
   // Estado local para los valores del producto con valores extendidos para vista pendiente
   const [localProduct, setLocalProduct] = useState<
     Product & {
@@ -136,20 +143,21 @@ export default function QuotationProductRow({
     }
   >({
     ...product,
-    packingList: {
+    packingList: product.packingList || {
       boxes: product.number_of_boxes || 0,
       cbm: parseFloat(product.volume) || 0,
       weightKg: parseFloat(product.weight) || 0,
       weightTon: (parseFloat(product.weight) || 0) / 1000,
     },
-    cargoHandling: {
+    cargoHandling: product.cargoHandling || {
       fragileProduct: false,
       stackProduct: false,
     },
-    ghostUrl: product.url || "",
+    ghostUrl: product.ghostUrl || product.url || "",
   });
 
   // Solo actualizar el estado local si hay cambios significativos desde el padre
+  // Removemos las dependencias de valores que pueden cambiar sin ser "significativos"
   useEffect(() => {
     const hasSignificantChange =
       product.productId !== localProduct.productId ||
@@ -162,20 +170,24 @@ export default function QuotationProductRow({
     if (hasSignificantChange) {
       setLocalProduct((prev) => ({
         ...product,
-        packingList: {
-          boxes: product.number_of_boxes || prev.packingList?.boxes || 0,
-          cbm: parseFloat(product.volume) || prev.packingList?.cbm || 0,
-          weightKg:
-            parseFloat(product.weight) || prev.packingList?.weightKg || 0,
-          weightTon:
-            (parseFloat(product.weight) || prev.packingList?.weightKg || 0) /
-            1000,
-        },
-        cargoHandling: prev.cargoHandling || {
+        // SIEMPRE preservar packingList existente si ya fue editado
+        packingList: prev.packingList?.boxes !== product.number_of_boxes ||
+                     prev.packingList?.cbm !== parseFloat(product.volume) ||
+                     prev.packingList?.weightKg !== parseFloat(product.weight)
+          ? prev.packingList // Si ya fue editado, mantener los valores editados
+          : product.packingList || {
+              boxes: product.number_of_boxes || 0,
+              cbm: parseFloat(product.volume) || 0,
+              weightKg: parseFloat(product.weight) || 0,
+              weightTon: (parseFloat(product.weight) || 0) / 1000,
+            },
+        // Preservar cargoHandling - priorizar el del producto si existe
+        cargoHandling: product.cargoHandling || prev.cargoHandling || {
           fragileProduct: false,
           stackProduct: false,
         },
-        ghostUrl: product.url || prev.ghostUrl || "",
+        // Preservar ghostUrl existente si ya fue editado
+        ghostUrl: product.ghostUrl || prev.ghostUrl || product.url || "",
       }));
     }
   }, [
@@ -183,10 +195,6 @@ export default function QuotationProductRow({
     product.name,
     product.attachments,
     product.variants,
-    product.number_of_boxes,
-    product.volume,
-    product.weight,
-    product.url,
     localProduct.productId,
     localProduct.name,
     localProduct.attachments,
@@ -323,7 +331,13 @@ export default function QuotationProductRow({
 
   const handleSaveComment = () => {
     if (onProductUpdate) {
-      onProductUpdate(product.productId, { adminComment });
+      // Enviar todos los datos actuales del producto local para evitar que se pierdan
+      onProductUpdate(product.productId, {
+        adminComment,
+        packingList: localProduct.packingList,
+        cargoHandling: localProduct.cargoHandling,
+        ghostUrl: localProduct.ghostUrl,
+      });
     }
     setIsCommentModalOpen(false);
   };
@@ -504,26 +518,6 @@ export default function QuotationProductRow({
                         Ver link
                       </span>
                     </a>
-                    {/* Botón para ver comentarios y URL */}
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button variant="outline" size="sm" className="text-xs">
-                          <MessageSquare className="h-3 w-3 " />
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Comentario del cliente: </DialogTitle>
-                        </DialogHeader>
-                        <div className="space-y-4">
-                          <div>
-                            <p className="text-lg text-gray-600">
-                              {localProduct.comment || "Sin comentarios"}
-                            </p>
-                          </div>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
                   </div>
                 </div>
               ) : (
@@ -552,7 +546,6 @@ export default function QuotationProductRow({
                     size="sm"
                     onClick={handleToggleExpanded}
                     className="text-xs bg-green-100 hover:bg-green-200 "
-
                   >
                     {isExpanded ? (
                       <ChevronDown className="h-3 w-3 mr-1" />
@@ -692,6 +685,27 @@ export default function QuotationProductRow({
                   onChange={(e) => handleGhostUrlChange(e.target.value)}
                   className="h-8 text-xs"
                 />
+                   {/* Botón para ver comentarios y URL */}
+                   <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm" className="text-xs">
+                      <MessageSquare className="h-3 w-3 " /> Comentario  cliente
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Comentario del cliente: </DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <p className="text-lg text-gray-600">
+                          {localProduct.comment || "Sin comentarios"}
+                        </p>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+                 {/* Comentario del administrador */}
                 <Dialog
                   open={isCommentModalOpen}
                   onOpenChange={setIsCommentModalOpen}
@@ -703,12 +717,12 @@ export default function QuotationProductRow({
                       className="text-xs w-full"
                     >
                       <MessageSquare className="h-3 w-3 mr-1" />
-                      Comentario 
+                      Comentario Admin
                     </Button>
                   </DialogTrigger>
                   <DialogContent>
                     <DialogHeader>
-                      <DialogTitle>Comentario del Administrador</DialogTitle>
+                      <DialogTitle>Comentario  Administrador</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-4">
                       <p className="text-sm text-gray-600">
@@ -733,6 +747,8 @@ export default function QuotationProductRow({
                     </div>
                   </DialogContent>
                 </Dialog>
+
+             
               </div>
             </td>
 
@@ -873,7 +889,7 @@ export default function QuotationProductRow({
                           <td className="p-3 text-center border-r border-purple-200/30 w-24">
                             {isVariantSelected ? (
                               <EditableNumericField
-                                value={variant.quantity || 0}
+                                value={Number(variant.quantity) || 0}
                                 onChange={(value) =>
                                   handleVariantFieldChange(
                                     variant.variantId,
@@ -895,7 +911,7 @@ export default function QuotationProductRow({
                           <td className="p-3 text-center border-r border-purple-200/30 w-32">
                             {isVariantSelected ? (
                               <EditableNumericField
-                                value={variant.price || 0}
+                                value={Number(variant.price) || 0}
                                 onChange={(value) =>
                                   handleVariantFieldChange(
                                     variant.variantId,
@@ -908,7 +924,7 @@ export default function QuotationProductRow({
                               />
                             ) : (
                               <span className="text-gray-500">
-                                ${(variant.price || 0).toFixed(2)}
+                                ${Number(variant.price || 0).toFixed(2)}
                               </span>
                             )}
                           </td>
@@ -917,7 +933,7 @@ export default function QuotationProductRow({
                           <td className="p-3 text-center w-32">
                             {isVariantSelected ? (
                               <EditableNumericField
-                                value={variant.priceExpress || 0}
+                                value={Number(variant.priceExpress) || 0}
                                 onChange={(value) =>
                                   handleVariantFieldChange(
                                     variant.variantId,
@@ -930,7 +946,7 @@ export default function QuotationProductRow({
                               />
                             ) : (
                               <span className="text-gray-500">
-                                ${(variant.priceExpress || 0).toFixed(2)}
+                                ${Number(variant.priceExpress || 0).toFixed(2)}
                               </span>
                             )}
                           </td>

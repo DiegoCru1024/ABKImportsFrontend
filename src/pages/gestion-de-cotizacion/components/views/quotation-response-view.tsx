@@ -67,6 +67,9 @@ export default function QuotationResponseView({
         quotationDetail.products.map((product) => ({
           id: product.productId,
           name: product.name,
+          url: product.url || "",
+          comment: product.comment || "",
+          quantityTotal: product.quantityTotal || 0,
           boxes: product.number_of_boxes,
           priceXiaoYi: 0, // Valor por defecto
           cbmTotal: parseFloat(product.volume) || 0,
@@ -76,9 +79,21 @@ export default function QuotationResponseView({
           weight: parseFloat(product.weight) || 0,
           price: 0, // Valor por defecto
           attachments: product.attachments || [], // Imágenes del producto
+          adminComment: product.adminComment || "",
+          // Agregar packingList para que calculateProductAggregatedData lo encuentre
+          packingList: {
+            boxes: product.number_of_boxes || 0,
+            cbm: parseFloat(product.volume) || 0,
+            weightKg: parseFloat(product.weight) || 0,
+            weightTon: (parseFloat(product.weight) || 0) / 1000,
+          },
           variants:
             product.variants?.map((variant) => ({
               id: variant.variantId,
+              size: variant.size || "",
+              presentation: variant.presentation || "",
+              model: variant.model || "",
+              color: variant.color || "",
               name: `Nombre: ${variant.size} - Presentacion: ${variant.presentation} - Modelo: ${variant.model} - Color: ${variant.color}`,
               quantity: variant.quantity || 1,
               price: 0, // Valor por defecto
@@ -309,9 +324,33 @@ export default function QuotationResponseView({
   const handlePendingProductUpdate = useCallback(
     (productId: string, updates: any) => {
       setPendingProducts((prev) => {
-        const updatedProducts = prev.map((product) =>
-          product.id === productId ? { ...product, ...updates } : product
-        );
+        const updatedProducts = prev.map((product) => {
+          if (product.id === productId) {
+            // Sincronizar packingList con cbm y weight - BIDIRECCIONAL
+            const syncedUpdates = { ...updates };
+
+            // Si viene packingList desde el hijo, sincronizar con cbm/weight del padre
+            if (updates.packingList) {
+              syncedUpdates.cbm = updates.packingList.cbm;
+              syncedUpdates.weight = updates.packingList.weightKg;
+              syncedUpdates.boxes = updates.packingList.boxes;
+            }
+
+            // Siempre mantener packingList actualizado
+            const updatedProduct = { ...product, ...syncedUpdates };
+
+            // Asegurar que packingList esté sincronizado con los valores finales
+            updatedProduct.packingList = {
+              boxes: updatedProduct.boxes,
+              cbm: updatedProduct.cbm,
+              weightKg: updatedProduct.weight,
+              weightTon: updatedProduct.weight / 1000,
+            };
+
+            return updatedProduct;
+          }
+          return product;
+        });
 
         // Notificar cambios para recálculos en tiempo real
         const updatedProduct = updatedProducts.find((p) => p.id === productId);
@@ -880,33 +919,33 @@ export default function QuotationResponseView({
                 </h3>
               </div>
               <div className="p-4 sm:p-6 space-y-4">
-                {(quotationDetail?.products || []).map((product, index) => (
+                {pendingProducts.map((product, index) => (
                   <QuotationProductRow
-                    key={product.productId}
+                    key={product.id}
                     product={{
-                      productId: product.productId,
+                      productId: product.id,
                       name: product.name,
                       url: product.url || "",
                       comment: product.comment || "",
                       quantityTotal: product.quantityTotal,
                       weight: product.weight,
-                      volume: product.volume,
-                      number_of_boxes: product.number_of_boxes,
+                      volume: product.cbm,
+                      number_of_boxes: product.boxes,
                       attachments: product.attachments || [],
                       variants:
                         product.variants?.map((variant: any) => ({
-                          variantId: variant.variantId,
+                          variantId: variant.id,
                           size: variant.size || "",
                           presentation: variant.presentation || "",
                           model: variant.model || "",
                           color: variant.color || "",
                           quantity: variant.quantity || 1,
-                          price: 0, // Se ingresará en el formulario
-                          priceExpress: 0, // Se ingresará en el formulario
-                          weight: 0, // Se calculará si es necesario
-                          cbm: 0, // Se calculará si es necesario
+                          price: variant.price || 0,
+                          priceExpress: variant.priceExpress || 0,
+                          weight: variant.weight || 0,
+                          cbm: variant.cbm || 0,
                         })) || [],
-                      adminComment: "",
+                      adminComment: product.adminComment || "",
                     }}
                     index={index}
                     quotationDetail={quotationDetail}
@@ -934,7 +973,7 @@ export default function QuotationResponseView({
                     onAggregatedDataChange={handleAggregatedDataChange}
                   />
                 ))}
-                {(quotationDetail?.products || []).length === 0 && (
+                {pendingProducts.length === 0 && (
                   <div className="text-center py-8 text-gray-500">
                     <p>No hay productos disponibles para cotizar</p>
                   </div>

@@ -26,10 +26,7 @@ import { UnifiedConfigurationForm } from "../forms/unified-configuration-form";
 import { useQuotationResponseForm } from "../../hooks/use-quotation-response-form";
 import { useQuotationCalculations } from "../../hooks/use-quotation-calculations";
 import { QuotationResponseDirector } from "../../utils/quotation-response-director";
-import type {
-  PendingBuildData,
-  CompleteBuildData,
-} from "../../types/quotation-response-dto";
+
 import {
   aduana,
   courier,
@@ -126,6 +123,9 @@ export default function EditQuotationResponseView() {
           return {
             id: respProduct.productId,
             name: quotProduct?.name || "",
+            url: quotProduct?.url || "",
+            comment: quotProduct?.comment || "",
+            quantityTotal: quotProduct?.quantityTotal || 0,
             boxes: respProduct.packingList?.nroBoxes || 0,
             priceXiaoYi: 0,
             cbmTotal: respProduct.packingList?.cbm || 0,
@@ -137,16 +137,28 @@ export default function EditQuotationResponseView() {
             attachments: quotProduct?.attachments || [],
             adminComment: respProduct.adminComment || "",
             ghostUrl: respProduct.ghostUrl || "",
-            packingList: respProduct.packingList,
-            cargoHandling: respProduct.cargoHandling,
+            packingList: {
+              boxes: respProduct.packingList?.nroBoxes || 0,
+              cbm: respProduct.packingList?.cbm || 0,
+              weightKg: respProduct.packingList?.pesoKg || 0,
+              weightTon: respProduct.packingList?.pesoTn || 0,
+            },
+            cargoHandling: {
+              fragileProduct: respProduct.cargoHandling?.fragileProduct || false,
+              stackProduct: respProduct.cargoHandling?.stackProduct || false,
+            },
             variants: respProduct.variants?.map((respVar: any) => {
               const quotVar = quotProduct?.variants?.find(
                 (v) => v.variantId === respVar.variantId
               );
               return {
                 id: respVar.variantId,
+                size: quotVar?.size || "",
+                presentation: quotVar?.presentation || "",
+                model: quotVar?.model || "",
+                color: quotVar?.color || "",
                 name: quotVar
-                  ? `${quotVar.size} - ${quotVar.presentation} - ${quotVar.model} - ${quotVar.color}`
+                  ? `Nombre: ${quotVar.size} - Presentacion: ${quotVar.presentation} - Modelo: ${quotVar.model} - Color: ${quotVar.color}`
                   : "",
                 quantity: respVar.quantity || 0,
                 price: respVar.pendingPricing?.unitPrice || 0,
@@ -160,6 +172,28 @@ export default function EditQuotationResponseView() {
         });
 
         setPendingProducts(productsWithData);
+
+        // Inicializar aggregated data para cada producto
+        const initialAggregatedData: Record<string, any> = {};
+        productsWithData.forEach((product) => {
+          initialAggregatedData[product.id] = {
+            totalPrice: product.variants.reduce(
+              (sum: number, v: any) => sum + (v.price || 0) * (v.quantity || 0),
+              0
+            ),
+            totalWeight: product.weight || 0,
+            totalCBM: product.cbm || 0,
+            totalQuantity: product.variants.reduce(
+              (sum: number, v: any) => sum + (v.quantity || 0),
+              0
+            ),
+            totalExpress: product.variants.reduce(
+              (sum: number, v: any) => sum + (v.priceExpress || 0) * (v.quantity || 0),
+              0
+            ),
+          };
+        });
+        setProductsAggregatedData(initialAggregatedData);
 
         responseDetails.products.forEach((respProduct: any) => {
           quotationForm.updateProductQuotationState(
@@ -420,9 +454,33 @@ export default function EditQuotationResponseView() {
   const handlePendingProductUpdate = useCallback(
     (productId: string, updates: any) => {
       setPendingProducts((prev) => {
-        const updatedProducts = prev.map((product) =>
-          product.id === productId ? { ...product, ...updates } : product
-        );
+        const updatedProducts = prev.map((product) => {
+          if (product.id === productId) {
+            // Sincronizar packingList con cbm y weight - BIDIRECCIONAL
+            const syncedUpdates = { ...updates };
+
+            // Si viene packingList desde el hijo, sincronizar con cbm/weight del padre
+            if (updates.packingList) {
+              syncedUpdates.cbm = updates.packingList.cbm;
+              syncedUpdates.weight = updates.packingList.weightKg;
+              syncedUpdates.boxes = updates.packingList.boxes;
+            }
+
+            // Siempre mantener packingList actualizado
+            const updatedProduct = { ...product, ...syncedUpdates };
+
+            // Asegurar que packingList esté sincronizado con los valores finales
+            updatedProduct.packingList = {
+              boxes: updatedProduct.boxes,
+              cbm: updatedProduct.cbm,
+              weightKg: updatedProduct.weight,
+              weightTon: updatedProduct.weight / 1000,
+            };
+
+            return updatedProduct;
+          }
+          return product;
+        });
 
         const updatedProduct = updatedProducts.find((p) => p.id === productId);
         if (updatedProduct) {
@@ -851,7 +909,7 @@ export default function EditQuotationResponseView() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 overflow-x-hidden grid grid-cols-1">
+    <div className="min-h-screen bg-gray-50">
       <SectionHeader
         icon={<FileText className="h-6 w-6 text-white" />}
         title={
@@ -885,7 +943,7 @@ export default function EditQuotationResponseView() {
         }
       />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         <QuotationSummaryCard
           productCount={
             isPendingView
@@ -973,42 +1031,39 @@ export default function EditQuotationResponseView() {
         {isPendingView ? (
           <div className="space-y-6">
             <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-              <div className="bg-gradient-to-r from-green-500/50 to-green-600/50 p-4 sm:p-6">
-                <h3 className="text-lg sm:text-xl font-bold text-white">
+              <div className="bg-gradient-to-r from-blue-400/50 to-blue-400/50 p-4 sm:p-6">
+                <h3 className="text-lg sm:text-xl font-bold">
                   Productos de la Cotización - Vista Administrativa
                 </h3>
-                <p className="text-blue-100 text-sm mt-1">
-                  Gestión simplificada para servicios pendientes
-                </p>
               </div>
               <div className="p-4 sm:p-6 space-y-4">
-                {(quotationDetail?.products || []).map((product, index) => (
+                {pendingProducts.map((product, index) => (
                   <QuotationProductRow
-                    key={product.productId}
+                    key={product.id}
                     product={{
-                      productId: product.productId,
+                      productId: product.id,
                       name: product.name,
                       url: product.url || "",
                       comment: product.comment || "",
                       quantityTotal: product.quantityTotal,
                       weight: product.weight,
-                      volume: product.volume,
-                      number_of_boxes: product.number_of_boxes,
+                      volume: product.cbm,
+                      number_of_boxes: product.boxes,
                       attachments: product.attachments || [],
                       variants:
                         product.variants?.map((variant: any) => ({
-                          variantId: variant.variantId,
+                          variantId: variant.id,
                           size: variant.size || "",
                           presentation: variant.presentation || "",
                           model: variant.model || "",
                           color: variant.color || "",
                           quantity: variant.quantity || 1,
-                          price: 0,
-                          priceExpress: 0,
-                          weight: 0,
-                          cbm: 0,
+                          price: variant.price || 0,
+                          priceExpress: variant.priceExpress || 0,
+                          weight: variant.weight || 0,
+                          cbm: variant.cbm || 0,
                         })) || [],
-                      adminComment: "",
+                      adminComment: product.adminComment || "",
                     }}
                     index={index}
                     quotationDetail={quotationDetail}
@@ -1036,6 +1091,11 @@ export default function EditQuotationResponseView() {
                     onAggregatedDataChange={handleAggregatedDataChange}
                   />
                 ))}
+                {pendingProducts.length === 0 && (
+                  <div className="text-center py-8 text-gray-500">
+                    <p>No hay productos disponibles para cotizar</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>

@@ -1,5 +1,11 @@
 import { useState } from "react";
-import { Eye, MessageSquare, ChevronDown, ChevronRight, Package } from "lucide-react";
+import {
+  Eye,
+  MessageSquare,
+  ChevronDown,
+  ChevronRight,
+  Package,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -127,7 +133,7 @@ export default function QuotationProductRowView({
               MANIPULACIÓN DE CARGA
             </th>
             <th className="p-3 text-left text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 w-40">
-              URL FANSTAMA
+              COMENTARIOS
             </th>
             <th className="p-3 text-center text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 w-28">
               PRECIO
@@ -191,26 +197,6 @@ export default function QuotationProductRowView({
                         Ver link
                       </span>
                     </a>
-                    {/* Botón para ver comentarios */}
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button variant="outline" size="sm" className="text-xs">
-                          <MessageSquare className="h-3 w-3 " />
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Comentario del cliente:</DialogTitle>
-                        </DialogHeader>
-                        <div className="space-y-4">
-                          <div>
-                            <p className="text-lg text-gray-600">
-                              {product.comment || "Sin comentarios"}
-                            </p>
-                          </div>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
                   </div>
                 </div>
               ) : (
@@ -267,7 +253,9 @@ export default function QuotationProductRowView({
                     CBM
                   </Badge>
                   <div className="text-sm font-medium text-gray-700">
-                    {product.packingList?.cbm || parseFloat(product.volume) || 0}
+                    {product.packingList?.cbm ||
+                      parseFloat(product.volume) ||
+                      0}
                   </div>
                 </div>
                 <div>
@@ -324,12 +312,30 @@ export default function QuotationProductRowView({
               </div>
             </td>
 
-            {/* Columna 6: URL FANTASMA */}
+            {/* Columna 6: COMENTARIOS*/}
             <td className="p-3 align-top border-r border-blue-200/30 w-40">
               <div className="space-y-2">
-                <div className="text-sm text-gray-700 break-all">
-                  {product.ghostUrl || "Sin URL"}
-                </div>
+                {/* Botón para ver comentarios */}
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm" className="text-xs w-full">
+                      <MessageSquare className="h-3 w-3 " /> Comentario Cliente
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Comentario del cliente:</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <p className="text-lg text-gray-600">
+                          {product.comment || "Sin comentarios"}
+                        </p>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+
                 {product.adminComment && (
                   <Dialog>
                     <DialogTrigger asChild>
@@ -339,7 +345,7 @@ export default function QuotationProductRowView({
                         className="text-xs w-full"
                       >
                         <MessageSquare className="h-3 w-3 mr-1" />
-                        Ver Comentario
+                        Comentario Admi
                       </Button>
                     </DialogTrigger>
                     <DialogContent>
@@ -387,11 +393,10 @@ export default function QuotationProductRowView({
               <div className="text-xs text-slate-600 mb-1">USD</div>
               <div className="text-lg font-semibold text-indigo-700 border border-indigo-300/50 rounded-lg px-2 py-1 bg-indigo-100/50">
                 $
-                {(
-                  (product.variants && product.variants.length > 0
-                    ? aggregatedData.totalPrice + aggregatedData.totalExpress
-                    : (product.pendingPricing?.unitPrice || 0) +
-                      (product.pendingPricing?.expressPrice || 0))
+                {(product.variants && product.variants.length > 0
+                  ? aggregatedData.totalPrice + aggregatedData.totalExpress
+                  : (product.pendingPricing?.unitPrice || 0) +
+                    (product.pendingPricing?.expressPrice || 0)
                 ).toFixed(2)}
               </div>
             </td>

@@ -12,4 +12,6 @@ export interface ServiceFiledsInterface {
   inspeccionProducto: number;
 
   transporteLocal: number;
+
+  [key: string]: number;
 }

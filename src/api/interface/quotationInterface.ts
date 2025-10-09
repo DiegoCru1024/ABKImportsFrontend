@@ -25,6 +25,7 @@ export interface ProductoResponseIdInterface {
   number_of_boxes: number;
   variants: VariantResponseIdInterface[];
   attachments: string[];
+  adminComment?: string;
 }
 
 export interface VariantResponseIdInterface {

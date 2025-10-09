@@ -10,14 +10,10 @@ import {
 } from "@/components/ui/accordion";
 import { CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import type { ServiceCalculationsInterface } from "@/api/interface/quotation-response/dto/complete/service-calculations";
 
 export interface ServiceConsolidationCardViewProps {
-  serviceCalculations: {
-    igvServices: number;
-    serviceFields: Record<string, number>;
-    totalServices: number;
-    subtotalServices: number;
-  };
+  serviceCalculations: ServiceCalculationsInterface;
   title?: string;
 }
 
@@ -72,33 +68,33 @@ export default function ServiceConsolidationCardView({
                 </div>
 
                 <div className="space-y-3">
-                  {Object.entries(serviceCalculations.serviceFields).map(
-                    ([key, value]) => (
-                      <div
-                        key={key}
-                        className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-100 hover:border-blue-200 transition-all duration-200 hover:shadow-sm"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 bg-gray-50 rounded-lg">
-                            <DollarSign className="h-4 w-4 text-blue-500" />
-                          </div>
-                          <div>
-                            <div className="font-medium text-gray-900 text-sm">
-                              {getFieldLabel(key)}
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              Servicio de consolidación
-                            </div>
-                          </div>
+                  {Object.entries(
+                    serviceCalculations.serviceFields as Record<string, number>
+                  ).map(([key, value]) => (
+                    <div
+                      key={key}
+                      className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-100 hover:border-blue-200 transition-all duration-200 hover:shadow-sm"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-gray-50 rounded-lg">
+                          <DollarSign className="h-4 w-4 text-blue-500" />
                         </div>
-                        <div className="text-right">
-                          <div className="font-semibold text-gray-900">
-                            USD {value.toFixed(2)}
+                        <div>
+                          <div className="font-medium text-gray-900 text-sm">
+                            {getFieldLabel(key)}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            Servicio de consolidación
                           </div>
                         </div>
                       </div>
-                    )
-                  )}
+                      <div className="text-right">
+                        <div className="font-semibold text-gray-900">
+                          USD {value.toFixed(2)}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
 
                 <Separator className="my-4" />

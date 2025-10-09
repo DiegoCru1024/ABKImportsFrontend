@@ -24,6 +24,62 @@ export function CompleteServiceView({
   const products = serviceResponse.products as CompleteProductInterface[];
   const isMaritime = serviceResponse.serviceType === "MARITIME";
 
+  // Mapear productos de la API al formato esperado por la vista
+  const mappedProducts = products.map((product) => {
+    const quotProduct = quotationDetail?.products?.find(
+      (p: any) => p.productId === product.productId
+    );
+
+    // Calcular totales del producto
+    const totalQuantity = product.variants?.reduce(
+      (sum, v) => sum + (v.quantity || 0),
+      0
+    ) || 0;
+
+    const totalPrice = product.variants?.reduce(
+      (sum, v) => sum + (v.completePricing?.unitCost || 0) * (v.quantity || 0),
+      0
+    ) || 0;
+
+    return {
+      id: product.productId,
+      name: quotProduct?.name || "",
+      price: totalPrice,
+      quantity: totalQuantity,
+      total: totalPrice,
+      equivalence: product.pricing?.equivalence || 0,
+      importCosts: product.pricing?.importCosts || 0,
+      totalCost: product.pricing?.totalCost || 0,
+      unitCost: product.pricing?.unitCost || 0,
+      seCotiza: product.isQuoted,
+      attachments: quotProduct?.attachments || [],
+      variants: product.variants?.map((variant) => {
+        const quotVariant = quotProduct?.variants?.find(
+          (v: any) => v.variantId === variant.variantId
+        );
+        return {
+          originalVariantId: variant.variantId,
+          id: variant.variantId,
+          name: quotVariant
+            ? `${quotVariant.size} - ${quotVariant.presentation} - ${quotVariant.model} - ${quotVariant.color}`
+            : "",
+          price: Number(variant.completePricing?.unitCost) || 0,
+          size: quotVariant?.size || "",
+          model: quotVariant?.model || "",
+          color: quotVariant?.color || "",
+          presentation: quotVariant?.presentation || "",
+          quantity: variant.quantity || 0,
+          total: (variant.completePricing?.unitCost || 0) * (variant.quantity || 0),
+          equivalence: 0,
+          importCosts: 0,
+          totalCost: 0,
+          unitCost: variant.completePricing?.unitCost || 0,
+          seCotiza: variant.isQuoted,
+        };
+      }) || [],
+    };
+  });
+
   return (
     <div className="w-full space-y-8 pt-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -64,12 +120,12 @@ export function CompleteServiceView({
         )}
       </div>
 
-      {products && products.length > 0 && (
+      {mappedProducts && mappedProducts.length > 0 && (
         <div className="space-y-4">
           <h3 className="text-xl font-bold text-gray-800">
-            Productos con Costos Calculados ({products.length})
+            Productos con Costos Calculados ({mappedProducts.length})
           </h3>
-          <EditableUnitCostTableView products={products} />
+          <EditableUnitCostTableView products={mappedProducts} />
         </div>
       )}
     </div>

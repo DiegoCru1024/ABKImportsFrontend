@@ -1,12 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import {
-  ArrowLeft,
-  Calendar,
-  User,
-  FileText,
-  Loader2,
-} from "lucide-react";
+import { ArrowLeft, Calendar, User, FileText, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,19 +23,27 @@ export default function RespuestasCotizacionView() {
     isError,
   } = useGetQuatitationResponse(quotationId || "");
 
-  const {
-    data: quotationDetail,
-    isLoading: isLoadingQuotation,
-  } = useGetQuotationById(quotationId || "");
+  console.log(
+    "Esta es la información que viene de getQuotationReponse",
+    JSON.stringify(responseData, null, 2)
+  );
+
+  const { data: quotationDetail, isLoading: isLoadingQuotation } =
+    useGetQuotationById(quotationId || "");
+
+  console.log(
+    "Esta es la información que viene de quotationDetail",
+    JSON.stringify(quotationDetail, null, 2)
+  );
 
   const handleGoBack = () => {
     navigate(-1);
   };
 
-
-
   const getTabLabel = (response: any, index: number) => {
-    const serviceLabel = response.responseData?.generalInformation?.serviceLogistic || response.serviceType;
+    const serviceLabel =
+      response.responseData?.generalInformation?.serviceLogistic ||
+      response.serviceType;
     return `Opción ${index + 1}: ${serviceLabel}`;
   };
 
@@ -61,7 +63,9 @@ export default function RespuestasCotizacionView() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Card className="max-w-md mx-auto">
           <CardContent className="text-center py-8">
-            <h2 className="text-xl font-bold text-gray-800 mb-2">Error al cargar</h2>
+            <h2 className="text-xl font-bold text-gray-800 mb-2">
+              Error al cargar
+            </h2>
             <p className="text-gray-600 mb-4">
               No se pudieron cargar las respuestas de cotización.
             </p>
@@ -95,7 +99,8 @@ export default function RespuestasCotizacionView() {
               </div>
             </div>
             <Badge variant="default" className="bg-blue-100 text-blue-800">
-              {responseData?.responses?.length || 0} respuesta{(responseData?.responses?.length || 0) !== 1 ? 's' : ''}
+              {responseData?.responses?.length || 0} respuesta
+              {(responseData?.responses?.length || 0) !== 1 ? "s" : ""}
             </Badge>
           </div>
         </div>
@@ -117,7 +122,7 @@ export default function RespuestasCotizacionView() {
                   <span>Correlativo</span>
                 </div>
                 <p className="font-semibold text-gray-800">
-                  {responseData.correlative || 'N/A'}
+                  {responseData.correlative || "N/A"}
                 </p>
               </div>
               <div className="space-y-2">
@@ -126,10 +131,10 @@ export default function RespuestasCotizacionView() {
                   <span>Cliente</span>
                 </div>
                 <p className="font-semibold text-gray-800">
-                  {responseData.user?.name || 'N/A'}
+                  {responseData.user?.name || "N/A"}
                 </p>
                 <p className="text-sm text-gray-600">
-                  {responseData.user?.email || 'N/A'}
+                  {responseData.user?.email || "N/A"}
                 </p>
               </div>
               <div className="space-y-2">
@@ -138,7 +143,7 @@ export default function RespuestasCotizacionView() {
                   <span>ID Cotización</span>
                 </div>
                 <p className="font-semibold text-gray-800 text-xs">
-                  {responseData.quotationId || 'N/A'}
+                  {responseData.quotationId || "N/A"}
                 </p>
               </div>
             </div>
@@ -146,8 +151,19 @@ export default function RespuestasCotizacionView() {
         </Card>
 
         {responseData?.responses && responseData.responses.length > 1 ? (
-          <Tabs value={selectedResponseIndex.toString()} onValueChange={(value) => setSelectedResponseIndex(parseInt(value))}>
-            <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${Math.min(responseData.responses.length, 4)}, 1fr)` }}>
+          <Tabs
+            value={selectedResponseIndex.toString()}
+            onValueChange={(value) => setSelectedResponseIndex(parseInt(value))}
+          >
+            <TabsList
+              className="grid w-full"
+              style={{
+                gridTemplateColumns: `repeat(${Math.min(
+                  responseData.responses.length,
+                  4
+                )}, 1fr)`,
+              }}
+            >
               {responseData.responses.map((response: any, index: number) => (
                 <TabsTrigger
                   key={response.responseId}

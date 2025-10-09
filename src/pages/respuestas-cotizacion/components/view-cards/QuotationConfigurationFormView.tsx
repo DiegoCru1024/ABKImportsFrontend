@@ -68,7 +68,7 @@ export default function QuotationConfigurationFormView({
                   <Settings className="h-6 w-6 text-blue-700" />
                 </div>
                 <div>
-                  <div>Configuración del Servicio</div>
+                  <div>Información de la cotización</div>
                   <div className="text-sm font-normal text-blue-700">
                     Información general
                   </div>

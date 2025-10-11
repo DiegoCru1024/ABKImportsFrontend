@@ -32,6 +32,7 @@ interface DynamicValues {
   percepcionRate: number;
   transporteLocalChinaEnvio: number;
   transporteLocalClienteEnvio: number;
+  totalDerechos: number;
 }
 
 interface ExemptionState {
@@ -119,6 +120,7 @@ export function useQuotationResponseForm({
     percepcionRate: 5.0,
     transporteLocalChinaEnvio: 0.0,
     transporteLocalClienteEnvio: 0.0,
+    totalDerechos: 0.0,
   });
   
   // Estado para primera compra
@@ -159,6 +161,26 @@ export function useQuotationResponseForm({
     setId_asesor(user.id_usuario);
     setNombre_asesor(user?.name || null);
   }, []);
+
+  // Calcular flete automáticamente para servicios marítimos
+  useEffect(() => {
+    if (isMaritimeService(selectedServiceLogistic)) {
+      const maxValue = Math.max(dynamicValues.ton, dynamicValues.volumenCBM);
+      const calculatedFlete = maxValue * dynamicValues.calculoFlete;
+
+      if (calculatedFlete !== dynamicValues.flete) {
+        setDynamicValues(prev => ({
+          ...prev,
+          flete: calculatedFlete
+        }));
+      }
+    }
+  }, [
+    selectedServiceLogistic,
+    dynamicValues.ton,
+    dynamicValues.volumenCBM,
+    dynamicValues.calculoFlete,
+  ]);
   
   // Función para detectar si es servicio marítimo
   const isMaritimeService = (serviceType: string) => {

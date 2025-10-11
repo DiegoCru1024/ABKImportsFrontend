@@ -2,7 +2,7 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EditableNumericField } from "@/components/ui/editableNumberFieldProps";
 import { Separator } from "@/components/ui/separator";
-import { Plane, DollarSign, Calculator, TrendingUp } from "lucide-react";
+import { Plane, DollarSign, Calculator, TrendingUp, Ship } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Accordion,
@@ -18,6 +18,8 @@ export interface ServiceConsolidationCardProps {
   igvServices: number;
   totalServices: number;
   serviceType?: string;
+  transporteLocalChina?: number;
+  transporteLocalDestino?: number;
 }
 
 export default function ServiceConsolidationCard({
@@ -27,7 +29,13 @@ export default function ServiceConsolidationCard({
   igvServices,
   totalServices,
   serviceType,
+  transporteLocalChina = 0,
+  transporteLocalDestino = 0,
 }: ServiceConsolidationCardProps) {
+  const isMaritimeConsolidated =
+    serviceType === "Consolidado Maritimo" ||
+    serviceType === "Consolidado Grupal Maritimo";
+
   const getFieldNames = (serviceType?: string): { [key: string]: string } => {
     const baseNames = {
       servicioConsolidado: "SERVICIO CONSOLIDADO",
@@ -41,12 +49,27 @@ export default function ServiceConsolidationCard({
       inspeccionProducto: "INSPECCION DE PRODUCTO",
       inspeccionFabrica: "INSPECCION DE FABRICA",
       transporteLocal: "TRANSPORTE A LOCAL",
+      transporteLocalChina: "TRANSPORTE LOCAL (CHINA)",
+      transporteLocalDestino: "TRANSPORTE LOCAL (DESTINO)",
       otrosServicios: "OTROS SERVICIOS",
     };
     return baseNames;
   };
 
   const fieldNames = getFieldNames(serviceType);
+
+  const filteredServiceFields = isMaritimeConsolidated
+    ? Object.fromEntries(
+        Object.entries(serviceFields).filter(([key]) => key !== "transporteLocal")
+      )
+    : serviceFields;
+
+  const additionalFields = isMaritimeConsolidated
+    ? {
+        transporteLocalChina,
+        transporteLocalDestino,
+      }
+    : {};
 
   const getFieldIcon = (key: string) => {
     switch (key) {
@@ -59,6 +82,8 @@ export default function ServiceConsolidationCard({
       case "inspeccionFabrica":
         return <TrendingUp className="h-4 w-4 text-purple-500" />;
       case "transporteLocal":
+      case "transporteLocalChina":
+      case "transporteLocalDestino":
         return <DollarSign className="h-4 w-4 text-orange-500" />;
       default:
         return <DollarSign className="h-4 w-4 text-gray-500" />;
@@ -73,7 +98,10 @@ export default function ServiceConsolidationCard({
             <AccordionTrigger className="hover:no-underline py-0">
               <CardTitle className="flex items-center gap-3 text-xl font-bold">
                 <div className="p-2 bg-blue-200 rounded-lg">
-                  <Plane className="h-6 w-6 text-blue-700" />
+                  { title==="Servicio de Carga Consolidada (CARGA- ADUANA)" ? 
+                   <Ship className="h-6 w-6 text-blue-700" /> :
+                    <Plane className="h-6 w-6 text-blue-700" />}
+                 
                 </div>
                 <div>
                   <div>{title}</div>
@@ -99,7 +127,7 @@ export default function ServiceConsolidationCard({
                 </div>
 
                 <div className="space-y-3">
-                  {Object.entries(serviceFields).map(([key, value]) => (
+                  {Object.entries(filteredServiceFields).map(([key, value]) => (
                     <div
                       key={key}
                       className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-100 hover:border-blue-200 transition-all duration-200 hover:shadow-sm"
@@ -124,6 +152,38 @@ export default function ServiceConsolidationCard({
                             onChange={(newValue) =>
                               updateDynamicValue(key, newValue)
                             }
+                          />
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400 font-medium">
+                            USD
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {Object.entries(additionalFields).map(([key, value]) => (
+                    <div
+                      key={key}
+                      className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-100 hover:border-blue-200 transition-all duration-200 hover:shadow-sm"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-gray-50 rounded-lg">
+                          {getFieldIcon(key)}
+                        </div>
+                        <div>
+                          <div className="font-medium text-gray-900 text-sm">
+                            {fieldNames[key] ?? key}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            Transporte
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="relative">
+                          <EditableNumericField
+                            value={value ?? 0}
+                            onChange={() => {}}
+                            readOnly
                           />
                           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400 font-medium">
                             USD

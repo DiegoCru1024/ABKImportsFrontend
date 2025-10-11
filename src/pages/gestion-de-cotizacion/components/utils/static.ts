@@ -29,6 +29,8 @@ export const typeLoad = [
   { value: "general", label: "GENERAL" },
   { value: "imo", label: "IMO" },
   { value: "mixto", label: "MIXTO" },
+  { value: "suelta", label: "SUELTA" },
+  { value: "seca", label: "SECA" },
 ];
 
 //!Tipo de carga - Marítimo

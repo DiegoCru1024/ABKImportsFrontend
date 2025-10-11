@@ -130,26 +130,29 @@ export function QuotationConfigurationForm({
             </Select>
           </div>
 
-          <div className="space-y-1">
-            <Label htmlFor="courier" className="text-xs font-medium text-slate-600">
-              Courier
-            </Label>
-            <Select
-              value={selectedCourier}
-              onValueChange={onCourierChange}
-            >
-              <SelectTrigger className="w-full h-8 text-sm">
-                <SelectValue placeholder="Seleccionar courier" />
-              </SelectTrigger>
-              <SelectContent>
-                {courier.map((courierOption) => (
-                  <SelectItem key={courierOption.value} value={courierOption.value}>
-                    {courierOption.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {selectedServiceLogistic !== "Consolidado Maritimo" &&
+            selectedServiceLogistic !== "Consolidado Grupal Maritimo" && (
+              <div className="space-y-1">
+                <Label htmlFor="courier" className="text-xs font-medium text-slate-600">
+                  Courier
+                </Label>
+                <Select
+                  value={selectedCourier}
+                  onValueChange={onCourierChange}
+                >
+                  <SelectTrigger className="w-full h-8 text-sm">
+                    <SelectValue placeholder="Seleccionar courier" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {courier.map((courierOption) => (
+                      <SelectItem key={courierOption.value} value={courierOption.value}>
+                        {courierOption.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
         </div>
       </CardContent>
     </Card>

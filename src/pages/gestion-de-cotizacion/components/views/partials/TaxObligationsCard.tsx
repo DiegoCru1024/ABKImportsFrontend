@@ -4,6 +4,7 @@ import {
   Calculator,
   DollarSign,
   Percent,
+  Radiation,
   Receipt,
   TrendingUp,
 } from "lucide-react";
@@ -32,6 +33,8 @@ export interface TaxObligationsCardProps {
   setAntidumpingCantidad: (v: number) => void;
   iscRate: number;
   setIscRate: (v: number) => void;
+  percepcionMultiplier?: number;
+  setPercepcionMultiplier?: (v: number) => void;
   values: {
     adValorem: number;
     igvFiscal: number;
@@ -57,8 +60,19 @@ export default function TaxObligationsCard({
   setAntidumpingCantidad,
   iscRate,
   setIscRate,
+  percepcionMultiplier = 3.5,
+  setPercepcionMultiplier,
   values,
 }: TaxObligationsCardProps) {
+  const calculatedPercepcion =
+    (values.adValorem +
+      (isMaritime
+        ? values.totalDerechosDolares - values.adValorem - values.igvFiscal - values.ipm
+        : 0) +
+      values.isc +
+      values.igvFiscal +
+      values.ipm) *
+    percepcionMultiplier;
   const taxItems = [
     {
       key: "adValorem",
@@ -76,15 +90,7 @@ export default function TaxObligationsCard({
             label: "ANTIDUMPING",
             rate: antidumpingGobierno,
             setRate: setAntidumpingGobierno,
-            value: values.percepcion
-              ? values.totalDerechosDolares -
-                values.adValorem -
-                values.igvFiscal -
-                values.ipm
-              : values.totalDerechosDolares -
-                values.adValorem -
-                values.igvFiscal -
-                values.ipm,
+            value: antidumpingGobierno * antidumpingCantidad,
             icon: <TrendingUp className="h-4 w-4 text-red-500" />,
             color: "red",
             isComplex: true,
@@ -101,8 +107,8 @@ export default function TaxObligationsCard({
             rate: iscRate,
             setRate: setIscRate,
             value: values.isc,
-            icon: <Receipt className="h-4 w-4 text-purple-500" />,
-            color: "purple",
+            icon: <Radiation className="h-4 w-4 text-green-500" />,
+            color: "green",
           },
         ]
       : []),
@@ -112,8 +118,8 @@ export default function TaxObligationsCard({
       rate: igvRate,
       setRate: setIgvRate,
       value: values.igvFiscal,
-      icon: <Calculator className="h-4 w-4 text-green-500" />,
-      color: "green",
+      icon: <Calculator className="h-4 w-4 text-purple-500" />,
+      color: "purple",
     },
     {
       key: "ipm",
@@ -124,6 +130,20 @@ export default function TaxObligationsCard({
       icon: <DollarSign className="h-4 w-4 text-orange-500" />,
       color: "orange",
     },
+    ...(isMaritime
+      ? [
+          {
+            key: "percepcion",
+            label: "PERCEPCION",
+            rate: percepcionMultiplier,
+            setRate: setPercepcionMultiplier || (() => {}),
+            value: calculatedPercepcion,
+            icon: <Receipt className="h-4 w-4 text-teal-500" />,
+            color: "teal",
+            isMultiplier: true,
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -189,7 +209,7 @@ export default function TaxObligationsCard({
                               onChange={item.setRate}
                             />
                             <span className="ml-1 text-sm text-gray-500 font-medium">
-                              %
+                              {item.isMultiplier ? "x" : "%"}
                             </span>
                           </div>
                           {item.isComplex && (

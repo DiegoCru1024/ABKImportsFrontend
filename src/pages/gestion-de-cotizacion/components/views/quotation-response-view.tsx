@@ -241,6 +241,12 @@ export default function QuotationResponseView({
     variantQuotationState: quotationForm.variantQuotationState,
   });
 
+  useEffect(() => {
+    if (calculations.totalTaxes !== quotationForm.dynamicValues.totalDerechos) {
+      quotationForm.updateDynamicValue("totalDerechos", calculations.totalTaxes);
+    }
+  }, [calculations.totalTaxes]);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Estado para los datos agregados de cada producto (para vista pendiente)
@@ -1019,6 +1025,12 @@ export default function QuotationResponseView({
                   ) * 1.18
                 }
                 serviceType={quotationForm.selectedServiceLogistic}
+                transporteLocalChina={
+                  quotationForm.dynamicValues.transporteLocalChinaEnvio
+                }
+                transporteLocalDestino={
+                  quotationForm.dynamicValues.transporteLocalClienteEnvio
+                }
               />
 
               <TaxObligationsCard

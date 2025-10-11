@@ -57,7 +57,7 @@ export default function ImportExpensesCard({
         return <Shield className="h-4 w-4 text-purple-500" />;
       case 'transporteLocal':
       case 'transporteLocalChina':
-      case 'transporteLocalCliente':
+      case 'transporteLocalDestino':
         return <Truck className="h-4 w-4 text-orange-500" />;
       case 'separacionCarga':
         return <DollarSign className="h-4 w-4 text-indigo-500" />;
@@ -65,6 +65,9 @@ export default function ImportExpensesCard({
         return <Shield className="h-4 w-4 text-red-500" />;
       case 'desaduanajeFleteSaguro':
         return <DollarSign className="h-4 w-4 text-teal-500" />;
+      case 'totalDerechos':
+      case 'adValoremIgvIpm':
+        return <DollarSign className="h-4 w-4 text-emerald-500" />;
       default:
         return <DollarSign className="h-4 w-4 text-gray-500" />;
     }
@@ -78,6 +81,10 @@ export default function ImportExpensesCard({
     if (id.includes('separacion') || id.includes('desaduanaje')) return 'Aduana';
     return 'Otros';
   };
+
+  const isMaritimeConsolidated =
+    serviceType === "Consolidado Maritimo" ||
+    serviceType === "Consolidado Grupal Maritimo";
 
   const maritimeExpenses = [
     {
@@ -95,10 +102,30 @@ export default function ImportExpensesCard({
       label: "Servicio de Inspección",
       value: values.servicioInspeccionFinal,
     },
+    ...(isMaritimeConsolidated
+      ? [
+          {
+            id: "transporteLocalChina",
+            label: "Transporte Local (China)",
+            value: values.transporteLocalChinaEnvio,
+          },
+          {
+            id: "transporteLocalDestino",
+            label: "Transporte Local (Destino)",
+            value: values.transporteLocalClienteEnvio,
+          },
+        ]
+      : [
+          {
+            id: "transporteLocal",
+            label: "Transporte Local",
+            value: values.transporteLocalFinal,
+          },
+        ]),
     {
-      id: "transporteLocal",
-      label: "Transporte Local",
-      value: values.transporteLocalFinal,
+      id: "totalDerechos",
+      label: "Total de Derechos",
+      value: values.totalDerechosDolaresFinal,
     },
   ];
 
@@ -131,13 +158,18 @@ export default function ImportExpensesCard({
       },
       {
         id: "transporteLocalChina",
-        label: "Transporte Local China",
+        label: "Transporte Local (China)",
         value: values.transporteLocalChinaEnvio,
       },
       {
-        id: "transporteLocalCliente",
-        label: "Transporte Local Cliente",
+        id: "transporteLocalDestino",
+        label: "Transporte Local (Destino)",
         value: values.transporteLocalClienteEnvio,
+      },
+      {
+        id: "totalDerechos",
+        label: "Total de Derechos",
+        value: values.totalDerechosDolaresFinal,
       },
     ];
 

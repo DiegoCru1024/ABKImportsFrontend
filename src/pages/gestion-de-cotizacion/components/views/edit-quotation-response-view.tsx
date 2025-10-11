@@ -769,7 +769,7 @@ export default function EditQuotationResponseView() {
               serviceCalculationsData.serviceFields.separacionCarga,
             seguroProductos:
               serviceCalculationsData.serviceFields.seguroProductos,
-            inspeccionProducts:
+            inspeccionProductos:
               serviceCalculationsData.serviceFields.inspeccionProductos,
             addvaloremigvipm: {
               descuento: calculationsData.exemptions.obligacionesFiscales,
@@ -782,6 +782,7 @@ export default function EditQuotationResponseView() {
               calculationsData.dynamicValues.transporteLocalChinaEnvio,
             transporteLocalClienteEnvio:
               calculationsData.dynamicValues.transporteLocalClienteEnvio,
+            otrosServicios: 0,
           },
           totalExpenses: calculations.finalTotal || 0,
         };
@@ -1172,11 +1173,17 @@ export default function EditQuotationResponseView() {
                   ipm: calculations.ipmAmount,
                   isc: 0,
                   percepcion: calculations.percepcionAmount,
-                  totalDerechosDolares: calculations.totalTaxes,
+                  totalDerechosDolares: calculations.totalTaxes + 
+                    (quotationForm.isMaritimeService() 
+                      ? (quotationForm.dynamicValues.antidumpingGobierno || 0) * (quotationForm.dynamicValues.antidumpingCantidad || 0)
+                      : 0),
                   totalDerechosSoles:
-                    calculations.totalTaxesInSoles ||
+                    (calculations.totalTaxesInSoles ||
                     calculations.totalTaxes *
-                      quotationForm.dynamicValues.tipoCambio,
+                      quotationForm.dynamicValues.tipoCambio) +
+                    (quotationForm.isMaritimeService()
+                      ? ((quotationForm.dynamicValues.antidumpingGobierno || 0) * (quotationForm.dynamicValues.antidumpingCantidad || 0)) * quotationForm.dynamicValues.tipoCambio
+                      : 0),
                 }}
               />
             </div>
@@ -1192,7 +1199,10 @@ export default function EditQuotationResponseView() {
                     quotationForm.dynamicValues.inspeccionProducto,
                   transporteLocalFinal:
                     quotationForm.dynamicValues.transporteLocal,
-                  totalDerechosDolaresFinal: calculations.totalTaxes,
+                  totalDerechosDolaresFinal: calculations.totalTaxes + 
+                    (quotationForm.isMaritimeService() 
+                      ? (quotationForm.dynamicValues.antidumpingGobierno || 0) * (quotationForm.dynamicValues.antidumpingCantidad || 0)
+                      : 0),
                   desaduanajeFleteSaguro:
                     quotationForm.dynamicValues.desaduanaje +
                     quotationForm.dynamicValues.flete +

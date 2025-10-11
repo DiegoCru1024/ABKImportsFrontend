@@ -152,6 +152,7 @@ export default function QuotationResponseView({
       totalCost: 0,
       unitCost: 0,
       seCotiza: true, // Por defecto seleccionado
+      attachments: product.attachments || [], // Agregar imágenes del producto
       variants:
         product.variants?.map((variant) => ({
           originalVariantId: variant.variantId,
@@ -160,6 +161,8 @@ export default function QuotationResponseView({
           price: 0, // El usuario ingresará el precio
           size: variant.size,
           presentation: variant.presentation,
+          model: variant.model, // Agregar modelo
+          color: variant.color, // Agregar color
           quantity: variant.quantity || 1,
           total: 0, // Se calculará automáticamente
           equivalence: 0,
@@ -1069,11 +1072,17 @@ export default function QuotationResponseView({
                   ipm: calculations.ipmAmount,
                   isc: 0, // ISC no está calculado en este contexto
                   percepcion: calculations.percepcionAmount,
-                  totalDerechosDolares: calculations.totalTaxes,
+                  totalDerechosDolares: calculations.totalTaxes + 
+                    (quotationForm.isMaritimeService() 
+                      ? (quotationForm.dynamicValues.antidumpingGobierno || 0) * (quotationForm.dynamicValues.antidumpingCantidad || 0)
+                      : 0),
                   totalDerechosSoles:
-                    calculations.totalTaxesInSoles ||
+                    (calculations.totalTaxesInSoles ||
                     calculations.totalTaxes *
-                      quotationForm.dynamicValues.tipoCambio,
+                      quotationForm.dynamicValues.tipoCambio) +
+                    (quotationForm.isMaritimeService()
+                      ? ((quotationForm.dynamicValues.antidumpingGobierno || 0) * (quotationForm.dynamicValues.antidumpingCantidad || 0)) * quotationForm.dynamicValues.tipoCambio
+                      : 0),
                 }}
               />
             </div>
@@ -1089,7 +1098,10 @@ export default function QuotationResponseView({
                     quotationForm.dynamicValues.inspeccionProducto,
                   transporteLocalFinal:
                     quotationForm.dynamicValues.transporteLocal,
-                  totalDerechosDolaresFinal: calculations.totalTaxes,
+                  totalDerechosDolaresFinal: calculations.totalTaxes + 
+                    (quotationForm.isMaritimeService() 
+                      ? (quotationForm.dynamicValues.antidumpingGobierno || 0) * (quotationForm.dynamicValues.antidumpingCantidad || 0)
+                      : 0),
                   desaduanajeFleteSaguro:
                     quotationForm.dynamicValues.desaduanaje +
                     quotationForm.dynamicValues.flete +

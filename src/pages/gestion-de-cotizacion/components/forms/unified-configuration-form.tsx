@@ -345,7 +345,7 @@ export function UnifiedConfigurationForm({
                     />
                   </div>
 
-                  {/* Cálculo CIF destacado */}
+                  {/* Cálculo CIF destacado - Diseño Vertical */}
                   <div className="p-4 bg-gradient-to-r from-emerald-50 to-green-50 border-2 border-emerald-300 rounded-lg space-y-3">
                     <div className="flex items-center gap-2 mb-2">
                       <div className="h-3 w-3 rounded-full bg-emerald-600 animate-pulse"></div>
@@ -354,7 +354,8 @@ export function UnifiedConfigurationForm({
                       </h4>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
+                    <div className="space-y-3">
+                      {/* FOB */}
                       <div className="space-y-2">
                         <Label className="text-xs font-semibold text-emerald-700">
                           FOB
@@ -369,6 +370,7 @@ export function UnifiedConfigurationForm({
                         />
                       </div>
 
+                      {/* Flete */}
                       <div className="space-y-2">
                         <Label className="text-xs font-semibold text-emerald-700 flex items-center gap-1">
                           Flete
@@ -389,7 +391,7 @@ export function UnifiedConfigurationForm({
                             readOnly={isMaritimeService}
                           />
                           {isMaritimeService && (
-                            <div className="space-y-1">
+                            <div className="space-y-1 flex-1">
                               <Label className="text-[10px] font-medium text-slate-500">
                                 Cálculo Flete
                               </Label>
@@ -406,6 +408,7 @@ export function UnifiedConfigurationForm({
                         </div>
                       </div>
 
+                      {/* Seguro */}
                       <div className="space-y-2">
                         <Label className="text-xs font-semibold text-emerald-700">
                           Seguro
@@ -420,10 +423,14 @@ export function UnifiedConfigurationForm({
                         />
                       </div>
 
-                      <div className="space-y-2">
-                        <Label className="text-sm font-bold text-emerald-900 flex items-center gap-2">
-                          <span className="text-lg">=</span>
-                          CIF
+                      {/* Separador visual */}
+                      <div className="border-t-2 border-emerald-400 my-2"></div>
+
+                      {/* CIF - Resultado destacado */}
+                      <div className="space-y-2 p-4 bg-gradient-to-br from-emerald-100 to-green-100 rounded-lg border-2 border-emerald-500 shadow-md">
+                        <Label className="text-base font-extrabold text-emerald-900 flex items-center gap-2">
+                          <span className="text-xl">=</span>
+                          CIF (TOTAL)
                         </Label>
                         <div className="relative">
                           <EditableNumericField
@@ -435,6 +442,9 @@ export function UnifiedConfigurationForm({
                           />
                           <div className="absolute inset-0 pointer-events-none bg-gradient-to-r from-emerald-500/10 to-green-500/10 rounded"></div>
                         </div>
+                        <p className="text-[10px] text-emerald-700 font-medium">
+                          Valor más importante para cálculos fiscales
+                        </p>
                       </div>
                     </div>
                   </div>

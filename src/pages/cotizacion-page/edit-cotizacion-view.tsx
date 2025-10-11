@@ -68,13 +68,13 @@ import { useNavigate } from "react-router-dom";
 interface EditCotizacionViewProps {
   quotationId: string;
   onBack: () => void;
-  statusQuotation: string;
+  status: string;
 }
 
 export default function EditCotizacionView({
   quotationId,
   onBack,
-  statusQuotation,
+  status,
 }: EditCotizacionViewProps) {
   const [productos, setProductos] = useState<
     (ProductWithVariants & { files?: File[] })[]
@@ -100,6 +100,14 @@ export default function EditCotizacionView({
       quantity: 0,
     },
   ]);
+
+  const [statusQuotation, setStatusQuotation] = useState<string>("pending");
+
+  useEffect(() => {
+    if (statusQuotation === "answered") {
+      setStatusQuotation("pending");
+    }
+  }, []);
 
   console.log("statusQuotation", statusQuotation);
 
@@ -593,10 +601,7 @@ export default function EditCotizacionView({
         products: productosConUrls,
       };
 
-      console.log(
-        "Guardando borrador:",
-        JSON.stringify(dataToSend, null, 2)
-      );
+      console.log("Guardando borrador:", JSON.stringify(dataToSend, null, 2));
 
       patchQuotationMut.mutate(
         { data: dataToSend },
@@ -646,10 +651,7 @@ export default function EditCotizacionView({
         products: productosConUrls,
       };
 
-      console.log(
-        "Enviando borrador:",
-        JSON.stringify(dataToSend, null, 2)
-      );
+      console.log("Enviando borrador:", JSON.stringify(dataToSend, null, 2));
 
       submitDraftMut.mutate(
         { data: dataToSend },
@@ -1310,7 +1312,9 @@ export default function EditCotizacionView({
                   title="Confirmar envío de borrador"
                   description={`¿Está seguro de enviar el borrador con ${
                     productos.length
-                  } producto${productos.length !== 1 ? "s" : ""} al administrador para revisión?`}
+                  } producto${
+                    productos.length !== 1 ? "s" : ""
+                  } al administrador para revisión?`}
                   confirmText="Enviar"
                   cancelText="Cancelar"
                   onConfirm={handleEnviarBorrador}

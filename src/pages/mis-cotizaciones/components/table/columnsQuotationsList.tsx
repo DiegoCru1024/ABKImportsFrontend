@@ -133,7 +133,7 @@ export function columnsQuotationsList({
             <Eye className="w-4 h-4" />
           </Button>
           )}
-          {row.original.status !== "answered" &&
+          {
             row.original.status !== "approved" && (
               <Button
                 variant="ghost"

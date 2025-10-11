@@ -158,7 +158,7 @@ function EditarCotizacionRoute() {
     <EditCotizacionView
       quotationId={quotationId}
       onBack={() => window.history.back()}
-      statusQuotation={statusQuotation}
+      status={statusQuotation}
     />
   );
 }

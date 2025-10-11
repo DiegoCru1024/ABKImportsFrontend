@@ -230,7 +230,6 @@ export default function QuotationProductRow({
 
     return selectedVariants.reduce(
       (acc, variant) => {
-        // Calcular CBM del tamaño si existe (asumiendo formato "LxWxH")
         let variantCBM = 0;
         if (variant.size) {
           const dimensions = variant.size
@@ -241,7 +240,7 @@ export default function QuotationProductRow({
             dimensions.every((d: number) => !isNaN(d))
           ) {
             variantCBM =
-              (dimensions[0] * dimensions[1] * dimensions[2]) / 1000000; // convertir a m3
+              (dimensions[0] * dimensions[1] * dimensions[2]) / 1000000;
           }
         }
 
@@ -259,9 +258,7 @@ export default function QuotationProductRow({
                 (localProduct.variants?.length || 1)) *
               (variant.quantity || 1),
           totalQuantity: acc.totalQuantity + (variant.quantity || 0),
-          totalExpress:
-            acc.totalExpress +
-            (variant.priceExpress || 0) * (variant.quantity || 0),
+          totalExpress: acc.totalExpress + (variant.priceExpress || 0),
         };
       },
       {

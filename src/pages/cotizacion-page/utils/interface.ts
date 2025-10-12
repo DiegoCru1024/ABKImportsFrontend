@@ -73,7 +73,7 @@ export interface Quotation {
     comment?: string;
     weight?: number;
     volume?: number;
-    number_of_boxes?: number;
+    number_of_boxes?: number; 
     variants: {
       variantId?: string|null; // Opcional: si existe, se actualiza; si no, se crea
       size?: string;

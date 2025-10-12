@@ -632,12 +632,18 @@ export default function QuotationResponseView({
               quotationForm.getServiceFields().gestionCertificado || 0,
             inspeccionProducto:
               quotationForm.getServiceFields().inspeccionProducto || 0,
-            transporteLocalChina:
+            transporteLocal:
               quotationForm.getServiceFields().transporteLocal || 0,
+            transporteLocalChina:
+              quotationForm.dynamicValues.transporteLocalChinaEnvio || 0,
+            transporteLocalDestino:
+              quotationForm.dynamicValues.transporteLocalClienteEnvio || 0,
+            otrosServicios:
+              quotationForm.getServiceFields().otrosServicios || 0,
           },
-          subtotalServices: 0, // Se calculará automáticamente
-          igvServices: 0, // Se calculará automáticamente
-          totalServices: 0, // Se calculará automáticamente
+          subtotalServices: 0,
+          igvServices: 0,
+          totalServices: 0,
         };
 
         // Calcular subtotales

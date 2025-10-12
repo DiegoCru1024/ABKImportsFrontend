@@ -166,6 +166,10 @@ export function useDeleteQuotation() {
  * Hook para actualizar una cotización
  * @param {string} id - El ID de la cotización
  * @returns {useMutation} - Mutación para actualizar una cotización
+ *
+ * NOTA: Este hook NO muestra toasts automáticamente para permitir
+ * manejo de errores personalizado en el componente que lo usa.
+ * Solo invalida las queries en caso de éxito.
  */
 export function usePatchQuotation(id: string) {
   const queryClient = useQueryClient();
@@ -173,26 +177,20 @@ export function usePatchQuotation(id: string) {
   return useMutation({
     mutationFn: ({ data }: { data: Quotation }) => patchQuotation(id, data),
     onSuccess: () => {
+      // Invalidar queries para refrescar los datos
       queryClient.invalidateQueries({
         queryKey: ["useGetQuotationsByUser"],
       });
-      toast.success("Cotización actualizada exitosamente", {
-        className: "bg-green-50 border-green-500",
-        duration: 3000, // 3 segundos
-        descriptionClassName: "text-green-600",
-        icon: <Check className="text-green-500" />,
-        style: { border: "1px solid #22c55e" },
+      queryClient.invalidateQueries({
+        queryKey: ["QuotationById", id],
       });
+
+      // NO mostrar toast aquí - el componente manejará la notificación
+      console.log("Cotización actualizada exitosamente - queries invalidadas");
     },
     onError: (error) => {
-      console.error("Error al actualizar la cotización:", error);
-      toast.error("Error al actualizar la cotización", {
-        className: "bg-red-50 border-red-500",
-        duration: 3000, // 3 segundos
-        descriptionClassName: "text-red-600",
-        icon: <X className="text-red-500" />,
-        style: { border: "1px solid #ef4444" },
-      });
+      // Solo log del error - el componente manejará la notificación
+      console.error("Error en usePatchQuotation:", error);
     },
   });
 }
@@ -201,6 +199,10 @@ export function usePatchQuotation(id: string) {
  * Hook para enviar un borrador de cotización
  * @param {string} id - El ID de la cotización
  * @returns {useMutation} - Mutación para enviar un borrador de cotización
+ *
+ * NOTA: Este hook NO muestra toasts automáticamente para permitir
+ * manejo de errores personalizado en el componente que lo usa.
+ * Solo invalida las queries en caso de éxito.
  */
 export function useSubmitDraft(id: string) {
   const queryClient = useQueryClient();
@@ -208,26 +210,20 @@ export function useSubmitDraft(id: string) {
   return useMutation({
     mutationFn: ({ data }: { data: Quotation }) => submitDraft(id, data),
     onSuccess: () => {
+      // Invalidar queries para refrescar los datos
       queryClient.invalidateQueries({
         queryKey: ["useGetQuotationsByUser"],
       });
-      toast.success("Borrador enviado exitosamente", {
-        className: "bg-green-50 border-green-500",
-        duration: 3000, // 3 segundos
-        descriptionClassName: "text-green-600",
-        icon: <Check className="text-green-500" />,
-        style: { border: "1px solid #22c55e" },
+      queryClient.invalidateQueries({
+        queryKey: ["QuotationById", id],
       });
+
+      // NO mostrar toast aquí - el componente manejará la notificación
+      console.log("Borrador enviado exitosamente - queries invalidadas");
     },
     onError: (error) => {
-      console.error("Error al enviar el borrador:", error);
-      toast.error("Error al enviar el borrador", {
-        className: "bg-red-50 border-red-500",
-        duration: 3000, // 3 segundos
-        descriptionClassName: "text-red-600",
-        icon: <X className="text-red-500" />,
-        style: { border: "1px solid #ef4444" },
-      });
+      // Solo log del error - el componente manejará la notificación
+      console.error("Error en useSubmitDraft:", error);
     },
   });
 }

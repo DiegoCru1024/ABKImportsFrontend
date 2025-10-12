@@ -17,6 +17,7 @@ import {
   ArrowLeft,
   Undo2,
   Minus,
+  Check,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
@@ -63,6 +64,7 @@ import {
 import { columnasCotizacion } from "@/pages/cotizacion-page/components/table/columnasCotizacion";
 import { servicios } from "@/pages/cotizacion-page/components/data/static";
 import type { QuotationDTO } from "@/pages/cotizacion-page/utils/interface";
+import { handleQuotationUpdateError } from "@/pages/cotizacion-page/utils/error-handler";
 import { useNavigate } from "react-router-dom";
 
 interface EditCotizacionViewProps {
@@ -221,6 +223,7 @@ export default function EditCotizacionView({
 
       // Mapear productos de la cotización
       const mappedProducts = quotationData.products.map((product: any) => ({
+        productId: product.productId, // ✅ Preservar productId del backend
         name: product.name,
         url: product.url || "",
         comment: product.comment || "",
@@ -230,6 +233,7 @@ export default function EditCotizacionView({
         quantityTotal: product.quantity || 0, // Agregar quantityTotal
         variants: product.variants?.map((v: any) => ({
           id: v.variantId || v.id || Date.now().toString(),
+          variantId: v.variantId, // ✅ Preservar variantId del backend
           size: v.size || "",
           presentation: v.presentation || "",
           model: v.model || "",
@@ -266,6 +270,7 @@ export default function EditCotizacionView({
     console.log("Editando producto:", producto);
 
     // Cargar datos del producto en el formulario
+    form.setValue("productId", producto.productId); // ✅ Preservar productId
     form.setValue("name", producto.name);
     form.setValue("url", producto.url || "");
     form.setValue("comment", producto.comment || "");
@@ -274,7 +279,7 @@ export default function EditCotizacionView({
     form.setValue("number_of_boxes", producto.number_of_boxes || 0);
     form.setValue("variants", producto.variants || []);
 
-    // Establecer variantes
+    // Establecer variantes (preservando variantId)
     const productVariants = producto.variants || [];
     console.log("Estableciendo variantes:", productVariants);
     setVariants(productVariants);
@@ -414,6 +419,7 @@ export default function EditCotizacionView({
     console.log("Productos antes de procesar:", productos);
 
     const productData: ProductWithVariants & { files?: File[] } = {
+      productId: values.productId, // ✅ Preservar productId si existe
       name: values.name,
       url: values.url || "",
       comment: values.comment || "",
@@ -421,7 +427,7 @@ export default function EditCotizacionView({
       volume: values.volume || 0,
       number_of_boxes: values.number_of_boxes || 0,
       quantityTotal: totalQuantityForProduct, // Agregar quantityTotal calculado
-      variants: variants.filter((v) => v.quantity > 0), // Solo incluir variantes con cantidad > 0
+      variants: variants.filter((v) => v.quantity > 0), // Solo incluir variantes con cantidad > 0 (preservando variantId)
       attachments: [], // Se llenará al enviar
       files: selectedFiles, // Guardar archivos originales
     };
@@ -563,6 +569,7 @@ export default function EditCotizacionView({
         }
 
         return {
+          ...(producto.productId && { productId: producto.productId }), // ✅ Incluir productId solo si existe
           name: producto.name,
           url: producto.url || "",
           comment: producto.comment || "",
@@ -571,7 +578,8 @@ export default function EditCotizacionView({
           volume: producto.volume || 0,
           number_of_boxes: producto.number_of_boxes || 0,
           variants: producto.variants.map((variant) => ({
-            id: variant.id,
+            //id: variant.id,
+            ...(variant.variantId && { variantId: variant.variantId }), // ✅ Incluir variantId solo si existe
             size: variant.size || "",
             presentation: variant.presentation || "",
             model: variant.model || "",
@@ -608,6 +616,14 @@ export default function EditCotizacionView({
         {
           onSuccess: () => {
             console.log("Borrador guardado exitosamente");
+            toast.success("Borrador guardado exitosamente", {
+              description: "Los cambios se han guardado correctamente",
+              className: "bg-green-50 border-green-500",
+              duration: 3000,
+              descriptionClassName: "text-green-600",
+              icon: <Check className="text-green-500" />,
+              style: { border: "1px solid #22c55e" },
+            });
             console.log("Redirigiendo a mis cotizaciones en 1.2 segundos...");
             setTimeout(() => {
               console.log(
@@ -624,7 +640,17 @@ export default function EditCotizacionView({
               }
             }, 1200);
           },
-          onError: () => toast.error("Error al guardar el borrador"),
+          onError: (error) => {
+            const errorMessage = handleQuotationUpdateError(error);
+            console.error("Error al guardar el borrador:", error);
+            toast.error(errorMessage, {
+              duration: 5000,
+              className: "bg-red-50 border-red-500",
+              descriptionClassName: "text-red-600",
+              icon: <X className="text-red-500" />,
+              style: { border: "1px solid #ef4444" },
+            });
+          },
         }
       );
     } catch (error) {
@@ -658,6 +684,14 @@ export default function EditCotizacionView({
         {
           onSuccess: () => {
             console.log("Borrador enviado exitosamente");
+            toast.success("Cotización enviada exitosamente", {
+              description: "Su cotización ha sido enviada para revisión",
+              className: "bg-green-50 border-green-500",
+              duration: 3000,
+              descriptionClassName: "text-green-600",
+              icon: <Check className="text-green-500" />,
+              style: { border: "1px solid #22c55e" },
+            });
             console.log("Redirigiendo a mis cotizaciones en 1.2 segundos...");
             setTimeout(() => {
               console.log(
@@ -674,7 +708,17 @@ export default function EditCotizacionView({
               }
             }, 1200);
           },
-          onError: () => toast.error("Error al enviar el borrador"),
+          onError: (error) => {
+            const errorMessage = handleQuotationUpdateError(error);
+            console.error("Error al enviar el borrador:", error);
+            toast.error(errorMessage, {
+              duration: 5000,
+              className: "bg-red-50 border-red-500",
+              descriptionClassName: "text-red-600",
+              icon: <X className="text-red-500" />,
+              style: { border: "1px solid #ef4444" },
+            });
+          },
         }
       );
     } catch (error) {
@@ -711,6 +755,14 @@ export default function EditCotizacionView({
         {
           onSuccess: () => {
             console.log("Cotización actualizada exitosamente");
+            toast.success("Cotización actualizada exitosamente", {
+              description: "Los cambios se han guardado correctamente",
+              className: "bg-green-50 border-green-500",
+              duration: 3000,
+              descriptionClassName: "text-green-600",
+              icon: <Check className="text-green-500" />,
+              style: { border: "1px solid #22c55e" },
+            });
             console.log("Redirigiendo a mis cotizaciones en 1.2 segundos...");
             setTimeout(() => {
               console.log(
@@ -727,7 +779,17 @@ export default function EditCotizacionView({
               }
             }, 1200);
           },
-          onError: () => toast.error("Error al actualizar la cotización"),
+          onError: (error) => {
+            const errorMessage = handleQuotationUpdateError(error);
+            console.error("Error al actualizar la cotización:", error);
+            toast.error(errorMessage, {
+              duration: 5000,
+              className: "bg-red-50 border-red-500",
+              descriptionClassName: "text-red-600",
+              icon: <X className="text-red-500" />,
+              style: { border: "1px solid #ef4444" },
+            });
+          },
         }
       );
     } catch (error) {

@@ -1,6 +1,7 @@
 // Tipos para variantes de productos
 export interface ProductVariantDTO {
-  id: string;
+  id: string; // ID temporal para gestión local en el formulario (no se envía al backend)
+  variantId?: string; // ID del backend: si existe, se actualiza; si no, se crea
   size?: string;
   presentation?: string;
   model?: string;
@@ -10,6 +11,7 @@ export interface ProductVariantDTO {
 
 // Tipos para producto con variantes
 export interface ProductWithVariantsDTO {
+  productId?: string; // Opcional: si existe, se actualiza; si no, se crea
   name: string;
   url?: string;
   comment?: string;
@@ -25,6 +27,7 @@ export interface ProductWithVariantsDTO {
 export interface QuotationDTO {
   service_type: string;
   products: {
+    productId?: string; // Opcional: si existe, se actualiza; si no, se crea
     name: string;
     url?: string;
     comment?: string;
@@ -33,6 +36,7 @@ export interface QuotationDTO {
     number_of_boxes?: number;
     variants: {
       id: string;
+      variantId?: string; // Opcional: si existe, se actualiza; si no, se crea
       size?: string;
       presentation?: string;
       model?: string;
@@ -63,6 +67,7 @@ export interface Producto {
 export interface Quotation {
   service_type: string;
   products: {
+    productId?: string; // Opcional: si existe, se actualiza; si no, se crea
     name: string;
     url?: string;
     comment?: string;
@@ -70,7 +75,7 @@ export interface Quotation {
     volume?: number;
     number_of_boxes?: number;
     variants: {
-      id: string | null;
+      variantId?: string|null; // Opcional: si existe, se actualiza; si no, se crea
       size?: string;
       presentation?: string;
       model?: string;

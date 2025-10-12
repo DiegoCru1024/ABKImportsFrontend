@@ -13,5 +13,11 @@ export interface ServiceFiledsInterface {
 
   transporteLocal: number;
 
+  transporteLocalChina: number;
+
+  transporteLocalDestino: number;
+
+  otrosServicios: number;
+
   [key: string]: number;
 }

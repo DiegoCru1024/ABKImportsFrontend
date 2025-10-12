@@ -32,6 +32,15 @@ export interface ImportExpensesCardProps {
   inspeccionProductosFinal: number;
   shouldExemptTaxes: boolean;
   serviceType?: string;
+  serviceFieldsFromConsolidation?: {
+    servicioConsolidado?: number;
+    gestionCertificado?: number;
+    inspeccionProducto?: number;
+    inspeccionFabrica?: number;
+    otrosServicios?: number;
+    transporteLocalChina?: number;
+    transporteLocalDestino?: number;
+  };
 }
 
 export default function ImportExpensesCard({
@@ -45,29 +54,38 @@ export default function ImportExpensesCard({
   inspeccionProductosFinal,
   shouldExemptTaxes,
   serviceType,
+  serviceFieldsFromConsolidation,
 }: ImportExpensesCardProps) {
   const getExpenseIcon = (id: string) => {
     switch (id) {
-      case 'servicioConsolidadoMaritimo':
-      case 'servicioConsolidadoAereo':
-        return isMaritime ? <Ship className="h-4 w-4 text-blue-500" /> : <Plane className="h-4 w-4 text-blue-500" />;
-      case 'gestionCertificado':
+      case "servicioConsolidadoMaritimo":
+      case "servicioConsolidadoAereo":
+        return isMaritime ? (
+          <Ship className="h-4 w-4 text-blue-500" />
+        ) : (
+          <Plane className="h-4 w-4 text-blue-500" />
+        );
+      case "gestionCertificado":
         return <FileText className="h-4 w-4 text-green-500" />;
-      case 'servicioInspeccion':
+      case "servicioInspeccion":
         return <Shield className="h-4 w-4 text-purple-500" />;
-      case 'transporteLocal':
-      case 'transporteLocalChina':
-      case 'transporteLocalDestino':
+      case "transporteLocal":
+      case "transporteLocalChina":
+      case "transporteLocalDestino":
+      case "servicioTransporte":
         return <Truck className="h-4 w-4 text-orange-500" />;
-      case 'separacionCarga':
+      case "separacionCarga":
+      case "seguroProductos":
         return <DollarSign className="h-4 w-4 text-indigo-500" />;
-      case 'inspeccionProductos':
+      case "inspeccionProductos":
         return <Shield className="h-4 w-4 text-red-500" />;
-      case 'desaduanajeFleteSaguro':
+      case "desaduanajeFleteSaguro":
         return <DollarSign className="h-4 w-4 text-teal-500" />;
-      case 'totalDerechos':
-      case 'adValoremIgvIpm':
+      case "totalDerechos":
+      case "adValoremIgvIpm":
         return <DollarSign className="h-4 w-4 text-emerald-500" />;
+      case "otrosServicios":
+        return <DollarSign className="h-4 w-4 text-amber-500" />;
       default:
         return <DollarSign className="h-4 w-4 text-gray-500" />;
     }
@@ -86,33 +104,70 @@ export default function ImportExpensesCard({
     serviceType === "Consolidado Maritimo" ||
     serviceType === "Consolidado Grupal Maritimo";
 
+  const isExpressConsolidated =
+    serviceType === "Consolidado Express" ||
+    serviceType === "Consolidado Grupal Express";
+
+  const calculateMaritimeConsolidatedValues = () => {
+    if (!isMaritimeConsolidated || !serviceFieldsFromConsolidation) {
+      return {
+        servicioConsolidado: values.servicioConsolidadoMaritimoFinal,
+        gestionCertificado: values.gestionCertificadoFinal,
+        servicioInspeccion: values.servicioInspeccionFinal,
+        servicioTransporte:
+          values.transporteLocalChinaEnvio + values.transporteLocalClienteEnvio,
+        otrosServicios: 0,
+      };
+    }
+
+    const servicioConsolidado =
+      (serviceFieldsFromConsolidation.servicioConsolidado || 0) * 1.18;
+    const gestionCertificado =
+      (serviceFieldsFromConsolidation.gestionCertificado || 0) * 1.18;
+    const servicioInspeccion =
+      ((serviceFieldsFromConsolidation.inspeccionProducto || 0) +
+        (serviceFieldsFromConsolidation.inspeccionFabrica || 0)) *
+      1.18;
+    const servicioTransporte =
+      ((serviceFieldsFromConsolidation.transporteLocalChina || 0) +
+        (serviceFieldsFromConsolidation.transporteLocalDestino || 0)) *
+      1.18;
+    const otrosServicios =
+      (serviceFieldsFromConsolidation.otrosServicios || 0) * 1.18;
+
+    return {
+      servicioConsolidado,
+      gestionCertificado,
+      servicioInspeccion,
+      servicioTransporte,
+      otrosServicios,
+    };
+  };
+
+  const maritimeConsolidatedValues = calculateMaritimeConsolidatedValues();
+
   const maritimeExpenses = [
     {
       id: "servicioConsolidadoMaritimo",
       label: "Servicio Consolidado Marítimo",
-      value: values.servicioConsolidadoMaritimoFinal,
+      value: maritimeConsolidatedValues.servicioConsolidado,
     },
     {
       id: "gestionCertificado",
       label: "Gestión de Certificado de Origen",
-      value: values.gestionCertificadoFinal,
+      value: maritimeConsolidatedValues.gestionCertificado,
     },
     {
       id: "servicioInspeccion",
       label: "Servicio de Inspección",
-      value: values.servicioInspeccionFinal,
+      value: maritimeConsolidatedValues.servicioInspeccion,
     },
-    ...(isMaritimeConsolidated
+    ...(isMaritimeConsolidated || isExpressConsolidated
       ? [
           {
-            id: "transporteLocalChina",
-            label: "Transporte Local (China)",
-            value: values.transporteLocalChinaEnvio,
-          },
-          {
-            id: "transporteLocalDestino",
-            label: "Transporte Local (Destino)",
-            value: values.transporteLocalClienteEnvio,
+            id: "servicioTransporte",
+            label: "Servicio de Transporte",
+            value: maritimeConsolidatedValues.servicioTransporte,
           },
         ]
       : [
@@ -122,6 +177,15 @@ export default function ImportExpensesCard({
             value: values.transporteLocalFinal,
           },
         ]),
+    ...(isMaritimeConsolidated
+      ? [
+          {
+            id: "otrosServicios",
+            label: "Otros Servicios",
+            value: maritimeConsolidatedValues.otrosServicios,
+          },
+        ]
+      : []),
     {
       id: "totalDerechos",
       label: "Total de Derechos",
@@ -137,8 +201,14 @@ export default function ImportExpensesCard({
         value: servicioConsolidadoFinal * 1.18,
       },
       {
-        id: serviceType === "Consolidado Grupal Express" ? "seguroProductos" : "separacionCarga",
-        label: serviceType === "Consolidado Grupal Express" ? "Seguro de Productos" : "Separación de Carga",
+        id:
+          serviceType === "Consolidado Grupal Express"
+            ? "seguroProductos"
+            : "separacionCarga",
+        label:
+          serviceType === "Consolidado Grupal Express"
+            ? "Seguro de Productos"
+            : "Separación de Carga",
         value: separacionCargaFinal * 1.18,
       },
       {
@@ -149,23 +219,35 @@ export default function ImportExpensesCard({
       {
         id: "adValoremIgvIpm",
         label: "AD/VALOREM+IGV+IPM",
-        value: values.totalDerechosDolaresFinal * (exemptionState.descuentoGrupalExpress ? 0.5 : 1),
+        value:
+          values.totalDerechosDolaresFinal *
+          (exemptionState.descuentoGrupalExpress ? 0.5 : 1),
       },
       {
         id: "desaduanajeFleteSaguro",
         label: "Desaduanaje + Flete + Seguro",
         value: values.desaduanajeFleteSaguro,
       },
-      {
-        id: "transporteLocalChina",
-        label: "Transporte Local (China)",
-        value: values.transporteLocalChinaEnvio,
-      },
-      {
-        id: "transporteLocalDestino",
-        label: "Transporte Local (Destino)",
-        value: values.transporteLocalClienteEnvio,
-      },
+      ...(isExpressConsolidated
+        ? [
+            {
+              id: "servicioTransporte",
+              label: "Servicio de Transporte",
+              value: maritimeConsolidatedValues.servicioTransporte,
+            },
+          ]
+        : [
+            {
+              id: "transporteLocalChina",
+              label: "Transporte Local (China)",
+              value: values.transporteLocalChinaEnvio,
+            },
+            {
+              id: "transporteLocalDestino",
+              label: "Transporte Local (Destino)",
+              value: values.transporteLocalClienteEnvio,
+            },
+          ]),
       {
         id: "totalDerechos",
         label: "Total de Derechos",

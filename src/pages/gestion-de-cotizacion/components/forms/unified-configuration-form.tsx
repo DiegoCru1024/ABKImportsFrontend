@@ -76,6 +76,7 @@ interface UnifiedConfigurationFormProps {
   onExemptionChange: (field: keyof ExemptionState, value: boolean) => void;
   isMaritimeService: boolean;
   cif?: number;
+  serviceType?: string;
 }
 
 export function UnifiedConfigurationForm({
@@ -86,9 +87,14 @@ export function UnifiedConfigurationForm({
   onExemptionChange,
   isMaritimeService,
   cif = 0,
+  serviceType,
 }: UnifiedConfigurationFormProps) {
   const [openTaxDialog, setOpenTaxDialog] = useState(false);
   const [openExemptionDialog, setOpenExemptionDialog] = useState(false);
+
+  const isMaritimeConsolidated =
+    serviceType === "Consolidado Maritimo" ||
+    serviceType === "Consolidado Grupal Maritimo";
 
   const exemptions = [
     {
@@ -363,19 +369,21 @@ export function UnifiedConfigurationForm({
                         />
                       </div>
 
-                      <div className="space-y-2">
-                        <Label className="text-xs font-medium text-slate-600">
-                          Desaduanaje
-                        </Label>
-                        <EditableNumericField
-                          value={dynamicValues.desaduanaje}
-                          onChange={(value: number) =>
-                            onUpdateValue("desaduanaje", value)
-                          }
-                          prefix="$"
-                          decimalPlaces={2}
-                        />
-                      </div>
+                      {!isMaritimeConsolidated && (
+                        <div className="space-y-2">
+                          <Label className="text-xs font-medium text-slate-600">
+                            Desaduanaje
+                          </Label>
+                          <EditableNumericField
+                            value={dynamicValues.desaduanaje}
+                            onChange={(value: number) =>
+                              onUpdateValue("desaduanaje", value)
+                            }
+                            prefix="$"
+                            decimalPlaces={2}
+                          />
+                        </div>
+                      )}
 
                       <div className="space-y-2">
                         <Label className="text-xs font-medium text-slate-600">

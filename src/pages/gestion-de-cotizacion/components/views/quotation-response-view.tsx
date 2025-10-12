@@ -552,7 +552,7 @@ export default function QuotationResponseView({
               variantId: variant.originalVariantId || variant.id,
               quantity: variant.quantity || 1,
               isQuoted: variant.seCotiza !== false,
-              unitCost: variant.unitCost || 0,
+              unitCost: variant.price || 0,
             })),
           })
         );
@@ -632,7 +632,7 @@ export default function QuotationResponseView({
               quotationForm.getServiceFields().gestionCertificado || 0,
             inspeccionProducto:
               quotationForm.getServiceFields().inspeccionProducto || 0,
-            transporteLocal:
+            transporteLocalChina:
               quotationForm.getServiceFields().transporteLocal || 0,
           },
           subtotalServices: 0, // Se calculará automáticamente
@@ -745,10 +745,10 @@ export default function QuotationResponseView({
 
       // Enviar la cotización usando el hook
 
-      await createQuotationResponseMutation.mutateAsync({
+      /*await createQuotationResponseMutation.mutateAsync({
         data: dto,
         quotationId: selectedQuotationId,
-      });
+      });*/
 
       // Mostrar modal de éxito
       quotationForm.setIsSendingModalOpen(true);
@@ -1003,6 +1003,7 @@ export default function QuotationResponseView({
               onExemptionChange={quotationForm.updateExemptionState}
               isMaritimeService={quotationForm.isMaritimeService()}
               cif={quotationForm.cif}
+              serviceType={quotationForm.selectedServiceLogistic}
             />
 
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6">
@@ -1098,9 +1099,11 @@ export default function QuotationResponseView({
                     quotationForm.dynamicValues.inspeccionProducto,
                   transporteLocalFinal:
                     quotationForm.dynamicValues.transporteLocal,
-                  totalDerechosDolaresFinal: calculations.totalTaxes + 
-                    (quotationForm.isMaritimeService() 
-                      ? (quotationForm.dynamicValues.antidumpingGobierno || 0) * (quotationForm.dynamicValues.antidumpingCantidad || 0)
+                  totalDerechosDolaresFinal:
+                    calculations.totalTaxes +
+                    (quotationForm.isMaritimeService()
+                      ? (quotationForm.dynamicValues.antidumpingGobierno || 0) *
+                        (quotationForm.dynamicValues.antidumpingCantidad || 0)
                       : 0),
                   desaduanajeFleteSaguro:
                     quotationForm.dynamicValues.desaduanaje +
@@ -1137,6 +1140,21 @@ export default function QuotationResponseView({
                   quotationForm.exemptionState.obligacionesFiscales
                 }
                 serviceType={quotationForm.selectedServiceLogistic}
+                serviceFieldsFromConsolidation={{
+                  servicioConsolidado:
+                    quotationForm.dynamicValues.servicioConsolidado,
+                  gestionCertificado:
+                    quotationForm.dynamicValues.gestionCertificado,
+                  inspeccionProducto:
+                    quotationForm.dynamicValues.inspeccionProducto,
+                  inspeccionFabrica:
+                    quotationForm.dynamicValues.inspeccionFabrica,
+                  otrosServicios: quotationForm.dynamicValues.otrosServicios,
+                  transporteLocalChina:
+                    quotationForm.dynamicValues.transporteLocalChinaEnvio,
+                  transporteLocalDestino:
+                    quotationForm.dynamicValues.transporteLocalClienteEnvio,
+                }}
               />
 
               <ImportSummaryCard

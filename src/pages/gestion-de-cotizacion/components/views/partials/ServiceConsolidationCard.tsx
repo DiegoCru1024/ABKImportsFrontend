@@ -36,6 +36,30 @@ export default function ServiceConsolidationCard({
     serviceType === "Consolidado Maritimo" ||
     serviceType === "Consolidado Grupal Maritimo";
 
+  const calculateTotals = () => {
+    if (isMaritimeConsolidated) {
+      const subtotal =
+        (serviceFields.servicioConsolidado || 0) +
+        (serviceFields.gestionCertificado || 0) +
+        (serviceFields.inspeccionProducto || 0) +
+        (serviceFields.inspeccionFabrica || 0) +
+        (serviceFields.otrosServicios || 0) +
+        transporteLocalChina +
+        transporteLocalDestino;
+      const igv = subtotal * 0.18;
+      const total = subtotal + igv;
+      return { subtotal, igv, total };
+    }
+
+    const subtotal = Object.values(serviceFields).reduce(
+      (sum, value) => sum + (value || 0),
+      0
+    );
+    return { subtotal, igv: igvServices, total: totalServices };
+  };
+
+  const totals = calculateTotals();
+
   const getFieldNames = (serviceType?: string): { [key: string]: string } => {
     const baseNames = {
       servicioConsolidado: "SERVICIO CONSOLIDADO",
@@ -205,7 +229,7 @@ export default function ServiceConsolidationCard({
                       </span>
                     </div>
                     <span className="font-semibold text-gray-900">
-                      USD {igvServices.toFixed(2)}
+                      USD {totals.igv.toFixed(2)}
                     </span>
                   </div>
 
@@ -225,7 +249,7 @@ export default function ServiceConsolidationCard({
                     </div>
                     <div className="text-right">
                       <div className="font-bold text-2xl">
-                        USD {totalServices.toFixed(2)}
+                        USD {totals.total.toFixed(2)}
                       </div>
                       <div className="text-sm opacity-90">Total incluido</div>
                     </div>

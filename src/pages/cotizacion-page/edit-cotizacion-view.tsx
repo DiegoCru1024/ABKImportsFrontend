@@ -105,9 +105,13 @@ export default function EditCotizacionView({
 
   const [statusQuotation, setStatusQuotation] = useState<string>("pending");
 
+  console.log("status",status)
+
   useEffect(() => {
-    if (statusQuotation === "answered") {
+    if (status === "answered") {
       setStatusQuotation("pending");
+    }else{
+      setStatusQuotation(status)
     }
   }, []);
 

@@ -73,6 +73,8 @@ export default function TaxObligationsCard({
       values.igvFiscal +
       values.ipm) *
     percepcionMultiplier;
+
+    
   const taxItems = [
     {
       key: "adValorem",
@@ -140,7 +142,7 @@ export default function TaxObligationsCard({
             value: calculatedPercepcion,
             icon: <Receipt className="h-4 w-4 text-teal-500" />,
             color: "teal",
-            isMultiplier: true,
+            isMultiplier: false,
           },
         ]
       : []),

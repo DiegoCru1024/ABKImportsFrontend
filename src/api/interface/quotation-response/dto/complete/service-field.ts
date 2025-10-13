@@ -9,7 +9,7 @@ export interface ServiceFiledsInterface {
 
   gestionCertificado: number;
 
-  inspeccionProducto: number;
+  inspeccionFabrica: number;
 
   transporteLocal: number;
 

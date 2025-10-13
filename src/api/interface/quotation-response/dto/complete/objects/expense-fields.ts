@@ -10,17 +10,17 @@ export interface ExpenseFieldsInterface {
 
   seguroProductos: number;
 
+  gestionCertificado:number;
+
   inspeccionProductos: number;
 
   addvaloremigvipm: AddValoremIgvImpInterface;
 
   desadunajefleteseguro: number;
 
-  transporteLocal: number;
+  totalDerechos:number;
 
-  transporteLocalChinaEnvio: number;
+  servicioTransporte: number;
 
-  transporteLocalClienteEnvio: number;
-
-  otrosServicios:number;
+  otrosServicios: number;
 }

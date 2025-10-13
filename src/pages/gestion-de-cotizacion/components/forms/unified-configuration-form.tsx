@@ -384,19 +384,6 @@ export function UnifiedConfigurationForm({
                           />
                         </div>
                       )}
-
-                      <div className="space-y-2">
-                        <Label className="text-xs font-medium text-slate-600">
-                          Total de Derechos
-                        </Label>
-                        <EditableNumericField
-                          value={dynamicValues.totalDerechos}
-                          onChange={() => {}}
-                          prefix="$"
-                          decimalPlaces={2}
-                          readOnly
-                        />
-                      </div>
                     </div>
                   </div>
 
@@ -585,7 +572,7 @@ export function UnifiedConfigurationForm({
                             decimalPlaces={2}
                             readOnly={isMaritimeService}
                           />
-{/*{isMaritimeService && (
+                          {/*{isMaritimeService && (
                             <div className="space-y-1 flex-1">
                               <Label className="text-[10px] font-medium text-slate-500">
                                 Cálculo Flete

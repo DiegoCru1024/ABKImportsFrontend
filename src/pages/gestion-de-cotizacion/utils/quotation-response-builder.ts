@@ -213,12 +213,7 @@ export class QuotationResponseBuilder {
       tipoCambio: (dynamicValues.tipoCambio as number) || 3.7,
       volumenCBM: (dynamicValues.volumenCBM as number) || 0,
       calculoFlete: (dynamicValues.calculoFlete as number) || 0,
-      servicioConsolidado: (dynamicValues.servicioConsolidado as number) || 0,
-      separacionCarga: (dynamicValues.separacionCarga as number) || 0,
-      inspeccionProductos: (dynamicValues.inspeccionProductos as number) || 0,
-      gestionCertificado: (dynamicValues.gestionCertificado as number) || 0,
-      inspeccionProducto: (dynamicValues.inspeccionProducto as number) || 0,
-      transporteLocal: (dynamicValues.transporteLocal as number) || 0,
+     
       desaduanaje: (dynamicValues.desaduanaje as number) || 0,
       antidumpingGobierno: (dynamicValues.antidumpingGobierno as number) || 0,
       antidumpingCantidad: (dynamicValues.antidumpingCantidad as number) || 0,
@@ -311,9 +306,9 @@ export class QuotationResponseBuilder {
           parseFloat(
             ((serviceFields.gestionCertificado as number) || 0).toFixed(2)
           ) || 0,
-        inspeccionProducto:
+        inspeccionFabrica:
           parseFloat(
-            ((serviceFields.inspeccionProducto as number) || 0).toFixed(2)
+            ((serviceFields.inspeccionFabrica as number) || 0).toFixed(2)
           ) || 0,
         transporteLocal:
           parseFloat(
@@ -388,10 +383,6 @@ export class QuotationResponseBuilder {
     return this.baseDto;
   }
 
-  // DEPRECATED: Use buildForCompleteServiceNew instead
-  buildForCompleteService(): QuotationResponseBase {
-    throw new Error('This method is deprecated. Use buildForCompleteServiceNew instead.');
-  }
 
   buildForCompleteServiceNew(data: CompleteBuildData): QuotationResponseBase {
     const quotationForm = data.quotationForm as Record<string, unknown>;
@@ -451,27 +442,21 @@ export class QuotationResponseBuilder {
         servicioConsolidado: (serviceFields.servicioConsolidado as number) || 0,
         separacionCarga: (serviceFields.separacionCarga as number) || 0,
         seguroProductos: (serviceFields.seguroProductos as number) || 0,
-        inspeccionProducts: (serviceFields.inspeccionProductos as number) || 0,
+        gestionCertificado: (serviceFields.gestionCertificado as number) || 0,
+        inspeccionProductos: (serviceFields.inspeccionProductos as number) || 0,
         addvaloremigvipm: {
           descuento: (exemptionState.obligacionesFiscales as boolean) || false,
           valor: (calculations.totalTaxes as number) || 0,
         },
+        totalDerechos:(serviceFields.totalDerechos as number)||0,
         desadunajefleteseguro: (dynamicValues.desaduanaje as number) || 0,
-        transporteLocal: (serviceFields.transporteLocal as number) || 0,
-        transporteLocalChinaEnvio: (dynamicValues.transporteLocalChinaEnvio as number) || 0,
-        transporteLocalClienteEnvio: (dynamicValues.transporteLocalClienteEnvio as number) || 0,
+        servicioTransporte: (serviceFields.transporteLocal as number) || 0,
+        otrosServicios: (serviceFields.otrosServicios as number) || 0,
       },
       totalExpenses: (calculations.finalTotal as number) || 0,
     };
   }
 
-  // REMOVED: Duplicate method - use extractDynamicValues instead
-
-  // REMOVED: Duplicate method - use extractExemptions instead
-
-  // REMOVED: Duplicate method - use extractFiscalObligations instead
-
-  // REMOVED: Duplicate method - use extractServiceCalculations instead
 
   private extractQuoteSummary(data: CompleteBuildData): QuoteSummaryInterface {
     const calculations = data.calculations as Record<string, unknown>;

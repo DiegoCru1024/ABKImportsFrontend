@@ -589,12 +589,14 @@ export default function QuotationResponseView({
               quotationForm.dynamicValues.transporteLocalClienteEnvio || 0,
             cif: quotationForm.cif || 0,
           },
+          //? Tasa de Porcentaje
           taxPercentage: {
             adValoremRate: quotationForm.dynamicValues.adValoremRate || 4,
             igvRate: quotationForm.dynamicValues.igvRate || 18,
             ipmRate: quotationForm.dynamicValues.ipmRate || 2,
             percepcion: quotationForm.dynamicValues.percepcionRate || 5,
           },
+          //? Excepción
           exemptions: {
             obligacionesFiscales:
               quotationForm.exemptionState.obligacionesFiscales || false,
@@ -618,6 +620,7 @@ export default function QuotationResponseView({
           },
         };
 
+        //? Costo de Servicio de Carga Consolidada
         const serviceCalculationsData = {
           serviceFields: {
             servicioConsolidado:
@@ -630,8 +633,8 @@ export default function QuotationResponseView({
               quotationForm.getServiceFields().inspeccionProductos || 0,
             gestionCertificado:
               quotationForm.getServiceFields().gestionCertificado || 0,
-            inspeccionProducto:
-              quotationForm.getServiceFields().inspeccionProducto || 0,
+            inspeccionFabrica:
+              quotationForm.getServiceFields().inspeccionFabrica || 0,
             transporteLocal:
               quotationForm.getServiceFields().transporteLocal || 0,
             transporteLocalChina:
@@ -654,6 +657,7 @@ export default function QuotationResponseView({
         serviceCalculationsData.igvServices = subtotal * 0.18;
         serviceCalculationsData.totalServices = subtotal * 1.18;
 
+        //? Gastos de importación
         const importCostsData = {
           expenseFields: {
             servicioConsolidado:
@@ -662,6 +666,8 @@ export default function QuotationResponseView({
               serviceCalculationsData.serviceFields.separacionCarga,
             seguroProductos:
               serviceCalculationsData.serviceFields.seguroProductos,
+            gestionCertificado:
+              serviceCalculationsData.serviceFields.gestionCertificado,
             inspeccionProductos:
               serviceCalculationsData.serviceFields.inspeccionProductos,
             addvaloremigvipm: {
@@ -669,17 +675,17 @@ export default function QuotationResponseView({
               valor: calculations.totalTaxes || 0,
             },
             desadunajefleteseguro: calculationsData.dynamicValues.desaduanaje,
-            transporteLocal:
-              serviceCalculationsData.serviceFields.transporteLocal,
-            transporteLocalChinaEnvio:
-              calculationsData.dynamicValues.transporteLocalChinaEnvio,
-            transporteLocalClienteEnvio:
-              calculationsData.dynamicValues.transporteLocalClienteEnvio,
-            otrosServicios:0
+            servicioTransporte:
+              serviceCalculationsData.serviceFields.transporteLocal || 0,
+            totalDerechos:
+              serviceCalculationsData.serviceFields.transporteLocal || 0,
+            otrosServicios:
+              serviceCalculationsData.serviceFields.otrosServicios || 0,
           },
           totalExpenses: calculations.finalTotal || 0,
         };
 
+        //? Resumen de importación
         const quoteSummaryData = {
           comercialValue: calculationsData.dynamicValues.comercialValue,
           totalExpenses: importCostsData.totalExpenses,
@@ -688,6 +694,7 @@ export default function QuotationResponseView({
             importCostsData.totalExpenses,
         };
 
+        //? Tasa de porcentajes
         const taxRates = {
           adValoremRate: calculationsData.taxPercentage.adValoremRate,
           igvRate: calculationsData.taxPercentage.igvRate,

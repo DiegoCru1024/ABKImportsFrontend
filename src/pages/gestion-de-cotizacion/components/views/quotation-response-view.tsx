@@ -748,6 +748,8 @@ export default function QuotationResponseView({
           igvRate: calculationsData.taxPercentage.igvRate,
           ipmRate: calculationsData.taxPercentage.ipmRate,
           antidumpingAmount: calculationsData.dynamicValues.antidumpingCantidad,
+          percepcion: quotationForm.dynamicValues.percepcionRate || 5,
+
         };
 
         if (isMaritimeService) {

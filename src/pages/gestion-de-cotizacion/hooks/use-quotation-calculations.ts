@@ -113,6 +113,7 @@ export function useQuotationCalculations({
     const ipmAmount = (baseIPM * dynamicValues.ipmRate) / 100;
 
     // 6. PERCEPCION = (CIF + AD/VALOREM + ISC + ANTIDUMPING + IPM) × factor
+    // IMPORTANTE: La base incluye CIF + todos los impuestos EXCEPTO la percepción misma
     const basePERCEPCION = cif + adValoremAmount + iscAmount + antidumpingAmount + ipmAmount;
     const percepcionAmount = (basePERCEPCION * dynamicValues.percepcionRate) / 100;
 

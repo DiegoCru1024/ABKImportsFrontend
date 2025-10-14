@@ -216,12 +216,6 @@ export class QuotationResponseDirector {
       quotationDetail: data.quotationDetail,
     };
 
-    // Calcular totalTaxes automáticamente
-    /*completeBuildData.calculations.totalTaxes =
-      completeBuildData.calculations.adValoremAmount +
-      completeBuildData.calculations.igv +
-      completeBuildData.calculations.ipm +
-      completeBuildData.calculations.antidumping;*/
 
     return builder.buildForCompleteServiceNew(completeBuildData);
   }

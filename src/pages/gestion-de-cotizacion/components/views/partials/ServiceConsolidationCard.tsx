@@ -46,7 +46,17 @@ export default function ServiceConsolidationCard({
         (serviceFields.otrosServicios || 0) +
         transporteLocalChina +
         transporteLocalDestino;
-      const igv = subtotal * 0.18;
+
+      // IGV se calcula excluyendo transporteLocalChina
+      const igvBase =
+        (serviceFields.servicioConsolidado || 0) +
+        (serviceFields.gestionCertificado || 0) +
+        (serviceFields.inspeccionProductos || 0) +
+        (serviceFields.inspeccionFabrica || 0) +
+        (serviceFields.otrosServicios || 0) +
+        transporteLocalDestino; // Sin transporteLocalChina
+
+      const igv = igvBase * 0.18;
       const total = subtotal + igv;
       return { subtotal, igv, total };
     }
@@ -198,7 +208,7 @@ export default function ServiceConsolidationCard({
                             {fieldNames[key] ?? key}
                           </div>
                           <div className="text-xs text-gray-500">
-                            Transporte
+                            {key === "transporteLocalChina" ? "Se excluye de IGV" : "Transporte"}
                           </div>
                         </div>
                       </div>

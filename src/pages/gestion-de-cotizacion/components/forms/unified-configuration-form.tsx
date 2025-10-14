@@ -612,7 +612,7 @@ export function UnifiedConfigurationForm({
                       {/* CIF - Resultado destacado */}
                       <div className="space-y-2 p-4 bg-gradient-to-br from-emerald-100 to-green-100 rounded-lg border-2 border-emerald-500 shadow-md">
                         <Label className="text-base font-extrabold text-emerald-900 flex items-center gap-2">
-                          CIF (TOTAL)
+                          VALOR CIF
                         </Label>
                         <div className="relative">
                           <EditableNumericField

@@ -335,6 +335,8 @@ export class QuotationResponseBuilder {
       selectedServiceLogistic === "Consolidado Grupal Maritimo";
 
     let subtotal = 0;
+    let igvBase = 0; // Base para el cálculo del IGV (excluyendo transporteLocalChina)
+
     if (isMaritimeConsolidated) {
       // Solo sumar: servicioConsolidado, gestionCertificado, inspeccionProductos, inspeccionFabrica, otrosServicios, transporteLocalChina, transporteLocalDestino
       subtotal =
@@ -345,19 +347,32 @@ export class QuotationResponseBuilder {
         extractedFields.otrosServicios +
         extractedFields.transporteLocalChina +
         extractedFields.transporteLocalDestino;
+
+      // IGV se calcula excluyendo transporteLocalChina
+      igvBase =
+        extractedFields.servicioConsolidado +
+        extractedFields.gestionCertificado +
+        extractedFields.inspeccionProductos +
+        extractedFields.inspeccionFabrica +
+        extractedFields.otrosServicios +
+        extractedFields.transporteLocalDestino; // Sin transporteLocalChina
     } else {
       // Para otros servicios, sumar todos los campos
       subtotal = Object.values(extractedFields).reduce(
         (sum: number, value: number) => sum + value,
         0
       );
+      igvBase = subtotal;
     }
+
+    const igvServices = parseFloat((igvBase * 0.18).toFixed(2));
+    const totalServices = parseFloat((subtotal + igvServices).toFixed(2));
 
     return {
       serviceFields: extractedFields,
       subtotalServices: parseFloat(subtotal.toFixed(2)),
-      igvServices: parseFloat((subtotal * 0.18).toFixed(2)),
-      totalServices: parseFloat((subtotal * 1.18).toFixed(2)),
+      igvServices,
+      totalServices,
     };
   }
 
@@ -385,7 +400,7 @@ export class QuotationResponseBuilder {
       adValoremRate: (dynamicValues.adValoremRate as number) || 4,
       igvRate: (dynamicValues.igvRate as number) || 16,
       ipmRate: (dynamicValues.ipmRate as number) || 2,
-      percepcion: (dynamicValues.percepcionRate as number) || 5,
+      percepcion: (dynamicValues.percepcionRate as number) || 3.5,
     };
   }
 
@@ -479,8 +494,8 @@ export class QuotationResponseBuilder {
 
     // servicioTransporte = (transporteLocalChina × 1.18) + transporteLocalDestino
     const servicioTransporte =
-      ((dynamicValues.transporteLocalChinaEnvio as number) || 0) * 1.18 +
-      ((dynamicValues.transporteLocalClienteEnvio as number) || 0);
+      ((dynamicValues.transporteLocalChinaEnvio as number) || 0)  +
+      ((dynamicValues.transporteLocalClienteEnvio as number) || 0)* 1.18;
 
     const otrosServicios = ((serviceFields.otrosServicios as number) || 0) * 1.18;
 

@@ -117,7 +117,7 @@ export function useQuotationResponseForm({
     iscRate: 0.0,
     igvRate: 16.0,
     ipmRate: 2.0,
-    percepcionRate: 5.0,
+    percepcionRate: 3.5,
     transporteLocalChinaEnvio: 0.0,
     transporteLocalClienteEnvio: 0.0,
     totalDerechos: 0.0,
@@ -265,7 +265,7 @@ export function useQuotationResponseForm({
       return {
         servicioConsolidado: dynamicValues.servicioConsolidado,
         gestionCertificado: dynamicValues.gestionCertificado,
-        inspeccionProducto: dynamicValues.inspeccionProducto,
+        inspeccionProductos: dynamicValues.inspeccionProductos,
         inspeccionFabrica: dynamicValues.inspeccionFabrica,
         transporteLocal: dynamicValues.transporteLocal,
         otrosServicios: dynamicValues.otrosServicios,

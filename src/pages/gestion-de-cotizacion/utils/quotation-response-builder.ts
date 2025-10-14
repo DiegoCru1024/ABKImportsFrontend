@@ -470,5 +470,4 @@ export class QuotationResponseBuilder {
     };
   }
 
-  // REMOVED: Duplicate method - use buildCompleteProducts instead
 }

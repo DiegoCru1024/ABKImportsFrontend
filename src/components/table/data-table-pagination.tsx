@@ -54,7 +54,7 @@ export function DataTablePagination<TData>({
             <Select
             value={`${pageInfo.pageSize}`}
             onValueChange={(value) => {
-              onPageChange(0, Number(value))
+              onPageChange(1, Number(value))
             }}
           >
             <SelectTrigger className="h-8 w-[70px]">
@@ -77,8 +77,8 @@ export function DataTablePagination<TData>({
               <Button
             variant="outline"
             className="hidden h-8 w-8 p-0 lg:flex"
-            onClick={() => onPageChange(0, pageInfo.pageSize)}
-            disabled={pageInfo.pageNumber === 0}
+            onClick={() => onPageChange(1, pageInfo.pageSize)}
+            disabled={pageInfo.pageNumber === 1}
           >
             <span className="sr-only">Ir a la primera página</span>
             <ChevronsLeft />
@@ -87,7 +87,7 @@ export function DataTablePagination<TData>({
             variant="outline"
             className="h-8 w-8 p-0"
             onClick={() => onPageChange(pageInfo.pageNumber - 1, pageInfo.pageSize)}
-            disabled={pageInfo.pageNumber === 0}
+            disabled={pageInfo.pageNumber === 1}
           >
             <span className="sr-only">Ir a la última página</span>
             <ChevronLeft />
@@ -96,7 +96,7 @@ export function DataTablePagination<TData>({
             variant="outline"
             className="h-8 w-8 p-0"
             onClick={() => onPageChange(pageInfo.pageNumber + 1, pageInfo.pageSize)}
-            disabled={pageInfo.pageNumber === pageInfo.totalPages - 1}
+            disabled={pageInfo.pageNumber === pageInfo.totalPages}
           >
             <span className="sr-only">Go to next page</span>
             <ChevronRight />
@@ -104,8 +104,8 @@ export function DataTablePagination<TData>({
           <Button
             variant="outline"
             className="hidden h-8 w-8 p-0 lg:flex"
-            onClick={() => onPageChange(pageInfo.totalPages - 1, pageInfo.pageSize)}
-            disabled={pageInfo.pageNumber === pageInfo.totalPages - 1}
+            onClick={() => onPageChange(pageInfo.totalPages, pageInfo.pageSize)}
+            disabled={pageInfo.pageNumber === pageInfo.totalPages}
           >
             <span className="sr-only">Ir a la ultima página</span>
             <ChevronsRight />

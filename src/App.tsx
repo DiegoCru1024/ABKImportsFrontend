@@ -4,9 +4,10 @@ import Tracking from "@/pages/Tracking";
 
 
 import GestionDeCotizacionesView from "@/pages/gestion-de-cotizacion/gestion-de-cotizacion-view";
-import DetailsResponse from "@/pages/gestion-de-cotizacion/components/views/detailsreponse";
-import ListResponses from "@/pages/gestion-de-cotizacion/components/views/listreponses";
-import LoginPage from "@/pages/login";  
+
+
+import LoginPage from "@/pages/login";
+import SesionPorExpirar from "@/pages/sesion-por-expirar";
 import DashboardPage from "@/pages/dashboard";
 import BasicLayout from "@/layouts/basic-layout";
 import DashboardLayout from "@/layouts/dashboard-layout";
@@ -17,12 +18,17 @@ import InspectionDetailView from "@/pages/gestion-de-mercancia/inspection-detail
 import CreateCotizacionView from "@/pages/cotizacion-page/create-cotizacion-view";
 import EditCotizacionView from "@/pages/cotizacion-page/edit-cotizacion-view";
 import MisCotizacionesView from "@/pages/mis-cotizaciones/mis-cotizacion-view";
+
 import ShipmentDetailView from "@/pages/shipment-detail-view";
 import Calculador from "./pages/calculator";
 import Tarifas from "./pages/Tarifas";
 import Educacion from "./pages/Educacion";
 import Herramientas from "./pages/Herramientas";
-import EditResponse from './pages/gestion-de-cotizacion/components/views/editresponse';
+
+
+import RespuestasCotizacionView from "./pages/respuestas-cotizacion";
+import EditQuotationResponseView from "./pages/gestion-de-cotizacion/components/views/edit-quotation-response-view";
+import QuotationResponseView from "./pages/gestion-de-cotizacion/components/views/quotation-response-view";
 
 function App() {
   return (  
@@ -30,6 +36,7 @@ function App() {
       {/* Layout básico para login */}
       <Route element={<BasicLayout />}>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/sesion-por-expirar" element={<SesionPorExpirar />} />
         <Route path="/" element={<Navigate to="/login" replace />} />
       </Route>
 
@@ -42,12 +49,8 @@ function App() {
           element={<GestionDeCotizacionRespuestaRoute />}
         />
         <Route
-          path="/dashboard/gestion-de-cotizacion/respuestas/:quotationId"
-          element={<GestionDeCotizacionRespuestasRoute />}
-        />
-        <Route
-          path="/dashboard/gestion-de-cotizacion/respuestas/:quotationId/editar/:responseId"
-          element={<GestionDeCotizacionEditarRespuestaRoute />}
+          path="/dashboard/gestion-de-cotizacion/respuesta/:quotationId/:responseId"
+          element={<EditQuotationResponseView />}
         />
         <Route
           path="/dashboard/gestion-de-cotizacion/respuestas/:quotationId/responder"
@@ -106,6 +109,10 @@ function App() {
           element={<MisCotizacionesView />}
         />
         <Route
+          path="/dashboard/mis-cotizaciones/respuestas/:quotationId"
+          element={<RespuestasCotizacionRoute />}
+        />
+        <Route
           path="/dashboard/editar/:quotationId"
           element={<EditarCotizacionRoute />}
         />
@@ -123,28 +130,19 @@ export default App;
 function GestionDeCotizacionRespuestaRoute() {
   const { quotationId } = useParams();
   if (!quotationId) return <Navigate to="/dashboard/gestion-de-cotizacion" replace />;
-  return <DetailsResponse selectedQuotationId={quotationId} />;
+  return <QuotationResponseView selectedQuotationId={quotationId} />;
 }
 
-function GestionDeCotizacionRespuestasRoute() {
-  const { quotationId } = useParams();
-  if (!quotationId) return <Navigate to="/dashboard/gestion-de-cotizacion" replace />;
-  return <ListResponses selectedQuotationId={quotationId} />;
-}
 
-function GestionDeCotizacionEditarRespuestaRoute() {
-  const { quotationId, responseId } = useParams();
-  if (!quotationId || !responseId)
-    return <Navigate to="/dashboard/gestion-de-cotizacion" replace />;
-  return (
-    <EditResponse quotationId={quotationId} quotationResponseId={responseId} />
-  );
-}
 
 function GestionDeCotizacionResponderRoute() {
   const { quotationId } = useParams();
   if (!quotationId) return <Navigate to="/dashboard/gestion-de-cotizacion" replace />;
-  return <DetailsResponse selectedQuotationId={quotationId} />;
+  return <QuotationResponseView selectedQuotationId={quotationId} />;
+}
+
+function RespuestasCotizacionRoute() {
+  return <RespuestasCotizacionView />;
 }
 
 function EditarCotizacionRoute() {
@@ -160,7 +158,7 @@ function EditarCotizacionRoute() {
     <EditCotizacionView
       quotationId={quotationId}
       onBack={() => window.history.back()}
-      statusQuotation={statusQuotation}
+      status={statusQuotation}
     />
   );
 }

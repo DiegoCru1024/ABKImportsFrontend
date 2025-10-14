@@ -1,4 +1,5 @@
 import { apiFetch } from "./apiFetch";
+import type { QuotationResponseBase } from "./interface/quotation-response/quotation-response-base";
 import type {
   QuotationGetResponsesForUsersDTO,
   QuotationResponseListDTO,
@@ -7,17 +8,17 @@ import type {
 
 /**
  * Crea una respuesta de una cotización (Admin Only)
- * @param {QuotationResponseDTO} data - Los datos a crear
+ * @param {QuotationResponseBase} data - Los datos a crear
  * @param {string} quotationId - El ID de la cotización
  * @returns {Promise<any>} - La respuesta de la cotización
  */
 export const createQuatitationResponse = async (
-  data: QuotationCreateUpdateResponseDTO,
+  data: QuotationResponseBase,
   quotationId: string
 ) => {
   try {
     const response = await apiFetch(
-      `/quotation-responses/quotation/${quotationId}/complete-response`,
+      `/quotation-responses/quotation/${quotationId}/complete-service`,
       {
         method: "POST",
         body: JSON.stringify(data),
@@ -51,13 +52,13 @@ export const deleteQuatitationResponse = async (id: string) => {
  * Actualiza el estado de una respuesta de una cotización por su ID (Admin Only)
  * @param {string} quotationId - El ID de la cotización
  * @param {string} quotationResponseId - El ID de la respuesta
- * @param {QuotationResponseDTO} data - Los datos a actualizar
+ * @param {QuotationResponseBase} data - Los datos a actualizar
  * @returns {Promise<any>} - La respuesta de la cotización
  */
 export const patchQuatitationResponse = async (
   quotationId: string,
   quotationResponseId: string,
-  data: QuotationCreateUpdateResponseDTO
+  data: QuotationResponseBase
 ) => {
   try {
     const response = await apiFetch(
@@ -92,7 +93,7 @@ export const listQuatitationResponses = async (
 
   try {
     const response: QuotationResponseListDTO = await apiFetch(
-      `/quotation-responses/list/${quotationId}?${queryParams.toString()}`,
+      `/quotation-responses/list-responses/${quotationId}?${queryParams.toString()}`,
       {
         method: "GET",
       }
@@ -107,11 +108,11 @@ export const listQuatitationResponses = async (
 /**
  * Obtiene las respuestas del administrador para un usuario para una cotización (Usuarios no administradores)
  * @param {string} quotationId - El ID de la cotización
- * @returns {Promise<QuotationGetResponsesForUsersDTO[]>} - Las respuestas de la cotización
+ * @returns {Promise<QuotationGetResponsesForUsersDTO>} - Las respuestas de la cotización
  */
 export const getResponsesForUsers = async (quotationId: string) => {
   try {
-    const response: QuotationGetResponsesForUsersDTO[] = await apiFetch(
+    const response: QuotationGetResponsesForUsersDTO = await apiFetch(
       `/quotation-responses/get-responses/${quotationId}`,
       {
         method: "GET",
@@ -123,6 +124,11 @@ export const getResponsesForUsers = async (quotationId: string) => {
     throw error;
   }
 };
+
+
+
+
+
 
 
 /**
@@ -153,14 +159,14 @@ export const getListResponsesByQuotationId = async (quotationId: string, page: n
 
 /**
  * Obtiene los detalles de una respuesta de una cotización por su ID (Admin Only)
- * @param {string} quotationId - El ID de la cotización
- * @param {string} quotationResponseId - El ID de la respuesta
- * @returns {Promise<QuotationCreateUpdateResponseDTO>} - Los detalles de la respuesta
+ * @param {string} quotationResponseId - El ID de la cotización
+ * @param {string} serviceType - El ID de la respuesta
+ * @returns {Promise<QuotationResponseBase>} - Los detalles de la respuesta
  */
-export const getDetailsResponse = async (quotationId: string, quotationResponseId: string) => {
+export const getDetailsResponse = async (quotationResponseId: string, serviceType: string) => {
   try {
-    const response: QuotationCreateUpdateResponseDTO = await apiFetch<QuotationCreateUpdateResponseDTO>(
-      `/quotation-responses/details/${quotationId}/${quotationResponseId}`,
+    const response: QuotationResponseBase = await apiFetch(
+      `/quotation-responses/details/${quotationResponseId}/${serviceType}`,
       {
         method: "GET",
       }
@@ -171,3 +177,4 @@ export const getDetailsResponse = async (quotationId: string, quotationResponseI
     throw error;
   }
 }
+

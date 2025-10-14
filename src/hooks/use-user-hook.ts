@@ -8,7 +8,7 @@ import {
   changePassword,
 } from "@/api/apiUser";
 import { toast } from "sonner";
-import type { CreateUpdateUser } from "@/api/interface/user";
+import type { CreateUpdateUser, UpdateUser } from "@/api/interface/user";
 
 
 
@@ -74,7 +74,7 @@ export function useUpdateUserProfile(id: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (user: CreateUpdateUser) => updateUserProfile(id, user),
+    mutationFn: (user: UpdateUser) => updateUserProfile(id, user),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["allUserProfileWithPagination"],

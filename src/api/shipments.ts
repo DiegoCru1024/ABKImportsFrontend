@@ -105,4 +105,31 @@ export const getShipmentInfo = async (): Promise<ShipmentInfo> => {
     console.error("Error al obtener la información de envíos:", error);
     throw error;
   }
+};
+
+/**
+ * Interfaz para el estado de tracking
+ */
+export interface TrackingStatus {
+  order: number;
+  place: string;
+  status: string;
+  coords: string;
+  shipmentStatus: string;
+  currentLocation: string;
+}
+
+/**
+ * Obtiene los estados de tracking para Shenzhen
+ * @returns {Promise<TrackingStatus[]>} - Lista de estados de tracking
+ */
+export const getTrackingStatuses = async (): Promise<TrackingStatus[]> => {
+  try {
+    return await apiFetch<TrackingStatus[]>("/shipments/tracking/statuses/shenzhen", {
+      method: "GET",
+    });
+  } catch (error) {
+    console.error("Error al obtener los estados de tracking:", error);
+    throw error;
+  }
 }; 

@@ -23,16 +23,7 @@ function GestionDeUsuarios() {
     clearSearch,
   } = useUserManagement();
 
-  // Wrapper para los diálogos que limpia el buscador cuando se abren
-  const EditUserDialogWrapper = (props: any) => (
-    <EditUserDialog {...props} onOpen={() => clearSearch()} />
-  );
-  
-  const ChangePasswordDialogWrapper = (props: any) => (
-    <ChangePasswordDialog {...props} onOpen={() => clearSearch()} />
-  );
-
-  const columns = columnsUsuarios(EditUserDialogWrapper, DeleteUserDialog, ChangePasswordDialogWrapper);
+  const columns = columnsUsuarios(EditUserDialog, DeleteUserDialog, ChangePasswordDialog);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-500/5 via-background to-orange-400/10">

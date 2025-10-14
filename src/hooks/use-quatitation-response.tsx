@@ -12,6 +12,8 @@ import type {
 } from "@/api/interface/quotationResponseInterfaces";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import type { QuotationResponseBase } from "@/api/interface/quotation-response/quotation-response-base";
+import type { ServiceType } from "@/api/interface/quotation-response/enums/enum";
 
 
 /**
@@ -26,7 +28,7 @@ export function useCreateQuatitationResponse() {
       data,
       quotationId,
     }: {
-      data: QuotationCreateUpdateResponseDTO;
+      data: QuotationResponseBase;
       quotationId: string;
     }) => {
       return createQuatitationResponse(data, quotationId);
@@ -93,7 +95,7 @@ export function usePatchQuatitationResponse(quotationId: string, quotationRespon
     mutationFn: ({
       data,
     }: {
-      data: QuotationCreateUpdateResponseDTO;
+      data: QuotationResponseBase;
     }) => patchQuatitationResponse(quotationId, quotationResponseId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -158,13 +160,25 @@ export function useGetListResponsesByQuotationId(quotationId: string, page: numb
 
 /**
  * Hook para obtener los detalles de una respuesta de una cotización por su ID (Admin Only)
- * @param {string} quotationId - El ID de la cotización
  * @param {string} quotationResponseId - El ID de la respuesta
+ * @param {string} serviceType - El tipo de servicio de la respuesta
  * @returns {useQuery} - Los detalles de la respuesta
  */
-export function useGetDetailsResponse(quotationId: string, quotationResponseId: string) {
+export function useGetDetailsResponse(quotationResponseId: string, serviceType: string) {
   return useQuery({
-    queryKey: ["getDetailsResponse", quotationId, quotationResponseId],
-    queryFn: () => getDetailsResponse(quotationId, quotationResponseId),
+    queryKey: ["getDetailsResponse", quotationResponseId, serviceType],
+    queryFn: () => getDetailsResponse(quotationResponseId, serviceType),
+    enabled: Boolean(quotationResponseId) && Boolean(serviceType),
   });
 }
+
+
+/**
+ * Hook para obtener las respuestas de una cotización por su ID (Admin Only)
+ * @param {string} quotationResponseId - El ID de la cotización
+ * @param {ServiceType} serviceType - La página actual
+ * @returns {useQuery} - 
+ */
+
+
+

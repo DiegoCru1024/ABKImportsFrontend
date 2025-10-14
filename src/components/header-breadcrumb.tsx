@@ -77,7 +77,7 @@ export default function HeaderConBreadcrumb() {
         </div>
 
         <div className="flex items-center gap-2">
-          <div
+          {/*<div
             onClick={() => setTheme(isDark ? "light" : "dark")}
             className={`flex items-center cursor-pointer transition-transform duration-500 ${
               isDark ? "rotate-180" : "rotate-0"
@@ -89,7 +89,7 @@ export default function HeaderConBreadcrumb() {
               <Moon className="h-6 w-6 text-blue-500 rotate-0 transition-all" />
             )}
             <span className="sr-only">Toggle theme</span>
-          </div>
+          </div>*/}
            <SocketNotification /> 
         </div>
       </div>

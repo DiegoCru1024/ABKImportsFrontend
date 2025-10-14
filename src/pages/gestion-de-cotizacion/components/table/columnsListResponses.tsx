@@ -4,7 +4,7 @@ import { Edit, Eye, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface ColumnsListResponsesProps {
-  onEditQuotation: (id: string) => void;
+  onEditQuotation: (id: string, serviceType: string) => void;
   onDelete: (id: string) => void;
 }
 
@@ -22,19 +22,19 @@ export function columnsListResponses({
       header: "ID de la Respuesta",
     },*/
     {
-      id: "service_type",
-      accessorKey: "service_type",
+      id: "serviceType",
+      accessorKey: "serviceType",
       header: "Tipo de Servicio",
       cell: ({ row }) => {
-        return <div className="uppercase">{row.original.service_type}</div>;
+        return <div className="uppercase">{row.original.serviceType}</div>;
       },
     },
     {
-      id: "cargo_type",
-      accessorKey: "cargo_type",
-      header: "Tipo de Carga",
+      id: "advisorName",
+      accessorKey: "advisorName",
+      header: "Nombre administrador",
       cell: ({ row }) => {
-        return <div className="uppercase">{row.original.cargo_type}</div>;
+        return <div className="uppercase">{row.original.advisorName}</div>;
       },
     },
     {
@@ -54,7 +54,7 @@ export function columnsListResponses({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => onEditQuotation(row.original.id_quotation_response)}
+            onClick={() => onEditQuotation(row.original.id_quotation_response, row.original.serviceType)}
             className="h-8 w-8 p-0 text-blue-500 hover:text-blue-700"
             title="Editar respuesta"
           >

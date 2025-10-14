@@ -15,6 +15,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import FileUploadComponent from "@/components/comp-552";
 import { ViewFilesModal } from "./components/ViewFilesModal";
 import CreateShipmentModal from "@/components/CreateShipmentModal";
+import InspectionTrackingMap from "@/components/InspectionTrackingMap";
 import {
   Package,
   Calendar,
@@ -381,6 +382,11 @@ export default function InspectionDetailView() {
               </div>
             </CardContent>
           </Card>
+        )}
+
+        {/* Mapa de tracking de inspección */}
+        {!editingProductId && (
+          <InspectionTrackingMap inspectionData={inspection} />
         )}
 
         {/* Productos en tabla */}

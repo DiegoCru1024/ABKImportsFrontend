@@ -1,7 +1,8 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import type { UserProfile } from "@/api/interface/user";
+import type { UserProfile, UserType } from "@/api/interface/user";
 import { UserIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { transformUserType } from "../utils/utils";
 
 // Definición de columnas para la tabla
 export const columnsUsuarios = (
@@ -38,16 +39,27 @@ export const columnsUsuarios = (
     accessorKey: "type",
     header: "Rol",
     cell: ({ row }) => {
-      const type = row.getValue("type") as string;
+      const type = row.getValue("type") as UserType;
+      const tipo = transformUserType(type);
+
+      const getBadgeColor = (userType: string) => {
+        switch (userType) {
+          case "admin":
+            return "bg-red-500 hover:bg-red-600 text-white";
+          case "final":
+            return "bg-blue-500 hover:bg-blue-600 text-white";
+          case "temporal":
+            return "bg-yellow-500 hover:bg-yellow-600 text-white";
+          case "guest":
+            return "bg-gray-500 hover:bg-gray-600 text-white";
+          default:
+            return "bg-gray-500 hover:bg-gray-600 text-white";
+        }
+      };
+
       return (
-        <Badge 
-          className={`font-medium capitalize ${
-            type === "admin" 
-              ? "bg-blue-100 text-blue-600" 
-              : "bg-orange-100 text-orange-600"
-          }`}
-        >
-          {type === "admin" ? "Administrador" : "Usuario Final"}
+        <Badge className={`font-medium capitalize ${getBadgeColor(type)}`}>
+          {tipo}
         </Badge>
       );
     },

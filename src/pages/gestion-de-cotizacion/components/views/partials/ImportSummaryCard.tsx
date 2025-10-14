@@ -1,65 +1,81 @@
 import React from "react";
+import { AlertTriangle, ChartBar, DollarSign, FileText, TrendingUp } from "lucide-react";
+
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { ChartBar, DollarSign, FileText, TrendingUp, AlertTriangle } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 
 export interface ImportSummaryCardProps {
-  selectedIncoterm: string;
+  exemptionState: {
+    adValorem: boolean;
+    igv: boolean;
+    ipm: boolean;
+    percepcion: boolean;
+  };
   comercialValue: number;
-  totalGastosImportacion: number;
-  inversionTotal: number;
-  shouldExemptTaxes: boolean;
+  totalImportCosts: number;
 }
 
 export default function ImportSummaryCard({
-  selectedIncoterm,
+  exemptionState,
   comercialValue,
-  totalGastosImportacion,
-  inversionTotal,
-  shouldExemptTaxes,
+  totalImportCosts,
 }: ImportSummaryCardProps) {
+  const isAnyExempted = Object.values(exemptionState).some(Boolean);
+  
   const summaryItems = [
-    {
-      key: 'incoterm',
-      label: 'INCOTERM DE IMPORTACION',
-      value: selectedIncoterm,
-      icon: <FileText className="h-4 w-4 text-blue-500" />,
-      color: 'blue',
-      category: 'Términos'
-    },
     {
       key: 'comercialValue',
       label: 'VALOR DE COMPRA FACTURA COMERCIAL',
       value: `USD ${comercialValue.toFixed(2)}`,
-      icon: <DollarSign className="h-4 w-4 text-green-500" />,
-      color: 'green',
-      category: 'Valor'
+      icon: <FileText className="h-4 w-4 text-blue-500" />,
+      color: 'blue',
+      category: 'Compra'
     },
     {
-      key: 'totalGastos',
-      label: 'TOTAL GASTOS DE IMPORTACION',
-      value: `USD ${totalGastosImportacion.toFixed(2)}`,
+      key: 'totalImportCosts',
+      label: 'TOTAL GASTOS DE IMPORTACIÓN',
+      value: `USD ${totalImportCosts.toFixed(2)}`,
+      icon: <DollarSign className="h-4 w-4 text-green-500" />,
+      color: 'green',
+      category: 'Gastos'
+    },
+    {
+      key: 'totalInvestment',
+      label: 'INVERSIÓN TOTAL DE IMPORTACIÓN',
+      value: `USD ${(comercialValue + totalImportCosts).toFixed(2)}`,
       icon: <TrendingUp className="h-4 w-4 text-orange-500" />,
       color: 'orange',
-      category: 'Gastos'
+      category: 'Inversión'
     }
   ];
 
   return (
-    <Card className="shadow-lg border-1 border-purple-200 bg-gradient-to-br from-purple-50 to-indigo-50">
-      <CardHeader >
-        <CardTitle className="flex items-center gap-3 text-xl font-bold">
-          <div className="p-2 bg-purple-200 rounded-lg">
-            <ChartBar className="h-6 w-6 text-purple-700" />
+    <Accordion type="single" collapsible>
+      <AccordionItem value="import-summary" className="border-0">
+        <div className="shadow-lg border-1 border-purple-200 bg-white rounded-lg">
+          <div className="bg-gradient-to-br from-purple-50 to-indigo-50 p-4 rounded-lg rounded-b-none">
+            <AccordionTrigger className="hover:no-underline py-0">
+              <CardTitle className="flex items-center gap-3 text-xl font-bold">
+                <div className="p-2 bg-purple-200 rounded-lg">
+                  <ChartBar className="h-6 w-6 text-purple-700" />
+                </div>
+                <div>
+                  <div>Resumen de Gastos de Importación</div>
+                  <div className="text-sm font-normal text-purple-700">Resumen consolidado</div>
+                </div>
+              </CardTitle>
+            </AccordionTrigger>
           </div>
-          <div>
-            <div>Resumen de Gastos de Importación</div>
-            <div className="text-sm font-normal text-purple-700">Resumen consolidado</div>
-          </div>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4 p-6">
+
+          <AccordionContent>
+            <div className="space-y-4 p-6">
         <div className="space-y-4">
           <div className="flex items-center gap-2 mb-4">
             <Badge variant="secondary" className="bg-purple-100 text-purple-800 border-purple-200">
@@ -115,15 +131,15 @@ export default function ImportSummaryCard({
               </div>
               <div className="text-right">
                 <div className="font-bold text-2xl">
-                  USD {inversionTotal.toFixed(2)}
+                  USD {(comercialValue + totalImportCosts).toFixed(2)}
                 </div>
                 <div className="text-sm opacity-90">
-                  Total final
+                  Compra + Gastos
                 </div>
               </div>
             </div>
             
-            {shouldExemptTaxes && (
+            {isAnyExempted && (
               <div className="bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-lg p-4">
                 <div className="flex items-start gap-3">
                   <div className="p-2 bg-orange-100 rounded-lg">
@@ -151,8 +167,11 @@ export default function ImportSummaryCard({
             )}
           </div>
         </div>
-      </CardContent>
-    </Card>
+            </div>
+          </AccordionContent>
+        </div>
+      </AccordionItem>
+    </Accordion>
   );
 }
 

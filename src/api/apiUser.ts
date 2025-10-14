@@ -2,6 +2,7 @@ import { API_URL } from "../../config";
 import { apiFetch } from "./apiFetch";
 import type {
   CreateUpdateUser,
+  UpdateUser,
   UserProfileWithPagination,
 } from "./interface/user";
 
@@ -92,7 +93,7 @@ export const getUserProfileById = async (id: number) => {
   }
 };
 
-export const updateUserProfile = async (id: string, user: CreateUpdateUser) => {
+export const updateUserProfile = async (id: string, user: UpdateUser ) => {
   try {
     return await apiFetch(`/users/${id}`, {
       method: "PATCH",

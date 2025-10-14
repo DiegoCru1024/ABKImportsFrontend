@@ -5,12 +5,16 @@ import { AppSidebar } from '@/components/app-sidebar'
 import HeaderConBreadcrumb from '@/components/header-breadcrumb'
 import { ThemeProvider } from '@/context/theme-provider'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { useTokenExpiration } from '@/hooks/use-token-expiration'
 
 const queryClient = new QueryClient();
 export default function DashboardLayout() {
+  // Verificar expiración del token
+  useTokenExpiration();
+
   return (
     <QueryClientProvider client={queryClient}>
-    <ThemeProvider defaultTheme="light"> 
+    <ThemeProvider defaultTheme="light">
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>

@@ -53,9 +53,9 @@ export function NavMain({
                   isActive={pathname === item.url}
                   tooltip={item.title}
                 >
-                  <Link to={item.url}>
-                    {item.icon && <item.icon />}
-                    <span>{item.title}</span>
+                  <Link to={item.url} className="flex items-center gap-3">
+                    {item.icon && <item.icon className="w-6 h-6" />}
+                    <span className="text-sm  text-gray-700  font-semibold uppercase">{item.title}</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

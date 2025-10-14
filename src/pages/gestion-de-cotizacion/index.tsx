@@ -1,0 +1,1 @@
+export { default } from "./gestion-de-cotizacion-view";

@@ -85,8 +85,10 @@ export interface User {
 }
 
 export interface Product {
+  originalProductId:string|null;
   id: string;
   name: string;
+  adminComment:string|null;
   quantity: number;
   size: string;
   color: string;

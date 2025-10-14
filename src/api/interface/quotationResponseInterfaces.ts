@@ -1,3 +1,10 @@
+import type { CompleteProductInterface } from "./quotation-response/dto/complete/products/complete-products";
+import type { ResponseDataComplete } from "./quotation-response/dto/complete/response-data-complete";
+import type { PendingProductInterface } from "./quotation-response/dto/pending/products/pending-products";
+import type { ResponseDataPending } from "./quotation-response/dto/pending/response-data-pending";
+import type { ServiceType } from "./quotation-response/enums/enum";
+import type { UserDTO } from "./user";
+
 export interface UserInfo {
   id: string;
   name: string;
@@ -24,6 +31,8 @@ export interface QuotationInfo {
   transitTime: number;
   naviera: string;
   proformaValidity: string;
+  cbm_total: number;
+  peso_total: number;
   id_asesor: string;
 }
 
@@ -76,6 +85,7 @@ export interface Exemptions {
   transporteLocal: boolean;
   totalDerechos: boolean;
 }
+
 export interface serviceFields {
   servicioConsolidado: number;
   separacionCarga: number;
@@ -90,26 +100,7 @@ export interface fiscalObligations {
 export interface importExpenses {
   servicioConsolidadoFinal: number;
   separacionCargaFinal: number;
-  inspeccionProductosFinal: number;
-  servicioConsolidadoMaritimoFinal: number;
-  gestionCertificadoFinal: number;
-  servicioInspeccionFinal: number;
-  transporteLocalFinal: number;
-  desaduanajeFleteSaguro: number;
-  finalValues: finalValues;
   totalGastosImportacion: number;
-}
-
-export interface finalValues {
-  servicioConsolidado: number;
-  gestionCertificado: number;
-  servicioInspeccion: number;
-  transporteLocal: number;
-  separacionCarga: number;
-  inspeccionProductos: number;
-  desaduanajeFleteSaguro: number;
-  transporteLocalChina: number;
-  transporteLocalCliente: number;
 }
 
 export interface ServiceCalculations {
@@ -129,13 +120,36 @@ export interface ProductsQuotationResponseDTO {
   name: string;
   url: string;
   comment: string;
-  quantityTotal: number;
-  weight: string;
-  volume: string;
-  number_of_boxes: number;
+  quantityTotal?: number;
+  weight?: string;
+  volume?: string;
+  number_of_boxes?: number;
   adminComment: string;
-  seCotizaProducto: boolean;
+  seCotizaProducto?: boolean;
+  isQuoted: boolean;
   attachments: string[];
+  ghostUrl?: string;
+  cargoHandling?: {
+    fragileProduct: boolean;
+    stackProduct: boolean;
+  };
+  packingList?: {
+    nroBoxes: number;
+    cbm: number;
+    pesoKg: number;
+    pesoTn: number;
+  };
+  pricing?: {
+    totalPrice: number;
+    totalWeight: number;
+    totalCBM: number;
+    totalQuantity: number;
+    totalExpress: number;
+    unitCost?: number;
+    importCosts?: number;
+    totalCost?: number;
+    equivalence?: number;
+  };
   variants: VariantQuotationResponseDTO[];
 }
 
@@ -144,7 +158,7 @@ export interface ProductsQuotationCreateResponseDTO {
   name: string;
   adminComment: string;
   seCotizaProducto: boolean;
-  variants: VariantQuotationResponseDTO[];
+  variants: VariantQuotationCreateResponseDTO[];
 }
 
 export interface VariantQuotationResponseDTO {
@@ -154,10 +168,29 @@ export interface VariantQuotationResponseDTO {
   model: string;
   color: string;
   quantity: number;
-  price: string;
-  unitCost: string;
-  importCosts: string;
+  price?: string;
+  unitCost?: string;
+  importCosts?: string;
+  seCotizaVariante?: boolean;
+  isQuoted: boolean;
+  attachments?: string[];
+  pendingPricing?: {
+    unitPrice: number;
+    expressPrice: number;
+  };
+  completePricing?: {
+    unitCost: number;
+  };
+}
+
+// Nueva interfaz para variantes de creación con la estructura correcta
+export interface VariantQuotationCreateResponseDTO {
+  variantId: string;
+  quantity: number;
+  precio_unitario: number;
+  precio_express_unitario: number;
   seCotizaVariante: boolean;
+  unitCost?: number;
 }
 
 export interface Calculations {
@@ -179,24 +212,27 @@ export interface QuotationCreateUpdateResponseDTO {
 
 export interface contentQuotationResponseDTO {
   id_quotation_response: string;
-  service_type: string;
-  cargo_type: string;
   response_date: string;
+  advisorName: string;
+  serviceType: string;
+}
+
+
+export interface ResponseInformationDTO{
+  responseId: string | null;
+  response_date: Date;
+  advisorId: string;
+  serviceType: ServiceType;
+  responseData: ResponseDataPending | ResponseDataComplete;
+  products: PendingProductInterface[]|CompleteProductInterface[];
 }
 
 //!Interfaz para listar las respuestas del administrador y sean vistas por el usuario
 export interface QuotationGetResponsesForUsersDTO {
-  quotationInfo: {
-    correlative: string;
-    date: string;
-    serviceType: string;
-    cargoType: string;
-    courier: string;
-    incoterm: string;
-  };
-  user: UserInfo;
-  serviceType: string;
-  products: ProductsQuotationResponseDTO[];
+  quotationId: string;
+  correlative: string;
+  user: UserDTO;
+  responses: ResponseInformationDTO[];
 }
 
 //!Interfaz para listar las respuestas de una cotización

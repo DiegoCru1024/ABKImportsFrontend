@@ -2,7 +2,8 @@ import { z } from "zod";
 
 // Schema para variantes de productos
 export const variantSchema = z.object({
-  id: z.string(),
+  id: z.string(), // ID temporal para gestión local (no se envía al backend)
+  variantId: z.string().optional(), // ID del backend: si existe, se actualiza; si no, se crea
   size: z.string().optional(),
   presentation: z.string().optional(),
   model: z.string().optional(),
@@ -12,6 +13,7 @@ export const variantSchema = z.object({
 
 // Schema principal del producto con variantes
 export const productoSchema = z.object({
+    productId: z.string().optional(), // ID del backend para actualización
     name: z.string().min(1, { message: "El nombre es requerido" }),
     url: z.string().optional(),
     comment: z.string().optional(),

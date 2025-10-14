@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import DynamicMap from "@/components/DynamicMap";
+import ShipmentTrackingMap from "@/components/ShipmentTrackingMap";
 import {
   Dialog,
   DialogContent,
@@ -358,8 +359,8 @@ export default function ShipmentDetailView() {
                 </div>
               </div>
 
-              {/* Mapa de ruta */}
-              <DynamicMap shipment={shipment} shipmentInfo={shipmentInfo} />
+              {/* Mapa de tracking de envío */}
+              <ShipmentTrackingMap shipmentData={shipment} />
             </div>
           </CardContent>
         </Card>

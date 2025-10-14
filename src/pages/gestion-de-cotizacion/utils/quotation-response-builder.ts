@@ -53,14 +53,17 @@ export class QuotationResponseBuilder {
   }
 
   private extractCompleteBasicInfo(data: CompleteBuildData): ResumenInfoInterface {
-    const calculations = data.calculations as Record<string, unknown> | undefined;
+    const quotationForm = data.quotationForm as Record<string, unknown>;
+    const dynamicValues = quotationForm.dynamicValues as Record<string, unknown>;
+    const products = data.products as Array<unknown>;
+
     return {
-      totalCBM: (calculations?.totalCBM as number) || 0,
-      totalWeight: (calculations?.totalWeight as number) || 0,
-      totalPrice: (calculations?.totalPrice as number) || 0,
-      totalExpress: (calculations?.totalExpress as number) || 0,
-      totalQuantity: (calculations?.totalQuantity as number) || 0,
-    }
+      totalCBM: (dynamicValues.volumenCBM as number) || 0,
+      totalWeight: (dynamicValues.kg as number) || 0,
+      totalPrice: (dynamicValues.comercialValue as number) || 0,
+      totalExpress: (dynamicValues.transporteLocalChinaEnvio as number) || 0,
+      totalQuantity: products.length || 0,
+    };
   }
 
   private buildPendingProducts(data: PendingBuildData): PendingProductInterface[] {
@@ -233,14 +236,14 @@ export class QuotationResponseBuilder {
     const adValorem = parseFloat(
       ((calculations.adValoremAmount as number) || 0).toFixed(2)
     );
-    const isc = parseFloat(((calculations.isc as number) || 0).toFixed(2));
-    const igv = parseFloat(((calculations.igv as number) || 0).toFixed(2));
-    const ipm = parseFloat(((calculations.ipm as number) || 0).toFixed(2));
-    const percepcion = parseFloat(
-      ((calculations.percepcion as number) || 0).toFixed(2)
-    );
     const antidumpingValor = parseFloat(
-      ((calculations.antidumping as number) || 0).toFixed(2)
+      ((calculations.antidumpingAmount as number) || 0).toFixed(2)
+    );
+    const isc = parseFloat(((calculations.iscAmount as number) || 0).toFixed(2));
+    const igv = parseFloat(((calculations.igvAmount as number) || 0).toFixed(2));
+    const ipm = parseFloat(((calculations.ipmAmount as number) || 0).toFixed(2));
+    const percepcion = parseFloat(
+      ((calculations.percepcionAmount as number) || 0).toFixed(2)
     );
 
     return {
@@ -278,58 +281,80 @@ export class QuotationResponseBuilder {
     >;
     const dynamicValues = quotationForm.dynamicValues as Record<string, unknown>;
     const serviceFields = getServiceFields();
-    const subtotal = Object.values(serviceFields).reduce(
-      (sum: number, value: unknown) =>
-        sum + ((typeof value === "number" ? value : 0) || 0),
-      0
-    );
+    const selectedServiceLogistic = quotationForm.selectedServiceLogistic as string;
+
+    const extractedFields = {
+      servicioConsolidado:
+        parseFloat(
+          ((serviceFields.servicioConsolidado as number) || 0).toFixed(2)
+        ) || 0,
+      separacionCarga:
+        parseFloat(
+          ((serviceFields.separacionCarga as number) || 0).toFixed(2)
+        ) || 0,
+      seguroProductos:
+        parseFloat(
+          ((serviceFields.seguroProductos as number) || 0).toFixed(2)
+        ) || 0,
+      inspeccionProductos:
+        parseFloat(
+          ((serviceFields.inspeccionProductos as number) || 0).toFixed(2)
+        ) || 0,
+      gestionCertificado:
+        parseFloat(
+          ((serviceFields.gestionCertificado as number) || 0).toFixed(2)
+        ) || 0,
+      inspeccionFabrica:
+        parseFloat(
+          ((serviceFields.inspeccionFabrica as number) || 0).toFixed(2)
+        ) || 0,
+      transporteLocal:
+        parseFloat(
+          ((serviceFields.transporteLocal as number) || 0).toFixed(2)
+        ) || 0,
+      transporteLocalChina:
+        parseFloat(
+          ((dynamicValues.transporteLocalChinaEnvio as number) || 0).toFixed(
+            2
+          )
+        ) || 0,
+      transporteLocalDestino:
+        parseFloat(
+          ((dynamicValues.transporteLocalClienteEnvio as number) ||
+            0).toFixed(2)
+        ) || 0,
+      otrosServicios:
+        parseFloat(
+          ((serviceFields.otrosServicios as number) || 0).toFixed(2)
+        ) || 0,
+    };
+
+    // Para servicios marítimos consolidados, solo sumar campos específicos
+    const isMaritimeConsolidated =
+      selectedServiceLogistic === "Consolidado Maritimo" ||
+      selectedServiceLogistic === "Consolidado Grupal Maritimo";
+
+    let subtotal = 0;
+    if (isMaritimeConsolidated) {
+      // Solo sumar: servicioConsolidado, gestionCertificado, inspeccionProductos, inspeccionFabrica, otrosServicios, transporteLocalChina, transporteLocalDestino
+      subtotal =
+        extractedFields.servicioConsolidado +
+        extractedFields.gestionCertificado +
+        extractedFields.inspeccionProductos +
+        extractedFields.inspeccionFabrica +
+        extractedFields.otrosServicios +
+        extractedFields.transporteLocalChina +
+        extractedFields.transporteLocalDestino;
+    } else {
+      // Para otros servicios, sumar todos los campos
+      subtotal = Object.values(extractedFields).reduce(
+        (sum: number, value: number) => sum + value,
+        0
+      );
+    }
 
     return {
-      serviceFields: {
-        servicioConsolidado:
-          parseFloat(
-            ((serviceFields.servicioConsolidado as number) || 0).toFixed(2)
-          ) || 0,
-        separacionCarga:
-          parseFloat(
-            ((serviceFields.separacionCarga as number) || 0).toFixed(2)
-          ) || 0,
-        seguroProductos:
-          parseFloat(
-            ((serviceFields.seguroProductos as number) || 0).toFixed(2)
-          ) || 0,
-        inspeccionProductos:
-          parseFloat(
-            ((serviceFields.inspeccionProductos as number) || 0).toFixed(2)
-          ) || 0,
-        gestionCertificado:
-          parseFloat(
-            ((serviceFields.gestionCertificado as number) || 0).toFixed(2)
-          ) || 0,
-        inspeccionFabrica:
-          parseFloat(
-            ((serviceFields.inspeccionFabrica as number) || 0).toFixed(2)
-          ) || 0,
-        transporteLocal:
-          parseFloat(
-            ((serviceFields.transporteLocal as number) || 0).toFixed(2)
-          ) || 0,
-        transporteLocalChina:
-          parseFloat(
-            ((dynamicValues.transporteLocalChinaEnvio as number) || 0).toFixed(
-              2
-            )
-          ) || 0,
-        transporteLocalDestino:
-          parseFloat(
-            ((dynamicValues.transporteLocalClienteEnvio as number) ||
-              0).toFixed(2)
-          ) || 0,
-        otrosServicios:
-          parseFloat(
-            ((serviceFields.otrosServicios as number) || 0).toFixed(2)
-          ) || 0,
-      },
+      serviceFields: extractedFields,
       subtotalServices: parseFloat(subtotal.toFixed(2)),
       igvServices: parseFloat((subtotal * 0.18).toFixed(2)),
       totalServices: parseFloat((subtotal * 1.18).toFixed(2)),
@@ -436,37 +461,77 @@ export class QuotationResponseBuilder {
     const calculations = data.calculations as Record<string, unknown>;
     const dynamicValues = quotationForm.dynamicValues as Record<string, unknown>;
     const exemptionState = quotationForm.exemptionState as Record<string, unknown>;
+    const selectedServiceLogistic = quotationForm.selectedServiceLogistic as string;
+
+    const isMaritimeConsolidated =
+      selectedServiceLogistic === "Consolidado Maritimo" ||
+      selectedServiceLogistic === "Consolidado Grupal Maritimo";
+
+    // Calcular valores con IGV (1.18)
+    const servicioConsolidado = ((serviceFields.servicioConsolidado as number) || 0) * 1.18;
+    const gestionCertificado = ((serviceFields.gestionCertificado as number) || 0) * 1.18;
+
+    // servicioInspeccion = (inspeccionProductos + inspeccionFabrica) × 1.18
+    const servicioInspeccion = (
+      ((serviceFields.inspeccionProductos as number) || 0) +
+      ((serviceFields.inspeccionFabrica as number) || 0)
+    ) * 1.18;
+
+    // servicioTransporte = (transporteLocalChina × 1.18) + transporteLocalDestino
+    const servicioTransporte =
+      ((dynamicValues.transporteLocalChinaEnvio as number) || 0) * 1.18 +
+      ((dynamicValues.transporteLocalClienteEnvio as number) || 0);
+
+    const otrosServicios = ((serviceFields.otrosServicios as number) || 0) * 1.18;
+
+    // totalDerechos viene de fiscalObligations.totalTaxes
+    const totalDerechos = (calculations.totalTaxes as number) || 0;
+
+    // totalExpenses es la suma de los conceptos especificados
+    const totalExpenses = parseFloat((
+      servicioConsolidado +
+      gestionCertificado +
+      servicioInspeccion +
+      servicioTransporte +
+      otrosServicios +
+      totalDerechos
+    ).toFixed(2));
 
     return {
       expenseFields: {
-        servicioConsolidado: (serviceFields.servicioConsolidado as number) || 0,
-        separacionCarga: (serviceFields.separacionCarga as number) || 0,
-        seguroProductos: (serviceFields.seguroProductos as number) || 0,
-        gestionCertificado: (serviceFields.gestionCertificado as number) || 0,
-        inspeccionProductos: (serviceFields.inspeccionProductos as number) || 0,
+        servicioConsolidado: parseFloat(servicioConsolidado.toFixed(2)),
+        separacionCarga: parseFloat((((serviceFields.separacionCarga as number) || 0) * 1.18).toFixed(2)),
+        seguroProductos: parseFloat((((serviceFields.seguroProductos as number) || 0) * 1.18).toFixed(2)),
+        gestionCertificado: parseFloat(gestionCertificado.toFixed(2)),
+        inspeccionProductos: parseFloat((((serviceFields.inspeccionProductos as number) || 0) * 1.18).toFixed(2)),
         addvaloremigvipm: {
           descuento: (exemptionState.obligacionesFiscales as boolean) || false,
-          valor: (calculations.totalTaxes as number) || 0,
+          valor: totalDerechos,
         },
-        totalDerechos:(serviceFields.totalDerechos as number)||0,
-        desadunajefleteseguro: (dynamicValues.desaduanaje as number) || 0,
-        servicioTransporte: (serviceFields.transporteLocal as number) || 0,
-        otrosServicios: (serviceFields.otrosServicios as number) || 0,
+        desadunajefleteseguro: parseFloat(((dynamicValues.desaduanaje as number) || 0).toFixed(2)),
+        totalDerechos: parseFloat(totalDerechos.toFixed(2)),
+        servicioTransporte: parseFloat(servicioTransporte.toFixed(2)),
+        servicioInspeccion: parseFloat(servicioInspeccion.toFixed(2)),
+        otrosServicios: parseFloat(otrosServicios.toFixed(2)),
       },
-      totalExpenses: (calculations.finalTotal as number) || 0,
+      totalExpenses,
     };
   }
 
 
   private extractQuoteSummary(data: CompleteBuildData): QuoteSummaryInterface {
-    const calculations = data.calculations as Record<string, unknown>;
     const quotationForm = data.quotationForm as Record<string, unknown>;
     const dynamicValues = quotationForm.dynamicValues as Record<string, unknown>;
 
+    // Calcular totalExpenses usando la misma lógica de extractImportCosts
+    const importCosts = this.extractImportCosts(data);
+    const totalExpenses = importCosts.totalExpenses;
+    const comercialValue = (dynamicValues.comercialValue as number) || 0;
+
     return {
-      comercialValue: (dynamicValues.comercialValue as number) || 0,
-      totalExpenses: (calculations.finalTotal as number) || 0,
-      totalInvestment: ((dynamicValues.comercialValue as number) || 0) + ((calculations.finalTotal as number) || 0),
+      comercialValue,
+      totalExpenses,
+      totalInvestment: parseFloat((comercialValue + totalExpenses).toFixed(2)),
     };
   }
 

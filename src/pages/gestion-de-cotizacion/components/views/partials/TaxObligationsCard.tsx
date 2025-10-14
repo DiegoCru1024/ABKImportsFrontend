@@ -37,6 +37,7 @@ export interface TaxObligationsCardProps {
   setPercepcionMultiplier?: (v: number) => void;
   values: {
     adValorem: number;
+    antidumping: number;
     igvFiscal: number;
     ipm: number;
     isc: number;
@@ -64,15 +65,8 @@ export default function TaxObligationsCard({
   setPercepcionMultiplier,
   values,
 }: TaxObligationsCardProps) {
-  const calculatedPercepcion =
-    (values.adValorem +
-      (isMaritime
-        ? values.totalDerechosDolares - values.adValorem - values.igvFiscal - values.ipm
-        : 0) +
-      values.isc +
-      values.igvFiscal +
-      values.ipm) *
-    percepcionMultiplier;
+  // La percepción ya viene calculada correctamente desde use-quotation-calculations
+  const calculatedPercepcion = values.percepcion;
 
     
   const taxItems = [
@@ -92,7 +86,7 @@ export default function TaxObligationsCard({
             label: "ANTIDUMPING",
             rate: antidumpingGobierno,
             setRate: setAntidumpingGobierno,
-            value: antidumpingGobierno * antidumpingCantidad,
+            value: values.antidumping,
             icon: <TrendingUp className="h-4 w-4 text-red-500" />,
             color: "red",
             isComplex: true,

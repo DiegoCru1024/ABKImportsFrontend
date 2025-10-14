@@ -41,7 +41,7 @@ export default function ServiceConsolidationCard({
       const subtotal =
         (serviceFields.servicioConsolidado || 0) +
         (serviceFields.gestionCertificado || 0) +
-        (serviceFields.inspeccionProducto || 0) +
+        (serviceFields.inspeccionProductos || 0) +
         (serviceFields.inspeccionFabrica || 0) +
         (serviceFields.otrosServicios || 0) +
         transporteLocalChina +

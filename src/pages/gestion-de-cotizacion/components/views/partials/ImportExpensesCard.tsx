@@ -129,9 +129,8 @@ export default function ImportExpensesCard({
         (serviceFieldsFromConsolidation.inspeccionFabrica || 0)) *
       1.18;
     const servicioTransporte =
-      ((serviceFieldsFromConsolidation.transporteLocalChina || 0) +
-        (serviceFieldsFromConsolidation.transporteLocalDestino || 0)) *
-      1.18;
+      (serviceFieldsFromConsolidation.transporteLocalChina || 0) * 1.18 +
+      (serviceFieldsFromConsolidation.transporteLocalDestino || 0);
     const otrosServicios =
       (serviceFieldsFromConsolidation.otrosServicios || 0) * 1.18;
 

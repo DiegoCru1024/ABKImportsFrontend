@@ -26,8 +26,11 @@ interface DynamicValues {
   adValoremRate: number;
   igvRate: number;
   ipmRate: number;
+  iscRate?: number;
   percepcionRate: number;
   tipoCambio: number;
+  antidumpingGobierno?: number;
+  antidumpingCantidad?: number;
 }
 
 interface UseQuotationCalculationsProps {
@@ -91,18 +94,37 @@ export function useQuotationCalculations({
 
   // Cálculos de impuestos
   const taxCalculations = useMemo(() => {
+    // 1. AD/VALOREM = CIF × factor
     const adValoremAmount = (cif * dynamicValues.adValoremRate) / 100;
-    const baseIGV = cif + adValoremAmount;
+
+    // 2. ANTIDUMPING = antidumpingGobierno × antidumpingCantidad
+    const antidumpingAmount = (dynamicValues.antidumpingGobierno || 0) * (dynamicValues.antidumpingCantidad || 0);
+
+    // 3. ISC = (CIF + AD/VALOREM) × factor
+    const baseISC = cif + adValoremAmount;
+    const iscAmount = (baseISC * (dynamicValues.iscRate || 0)) / 100;
+
+    // 4. IGV = (CIF + AD/VALOREM + ISC + ANTIDUMPING) × factor
+    const baseIGV = cif + adValoremAmount + iscAmount + antidumpingAmount;
     const igvAmount = (baseIGV * dynamicValues.igvRate) / 100;
-    const ipmAmount = (baseIGV * dynamicValues.ipmRate) / 100; // IPM también se calcula sobre CIF + AD/VALOREM
-    const percepcionAmount = (igvAmount * dynamicValues.percepcionRate) / 100;
-    
-    const totalTaxes = adValoremAmount + igvAmount + ipmAmount + percepcionAmount;
+
+    // 5. IPM = (CIF + AD/VALOREM + ISC + ANTIDUMPING) × factor
+    const baseIPM = cif + adValoremAmount + iscAmount + antidumpingAmount;
+    const ipmAmount = (baseIPM * dynamicValues.ipmRate) / 100;
+
+    // 6. PERCEPCION = (CIF + AD/VALOREM + ISC + ANTIDUMPING + IPM) × factor
+    const basePERCEPCION = cif + adValoremAmount + iscAmount + antidumpingAmount + ipmAmount;
+    const percepcionAmount = (basePERCEPCION * dynamicValues.percepcionRate) / 100;
+
+    // Total de Derechos = AD/VALOREM + ANTIDUMPING + ISC + IGV + IPM + PERCEPCION
+    const totalTaxes = adValoremAmount + antidumpingAmount + iscAmount + igvAmount + ipmAmount + percepcionAmount;
     const totalWithTaxes = cif + totalTaxes;
     const totalInSoles = totalWithTaxes * dynamicValues.tipoCambio;
 
     return {
       adValoremAmount,
+      antidumpingAmount,
+      iscAmount,
       igvAmount,
       ipmAmount,
       percepcionAmount,
@@ -110,6 +132,9 @@ export function useQuotationCalculations({
       totalWithTaxes,
       totalInSoles,
       baseIGV,
+      baseISC,
+      baseIPM,
+      basePERCEPCION,
     };
   }, [cif, dynamicValues]);
 
@@ -117,6 +142,8 @@ export function useQuotationCalculations({
   const finalCalculations = useMemo(() => {
     const finalTaxes = {
       adValorem: exemptionState.totalDerechos ? 0 : taxCalculations.adValoremAmount,
+      antidumping: exemptionState.totalDerechos ? 0 : taxCalculations.antidumpingAmount,
+      isc: exemptionState.totalDerechos ? 0 : taxCalculations.iscAmount,
       igv: exemptionState.obligacionesFiscales ? 0 : taxCalculations.igvAmount,
       ipm: exemptionState.totalDerechos ? 0 : taxCalculations.ipmAmount,
       percepcion: exemptionState.obligacionesFiscales ? 0 : taxCalculations.percepcionAmount,

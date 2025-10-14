@@ -60,6 +60,11 @@ export default function QuotationResponseView({
   // Detectar si es vista "Pendiente" (administrativa) vs vista completa
   const isPendingView = quotationForm.selectedServiceLogistic === "Pendiente";
 
+  // Detectar si es servicio marítimo consolidado
+  const isMaritimeConsolidated =
+    quotationForm.selectedServiceLogistic === "Consolidado Maritimo" ||
+    quotationForm.selectedServiceLogistic === "Consolidado Grupal Maritimo";
+
   // Inicializar productos pendientes cuando quotationDetail esté disponible
   useEffect(() => {
     if (quotationDetail?.products && pendingProducts.length === 0) {
@@ -523,6 +528,46 @@ export default function QuotationResponseView({
     };
   }, [quotationDetail?.products]);
 
+  // Calcular totalImportCosts correctamente
+  const totalImportCosts = useMemo(() => {
+    const serviceFields = quotationForm.getServiceFields();
+
+    // Calcular valores con IGV (1.18)
+    const servicioConsolidado = (serviceFields.servicioConsolidado || 0) * 1.18;
+    const gestionCertificado = (serviceFields.gestionCertificado || 0) * 1.18;
+
+    // servicioInspeccion = (inspeccionProductos + inspeccionFabrica) × 1.18
+    const servicioInspeccion = (
+      (serviceFields.inspeccionProductos || 0) +
+      (serviceFields.inspeccionFabrica || 0)
+    ) * 1.18;
+
+    // servicioTransporte = (transporteLocalChina × 1.18) + transporteLocalDestino
+    const servicioTransporte =
+      (quotationForm.dynamicValues.transporteLocalChinaEnvio || 0) * 1.18 +
+      (quotationForm.dynamicValues.transporteLocalClienteEnvio || 0);
+
+    const otrosServicios = (serviceFields.otrosServicios || 0) * 1.18;
+
+    // totalDerechos viene de fiscalObligations.totalTaxes
+    const totalDerechos = calculations.totalTaxes || 0;
+
+    // totalExpenses es la suma de los conceptos especificados
+    return parseFloat((
+      servicioConsolidado +
+      gestionCertificado +
+      servicioInspeccion +
+      servicioTransporte +
+      otrosServicios +
+      totalDerechos
+    ).toFixed(2));
+  }, [
+    quotationForm.getServiceFields,
+    quotationForm.dynamicValues.transporteLocalChinaEnvio,
+    quotationForm.dynamicValues.transporteLocalClienteEnvio,
+    calculations.totalTaxes,
+  ]);
+
   const handleSubmitQuotation = async () => {
     setIsSubmitting(true);
     try {
@@ -675,10 +720,13 @@ export default function QuotationResponseView({
               valor: calculations.totalTaxes || 0,
             },
             desadunajefleteseguro: calculationsData.dynamicValues.desaduanaje,
+            totalDerechos:
+              calculations.totalTaxes || 0,
             servicioTransporte:
               serviceCalculationsData.serviceFields.transporteLocal || 0,
-            totalDerechos:
-              serviceCalculationsData.serviceFields.transporteLocal || 0,
+            servicioInspeccion:
+              (serviceCalculationsData.serviceFields.inspeccionProductos || 0) +
+              (serviceCalculationsData.serviceFields.inspeccionFabrica || 0),
             otrosServicios:
               serviceCalculationsData.serviceFields.otrosServicios || 0,
           },
@@ -758,10 +806,10 @@ export default function QuotationResponseView({
 
       // Enviar la cotización usando el hook
 
-      /*await createQuotationResponseMutation.mutateAsync({
+      await createQuotationResponseMutation.mutateAsync({
         data: dto,
         quotationId: selectedQuotationId,
-      });*/
+      });
 
       // Mostrar modal de éxito
       quotationForm.setIsSendingModalOpen(true);
@@ -851,22 +899,32 @@ export default function QuotationResponseView({
               : nonPendingViewTotals.totalProducts
           }
           totalCBM={
-            isPendingView ? pendingViewTotals.totalCBM : calculations.totalCBM
+            isPendingView
+              ? pendingViewTotals.totalCBM
+              : isMaritimeConsolidated
+                ? quotationForm.dynamicValues.volumenCBM
+                : calculations.totalCBM
           }
           totalWeight={
             isPendingView
               ? pendingViewTotals.totalWeight
-              : calculations.totalWeight
+              : isMaritimeConsolidated
+                ? quotationForm.dynamicValues.kg
+                : calculations.totalWeight
           }
           totalPrice={
             isPendingView
               ? pendingViewTotals.totalPrice
-              : calculations.totalPrice
+              : isMaritimeConsolidated
+                ? quotationForm.dynamicValues.comercialValue
+                : calculations.totalPrice
           }
           totalExpress={
             isPendingView
               ? pendingViewTotals.totalExpress
-              : calculations.totalExpress
+              : isMaritimeConsolidated
+                ? quotationForm.dynamicValues.transporteLocalChinaEnvio
+                : calculations.totalExpress
           }
           totalGeneral={
             isPendingView
@@ -1082,21 +1140,13 @@ export default function QuotationResponseView({
                 }
                 values={{
                   adValorem: calculations.adValoremAmount,
+                  antidumping: calculations.antidumpingAmount || 0,
                   igvFiscal: calculations.igvAmount,
                   ipm: calculations.ipmAmount,
-                  isc: 0, // ISC no está calculado en este contexto
+                  isc: calculations.iscAmount || 0,
                   percepcion: calculations.percepcionAmount,
-                  totalDerechosDolares: calculations.totalTaxes + 
-                    (quotationForm.isMaritimeService() 
-                      ? (quotationForm.dynamicValues.antidumpingGobierno || 0) * (quotationForm.dynamicValues.antidumpingCantidad || 0)
-                      : 0),
-                  totalDerechosSoles:
-                    (calculations.totalTaxesInSoles ||
-                    calculations.totalTaxes *
-                      quotationForm.dynamicValues.tipoCambio) +
-                    (quotationForm.isMaritimeService()
-                      ? ((quotationForm.dynamicValues.antidumpingGobierno || 0) * (quotationForm.dynamicValues.antidumpingCantidad || 0)) * quotationForm.dynamicValues.tipoCambio
-                      : 0),
+                  totalDerechosDolares: calculations.totalTaxes,
+                  totalDerechosSoles: calculations.totalTaxesInSoles || calculations.totalTaxes * quotationForm.dynamicValues.tipoCambio,
                 }}
               />
             </div>
@@ -1112,12 +1162,7 @@ export default function QuotationResponseView({
                     quotationForm.dynamicValues.inspeccionProducto,
                   transporteLocalFinal:
                     quotationForm.dynamicValues.transporteLocal,
-                  totalDerechosDolaresFinal:
-                    calculations.totalTaxes +
-                    (quotationForm.isMaritimeService()
-                      ? (quotationForm.dynamicValues.antidumpingGobierno || 0) *
-                        (quotationForm.dynamicValues.antidumpingCantidad || 0)
-                      : 0),
+                  totalDerechosDolaresFinal: calculations.totalTaxes,
                   desaduanajeFleteSaguro:
                     quotationForm.dynamicValues.desaduanaje +
                     quotationForm.dynamicValues.flete +
@@ -1178,17 +1223,7 @@ export default function QuotationResponseView({
                   percepcion: quotationForm.exemptionState.obligacionesFiscales,
                 }}
                 comercialValue={quotationForm.dynamicValues.comercialValue}
-                totalImportCosts={
-                  calculations.totalTaxes +
-                  quotationForm.dynamicValues.servicioConsolidado * 1.18 +
-                  quotationForm.dynamicValues.separacionCarga * 1.18 +
-                  quotationForm.dynamicValues.inspeccionProductos * 1.18 +
-                  quotationForm.dynamicValues.desaduanaje +
-                  quotationForm.dynamicValues.flete +
-                  quotationForm.dynamicValues.seguro +
-                  quotationForm.dynamicValues.transporteLocalChinaEnvio +
-                  quotationForm.dynamicValues.transporteLocalClienteEnvio
-                }
+                totalImportCosts={totalImportCosts}
               />
             </div>
 

@@ -22,5 +22,7 @@ export interface ExpenseFieldsInterface {
 
   servicioTransporte: number;
 
+  servicioInspeccion: number;
+
   otrosServicios: number;
 }

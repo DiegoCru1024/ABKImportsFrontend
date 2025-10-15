@@ -374,24 +374,54 @@ export default function QuotationResponseView({
           return product;
         });
 
-        // CRÍTICO: Recalcular aggregatedData si se actualizan packingList (CBM/Peso) o campos que afectan precios
-        // Campos que NO requieren recálculo: cargoHandling, ghostUrl, adminComment
-        // Campos que SÍ requieren recálculo: packingList (para actualizar CBM/Peso totales), variants (para actualizar precios)
-        const requiresRecalculation = !(
+        // CRÍTICO: Manejo diferenciado de actualizaciones para evitar recálculos innecesarios
+        // Caso 1: Si SOLO se actualiza packingList, actualizar SOLO CBM y Peso en aggregatedData (sin tocar precios)
+        // Caso 2: Si se actualizan variants, recalcular TODO el aggregatedData (incluyendo precios)
+        // Caso 3: Si se actualizan cargoHandling, ghostUrl o adminComment, NO recalcular nada
+
+        const isOnlyPackingListUpdate =
+          updates.packingList !== undefined &&
+          updates.variants === undefined &&
+          updates.cargoHandling === undefined &&
+          updates.ghostUrl === undefined &&
+          updates.adminComment === undefined;
+
+        const isVariantsUpdate = updates.variants !== undefined;
+
+        const isNonAggregatedFieldUpdate =
           updates.cargoHandling !== undefined ||
           updates.ghostUrl !== undefined ||
-          updates.adminComment !== undefined
-        );
+          updates.adminComment !== undefined;
 
-        // Recalcular si se actualizó packingList o variants
-        if (requiresRecalculation) {
-          // Notificar cambios para recálculos en tiempo real
+        if (isOnlyPackingListUpdate) {
+          // SOLO actualizar CBM y Peso en aggregatedData, preservar precios
+          setProductsAggregatedData((prevData) => {
+            const currentData = prevData[productId] || {
+              totalPrice: 0,
+              totalWeight: 0,
+              totalCBM: 0,
+              totalQuantity: 0,
+              totalExpress: 0,
+            };
+
+            return {
+              ...prevData,
+              [productId]: {
+                ...currentData, // Preservar totalPrice, totalExpress, totalQuantity
+                totalCBM: updates.packingList.cbm, // Actualizar SOLO CBM
+                totalWeight: updates.packingList.weightKg, // Actualizar SOLO Peso
+              },
+            };
+          });
+        } else if (isVariantsUpdate) {
+          // Recalcular TODO el aggregatedData porque los precios cambiaron
           const updatedProduct = updatedProducts.find((p) => p.id === productId);
           if (updatedProduct) {
             const aggregatedData = calculateProductAggregatedData(updatedProduct);
             handleAggregatedDataChange(productId, aggregatedData);
           }
         }
+        // Si es isNonAggregatedFieldUpdate, no hacer nada (no recalcular)
 
         return updatedProducts;
       });

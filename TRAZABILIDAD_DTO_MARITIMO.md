@@ -102,15 +102,15 @@ const baseIPM = cif + adValoremAmount + iscAmount + antidumpingAmount;
 const ipmAmount = (baseIPM * dynamicValues.ipmRate) / 100;
 // Ejemplo: (142 + 5.68 + 0 + 0) × 2 / 100 = 2.95
 
-// 6. PERCEPCION = (CIF + AD/VALOREM + ISC + ANTIDUMPING + IPM) × (percepcionRate / 100)
-const basePERCEPCION = cif + adValoremAmount + iscAmount + antidumpingAmount + ipmAmount;
+// 6. PERCEPCION = (CIF + AD/VALOREM + ISC + ANTIDUMPING + IGV) × (percepcionRate / 100)
+const basePERCEPCION = cif + adValoremAmount + iscAmount + antidumpingAmount + igvAmount;
 const percepcionAmount = (basePERCEPCION * dynamicValues.percepcionRate) / 100;
-// Ejemplo: (142 + 5.68 + 0 + 0 + 2.95) × 5 / 100 = 7.53
+// Ejemplo: (142 + 5.68 + 0 + 0 + 26.58) × 5 / 100 = 8.71
 
 // Total de impuestos
 const totalTaxes = adValoremAmount + antidumpingAmount + iscAmount +
                    igvAmount + ipmAmount + percepcionAmount;
-// Ejemplo: 5.68 + 0 + 0 + 26.58 + 2.95 + 7.53 = 42.74
+// Ejemplo: 5.68 + 0 + 0 + 26.58 + 2.95 + 8.71 = 43.92
 ```
 
 ### Paso 3: Construcción del DTO
@@ -158,8 +158,8 @@ private extractFiscalObligations(data: CompleteBuildData): FiscalObligationsInte
 | **ISC** | `(CIF + AdValorem) × (rate / 100)` | `147.68 × 0 = 0` |
 | **IGV** | `(CIF + AdValorem + ISC + Antidumping) × (rate / 100)` | `147.68 × 0.16 = 23.63` |
 | **IPM** | `(CIF + AdValorem + ISC + Antidumping) × (rate / 100)` | `147.68 × 0.02 = 2.95` |
-| **Percepción** | `(CIF + AdValorem + ISC + Antidumping + IPM) × (rate / 100)` | `150.63 × 0.00 = 0` |
-| **Total Taxes** | `Suma de todos los impuestos` | `5.68 + 0 + 22.72 + 2.84 + 0 + 0 = 31.24` |
+| **Percepción** | `(CIF + AdValorem + ISC + Antidumping + IGV) × (rate / 100)` | `174.26 × 0.05 = 8.71` |
+| **Total Taxes** | `Suma de todos los impuestos` | `5.68 + 0 + 0 + 26.58 + 2.95 + 8.71 = 43.92` |
 
 ---
 

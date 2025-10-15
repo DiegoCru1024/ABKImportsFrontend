@@ -112,9 +112,9 @@ export function useQuotationCalculations({
     const baseIPM = cif + adValoremAmount + iscAmount + antidumpingAmount;
     const ipmAmount = (baseIPM * dynamicValues.ipmRate) / 100;
 
-    // 6. PERCEPCION = (CIF + AD/VALOREM + ISC + ANTIDUMPING + IPM) × factor
-    // IMPORTANTE: La base incluye CIF + todos los impuestos EXCEPTO la percepción misma
-    const basePERCEPCION = cif + adValoremAmount + iscAmount + antidumpingAmount + ipmAmount;
+    // 6. PERCEPCION = (CIF + AD/VALOREM + ISC + ANTIDUMPING + IGV) × factor
+    // IMPORTANTE: La base incluye CIF + impuestos gravados con IGV (NO incluye IPM)
+    const basePERCEPCION = cif + adValoremAmount + iscAmount + antidumpingAmount + igvAmount;
     const percepcionAmount = (basePERCEPCION * dynamicValues.percepcionRate) / 100;
 
     // Total de Derechos = AD/VALOREM + ANTIDUMPING + ISC + IGV + IPM + PERCEPCION

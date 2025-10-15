@@ -228,47 +228,30 @@ export default function QuotationProductRow({
       return isSelected;
     });
 
-    return selectedVariants.reduce(
-      (acc, variant) => {
-        let variantCBM = 0;
-        if (variant.size) {
-          const dimensions = variant.size
-            .split("*")
-            .map((d: string) => parseFloat(d.trim()));
-          if (
-            dimensions.length === 3 &&
-            dimensions.every((d: number) => !isNaN(d))
-          ) {
-            variantCBM =
-              (dimensions[0] * dimensions[1] * dimensions[2]) / 1000000;
-          }
-        }
-
-        return {
-          totalPrice:
-            acc.totalPrice + (variant.price || 0) * (variant.quantity || 0),
-          totalWeight:
-            acc.totalWeight +
-            (variant.weight || localProduct.packingList?.weightKg || 0),
-          totalCBM:
-            acc.totalCBM +
-            (variantCBM > 0
-              ? variantCBM
-              : (localProduct.packingList?.cbm || 0) /
-                (localProduct.variants?.length || 1)) *
-              (variant.quantity || 1),
-          totalQuantity: acc.totalQuantity + (variant.quantity || 0),
-          totalExpress: acc.totalExpress + (variant.priceExpress || 0),
-        };
-      },
+    // IMPORTANTE: En la vista Pendiente, los totales de CBM y Peso vienen del packingList del producto
+    // Solo los precios (price y priceExpress) deben sumarse desde las variantes
+    const priceData = selectedVariants.reduce(
+      (acc, variant) => ({
+        totalPrice:
+          acc.totalPrice + (variant.price || 0) * (variant.quantity || 0),
+        totalQuantity: acc.totalQuantity + (variant.quantity || 0),
+        totalExpress: acc.totalExpress + (variant.priceExpress || 0),
+      }),
       {
         totalPrice: 0,
-        totalWeight: 0,
-        totalCBM: 0,
         totalQuantity: 0,
         totalExpress: 0,
       }
     );
+
+    // Retornar con los valores del packingList para CBM y Weight (no se calculan desde variantes)
+    return {
+      totalPrice: priceData.totalPrice,
+      totalWeight: localProduct.packingList?.weightKg || 0,
+      totalCBM: localProduct.packingList?.cbm || 0,
+      totalQuantity: priceData.totalQuantity,
+      totalExpress: priceData.totalExpress,
+    };
   }, [
     localProduct.variants,
     productVariants,

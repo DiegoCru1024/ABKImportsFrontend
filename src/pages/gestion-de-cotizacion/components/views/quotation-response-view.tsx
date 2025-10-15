@@ -311,12 +311,12 @@ export default function QuotationResponseView({
         return variantStates[variant.id] !== false;
       });
 
-      return selectedVariants.reduce(
+      // IMPORTANTE: En la vista Pendiente, los totales de CBM y Peso vienen del packingList del producto
+      // Solo los precios (price y priceExpress) y cantidades deben sumarse desde las variantes
+      const priceData = selectedVariants.reduce(
         (acc: any, variant: any) => ({
           totalPrice:
             acc.totalPrice + (variant.price || 0) * (variant.quantity || 0),
-          totalWeight: acc.totalWeight + (variant.weight || 0),
-          totalCBM: acc.totalCBM + (variant.cbm || 0),
           totalQuantity: acc.totalQuantity + (variant.quantity || 0),
           totalExpress:
             acc.totalExpress +
@@ -324,12 +324,20 @@ export default function QuotationResponseView({
         }),
         {
           totalPrice: 0,
-          totalWeight: 0,
-          totalCBM: 0,
           totalQuantity: 0,
           totalExpress: 0,
         }
       );
+
+      // Retornar con los valores del packingList para CBM y Weight (no se calculan desde variantes)
+      return {
+        totalPrice: priceData.totalPrice,
+        totalWeight:
+          product.packingList?.weightKg || parseFloat(product.weight) || 0,
+        totalCBM: product.packingList?.cbm || parseFloat(product.volume) || 0,
+        totalQuantity: priceData.totalQuantity,
+        totalExpress: priceData.totalExpress,
+      };
     },
     [quotationForm.variantQuotationState]
   );
@@ -366,11 +374,23 @@ export default function QuotationResponseView({
           return product;
         });
 
-        // Notificar cambios para recálculos en tiempo real
-        const updatedProduct = updatedProducts.find((p) => p.id === productId);
-        if (updatedProduct) {
-          const aggregatedData = calculateProductAggregatedData(updatedProduct);
-          handleAggregatedDataChange(productId, aggregatedData);
+        // CRÍTICO: Recalcular aggregatedData si se actualizan packingList (CBM/Peso) o campos que afectan precios
+        // Campos que NO requieren recálculo: cargoHandling, ghostUrl, adminComment
+        // Campos que SÍ requieren recálculo: packingList (para actualizar CBM/Peso totales), variants (para actualizar precios)
+        const requiresRecalculation = !(
+          updates.cargoHandling !== undefined ||
+          updates.ghostUrl !== undefined ||
+          updates.adminComment !== undefined
+        );
+
+        // Recalcular si se actualizó packingList o variants
+        if (requiresRecalculation) {
+          // Notificar cambios para recálculos en tiempo real
+          const updatedProduct = updatedProducts.find((p) => p.id === productId);
+          if (updatedProduct) {
+            const aggregatedData = calculateProductAggregatedData(updatedProduct);
+            handleAggregatedDataChange(productId, aggregatedData);
+          }
         }
 
         return updatedProducts;

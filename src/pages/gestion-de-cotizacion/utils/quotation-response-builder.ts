@@ -233,6 +233,7 @@ export class QuotationResponseBuilder {
     const quotationForm = data.quotationForm as Record<string, unknown>;
     const dynamicValues = quotationForm.dynamicValues as Record<string, unknown>;
 
+    // Usar los valores calculados que vienen desde use-quotation-calculations
     const adValorem = parseFloat(
       ((calculations.adValoremAmount as number) || 0).toFixed(2)
     );
@@ -245,6 +246,13 @@ export class QuotationResponseBuilder {
     const percepcion = parseFloat(
       ((calculations.percepcionAmount as number) || 0).toFixed(2)
     );
+
+    // Usar totalTaxes calculado, o sumar todos los impuestos si no está disponible
+    const totalTaxes = ((calculations.totalTaxes as number) || 0) !== 0
+      ? parseFloat(((calculations.totalTaxes as number) || 0).toFixed(2))
+      : parseFloat(
+          (adValorem + isc + igv + ipm + antidumpingValor + percepcion).toFixed(2)
+        );
 
     return {
       adValorem,
@@ -263,11 +271,7 @@ export class QuotationResponseBuilder {
         antidumpingValor,
       },
       percepcion,
-      totalTaxes: parseFloat(
-        (adValorem + isc + igv + ipm + antidumpingValor + percepcion).toFixed(
-          2
-        )
-      ),
+      totalTaxes,
     };
   }
 
@@ -513,10 +517,9 @@ export class QuotationResponseBuilder {
         separacionCarga: parseFloat((((serviceFields.separacionCarga as number) || 0) * 1.18).toFixed(2)),
         seguroProductos: parseFloat((((serviceFields.seguroProductos as number) || 0) * 1.18).toFixed(2)),
         gestionCertificado: parseFloat(gestionCertificado.toFixed(2)),
-        inspeccionProductos: parseFloat((((serviceFields.inspeccionProductos as number) || 0) * 1.18).toFixed(2)),
         addvaloremigvipm: {
-          descuento: (exemptionState.obligacionesFiscales as boolean) || false,
-          valor: totalDerechos,
+          descuento:  false,
+          valor: 0,
         },
         desadunajefleteseguro: parseFloat(((dynamicValues.desaduanaje as number) || 0).toFixed(2)),
         totalDerechos: parseFloat(totalDerechos.toFixed(2)),

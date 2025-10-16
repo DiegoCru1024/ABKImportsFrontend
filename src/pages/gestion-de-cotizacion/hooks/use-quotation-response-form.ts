@@ -194,6 +194,8 @@ export function useQuotationResponseForm({
         [field]: value
       };
 
+      //console.log("Este es el valor a cambiar",value)
+
       // Si se actualiza el valor comercial, sincronizar FOB
       if (field === "comercialValue") {
         updated.fob = value;

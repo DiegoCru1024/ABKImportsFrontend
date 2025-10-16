@@ -148,7 +148,18 @@ export class QuotationResponseDirector {
       adValoremRate: number;
       igvRate: number;
       ipmRate: number;
+      iscRate?: number;
+      percepcion: number;
       antidumpingAmount?: number;
+    };
+    calculatedTaxes: {
+      adValoremAmount: number;
+      iscAmount: number;
+      igvAmount: number;
+      ipmAmount: number;
+      antidumpingAmount: number;
+      percepcionAmount: number;
+      totalTaxes: number;
     };
     quotationDetail?: unknown;
   }): QuotationResponseBase {
@@ -190,11 +201,13 @@ export class QuotationResponseDirector {
         totalPrice: 0,
         totalExpress: 0,
         totalQuantity: 0,
-        adValoremAmount: data.cifValue * (data.taxRates.adValoremRate / 100),
-        igv: data.cifValue * (data.taxRates.igvRate / 100),
-        ipm: data.cifValue * (data.taxRates.ipmRate / 100),
-        antidumping: data.taxRates.antidumpingAmount || 0,
-        totalTaxes: 0,
+        adValoremAmount: data.calculatedTaxes.adValoremAmount,
+        iscAmount: data.calculatedTaxes.iscAmount,
+        igvAmount: data.calculatedTaxes.igvAmount,
+        ipmAmount: data.calculatedTaxes.ipmAmount,
+        antidumpingAmount: data.calculatedTaxes.antidumpingAmount,
+        percepcionAmount: data.calculatedTaxes.percepcionAmount,
+        totalTaxes: data.calculatedTaxes.totalTaxes,
         finalTotal: data.quoteSummary.totalExpenses,
       },
       products: data.products.map(product => ({
@@ -239,7 +252,18 @@ export class QuotationResponseDirector {
       adValoremRate: number;
       igvRate: number;
       ipmRate: number;
+      iscRate?: number;
+      percepcion: number;
       antidumpingAmount?: number;
+    };
+    calculatedTaxes: {
+      adValoremAmount: number;
+      iscAmount: number;
+      igvAmount: number;
+      ipmAmount: number;
+      antidumpingAmount: number;
+      percepcionAmount: number;
+      totalTaxes: number;
     };
     quotationDetail?: unknown;
   }): QuotationResponseBase {
@@ -271,11 +295,13 @@ export class QuotationResponseDirector {
         totalPrice: 0,
         totalExpress: 0,
         totalQuantity: 0,
-        adValoremAmount: data.cifValue * (data.taxRates.adValoremRate / 100),
-        igv: data.cifValue * (data.taxRates.igvRate / 100),
-        ipm: data.cifValue * (data.taxRates.ipmRate / 100),
-        antidumping: data.taxRates.antidumpingAmount || 0,
-        totalTaxes: 0,
+        adValoremAmount: data.calculatedTaxes.adValoremAmount,
+        iscAmount: data.calculatedTaxes.iscAmount,
+        igvAmount: data.calculatedTaxes.igvAmount,
+        ipmAmount: data.calculatedTaxes.ipmAmount,
+        antidumpingAmount: data.calculatedTaxes.antidumpingAmount,
+        percepcionAmount: data.calculatedTaxes.percepcionAmount,
+        totalTaxes: data.calculatedTaxes.totalTaxes,
         finalTotal: data.quoteSummary.totalExpenses,
       },
       products: data.products.map(product => ({
@@ -296,13 +322,6 @@ export class QuotationResponseDirector {
       })),
       quotationDetail: data.quotationDetail,
     };
-
-    // Calcular totalTaxes automáticamente
-    /*completeBuildData.calculations.totalTaxes =
-      completeBuildData.calculations.adValoremAmount +
-      completeBuildData.calculations.igv +
-      completeBuildData.calculations.ipm +
-      completeBuildData.calculations.antidumping;*/
 
     return builder.buildForCompleteServiceNew(completeBuildData);
   }

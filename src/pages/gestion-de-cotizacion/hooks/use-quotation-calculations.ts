@@ -112,23 +112,10 @@ export function useQuotationCalculations({
     const baseIPM = cif + adValoremAmount + iscAmount + antidumpingAmount;
     const ipmAmount = (baseIPM * dynamicValues.ipmRate) / 100;
 
-    // 6. PERCEPCION = (CIF + AD/VALOREM + ISC + ANTIDUMPING + IGV + IPM) × factor
-    // IMPORTANTE: La base incluye CIF + todos los impuestos (AD/VALOREM, ANTIDUMPING, ISC, IGV, IPM)
+
     const basePERCEPCION = cif + adValoremAmount + iscAmount + antidumpingAmount + igvAmount + ipmAmount;
     const percepcionAmount = (basePERCEPCION * dynamicValues.percepcionRate) / 100;
 
-    // LOG DE MONITOREO: Verificar cálculo de PERCEPCIÓN
-    /*console.log('=== CÁLCULO DE PERCEPCIÓN ===');
-    console.log('CIF:', cif);
-    console.log('AD/VALOREM:', adValoremAmount);
-    console.log('ANTIDUMPING:', antidumpingAmount);
-    console.log('ISC:', iscAmount);
-    console.log('IGV:', igvAmount);
-    console.log('IPM:', ipmAmount);
-    console.log('Base PERCEPCIÓN:', basePERCEPCION);
-    console.log('Tasa PERCEPCIÓN:', dynamicValues.percepcionRate, '%');
-    console.log('PERCEPCIÓN calculada:', percepcionAmount);
-    console.log('============================');*/
 
     // Total de Derechos = AD/VALOREM + ANTIDUMPING + ISC + IGV + IPM + PERCEPCION
     const totalTaxes = adValoremAmount + antidumpingAmount + iscAmount + igvAmount + ipmAmount + percepcionAmount;

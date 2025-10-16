@@ -12,7 +12,6 @@ export interface ExpenseFieldsInterface {
 
   gestionCertificado:number;
 
-  inspeccionProductos: number;
 
   addvaloremigvipm: AddValoremIgvImpInterface;
 

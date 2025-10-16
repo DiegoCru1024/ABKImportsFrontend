@@ -32,7 +32,6 @@ interface DynamicValues {
   gestionCertificado: number;
   inspeccionProducto: number;
   inspeccionFabrica: number;
-  transporteLocal: number;
   otrosServicios: number;
   adValoremRate: number;
   antidumpingGobierno: number;

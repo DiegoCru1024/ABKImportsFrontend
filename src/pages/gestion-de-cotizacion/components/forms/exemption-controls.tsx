@@ -23,7 +23,6 @@ interface ExemptionState {
   servicioConsolidadoMaritimo: boolean;
   gestionCertificado: boolean;
   servicioInspeccion: boolean;
-  transporteLocal: boolean;
   totalDerechos: boolean;
 }
 
@@ -67,11 +66,6 @@ export function ExemptionControls({
     {
       id: "servicioInspeccion",
       label: "Servicio de Inspección",
-      show: isMaritimeService,
-    },
-    {
-      id: "transporteLocal",
-      label: "Transporte Local",
       show: isMaritimeService,
     },
     {

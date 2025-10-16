@@ -13,8 +13,6 @@ export interface ExemptionsInterface {
 
   servicioInspeccion: boolean;
 
-  transporteLocal: boolean;
-
   totalDerechos: boolean;
 
   descuentoGrupalExpress: boolean;

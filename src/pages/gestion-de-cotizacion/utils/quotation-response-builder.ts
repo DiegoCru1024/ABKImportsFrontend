@@ -308,10 +308,6 @@ export class QuotationResponseBuilder {
         parseFloat(
           ((serviceFields.inspeccionFabrica as number) || 0).toFixed(2)
         ) || 0,
-      transporteLocal:
-        parseFloat(
-          ((serviceFields.transporteLocal as number) || 0).toFixed(2)
-        ) || 0,
       transporteLocalChina:
         parseFloat(
           ((dynamicValues.transporteLocalChinaEnvio as number) || 0).toFixed(
@@ -387,7 +383,6 @@ export class QuotationResponseBuilder {
       obligacionesFiscales: (exemptions.obligacionesFiscales as boolean) || false,
       gestionCertificado: (exemptions.gestionCertificado as boolean) || false,
       servicioInspeccion: (exemptions.servicioInspeccion as boolean) || false,
-      transporteLocal: (exemptions.transporteLocal as boolean) || false,
       totalDerechos: (exemptions.totalDerechos as boolean) || false,
       descuentoGrupalExpress: (exemptions.descuentoGrupalExpress as boolean) || false,
     };

@@ -125,7 +125,7 @@ export default function ServiceConsolidationCard({
   };
 
   return (
-    <Accordion type="single" collapsible defaultValue="service-consolidation">
+    <Accordion type="single" collapsible >
       <AccordionItem value="service-consolidation" className="border-0">
         <div className="shadow-lg border-1 border-blue-200 bg-white rounded-lg ">
           <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-4  rounded-lg rounded-b-none">

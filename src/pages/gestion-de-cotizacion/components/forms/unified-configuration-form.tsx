@@ -63,7 +63,6 @@ interface ExemptionState {
   servicioConsolidadoMaritimo: boolean;
   gestionCertificado: boolean;
   servicioInspeccion: boolean;
-  transporteLocal: boolean;
   totalDerechos: boolean;
   descuentoGrupalExpress: boolean;
 }

@@ -35,7 +35,7 @@ export interface ImportExpensesCardProps {
   serviceFieldsFromConsolidation?: {
     servicioConsolidado?: number;
     gestionCertificado?: number;
-    inspeccionProducto?: number;
+    inspeccionProductos?: number;
     inspeccionFabrica?: number;
     otrosServicios?: number;
     transporteLocalChina?: number;
@@ -125,7 +125,7 @@ export default function ImportExpensesCard({
     const gestionCertificado =
       (serviceFieldsFromConsolidation.gestionCertificado || 0) * 1.18;
     const servicioInspeccion =
-      ((serviceFieldsFromConsolidation.inspeccionProducto || 0) +
+      ((serviceFieldsFromConsolidation.inspeccionProductos || 0) +
         (serviceFieldsFromConsolidation.inspeccionFabrica || 0)) *
       1.18;
     const servicioTransporte =

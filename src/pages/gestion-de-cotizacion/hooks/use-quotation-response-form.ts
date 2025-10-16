@@ -21,7 +21,6 @@ interface DynamicValues {
   gestionCertificado: number;
   inspeccionProducto: number;
   inspeccionFabrica: number;
-  transporteLocal: number;
   otrosServicios: number;
   adValoremRate: number;
   antidumpingGobierno: number;
@@ -46,7 +45,6 @@ interface ExemptionState {
   servicioConsolidadoMaritimo: boolean;
   gestionCertificado: boolean;
   servicioInspeccion: boolean;
-  transporteLocal: boolean;
   totalDerechos: boolean;
   descuentoGrupalExpress: boolean;
 }
@@ -109,7 +107,6 @@ export function useQuotationResponseForm({
     gestionCertificado: 0.0,
     inspeccionProducto: 0.0,
     inspeccionFabrica: 0.0,
-    transporteLocal: 0.0,
     otrosServicios: 0.0,
     adValoremRate: 4.0,
     antidumpingGobierno: 0.0,
@@ -141,7 +138,6 @@ export function useQuotationResponseForm({
     servicioConsolidadoMaritimo: false,
     gestionCertificado: false,
     servicioInspeccion: false,
-    transporteLocal: false,
     totalDerechos: false,
     descuentoGrupalExpress: false,
   });
@@ -267,7 +263,6 @@ export function useQuotationResponseForm({
         gestionCertificado: dynamicValues.gestionCertificado,
         inspeccionProductos: dynamicValues.inspeccionProductos,
         inspeccionFabrica: dynamicValues.inspeccionFabrica,
-        transporteLocal: dynamicValues.transporteLocal,
         otrosServicios: dynamicValues.otrosServicios,
       };
     }

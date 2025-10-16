@@ -11,8 +11,6 @@ export interface ServiceFiledsInterface {
 
   inspeccionFabrica: number;
 
-  transporteLocal: number;
-
   transporteLocalChina: number;
 
   transporteLocalDestino: number;

@@ -707,8 +707,6 @@ export default function QuotationResponseView({
               quotationForm.exemptionState.gestionCertificado || false,
             servicioInspeccion:
               quotationForm.exemptionState.servicioInspeccion || false,
-            transporteLocal:
-              quotationForm.exemptionState.transporteLocal || false,
             totalDerechos: quotationForm.exemptionState.totalDerechos || false,
             descuentoGrupalExpress:
               quotationForm.exemptionState.descuentoGrupalExpress || false,
@@ -730,8 +728,6 @@ export default function QuotationResponseView({
               quotationForm.getServiceFields().gestionCertificado || 0,
             inspeccionFabrica:
               quotationForm.getServiceFields().inspeccionFabrica || 0,
-            transporteLocal:
-              quotationForm.getServiceFields().transporteLocal || 0,
             transporteLocalChina:
               quotationForm.dynamicValues.transporteLocalChinaEnvio || 0,
             transporteLocalDestino:
@@ -773,7 +769,8 @@ export default function QuotationResponseView({
             totalDerechos:
               calculations.totalTaxes || 0,
             servicioTransporte:
-              serviceCalculationsData.serviceFields.transporteLocal || 0,
+              (quotationForm.dynamicValues.transporteLocalChinaEnvio || 0) +
+              (quotationForm.dynamicValues.transporteLocalClienteEnvio || 0)* 1.18 ,
             servicioInspeccion:
               (serviceCalculationsData.serviceFields.inspeccionProductos || 0) +
               (serviceCalculationsData.serviceFields.inspeccionFabrica || 0),
@@ -1211,9 +1208,8 @@ export default function QuotationResponseView({
                   gestionCertificadoFinal:
                     quotationForm.dynamicValues.gestionCertificado,
                   servicioInspeccionFinal:
-                    quotationForm.dynamicValues.inspeccionProducto,
-                  transporteLocalFinal:
-                    quotationForm.dynamicValues.transporteLocal,
+                    quotationForm.dynamicValues.inspeccionProductos,
+                  transporteLocalFinal: 0,
                   totalDerechosDolaresFinal: calculations.totalTaxes,
                   desaduanajeFleteSaguro:
                     quotationForm.dynamicValues.desaduanaje +
@@ -1255,8 +1251,8 @@ export default function QuotationResponseView({
                     quotationForm.dynamicValues.servicioConsolidado,
                   gestionCertificado:
                     quotationForm.dynamicValues.gestionCertificado,
-                  inspeccionProducto:
-                    quotationForm.dynamicValues.inspeccionProducto,
+                  inspeccionProductos:
+                    quotationForm.dynamicValues.inspeccionProductos,
                   inspeccionFabrica:
                     quotationForm.dynamicValues.inspeccionFabrica,
                   otrosServicios: quotationForm.dynamicValues.otrosServicios,

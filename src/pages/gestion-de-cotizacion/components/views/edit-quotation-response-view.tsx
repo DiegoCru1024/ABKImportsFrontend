@@ -90,9 +90,11 @@ export default function EditQuotationResponseView() {
 
   useEffect(() => {
     if (responseDetails && quotationDetail && !isDataInitialized) {
+      console.log('Inicializando datos desde responseDetails:', responseDetails);
       const resData = responseDetails.responseData;
       const genInfo = resData.generalInformation;
 
+      // Inicializar configuración general
       quotationForm.setSelectedServiceLogistic(genInfo.serviceLogistic);
       quotationForm.setSelectedIncoterm(genInfo.incoterm);
       quotationForm.setSelectedTypeLoad(genInfo.cargoType);
@@ -173,24 +175,29 @@ export default function EditQuotationResponseView() {
 
         setPendingProducts(productsWithData);
 
-        // Inicializar aggregated data para cada producto
+        // Inicializar aggregated data para cada producto usando calculateProductAggregatedData
         const initialAggregatedData: Record<string, any> = {};
         productsWithData.forEach((product) => {
+          // Calcular datos agregados usando la misma lógica que en quotation-response-view
+          const priceData = product.variants.reduce(
+            (acc: any, variant: any) => ({
+              totalPrice: acc.totalPrice + (variant.price || 0) * (variant.quantity || 0),
+              totalQuantity: acc.totalQuantity + (variant.quantity || 0),
+              totalExpress: acc.totalExpress + (variant.priceExpress || 0) * (variant.quantity || 0),
+            }),
+            {
+              totalPrice: 0,
+              totalQuantity: 0,
+              totalExpress: 0,
+            }
+          );
+
           initialAggregatedData[product.id] = {
-            totalPrice: product.variants.reduce(
-              (sum: number, v: any) => sum + (v.price || 0) * (v.quantity || 0),
-              0
-            ),
-            totalWeight: product.weight || 0,
-            totalCBM: product.cbm || 0,
-            totalQuantity: product.variants.reduce(
-              (sum: number, v: any) => sum + (v.quantity || 0),
-              0
-            ),
-            totalExpress: product.variants.reduce(
-              (sum: number, v: any) => sum + (v.priceExpress || 0) * (v.quantity || 0),
-              0
-            ),
+            totalPrice: priceData.totalPrice,
+            totalWeight: product.packingList?.weightKg || product.weight || 0,
+            totalCBM: product.packingList?.cbm || product.cbm || 0,
+            totalQuantity: priceData.totalQuantity,
+            totalExpress: priceData.totalExpress,
           };
         });
         setProductsAggregatedData(initialAggregatedData);
@@ -428,12 +435,12 @@ export default function EditQuotationResponseView() {
         return variantStates[variant.id] !== false;
       });
 
-      return selectedVariants.reduce(
+      // IMPORTANTE: En la vista Pendiente, los totales de CBM y Peso vienen del packingList del producto
+      // Solo los precios (price y priceExpress) y cantidades deben sumarse desde las variantes
+      const priceData = selectedVariants.reduce(
         (acc: any, variant: any) => ({
           totalPrice:
             acc.totalPrice + (variant.price || 0) * (variant.quantity || 0),
-          totalWeight: acc.totalWeight + (variant.weight || 0),
-          totalCBM: acc.totalCBM + (variant.cbm || 0),
           totalQuantity: acc.totalQuantity + (variant.quantity || 0),
           totalExpress:
             acc.totalExpress +
@@ -441,12 +448,20 @@ export default function EditQuotationResponseView() {
         }),
         {
           totalPrice: 0,
-          totalWeight: 0,
-          totalCBM: 0,
           totalQuantity: 0,
           totalExpress: 0,
         }
       );
+
+      // Retornar con los valores del packingList para CBM y Weight (no se calculan desde variantes)
+      return {
+        totalPrice: priceData.totalPrice,
+        totalWeight:
+          product.packingList?.weightKg || parseFloat(product.weight) || 0,
+        totalCBM: product.packingList?.cbm || parseFloat(product.volume) || 0,
+        totalQuantity: priceData.totalQuantity,
+        totalExpress: priceData.totalExpress,
+      };
     },
     [quotationForm.variantQuotationState]
   );
@@ -482,10 +497,43 @@ export default function EditQuotationResponseView() {
           return product;
         });
 
-        const updatedProduct = updatedProducts.find((p) => p.id === productId);
-        if (updatedProduct) {
-          const aggregatedData = calculateProductAggregatedData(updatedProduct);
-          handleAggregatedDataChange(productId, aggregatedData);
+        // CRÍTICO: Manejo diferenciado de actualizaciones para evitar recálculos innecesarios
+        const isOnlyPackingListUpdate =
+          updates.packingList !== undefined &&
+          updates.variants === undefined &&
+          updates.cargoHandling === undefined &&
+          updates.ghostUrl === undefined &&
+          updates.adminComment === undefined;
+
+        const isVariantsUpdate = updates.variants !== undefined;
+
+        if (isOnlyPackingListUpdate) {
+          // SOLO actualizar CBM y Peso en aggregatedData, preservar precios
+          setProductsAggregatedData((prevData) => {
+            const currentData = prevData[productId] || {
+              totalPrice: 0,
+              totalWeight: 0,
+              totalCBM: 0,
+              totalQuantity: 0,
+              totalExpress: 0,
+            };
+
+            return {
+              ...prevData,
+              [productId]: {
+                ...currentData, // Preservar totalPrice, totalExpress, totalQuantity
+                totalCBM: updates.packingList.cbm, // Actualizar SOLO CBM
+                totalWeight: updates.packingList.weightKg, // Actualizar SOLO Peso
+              },
+            };
+          });
+        } else if (isVariantsUpdate) {
+          // Recalcular TODO el aggregatedData porque los precios cambiaron
+          const updatedProduct = updatedProducts.find((p) => p.id === productId);
+          if (updatedProduct) {
+            const aggregatedData = calculateProductAggregatedData(updatedProduct);
+            handleAggregatedDataChange(productId, aggregatedData);
+          }
         }
 
         return updatedProducts;
@@ -691,7 +739,6 @@ export default function EditQuotationResponseView() {
               quotationForm.dynamicValues.gestionCertificado || 0,
             inspeccionProducto:
               quotationForm.dynamicValues.inspeccionProductos || 0,
-            transporteLocal: quotationForm.dynamicValues.transporteLocal || 0,
             desaduanaje: quotationForm.dynamicValues.desaduanaje || 0,
             antidumpingGobierno:
               quotationForm.dynamicValues.antidumpingGobierno || 0,
@@ -724,8 +771,6 @@ export default function EditQuotationResponseView() {
               quotationForm.exemptionState.gestionCertificado || false,
             servicioInspeccion:
               quotationForm.exemptionState.servicioInspeccion || false,
-            transporteLocal:
-              quotationForm.exemptionState.transporteLocal || false,
             totalDerechos: quotationForm.exemptionState.totalDerechos || false,
             descuentoGrupalExpress:
               quotationForm.exemptionState.descuentoGrupalExpress || false,
@@ -744,10 +789,14 @@ export default function EditQuotationResponseView() {
               quotationForm.getServiceFields().inspeccionProductos || 0,
             gestionCertificado:
               quotationForm.getServiceFields().gestionCertificado || 0,
-            inspeccionProducto:
-              quotationForm.getServiceFields().inspeccionProducto || 0,
-            transporteLocal:
-              quotationForm.getServiceFields().transporteLocal || 0,
+            inspeccionFabrica:
+              quotationForm.getServiceFields().inspeccionFabrica || 0,
+            transporteLocalChina:
+              quotationForm.dynamicValues.transporteLocalChinaEnvio || 0,
+            transporteLocalDestino:
+              quotationForm.dynamicValues.transporteLocalClienteEnvio || 0,
+            otrosServicios:
+              quotationForm.getServiceFields().otrosServicios || 0,
           },
           subtotalServices: 0,
           igvServices: 0,
@@ -776,13 +825,16 @@ export default function EditQuotationResponseView() {
               valor: calculations.totalTaxes || 0,
             },
             desadunajefleteseguro: calculationsData.dynamicValues.desaduanaje,
-            transporteLocal:
-              serviceCalculationsData.serviceFields.transporteLocal,
-            transporteLocalChinaEnvio:
-              calculationsData.dynamicValues.transporteLocalChinaEnvio,
-            transporteLocalClienteEnvio:
-              calculationsData.dynamicValues.transporteLocalClienteEnvio,
-            otrosServicios: 0,
+            servicioTransporte:
+              serviceCalculationsData.serviceFields.transporteLocalChina +
+              serviceCalculationsData.serviceFields.transporteLocalDestino,
+            servicioInspeccion:
+              serviceCalculationsData.serviceFields.inspeccionProductos +
+              serviceCalculationsData.serviceFields.inspeccionFabrica,
+            gestionCertificado:
+              serviceCalculationsData.serviceFields.gestionCertificado,
+            totalDerechos: calculations.totalTaxes || 0,
+            otrosServicios: serviceCalculationsData.serviceFields.otrosServicios,
           },
           totalExpenses: calculations.finalTotal || 0,
         };
@@ -799,6 +851,8 @@ export default function EditQuotationResponseView() {
           adValoremRate: calculationsData.taxPercentage.adValoremRate,
           igvRate: calculationsData.taxPercentage.igvRate,
           ipmRate: calculationsData.taxPercentage.ipmRate,
+          iscRate: quotationForm.dynamicValues.iscRate || 0,
+          percepcion: calculationsData.taxPercentage.percepcion,
           antidumpingAmount: calculationsData.dynamicValues.antidumpingCantidad,
         };
 
@@ -1181,12 +1235,15 @@ export default function EditQuotationResponseView() {
                 }
                 values={{
                   adValorem: calculations.adValoremAmount,
+                  antidumping: quotationForm.isMaritimeService()
+                    ? (quotationForm.dynamicValues.antidumpingGobierno || 0) * (quotationForm.dynamicValues.antidumpingCantidad || 0)
+                    : 0,
                   igvFiscal: calculations.igvAmount,
                   ipm: calculations.ipmAmount,
-                  isc: 0,
+                  isc: calculations.iscAmount || 0,
                   percepcion: calculations.percepcionAmount,
-                  totalDerechosDolares: calculations.totalTaxes + 
-                    (quotationForm.isMaritimeService() 
+                  totalDerechosDolares: calculations.totalTaxes +
+                    (quotationForm.isMaritimeService()
                       ? (quotationForm.dynamicValues.antidumpingGobierno || 0) * (quotationForm.dynamicValues.antidumpingCantidad || 0)
                       : 0),
                   totalDerechosSoles:
@@ -1210,7 +1267,8 @@ export default function EditQuotationResponseView() {
                   servicioInspeccionFinal:
                     quotationForm.dynamicValues.inspeccionProducto,
                   transporteLocalFinal:
-                    quotationForm.dynamicValues.transporteLocal,
+                    quotationForm.dynamicValues.transporteLocalChinaEnvio +
+                    quotationForm.dynamicValues.transporteLocalClienteEnvio,
                   totalDerechosDolaresFinal: calculations.totalTaxes + 
                     (quotationForm.isMaritimeService() 
                       ? (quotationForm.dynamicValues.antidumpingGobierno || 0) * (quotationForm.dynamicValues.antidumpingCantidad || 0)

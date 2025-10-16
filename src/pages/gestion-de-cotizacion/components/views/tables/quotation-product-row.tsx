@@ -235,7 +235,7 @@ export default function QuotationProductRow({
         totalPrice:
           acc.totalPrice + (variant.price || 0) * (variant.quantity || 0),
         totalQuantity: acc.totalQuantity + (variant.quantity || 0),
-        totalExpress: acc.totalExpress + (variant.priceExpress || 0),
+        totalExpress: acc.totalExpress + (variant.priceExpress || 0) * (variant.quantity || 0),
       }),
       {
         totalPrice: 0,

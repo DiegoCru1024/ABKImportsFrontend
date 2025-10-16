@@ -7,12 +7,15 @@ import {
   getListResponsesByQuotationId,
   getDetailsResponse,
   } from "@/api/quotation-responses";
-import type { 
+import type {
   QuotationCreateUpdateResponseDTO
 } from "@/api/interface/quotationResponseInterfaces";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import type { QuotationResponseBase } from "@/api/interface/quotation-response/quotation-response-base";
+import type {
+  QuotationResponseBase,
+  CreateUpdateQuotationResponseDTO
+} from "@/api/interface/quotation-response/quotation-response-base";
 import type { ServiceType } from "@/api/interface/quotation-response/enums/enum";
 
 
@@ -28,7 +31,7 @@ export function useCreateQuatitationResponse() {
       data,
       quotationId,
     }: {
-      data: QuotationResponseBase;
+      data: CreateUpdateQuotationResponseDTO;
       quotationId: string;
     }) => {
       return createQuatitationResponse(data, quotationId);
@@ -95,7 +98,7 @@ export function usePatchQuatitationResponse(quotationId: string, quotationRespon
     mutationFn: ({
       data,
     }: {
-      data: QuotationResponseBase;
+      data: CreateUpdateQuotationResponseDTO;
     }) => patchQuatitationResponse(quotationId, quotationResponseId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({

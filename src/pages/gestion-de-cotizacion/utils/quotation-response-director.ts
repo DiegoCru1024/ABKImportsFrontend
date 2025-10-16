@@ -2,7 +2,7 @@
 
 // Clean Code: Only import official API interfaces
 import type { ServiceType } from "@/api/interface/quotation-response/enums/enum";
-import type { QuotationResponseBase } from "@/api/interface/quotation-response/quotation-response-base";
+import type { CreateUpdateQuotationResponseDTO } from "@/api/interface/quotation-response/quotation-response-base";
 import type { GeneralInformationInterface } from "@/api/interface/quotation-response/dto/shared/general-information";
 import type { MaritimeConfigInterface } from "@/api/interface/quotation-response/dto/complete/objects/maritime-config";
 import type { PackingListInterface } from "@/api/interface/quotation-response/dto/pending/products/packing-list";
@@ -64,7 +64,7 @@ export class QuotationResponseDirector {
   /**
    * Construye una respuesta de cotización para servicios pendientes
    * @param data - Datos necesarios para construir la respuesta pendiente
-   * @returns QuotationResponseBaseDto para servicio pendiente
+   * @returns CreateUpdateQuotationResponseDTO para servicio pendiente
    */
   static buildPendingService(data: {
     quotationId: string;
@@ -83,7 +83,7 @@ export class QuotationResponseDirector {
       variants: Record<string, Record<string, boolean>>;
     };
     quotationDetail?: unknown;
-  }): QuotationResponseBase {
+  }): CreateUpdateQuotationResponseDTO {
     // Crear el builder para servicios pendientes
     const builder = new QuotationResponseBuilder(
       data.quotationId,
@@ -131,7 +131,7 @@ export class QuotationResponseDirector {
   /**
    * Construye una respuesta de cotización para servicios marítimos completos
    * @param data - Datos necesarios para construir la respuesta marítima
-   * @returns QuotationResponseDTO para servicio marítimo completo
+   * @returns CreateUpdateQuotationResponseDTO para servicio marítimo completo
    */
   static buildCompleteMaritimeService(data: {
     quotationId: string;
@@ -162,7 +162,7 @@ export class QuotationResponseDirector {
       totalTaxes: number;
     };
     quotationDetail?: unknown;
-  }): QuotationResponseBase {
+  }): CreateUpdateQuotationResponseDTO {
     // Crear el builder para servicios marítimos
     const builder = new QuotationResponseBuilder(
       data.quotationId,
@@ -236,7 +236,7 @@ export class QuotationResponseDirector {
   /**
    * Construye una respuesta de cotización para servicios express completos
    * @param data - Datos necesarios para construir la respuesta express
-   * @returns QuotationResponseDTO para servicio express completo
+   * @returns CreateUpdateQuotationResponseDTO para servicio express completo
    */
   static buildCompleteExpressService(data: {
     quotationId: string;
@@ -266,7 +266,7 @@ export class QuotationResponseDirector {
       totalTaxes: number;
     };
     quotationDetail?: unknown;
-  }): QuotationResponseBase {
+  }): CreateUpdateQuotationResponseDTO {
     // Crear el builder para servicios express
     const builder = new QuotationResponseBuilder(
       data.quotationId,

@@ -4,11 +4,21 @@ import type { PendingProductInterface } from "./dto/pending/products/pending-pro
 import type { ResponseDataPending } from "./dto/pending/response-data-pending";
 import type { ServiceType } from "./enums/enum";
 
-export interface QuotationResponseBase {
-  quotationId: string;
-  response_date: Date;
+// DTO para crear/actualizar respuestas (sin quotationId en el body)
+export interface CreateUpdateQuotationResponseDTO {
+  response_date: string; // ISO 8601 format
   advisorId: string;
   serviceType: ServiceType;
   responseData: ResponseDataPending | ResponseDataComplete;
-  products: PendingProductInterface[]|CompleteProductInterface[];
+  products: PendingProductInterface[] | CompleteProductInterface[];
+}
+
+// DTO para respuestas GET (con quotationId)
+export interface QuotationResponseBase {
+  quotationId: string; // Ahora viene en las respuestas GET
+  response_date: string; // ISO 8601 format
+  advisorId: string;
+  serviceType: ServiceType;
+  responseData: ResponseDataPending | ResponseDataComplete;
+  products: PendingProductInterface[] | CompleteProductInterface[];
 }

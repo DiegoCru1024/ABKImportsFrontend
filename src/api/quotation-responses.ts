@@ -1,5 +1,8 @@
 import { apiFetch } from "./apiFetch";
-import type { QuotationResponseBase } from "./interface/quotation-response/quotation-response-base";
+import type {
+  QuotationResponseBase,
+  CreateUpdateQuotationResponseDTO
+} from "./interface/quotation-response/quotation-response-base";
 import type {
   QuotationGetResponsesForUsersDTO,
   QuotationResponseListDTO,
@@ -8,12 +11,12 @@ import type {
 
 /**
  * Crea una respuesta de una cotización (Admin Only)
- * @param {QuotationResponseBase} data - Los datos a crear
- * @param {string} quotationId - El ID de la cotización
+ * @param {CreateUpdateQuotationResponseDTO} data - Los datos a crear (SIN quotationId en el body)
+ * @param {string} quotationId - El ID de la cotización (va en el path)
  * @returns {Promise<any>} - La respuesta de la cotización
  */
 export const createQuatitationResponse = async (
-  data: QuotationResponseBase,
+  data: CreateUpdateQuotationResponseDTO,
   quotationId: string
 ) => {
   try {
@@ -50,15 +53,15 @@ export const deleteQuatitationResponse = async (id: string) => {
 
 /**
  * Actualiza el estado de una respuesta de una cotización por su ID (Admin Only)
- * @param {string} quotationId - El ID de la cotización
- * @param {string} quotationResponseId - El ID de la respuesta
- * @param {QuotationResponseBase} data - Los datos a actualizar
+ * @param {string} quotationId - El ID de la cotización (va en el path)
+ * @param {string} quotationResponseId - El ID de la respuesta (va en el path)
+ * @param {CreateUpdateQuotationResponseDTO} data - Los datos a actualizar (SIN quotationId en el body)
  * @returns {Promise<any>} - La respuesta de la cotización
  */
 export const patchQuatitationResponse = async (
   quotationId: string,
   quotationResponseId: string,
-  data: QuotationResponseBase
+  data: CreateUpdateQuotationResponseDTO
 ) => {
   try {
     const response = await apiFetch(

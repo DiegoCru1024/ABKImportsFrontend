@@ -802,6 +802,16 @@ export default function EditQuotationResponseView() {
           antidumpingAmount: calculationsData.dynamicValues.antidumpingCantidad,
         };
 
+        const calculatedTaxes = {
+          adValoremAmount: calculations.adValoremAmount || 0,
+          iscAmount: calculations.iscAmount || 0,
+          igvAmount: calculations.igvAmount || 0,
+          ipmAmount: calculations.ipmAmount || 0,
+          antidumpingAmount: calculations.antidumpingAmount || 0,
+          percepcionAmount: calculations.percepcionAmount || 0,
+          totalTaxes: calculations.totalTaxes || 0,
+        };
+
         if (isMaritimeService) {
           const maritimeConfig =
             QuotationResponseDirector.createDefaultMaritimeConfig({
@@ -830,6 +840,7 @@ export default function EditQuotationResponseView() {
             quoteSummary: quoteSummaryData,
             cifValue: quotationForm.cif || 0,
             taxRates,
+            calculatedTaxes,
             quotationDetail,
           });
         } else {
@@ -844,6 +855,7 @@ export default function EditQuotationResponseView() {
             quoteSummary: quoteSummaryData,
             cifValue: quotationForm.cif || 0,
             taxRates,
+            calculatedTaxes,
             quotationDetail,
           });
         }

@@ -1,5 +1,5 @@
 // Clean Code: Only import official API interfaces
-import type { QuotationResponseBase } from "@/api/interface/quotation-response/quotation-response-base";
+import type { CreateUpdateQuotationResponseDTO } from "@/api/interface/quotation-response/quotation-response-base";
 import { ServiceType } from "@/api/interface/quotation-response/enums/enum";
 import type { ResponseDataPending } from "@/api/interface/quotation-response/dto/pending/response-data-pending";
 import type { ResponseDataComplete } from "@/api/interface/quotation-response/dto/complete/response-data-complete";
@@ -24,16 +24,15 @@ import type { TaxPercentageInterface } from "@/api/interface/quotation-response/
 import type { PendingBuildData, CompleteBuildData } from "../types/quotation-response-dto";
 
 export class QuotationResponseBuilder {
-  private baseDto: QuotationResponseBase;
+  private baseDto: CreateUpdateQuotationResponseDTO;
 
   constructor(
-    quotationId: string,
+    quotationId: string, // Se mantiene para uso interno pero no se incluye en el DTO
     serviceType: ServiceType,
     quotationDetail?: unknown
   ) {
     this.baseDto = {
-      quotationId,
-      response_date: new Date(),
+      response_date: new Date().toISOString(), // ISO 8601 format
       advisorId: "75500ef2-e35c-4a77-8074-9104c9d971cb",
       serviceType,
       responseData: null as unknown as ResponseDataPending | ResponseDataComplete,
@@ -403,7 +402,7 @@ export class QuotationResponseBuilder {
     };
   }
 
-  buildForPendingService(data: PendingBuildData): QuotationResponseBase {
+  buildForPendingService(data: PendingBuildData): CreateUpdateQuotationResponseDTO {
     // Build ResponseDataPending using API interfaces
     const responseData: ResponseDataPending = {
       resumenInfo: this.extractResumenInfo(data),
@@ -423,7 +422,7 @@ export class QuotationResponseBuilder {
   }
 
 
-  buildForCompleteServiceNew(data: CompleteBuildData): QuotationResponseBase {
+  buildForCompleteServiceNew(data: CompleteBuildData): CreateUpdateQuotationResponseDTO {
     const quotationForm = data.quotationForm as Record<string, unknown>;
     const serviceType = this.determineServiceType(
       quotationForm.selectedServiceLogistic as string

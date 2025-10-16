@@ -744,7 +744,7 @@ export default function QuotationProductRow({
             <td className="p-3 text-center align-top border-r border-blue-200/30 w-28">
               <div className="text-xs text-slate-600 mb-1">USD</div>
               <div className="text-lg font-semibold text-blue-700 border border-blue-300/50 rounded-lg px-2 py-1 bg-blue-100/50">
-                ${aggregatedData.totalExpress.toFixed(2)}
+                ${(aggregatedData.totalExpress || 0).toFixed(2)}
               </div>
             </td>
 
@@ -754,7 +754,7 @@ export default function QuotationProductRow({
               <div className="text-lg font-semibold text-indigo-700 border border-indigo-300/50 rounded-lg px-2 py-1 bg-indigo-100/50">
                 $
                 {(
-                  aggregatedData.totalPrice + aggregatedData.totalExpress
+                  (aggregatedData.totalPrice || 0) + (aggregatedData.totalExpress || 0)
                 ).toFixed(2)}
               </div>
             </td>

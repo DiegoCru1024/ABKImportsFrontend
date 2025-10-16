@@ -934,7 +934,7 @@ export default function EditQuotationResponseView() {
   };
 
   const handleGoBack = () => {
-    navigate(`/dashboard/gestion-de-cotizacion/respuestas/${quotationId}`);
+    navigate(`/dashboard/gestion-de-cotizacion`);
   };
 
   if (isLoadingQuotation || isLoadingResponse) {

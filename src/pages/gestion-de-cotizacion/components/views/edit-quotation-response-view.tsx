@@ -261,6 +261,7 @@ export default function EditQuotationResponseView() {
             totalCost: respProduct.pricing?.totalCost || 0,
             unitCost: respProduct.pricing?.unitCost || 0,
             seCotiza: respProduct.isQuoted,
+            attachments: quotProduct?.attachments || [], // Agregar imágenes
             variants:
               respProduct.variants?.map((respVar: any) => {
                 const quotVar = quotProduct?.variants?.find(
@@ -275,6 +276,8 @@ export default function EditQuotationResponseView() {
                   price: 0,
                   size: quotVar?.size || "",
                   presentation: quotVar?.presentation || "",
+                  model: quotVar?.model || "", // Agregar modelo
+                  color: quotVar?.color || "", // Agregar color
                   quantity: respVar.quantity || 1,
                   total: 0,
                   equivalence: 0,
@@ -352,6 +355,7 @@ export default function EditQuotationResponseView() {
       totalCost: 0,
       unitCost: 0,
       seCotiza: true,
+      attachments: product.attachments || [], // Agregar imágenes del producto
       variants:
         product.variants?.map((variant) => ({
           originalVariantId: variant.variantId,
@@ -360,6 +364,8 @@ export default function EditQuotationResponseView() {
           price: 0,
           size: variant.size,
           presentation: variant.presentation,
+          model: variant.model, // Agregar modelo
+          color: variant.color, // Agregar color
           quantity: variant.quantity || 1,
           total: 0,
           equivalence: 0,
@@ -370,6 +376,30 @@ export default function EditQuotationResponseView() {
         })) || [],
     }));
   }, [quotationDetail?.products]);
+
+  // Inicializar productos en el hook cuando cambien o cuando se cambie de tipo de servicio
+  useEffect(() => {
+    // Caso 1: Inicialización inicial cuando NO hay datos cargados
+    if (
+      editableUnitCostTableProducts.length > 0 &&
+      !isPendingView &&
+      !isDataInitialized &&
+      quotationForm.editableUnitCostProducts.length === 0
+    ) {
+      quotationForm.setEditableUnitCostProducts(editableUnitCostTableProducts);
+    }
+
+    // Caso 2: Cuando se cambia de "Pendiente" a otro tipo de servicio DESPUÉS de la inicialización
+    // Y los productos no están cargados en editableUnitCostProducts
+    if (
+      isDataInitialized &&
+      !isPendingView &&
+      editableUnitCostTableProducts.length > 0 &&
+      quotationForm.editableUnitCostProducts.length === 0
+    ) {
+      quotationForm.setEditableUnitCostProducts(editableUnitCostTableProducts);
+    }
+  }, [editableUnitCostTableProducts, isPendingView, isDataInitialized]);
 
   const calculations = useQuotationCalculations({
     products: mappedProducts,

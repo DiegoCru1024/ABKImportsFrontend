@@ -117,6 +117,16 @@ export default function EditQuotationResponseView() {
       }
 
       if (responseDetails.serviceType === "PENDING") {
+        // IMPORTANTE: Mapear totalExpress (Total Destino) a transporteLocalChinaEnvio
+        // según el nuevo flujo de edición PENDING
+        const resData = responseDetails.responseData as any;
+        if (resData?.resumenInfo?.totalExpress !== undefined) {
+          quotationForm.updateDynamicValue(
+            "transporteLocalChinaEnvio",
+            resData.resumenInfo.totalExpress
+          );
+        }
+
         const productsWithData = responseDetails.products.map((respProduct: any) => {
           const quotProduct = quotationDetail.products.find(
             (p) => p.productId === respProduct.productId
@@ -338,44 +348,60 @@ export default function EditQuotationResponseView() {
       }));
 
   const editableUnitCostTableProducts = useMemo(() => {
-    return (quotationDetail?.products || []).map((product) => ({
-      id: product.productId,
-      name: product.name,
-      price: 0,
-      quantity:
-        product.variants?.reduce(
-          (sum, variant) => sum + (variant.quantity || 0),
-          0
-        ) ||
-        product.number_of_boxes ||
-        1,
-      total: 0,
-      equivalence: 0,
-      importCosts: 0,
-      totalCost: 0,
-      unitCost: 0,
-      seCotiza: true,
-      attachments: product.attachments || [], // Agregar imágenes del producto
-      variants:
-        product.variants?.map((variant) => ({
-          originalVariantId: variant.variantId,
-          id: variant.variantId,
-          name: `${variant.size} - ${variant.presentation} - ${variant.model} - ${variant.color}`,
-          price: 0,
-          size: variant.size,
-          presentation: variant.presentation,
-          model: variant.model, // Agregar modelo
-          color: variant.color, // Agregar color
-          quantity: variant.quantity || 1,
-          total: 0,
-          equivalence: 0,
-          importCosts: 0,
-          totalCost: 0,
-          unitCost: 0,
-          seCotiza: true,
-        })) || [],
-    }));
-  }, [quotationDetail?.products]);
+    return (quotationDetail?.products || []).map((product) => {
+      // Buscar el producto en pendingProducts para obtener los precios
+      const pendingProduct = pendingProducts.find((p) => p.id === product.productId);
+
+      return {
+        id: product.productId,
+        name: product.name,
+        price: 0,
+        quantity:
+          product.variants?.reduce(
+            (sum, variant) => sum + (variant.quantity || 0),
+            0
+          ) ||
+          product.number_of_boxes ||
+          1,
+        total: 0,
+        equivalence: 0,
+        importCosts: 0,
+        totalCost: 0,
+        unitCost: 0,
+        seCotiza: true,
+        attachments: product.attachments || [], // Agregar imágenes del producto
+        variants:
+          product.variants?.map((variant) => {
+            // Buscar la variante en pendingProduct para obtener el precio
+            const pendingVariant = pendingProduct?.variants?.find(
+              (v: any) => v.id === variant.variantId
+            );
+
+            const price = Number(pendingVariant?.price) || 0;
+            const quantity = Number(variant.quantity) || 1;
+            const total = price * quantity; // IMPORTANTE: Calcular total automáticamente
+
+            return {
+              originalVariantId: variant.variantId,
+              id: variant.variantId,
+              name: `${variant.size} - ${variant.presentation} - ${variant.model} - ${variant.color}`,
+              price: price,
+              size: variant.size,
+              presentation: variant.presentation,
+              model: variant.model, // Agregar modelo
+              color: variant.color, // Agregar color
+              quantity: quantity,
+              total: total, // Total calculado
+              equivalence: 0,
+              importCosts: 0,
+              totalCost: 0,
+              unitCost: 0,
+              seCotiza: true,
+            };
+          }) || [],
+      };
+    });
+  }, [quotationDetail?.products, pendingProducts]);
 
   // Inicializar productos en el hook cuando cambien o cuando se cambie de tipo de servicio
   useEffect(() => {
@@ -1063,7 +1089,7 @@ export default function EditQuotationResponseView() {
           totalExpress={
             isPendingView
               ? pendingViewTotals.totalExpress
-              : calculations.totalExpress
+              : quotationForm.dynamicValues.transporteLocalChinaEnvio || 0
           }
           totalGeneral={
             isPendingView

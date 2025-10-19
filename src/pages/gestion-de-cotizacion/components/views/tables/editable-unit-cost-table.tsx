@@ -21,6 +21,8 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 
+import ImageCarouselModal from "@/components/ImageCarouselModal";
+
 interface ProductVariant {
   originalVariantId: string | null;
   id: string;
@@ -480,19 +482,20 @@ export default function EditableUnitCostTable({
   }, [data, productQuotationState, variantQuotationState]);
 
   return (
-    <div className="bg-gradient-to-br from-white via-blue-50/20 to-indigo-50/30 shadow-lg border border-slate-200/60 rounded-2xl overflow-hidden">
-      <div className="bg-gradient-to-r from-blue-50/60 to-indigo-50/50 border-b border-slate-200/60">
-        <div className="ml-auto p-4">
-          <div className="text-right ">
-            <div className="text-[10px] font-bold text-slate-600 leading-none">
-              FACTOR M.
-            </div>
-            <div className="text-lg font-extrabold text-indigo-700">
-              {factorM.toFixed(2)}
+    <>
+      <div className="bg-gradient-to-br from-white via-blue-50/20 to-indigo-50/30 shadow-lg border border-slate-200/60 rounded-2xl overflow-hidden">
+        <div className="bg-gradient-to-r from-blue-50/60 to-indigo-50/50 border-b border-slate-200/60">
+          <div className="ml-auto p-4">
+            <div className="text-right ">
+              <div className="text-[10px] font-bold text-slate-600 leading-none">
+                FACTOR M.
+              </div>
+              <div className="text-lg font-extrabold text-indigo-700">
+                {factorM.toFixed(2)}
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
       <div className="p-6">
         <div className="space-y-4">
@@ -579,7 +582,7 @@ export default function EditableUnitCostTable({
                           product.attachments.length > 0 ? (
                             <div className="flex flex-col">
                               <div
-                                className="relative"
+                                className="relative cursor-pointer"
                                 onClick={() =>
                                   handleOpenImages(
                                     product.attachments?.map(
@@ -598,7 +601,7 @@ export default function EditableUnitCostTable({
                                     product.attachments[0] || "/placeholder.svg"
                                   }
                                   alt={product.name}
-                                  className="w-20 h-20 object-cover rounded-lg border border-gray-200"
+                                  className="w-20 h-20 object-cover rounded-lg border border-gray-200 hover:opacity-80 transition-opacity"
                                   onError={(e) => {
                                     e.currentTarget.src = "/placeholder.svg";
                                   }}
@@ -921,7 +924,17 @@ export default function EditableUnitCostTable({
           </div>
         </div>
       </div>
-    </div>
+      </div>
+
+      {/* Modal de imágenes */}
+      <ImageCarouselModal
+        isOpen={isImageModalOpen}
+        onClose={() => setIsImageModalOpen(false)}
+        files={[]}
+        attachments={selectedImages.map((img) => img.url)}
+        productName="Producto"
+      />
+    </>
   );
 }
 

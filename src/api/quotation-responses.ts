@@ -130,10 +130,6 @@ export const getResponsesForUsers = async (quotationId: string) => {
 
 
 
-
-
-
-
 /**
  * Obtiene las respuestas de una cotización por su ID (Admin Only)
  * @param {string} quotationId - El ID de la cotización

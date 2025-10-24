@@ -415,7 +415,7 @@ export default function QuotationProductRow({
             <th className="p-3 text-left text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 w-24">
               IMAGEN
             </th>
-            <th className="p-3 text-left text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 w-56">
+            <th className="p-3 text-left text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 w-56 max-w-[14rem]">
               PRODUCTO & VARIANTES
             </th>
             <th className="p-3 text-left text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 w-44">
@@ -508,10 +508,13 @@ export default function QuotationProductRow({
             </td>
 
             {/* Columna 3: PRODUCTO & VARIANTES */}
-            <td className="p-3 align-top border-r border-blue-200/30 w-56">
+            <td className="p-3 align-top border-r border-blue-200/30 w-56 max-w-[14rem]">
               <div className="space-y-2">
                 <div>
-                  <h3 className="font-semibold text-gray-800 truncate uppercase">
+                  <h3
+                    className="font-semibold text-gray-800 uppercase text-xs break-words line-clamp-3"
+                    title={localProduct.name}
+                  >
                     {localProduct.name}
                   </h3>
                   <Badge variant="secondary" className="text-xs">

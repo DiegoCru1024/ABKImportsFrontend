@@ -520,7 +520,7 @@ export default function EditableUnitCostTable({
                     IMAGEN
                   </th>
 
-                  <th className="p-3 text-left text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 w-56">
+                  <th className="p-3 text-left text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 w-56 max-w-[14rem]">
                     PRODUCTO & VARIANTES
                   </th>
                   <th className="p-3 text-center text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 w-32">
@@ -622,10 +622,13 @@ export default function EditableUnitCostTable({
                           )}
                         </td>
                         {/* Columna 3: PRODUCTO & VARIANTES */}
-                        <td className="p-3  border-r border-slate-200/30 w-56">
+                        <td className="p-3 border-r border-slate-200/30 w-56 max-w-[14rem]">
                           <div className="space-y-2">
                             <div>
-                              <h3 className="font-semibold text-gray-800 truncate uppercase">
+                              <h3
+                                className="font-semibold text-gray-800 uppercase text-xs break-words line-clamp-3"
+                                title={product.name}
+                              >
                                 {product.name}
                               </h3>
                               {/*<Badge variant="secondary" className="text-xs">
@@ -784,28 +787,34 @@ export default function EditableUnitCostTable({
                                 </td>
 
                                 {/* Columna 3: Detalles de variante */}
-                                <td className="p-3 border-r border-purple-200/30 w-56">
-                                  <div className="space-y-1 ">
+                                <td className="p-3 border-r border-purple-200/30 w-56 max-w-[14rem]">
+                                  <div className="space-y-1">
                                     <div className="text-xs text-slate-600 space-y-1">
-                                      <div className="flex  flex-col  gap-1 text-sm">
+                                      <div className="flex flex-col gap-1 text-sm">
                                         <Badge
                                           variant="secondary"
                                           className="bg-pink-100/60 text-pink-800 border-pink-300/50 text-[10px]"
                                         >
                                           Color:
                                         </Badge>
-                                        <span>
+                                        <span
+                                          className="break-words line-clamp-2 text-xs"
+                                          title={variant.color || "Sin datos"}
+                                        >
                                           {variant.color || "Sin datos"}
                                         </span>
                                       </div>
-                                      <div className="flex  flex-col  gap-1 text-xs">
+                                      <div className="flex flex-col gap-1 text-xs">
                                         <Badge
                                           variant="secondary"
                                           className="bg-purple-100/60 text-purple-800 border-purple-300/50 text-[10px]"
                                         >
                                           Tamaño:
                                         </Badge>
-                                        <span>
+                                        <span
+                                          className="break-words line-clamp-2 text-xs"
+                                          title={variant.size || "Sin datos"}
+                                        >
                                           {variant.size || "Sin datos"}
                                         </span>
                                       </div>

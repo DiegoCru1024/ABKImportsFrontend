@@ -237,8 +237,8 @@ export default function EditableUnitCostTableView({
                           )}
                         </td>
                         {/* Columna 3: PRODUCTO & VARIANTES */}
-                        <td className="p-3 border-r border-slate-200/30 w-56">
-                          <div className="space-y-2">
+                        <td className="p-3 border-r border-slate-200/30 w-56 max-w-[14rem]">
+                          <div className="space-y-2 ">
                             <div>
                               <h3 className="font-semibold text-gray-800 truncate uppercase">
                                 {product.name}

@@ -208,7 +208,7 @@ export default function QuotationProductRowView({
 
             {/* Columna 3: PRODUCTO & VARIANTES */}
             <td className="p-3 align-top border-r border-blue-200/30 w-56">
-              <div className="space-y-2">
+              <div className="space-y-2 w-56 max-w-[14rem]">
                 <div>
                   <h3 className="font-semibold text-gray-800 truncate uppercase">
                     {product.name}

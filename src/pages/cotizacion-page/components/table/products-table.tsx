@@ -88,7 +88,7 @@ export const ProductsTable = ({
               <div className="grid grid-cols-12 gap-4 px-4 py-4 items-center hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                 {/* Botón expandir */}
                 <div className="col-span-1">
-                  <span className="text-base">{index + 1}</span>
+                  
 
                   <Button
                     variant="ghost"
@@ -96,6 +96,7 @@ export const ProductsTable = ({
                     onClick={() => toggleRow(index)}
                     className="h-8 w-8 p-0"
                   >
+                    <span className="text-base">{index + 1}</span>
                     {isExpanded ? (
                       <ChevronUp className="w-4 h-4" />
                     ) : (

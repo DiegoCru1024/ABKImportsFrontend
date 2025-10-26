@@ -4,6 +4,7 @@ import {
   MessageSquare,
   ChevronDown,
   ChevronRight,
+  ChevronLeft,
   Package,
 } from "lucide-react";
 
@@ -34,11 +35,7 @@ interface ProductVariant {
   priceExpress?: number;
   weight?: number;
   cbm?: number;
-  images?: Array<{
-    id: string;
-    url: string;
-    name?: string;
-  }>;
+  attachments?: string[];
 }
 
 interface PackingList {
@@ -63,7 +60,6 @@ interface Product {
   volume: string;
   number_of_boxes: number;
   variants?: ProductVariant[];
-  attachments?: string[];
   adminComment?: string;
   packingList?: PackingList;
   cargoHandling?: CargoHandling;
@@ -126,10 +122,16 @@ export default function QuotationProductRow({
   const [adminComment, setAdminComment] = useState<string>(
     product.adminComment || ""
   );
+  const [variantImageIndices, setVariantImageIndices] = useState<
+    Record<string, number>
+  >({});
 
   // Sincronizar adminComment cuando cambie desde el padre
   useEffect(() => {
-    if (product.adminComment !== undefined && product.adminComment !== adminComment) {
+    if (
+      product.adminComment !== undefined &&
+      product.adminComment !== adminComment
+    ) {
       setAdminComment(product.adminComment);
     }
   }, [product.adminComment]);
@@ -162,7 +164,6 @@ export default function QuotationProductRow({
     const hasSignificantChange =
       product.productId !== localProduct.productId ||
       product.name !== localProduct.name ||
-      product.attachments !== localProduct.attachments ||
       (product.variants &&
         localProduct.variants &&
         product.variants.length !== localProduct.variants.length);
@@ -171,33 +172,35 @@ export default function QuotationProductRow({
       setLocalProduct((prev) => ({
         ...product,
         // SIEMPRE preservar packingList existente si ya fue editado
-        packingList: prev.packingList?.boxes !== product.number_of_boxes ||
-                     prev.packingList?.cbm !== parseFloat(product.volume) ||
-                     prev.packingList?.weightKg !== parseFloat(product.weight)
-          ? prev.packingList // Si ya fue editado, mantener los valores editados
-          : product.packingList || {
-              boxes: product.number_of_boxes || 0,
-              cbm: parseFloat(product.volume) || 0,
-              weightKg: parseFloat(product.weight) || 0,
-              weightTon: (parseFloat(product.weight) || 0) / 1000,
-            },
+        packingList:
+          prev.packingList?.boxes !== product.number_of_boxes ||
+          prev.packingList?.cbm !== parseFloat(product.volume) ||
+          prev.packingList?.weightKg !== parseFloat(product.weight)
+            ? prev.packingList // Si ya fue editado, mantener los valores editados
+            : product.packingList || {
+                boxes: product.number_of_boxes || 0,
+                cbm: parseFloat(product.volume) || 0,
+                weightKg: parseFloat(product.weight) || 0,
+                weightTon: (parseFloat(product.weight) || 0) / 1000,
+              },
         // Preservar cargoHandling - priorizar el del producto si existe
-        cargoHandling: product.cargoHandling || prev.cargoHandling || {
-          fragileProduct: false,
-          stackProduct: false,
-        },
+        cargoHandling: product.cargoHandling ||
+          prev.cargoHandling || {
+            fragileProduct: false,
+            stackProduct: false,
+          },
         // Preservar ghostUrl existente si ya fue editado
         ghostUrl: product.ghostUrl || prev.ghostUrl || product.url || "",
       }));
     }
+    //console.log("Este es el valor de localProduct", localProduct);
   }, [
     product.productId,
     product.name,
-    product.attachments,
+
     product.variants,
     localProduct.productId,
     localProduct.name,
-    localProduct.attachments,
     localProduct.variants,
   ]);
 
@@ -235,7 +238,9 @@ export default function QuotationProductRow({
         totalPrice:
           acc.totalPrice + (variant.price || 0) * (variant.quantity || 0),
         totalQuantity: acc.totalQuantity + (variant.quantity || 0),
-        totalExpress: acc.totalExpress + (variant.priceExpress || 0) * (variant.quantity || 0),
+        totalExpress:
+          acc.totalExpress +
+          (variant.priceExpress || 0) * (variant.quantity || 0),
       }),
       {
         totalPrice: 0,
@@ -404,6 +409,31 @@ export default function QuotationProductRow({
     }
   };
 
+  // Funciones para navegar en el mini carrusel de variantes
+  const handlePrevImage = (
+    variantId: string,
+    totalImages: number,
+    e: React.MouseEvent
+  ) => {
+    e.stopPropagation();
+    setVariantImageIndices((prev) => ({
+      ...prev,
+      [variantId]: ((prev[variantId] || 0) - 1 + totalImages) % totalImages,
+    }));
+  };
+
+  const handleNextImage = (
+    variantId: string,
+    totalImages: number,
+    e: React.MouseEvent
+  ) => {
+    e.stopPropagation();
+    setVariantImageIndices((prev) => ({
+      ...prev,
+      [variantId]: ((prev[variantId] || 0) + 1) % totalImages,
+    }));
+  };
+
   return (
     <div className="bg-gradient-to-br from-white via-slate-50/30 to-blue-50/20 border border-slate-200/60 rounded-lg overflow-hidden">
       <table className="w-full border-collapse">
@@ -411,9 +441,6 @@ export default function QuotationProductRow({
           <tr className="bg-gradient-to-r from-blue-100/60 to-indigo-100/50 border-b-2 border-blue-200/50">
             <th className="p-3 text-center text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 w-16">
               NRO
-            </th>
-            <th className="p-3 text-left text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 w-24">
-              IMAGEN
             </th>
             <th className="p-3 text-left text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 w-56 max-w-[14rem]">
               PRODUCTO & VARIANTES
@@ -451,60 +478,6 @@ export default function QuotationProductRow({
                   onCheckedChange={handleProductQuotationToggle}
                 />
               </div>
-            </td>
-
-            {/* Columna 2: IMAGEN */}
-            <td className="p-3 text-center align-top border-r border-blue-200/30 w-24">
-              {localProduct.attachments &&
-              localProduct.attachments.length > 0 ? (
-                <div className="flex flex-col">
-                  <div
-                    className="relative"
-                    onClick={() =>
-                      handleOpenImages(
-                        localProduct.attachments?.map((url, index) => ({
-                          id: index.toString(),
-                          url,
-                          name: `Imagen ${index + 1}`,
-                        })) || [],
-                        0
-                      )
-                    }
-                  >
-                    <img
-                      src={localProduct.attachments[0] || "/placeholder.svg"}
-                      alt={localProduct.name}
-                      className="w-20 h-20 object-cover rounded-lg border border-gray-200"
-                      onError={(e) => {
-                        e.currentTarget.src = "/placeholder.svg";
-                      }}
-                    />
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      className="absolute top-6 right-6 h-5 w-5 rounded-full p-0"
-                    >
-                      <Eye className="h-3 w-3" />
-                    </Button>
-                  </div>
-                  <div className="flex flex-col">
-                    <a
-                      href={localProduct.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="no-underline"
-                    >
-                      <span className="text-xs text-blue-600 break-all">
-                        Ver link
-                      </span>
-                    </a>
-                  </div>
-                </div>
-              ) : (
-                <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
-                  <Package className="h-6 w-6 text-gray-400" />
-                </div>
-              )}
             </td>
 
             {/* Columna 3: PRODUCTO & VARIANTES */}
@@ -668,11 +641,11 @@ export default function QuotationProductRow({
                   onChange={(e) => handleGhostUrlChange(e.target.value)}
                   className="h-8 text-xs"
                 />
-                   {/* Botón para ver comentarios y URL */}
-                   <Dialog>
+                {/* Botón para ver comentarios y URL */}
+                <Dialog>
                   <DialogTrigger asChild>
                     <Button variant="outline" size="sm" className="text-xs">
-                      <MessageSquare className="h-3 w-3 " /> Comentario  cliente
+                      <MessageSquare className="h-3 w-3 " /> Comentario cliente
                     </Button>
                   </DialogTrigger>
                   <DialogContent>
@@ -688,7 +661,7 @@ export default function QuotationProductRow({
                     </div>
                   </DialogContent>
                 </Dialog>
-                 {/* Comentario del administrador */}
+                {/* Comentario del administrador */}
                 <Dialog
                   open={isCommentModalOpen}
                   onOpenChange={setIsCommentModalOpen}
@@ -705,7 +678,7 @@ export default function QuotationProductRow({
                   </DialogTrigger>
                   <DialogContent>
                     <DialogHeader>
-                      <DialogTitle>Comentario  Administrador</DialogTitle>
+                      <DialogTitle>Comentario Administrador</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-4">
                       <p className="text-sm text-gray-600">
@@ -730,8 +703,6 @@ export default function QuotationProductRow({
                     </div>
                   </DialogContent>
                 </Dialog>
-
-             
               </div>
             </td>
 
@@ -757,7 +728,8 @@ export default function QuotationProductRow({
               <div className="text-lg font-semibold text-indigo-700 border border-indigo-300/50 rounded-lg px-2 py-1 bg-indigo-100/50">
                 $
                 {(
-                  (aggregatedData.totalPrice || 0) + (aggregatedData.totalExpress || 0)
+                  (aggregatedData.totalPrice || 0) +
+                  (aggregatedData.totalExpress || 0)
                 ).toFixed(2)}
               </div>
             </td>
@@ -782,6 +754,9 @@ export default function QuotationProductRow({
                     <tr className="bg-gradient-to-r from-purple-100/60 to-pink-100/50 border-b-2 border-purple-200/50">
                       <th className="p-3 text-center text-xs font-semibold text-purple-800 border-r border-purple-200/30 w-16">
                         Cotizar
+                      </th>
+                      <th className="p-3 text-center text-xs font-semibold text-purple-800 border-r border-purple-200/30 w-16">
+                        Imagen
                       </th>
                       <th className="p-3 text-left text-xs font-semibold text-purple-800 border-r border-purple-200/30 w-32">
                         Presentación
@@ -827,6 +802,98 @@ export default function QuotationProductRow({
                               }
                             />
                           </td>
+                          {/* Imagen con mini carrusel */}
+                          <td className="p-3 border-r border-purple-200/30 w-32">
+                            {variant.attachments &&
+                            variant.attachments.length > 0 ? (
+                              <div className="relative w-20 h-20">
+                                {/* Imagen principal */}
+                                <div
+                                  className="relative cursor-pointer w-full h-full"
+                                  onClick={() =>
+                                    handleOpenImages(
+                                      variant.attachments?.map((url, index) => ({
+                                        id: index.toString(),
+                                        url,
+                                        name: `${localProduct.name} - ${
+                                          variant.color
+                                        } - Imagen ${index + 1}`,
+                                      })) || [],
+                                      variantImageIndices[variant.variantId] || 0
+                                    )
+                                  }
+                                >
+                                  <img
+                                    src={
+                                      variant.attachments[
+                                        variantImageIndices[variant.variantId] ||
+                                          0
+                                      ] || "/placeholder.svg"
+                                    }
+                                    alt={`${localProduct.name} - ${variant.color}`}
+                                    className="w-full h-full object-cover rounded-lg border border-gray-200 hover:opacity-80 transition-opacity"
+                                    onError={(e) => {
+                                      e.currentTarget.src = "/placeholder.svg";
+                                    }}
+                                  />
+                                  <Button
+                                    size="sm"
+                                    variant="secondary"
+                                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-6 w-6 rounded-full p-0 opacity-0 hover:opacity-100 transition-opacity bg-white/90"
+                                  >
+                                    <Eye className="h-3 w-3" />
+                                  </Button>
+
+                                  {/* Indicador de cantidad de imágenes */}
+                                  {variant.attachments.length > 1 && (
+                                    <div className="absolute top-1 right-1 px-1.5 py-0.5 bg-gray-900 bg-opacity-80 rounded-full text-white text-xs font-medium">
+                                      {(variantImageIndices[variant.variantId] ||
+                                        0) + 1}
+                                      /{variant.attachments.length}
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* Controles de navegación del mini carrusel */}
+                                {variant.attachments.length > 1 && (
+                                  <>
+                                    <Button
+                                      size="sm"
+                                      variant="secondary"
+                                      className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-5 rounded-full p-0 bg-white/90 hover:bg-white shadow-md z-10"
+                                      onClick={(e) =>
+                                        handlePrevImage(
+                                          variant.variantId,
+                                          variant.attachments!.length,
+                                          e
+                                        )
+                                      }
+                                    >
+                                      <ChevronLeft className="h-3 w-3" />
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="secondary"
+                                      className="absolute right-0 top-1/2 -translate-y-1/2 h-5 w-5 rounded-full p-0 bg-white/90 hover:bg-white shadow-md z-10"
+                                      onClick={(e) =>
+                                        handleNextImage(
+                                          variant.variantId,
+                                          variant.attachments!.length,
+                                          e
+                                        )
+                                      }
+                                    >
+                                      <ChevronRight className="h-3 w-3" />
+                                    </Button>
+                                  </>
+                                )}
+                              </div>
+                            ) : (
+                              <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center">
+                                <Package className="h-6 w-6 text-gray-400" />
+                              </div>
+                            )}
+                          </td>
 
                           {/* Presentación */}
                           <td className="p-3 border-r border-purple-200/30 w-32">
@@ -834,7 +901,7 @@ export default function QuotationProductRow({
                               variant="secondary"
                               className="bg-emerald-100/60 text-emerald-800 border-emerald-300/50"
                             >
-                              {variant.presentation || "N/A"}
+                              {variant.presentation || "Sin datos"}
                             </Badge>
                           </td>
 
@@ -844,7 +911,7 @@ export default function QuotationProductRow({
                               variant="secondary"
                               className="bg-blue-100/60 text-blue-800 border-blue-300/50"
                             >
-                              {variant.model || "N/A"}
+                              {variant.model || "Sin datos"}
                             </Badge>
                           </td>
 
@@ -854,7 +921,7 @@ export default function QuotationProductRow({
                               variant="secondary"
                               className="bg-pink-100/60 text-pink-800 border-pink-300/50"
                             >
-                              {variant.color || "N/A"}
+                              {variant.color || "Sin Datos"}
                             </Badge>
                           </td>
 
@@ -864,7 +931,7 @@ export default function QuotationProductRow({
                               variant="secondary"
                               className="bg-purple-100/60 text-purple-800 border-purple-300/50"
                             >
-                              {variant.size || "N/A"}
+                              {variant.size || "Sin Datos"}
                             </Badge>
                           </td>
 

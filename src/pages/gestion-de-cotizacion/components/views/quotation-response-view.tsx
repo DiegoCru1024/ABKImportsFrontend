@@ -1077,7 +1077,6 @@ export default function QuotationResponseView({
                       weight: product.weight,
                       volume: product.cbm,
                       number_of_boxes: product.boxes,
-                      attachments: product.attachments || [],
                       variants:
                         product.variants?.map((variant: any) => ({
                           variantId: variant.id,
@@ -1090,6 +1089,7 @@ export default function QuotationResponseView({
                           priceExpress: variant.priceExpress || 0,
                           weight: variant.weight || 0,
                           cbm: variant.cbm || 0,
+                          attachments: variant.attachments || [],
                         })) || [],
                       adminComment: product.adminComment || "",
                     }}

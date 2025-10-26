@@ -3,6 +3,7 @@ import {
   Package,
   ChevronDown,
   ChevronRight,
+  ChevronLeft,
   MessageSquare,
   Eye,
 } from "lucide-react";
@@ -39,6 +40,7 @@ interface ProductVariant {
   totalCost: number;
   unitCost: number;
   seCotiza: boolean;
+  attachments?: string[];
 }
 
 interface ProductRow {
@@ -52,7 +54,6 @@ interface ProductRow {
   totalCost: number;
   unitCost: number;
   seCotiza: boolean;
-  attachments: any;
   variants?: ProductVariant[];
 }
 
@@ -357,12 +358,44 @@ export default function EditableUnitCostTable({
   const [selectedImages, setSelectedImages] = useState<
     Array<{ id: string; url: string; name?: string }>
   >([]);
+  const [variantImageIndices, setVariantImageIndices] = useState<
+    Record<string, number>
+  >({});
+
+  const [startImageIndex, setStartImageIndex] = useState<number>(0);
+
   const handleOpenImages = (
     images: Array<{ id: string; url: string; name?: string }>,
     startIndex: number = 0
   ) => {
     setSelectedImages(images);
+    setStartImageIndex(startIndex);
     setIsImageModalOpen(true);
+  };
+
+  // Funciones para navegar en el mini carrusel de variantes
+  const handlePrevImage = (
+    variantId: string,
+    totalImages: number,
+    e: React.MouseEvent
+  ) => {
+    e.stopPropagation();
+    setVariantImageIndices((prev) => ({
+      ...prev,
+      [variantId]: ((prev[variantId] || 0) - 1 + totalImages) % totalImages,
+    }));
+  };
+
+  const handleNextImage = (
+    variantId: string,
+    totalImages: number,
+    e: React.MouseEvent
+  ) => {
+    e.stopPropagation();
+    setVariantImageIndices((prev) => ({
+      ...prev,
+      [variantId]: ((prev[variantId] || 0) + 1) % totalImages,
+    }));
   };
 
   const calculateCommercialValue = useCallback(() => {
@@ -497,442 +530,518 @@ export default function EditableUnitCostTable({
           </div>
         </div>
 
-      <div className="p-6">
-        <div className="space-y-4">
-          {isFirstPurchase && (
-            <div className="bg-blue-100/50 border border-blue-300/50 rounded-lg p-4">
-              <p className="text-sm text-blue-800">
-                <strong>Primera Compra:</strong> Los costos de importación se
-                distribuyen entre todos los productos para calcular el costo
-                unitario real.
-              </p>
-            </div>
-          )}
+        <div className="p-6">
+          <div className="space-y-4">
+            {isFirstPurchase && (
+              <div className="bg-blue-100/50 border border-blue-300/50 rounded-lg p-4">
+                <p className="text-sm text-blue-800">
+                  <strong>Primera Compra:</strong> Los costos de importación se
+                  distribuyen entre todos los productos para calcular el costo
+                  unitario real.
+                </p>
+              </div>
+            )}
 
-          <div className="w-full overflow-x-auto rounded-lg border border-slate-200/60 bg-white">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="bg-gradient-to-r from-indigo-100/60 to-purple-100/50 border-b-2 border-indigo-200/50">
-                  <th className="p-3 text-center text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 w-16">
-                    NRO.
-                  </th>
-                  <th className="p-3 text-left text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 w-24">
-                    IMAGEN
-                  </th>
+            <div className="w-full overflow-x-auto rounded-lg border border-slate-200/60 bg-white">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-gradient-to-r from-indigo-100/60 to-purple-100/50 border-b-2 border-indigo-200/50">
+                    <th className="p-3 text-center text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 w-16">
+                      NRO.
+                    </th>
 
-                  <th className="p-3 text-left text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 w-56 max-w-[14rem]">
-                    PRODUCTO & VARIANTES
-                  </th>
-                  <th className="p-3 text-center text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 w-32">
-                    PRECIO
-                  </th>
-                  <th className="p-3 text-center text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 w-24">
-                    CANTIDAD
-                  </th>
-                  <th className="p-3 text-center text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 w-32">
-                    TOTAL
-                  </th>
-                  <th className="p-3 text-center text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 w-32">
-                    EQUIVALENCIA
-                  </th>
-                  <th className="p-3 text-center text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 w-40">
-                    GASTOS DE IMPORTACIÓN
-                  </th>
-                  <th className="p-3 text-center text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 w-32">
-                    COSTO TOTAL
-                  </th>
-                  <th className="p-3 text-center text-xs font-semibold text-indigo-800 w-32">
-                    COSTO UNITARIO
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.map((product, index) => {
-                  const isSelected =
-                    productQuotationState[product.id] !== undefined
-                      ? productQuotationState[product.id]
-                      : true;
-                  const productTotal = calculateProductTotal(product);
-                  const productQuantity = calculateProductQuantity(product);
-                  const hasVariants =
-                    product.variants && product.variants.length > 0;
+                    <th className="p-3 text-left text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 w-56 max-w-[14rem]">
+                      PRODUCTO & VARIANTES
+                    </th>
+                    <th className="p-3 text-center text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 w-32">
+                      PRECIO
+                    </th>
+                    <th className="p-3 text-center text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 w-24">
+                      CANTIDAD
+                    </th>
+                    <th className="p-3 text-center text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 w-32">
+                      TOTAL
+                    </th>
+                    <th className="p-3 text-center text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 w-32">
+                      EQUIVALENCIA
+                    </th>
+                    <th className="p-3 text-center text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 w-40">
+                      GASTOS DE IMPORTACIÓN
+                    </th>
+                    <th className="p-3 text-center text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 w-32">
+                      COSTO TOTAL
+                    </th>
+                    <th className="p-3 text-center text-xs font-semibold text-indigo-800 w-36">
+                      COSTO UNITARIO
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.map((product, index) => {
+                    const isSelected =
+                      productQuotationState[product.id] !== undefined
+                        ? productQuotationState[product.id]
+                        : true;
+                    const productTotal = calculateProductTotal(product);
+                    const productQuantity = calculateProductQuantity(product);
+                    const hasVariants =
+                      product.variants && product.variants.length > 0;
 
-                  return (
-                    <React.Fragment key={product.id}>
-                      <tr className="border-b border-slate-200/40 hover:bg-blue-50/30 transition-colors">
-                        <td className="p-3 text-center border-r border-slate-200/30">
-                          <div className="flex items-center justify-center flex-col">
-                            <div className="text-lg font-bold text-gray-800">
-                              {index + 1}
-                            </div>
-                            <Checkbox
-                              checked={isSelected}
-                              onCheckedChange={(checked) =>
-                                onProductQuotationChange?.(
-                                  product.id,
-                                  checked as boolean
-                                )
-                              }
-                            />
-                          </div>
-                        </td>
-                        {/* Columna 2: IMAGEN */}
-                        <td className="p-3 text-center align-top border-r border-blue-200/30 w-24">
-                          {product.attachments &&
-                          product.attachments.length > 0 ? (
-                            <div className="flex flex-col">
-                              <div
-                                className="relative cursor-pointer"
-                                onClick={() =>
-                                  handleOpenImages(
-                                    product.attachments?.map(
-                                      (url: any, index: number) => ({
-                                        id: index.toString(),
-                                        url,
-                                        name: `Imagen ${index + 1}`,
-                                      })
-                                    ) || [],
-                                    0
+                    return (
+                      <React.Fragment key={product.id}>
+                        <tr className="border-b border-slate-200/40 hover:bg-blue-50/30 transition-colors">
+                          {/* Columna 1: NUMERACION */}
+                          <td className="p-3 text-center border-r border-slate-200/30">
+                            <div className="flex items-center justify-center flex-col">
+                              <div className="text-lg font-bold text-gray-800">
+                                {index + 1}
+                              </div>
+                              <Checkbox
+                                checked={isSelected}
+                                onCheckedChange={(checked) =>
+                                  onProductQuotationChange?.(
+                                    product.id,
+                                    checked as boolean
                                   )
                                 }
-                              >
-                                <img
-                                  src={
-                                    product.attachments[0] || "/placeholder.svg"
-                                  }
-                                  alt={product.name}
-                                  className="w-20 h-20 object-cover rounded-lg border border-gray-200 hover:opacity-80 transition-opacity"
-                                  onError={(e) => {
-                                    e.currentTarget.src = "/placeholder.svg";
-                                  }}
-                                />
-                                <Button
-                                  size="sm"
-                                  variant="secondary"
-                                  className="absolute top-6 right-6 h-5 w-5 rounded-full p-0"
+                              />
+                            </div>
+                          </td>
+
+                          {/* Columna 2: PRODUCTO & VARIANTES */}
+                          <td className="p-3 border-r border-slate-200/30 w-7xl max-w-[36rem]">
+                            <div className="space-y-2">
+                              <div>
+                                <h3
+                                  className="font-semibold text-gray-800 uppercase text-xs break-words line-clamp-3"
+                                  title={product.name}
                                 >
-                                  <Eye className="h-3 w-3" />
-                                </Button>
+                                  {product.name}
+                                </h3>
                               </div>
-                            </div>
-                          ) : (
-                            <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
-                              <Package className="h-6 w-6 text-gray-400" />
-                            </div>
-                          )}
-                        </td>
-                        {/* Columna 3: PRODUCTO & VARIANTES */}
-                        <td className="p-3 border-r border-slate-200/30 w-56 max-w-[14rem]">
-                          <div className="space-y-2">
-                            <div>
-                              <h3
-                                className="font-semibold text-gray-800 uppercase text-xs break-words line-clamp-3"
-                                title={product.name}
-                              >
-                                {product.name}
-                              </h3>
-                              {/*<Badge variant="secondary" className="text-xs">
-                    {product.quantityTotal} items
-                  </Badge>*/}
-                            </div>
 
-                            {hasVariants && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="text-xs bg-green-100 hover:bg-green-200 "
-                                onClick={() =>
-                                  toggleProductExpansion(product.id)
+                              {hasVariants && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-xs bg-green-100 hover:bg-green-200 "
+                                  onClick={() =>
+                                    toggleProductExpansion(product.id)
+                                  }
+                                >
+                                  {expandedProducts.has(product.id) ? (
+                                    <ChevronDown className="h-4 w-4 text-slate-600" />
+                                  ) : (
+                                    <ChevronRight className="h-4 w-4 text-slate-600" />
+                                  )}
+                                  {product?.variants?.length} variante
+                                  {product?.variants?.length !== 1 ? "s" : ""}
+                                </Button>
+                              )}
+                            </div>
+                          </td>
+                          {/* Columna 3: PRECIO*/}
+                          <td className="p-3 text-center border-r border-slate-200/30">
+                            {hasVariants ? (
+                              <span className="text-sm font-semibold text-indigo-700">
+                                USD{" "}
+                                {(
+                                  product.variants?.reduce((sum, variant) => {
+                                    const isVariantSelected =
+                                      variantQuotationState[product.id]?.[
+                                        variant.id
+                                      ] !== undefined
+                                        ? variantQuotationState[product.id][
+                                            variant.id
+                                          ]
+                                        : true;
+                                    return isVariantSelected
+                                      ? sum +
+                                          (variant.price || 0) *
+                                            (variant.quantity || 0)
+                                      : sum;
+                                  }, 0) || 0
+                                ).toFixed(2)}
+                              </span>
+                            ) : (
+                              <EditableNumericField
+                                value={product.price || 0}
+                                onChange={(value) =>
+                                  updateProduct(product.id, "price", value)
                                 }
-                              >
-                                {expandedProducts.has(product.id) ? (
-                                  <ChevronDown className="h-4 w-4 text-slate-600" />
-                                ) : (
-                                  <ChevronRight className="h-4 w-4 text-slate-600" />
-                                )}
-                                {product?.variants?.length} variante
-                                {product?.variants?.length !== 1 ? "s" : ""}
-                              </Button>
+                                prefix="$"
+                                decimalPlaces={2}
+                              />
                             )}
-                          </div>
-                        </td>
-
-                        <td className="p-3 text-center border-r border-slate-200/30">
-                          {hasVariants ? (
+                          </td>
+                          {/* Columna 4: CANTIDAD*/}
+                          <td className="p-3 text-center border-r border-slate-200/30">
+                            {hasVariants ? (
+                              <span className="text-sm font-medium text-slate-700">
+                                {productQuantity}
+                              </span>
+                            ) : (
+                              <EditableNumericField
+                                value={product.quantity || 0}
+                                onChange={(value) =>
+                                  updateProduct(product.id, "quantity", value)
+                                }
+                                decimalPlaces={0}
+                                min={0}
+                              />
+                            )}
+                          </td>
+                          {/* Columna 5: TOTAL*/}
+                          <td className="p-3 text-center border-r border-slate-200/30">
                             <span className="text-sm font-semibold text-indigo-700">
-                              USD {(
-                                product.variants?.reduce((sum, variant) => {
-                                  const isVariantSelected =
-                                    variantQuotationState[product.id]?.[variant.id] !== undefined
-                                      ? variantQuotationState[product.id][variant.id]
-                                      : true;
-                                  return isVariantSelected
-                                    ? sum + (variant.price || 0) * (variant.quantity || 0)
-                                    : sum;
-                                }, 0) || 0
-                              ).toFixed(2)}
+                              USD {productTotal.toFixed(2)}
                             </span>
-                          ) : (
-                            <EditableNumericField
-                              value={product.price || 0}
-                              onChange={(value) =>
-                                updateProduct(product.id, "price", value)
-                              }
-                              prefix="$"
-                              decimalPlaces={2}
-                            />
-                          )}
-                        </td>
-                        <td className="p-3 text-center border-r border-slate-200/30">
-                          {hasVariants ? (
-                            <span className="text-sm font-medium text-slate-700">
-                              {productQuantity}
+                          </td>
+                          {/* Columna 6: EQUIVALENCIA*/}
+                          <td className="p-3 text-center border-r border-slate-200/30">
+                            <span className="text-sm font-medium text-blue-700">
+                              {(product.equivalence || 0).toFixed(2)}%
                             </span>
-                          ) : (
-                            <EditableNumericField
-                              value={product.quantity || 0}
-                              onChange={(value) =>
-                                updateProduct(product.id, "quantity", value)
-                              }
-                              decimalPlaces={0}
-                              min={0}
-                            />
-                          )}
-                        </td>
-                        <td className="p-3 text-center border-r border-slate-200/30">
-                          <span className="text-sm font-semibold text-indigo-700">
-                            USD {productTotal.toFixed(2)}
-                          </span>
-                        </td>
-                        <td className="p-3 text-center border-r border-slate-200/30">
-                          <span className="text-sm font-medium text-blue-700">
-                            {(product.equivalence || 0).toFixed(2)}%
-                          </span>
-                        </td>
-                        <td className="p-3 text-center border-r border-slate-200/30">
-                          <span className="text-sm font-medium text-orange-700">
-                            USD {(product.importCosts || 0).toFixed(2)}
-                          </span>
-                        </td>
-                        <td className="p-3 text-center border-r border-slate-200/30">
-                          <span className="text-sm font-semibold text-emerald-700">
-                            USD {(product.totalCost || 0).toFixed(2)}
-                          </span>
-                        </td>
-                        <td className="p-3 text-center">
-                          <span className="text-sm font-semibold text-purple-700">
-                            USD {(product.unitCost || 0).toFixed(2)}
-                          </span>
-                        </td>
-                      </tr>
+                          </td>
+                          {/* Columna 7: GASTOS DE IMPORTACION*/}
+                          <td className="p-3 text-center border-r border-slate-200/30">
+                            <span className="text-sm font-medium text-orange-700">
+                              USD {(product.importCosts || 0).toFixed(2)}
+                            </span>
+                          </td>
+                          {/* Columna 8: COSTO TOTAL*/}
+                          <td className="p-3 text-center border-r border-slate-200/30">
+                            <span className="text-sm font-semibold text-emerald-700">
+                              USD {(product.totalCost || 0).toFixed(2)}
+                            </span>
+                          </td>
+                          {/* Columna 9: COSTO UNITARIO*/}
+                          <td className="p-3 text-center">
+                            <span className="text-sm font-semibold text-purple-700">
+                              USD {(product.unitCost || 0).toFixed(2)}
+                            </span>
+                          </td>
+                        </tr>
 
-                      {hasVariants && expandedProducts.has(product.id) && (
-                        <>
-                          {product?.variants?.map((variant, variantIndex) => {
-                            const isVariantSelected =
-                              variantQuotationState[product.id]?.[
-                                variant.id
-                              ] !== undefined
-                                ? variantQuotationState[product.id][variant.id]
-                                : true;
+                        {hasVariants && expandedProducts.has(product.id) && (
+                          <>
+                            {product?.variants?.map((variant, variantIndex) => {
+                              const isVariantSelected =
+                                variantQuotationState[product.id]?.[
+                                  variant.id
+                                ] !== undefined
+                                  ? variantQuotationState[product.id][
+                                      variant.id
+                                    ]
+                                  : true;
 
-                            return (
-                              
-                              <tr
-                                key={variant.id}
-                                className="bg-gradient-to-br from-purple-50/40 to-pink-50/30 border-b border-purple-200/30 hover:bg-purple-50/50 transition-colors"
-                              >
-                                {/* Columna 1: Checkbox */}
-                                <td className="p-3 text-center border-r border-purple-200/30 w-16">
-                                  <Checkbox
-                                    checked={isVariantSelected}
-                                    onCheckedChange={(checked) =>
-                                      onVariantQuotationChange?.(
-                                        product.id,
-                                        variant.id,
-                                        checked as boolean
-                                      )
-                                    }
-                                  />
-                                </td>
+                              return (
+                                <tr
+                                  key={variant.id}
+                                  className="bg-gradient-to-br from-purple-50/40 to-pink-50/30 border-b border-purple-200/30 hover:bg-purple-50/50 transition-colors"
+                                >
+                                  {/* Columna 1: Checkbox */}
+                                  <td className="p-3 text-center border-r border-purple-200/30 w-16">
+                                    <Checkbox
+                                      checked={isVariantSelected}
+                                      onCheckedChange={(checked) =>
+                                        onVariantQuotationChange?.(
+                                          product.id,
+                                          variant.id,
+                                          checked as boolean
+                                        )
+                                      }
+                                    />
+                                  </td>
 
-                                {/* Columna 2: Imagen vacía */}
-                                <td className="p-3 border-r border-purple-200/30 w-30 ">
-                                  <div className="space-y-1 ">
-                                    <div className="text-xs text-slate-600 space-y-1">
-                                      <div className="flex flex-col gap-1 text-sm">
-                                        <Badge
-                                          variant="secondary"
-                                          className="bg-emerald-100/60 text-emerald-800 border-emerald-300/50 text-[10px]"
-                                        >
-                                          Presentación:
-                                        </Badge>
-                                        <span>
-                                          {variant.presentation || "Sin datos"}
-                                        </span>
+                                  {/* Columna 2: Detalles de variante con imagen */}
+                                  <td className="p-3 border-r border-purple-200/30 w-56 max-w-[14rem]">
+                                    <div className="flex gap-3">
+                                      {/* Mini carrusel de imágenes */}
+                                      <div className="flex-shrink-0">
+                                        {variant.attachments &&
+                                        variant.attachments.length > 0 ? (
+                                          <div className="relative w-16 h-16">
+                                            {/* Imagen principal */}
+                                            <div
+                                              className="relative cursor-pointer w-full h-full"
+                                              onClick={() =>
+                                                handleOpenImages(
+                                                  variant.attachments?.map(
+                                                    (url, index) => ({
+                                                      id: index.toString(),
+                                                      url,
+                                                      name: `${product.name} - ${
+                                                        variant.color
+                                                      } - Imagen ${index + 1}`,
+                                                    })
+                                                  ) || [],
+                                                  variantImageIndices[variant.id] ||
+                                                    0
+                                                )
+                                              }
+                                            >
+                                              <img
+                                                src={
+                                                  variant.attachments[
+                                                    variantImageIndices[
+                                                      variant.id
+                                                    ] || 0
+                                                  ] || "/placeholder.svg"
+                                                }
+                                                alt={`${product.name} - ${variant.color}`}
+                                                className="w-full h-full object-cover rounded-lg border border-purple-300 hover:opacity-80 transition-opacity"
+                                                onError={(e) => {
+                                                  e.currentTarget.src =
+                                                    "/placeholder.svg";
+                                                }}
+                                              />
+                                              <Button
+                                                size="sm"
+                                                variant="secondary"
+                                                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-6 w-6 rounded-full p-0 opacity-0 hover:opacity-100 transition-opacity bg-white/90"
+                                              >
+                                                <Eye className="h-3 w-3" />
+                                              </Button>
+
+                                              {/* Indicador de cantidad de imágenes */}
+                                              {variant.attachments.length > 1 && (
+                                                <div className="absolute top-1 right-1 px-1.5 py-0.5 bg-purple-900 bg-opacity-80 rounded-full text-white text-xs font-medium">
+                                                  {(variantImageIndices[
+                                                    variant.id
+                                                  ] || 0) + 1}
+                                                  /{variant.attachments.length}
+                                                </div>
+                                              )}
+                                            </div>
+
+                                            {/* Controles de navegación del mini carrusel */}
+                                            {variant.attachments.length > 1 && (
+                                              <>
+                                                <Button
+                                                  size="sm"
+                                                  variant="secondary"
+                                                  className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-5 rounded-full p-0 bg-white/90 hover:bg-white shadow-md z-10"
+                                                  onClick={(e) =>
+                                                    handlePrevImage(
+                                                      variant.id,
+                                                      variant.attachments!.length,
+                                                      e
+                                                    )
+                                                  }
+                                                >
+                                                  <ChevronLeft className="h-3 w-3" />
+                                                </Button>
+                                                <Button
+                                                  size="sm"
+                                                  variant="secondary"
+                                                  className="absolute right-0 top-1/2 -translate-y-1/2 h-5 w-5 rounded-full p-0 bg-white/90 hover:bg-white shadow-md z-10"
+                                                  onClick={(e) =>
+                                                    handleNextImage(
+                                                      variant.id,
+                                                      variant.attachments!.length,
+                                                      e
+                                                    )
+                                                  }
+                                                >
+                                                  <ChevronRight className="h-3 w-3" />
+                                                </Button>
+                                              </>
+                                            )}
+                                          </div>
+                                        ) : (
+                                          <div className="w-16 h-16 bg-purple-50 rounded-lg flex items-center justify-center border border-purple-200">
+                                            <Package className="h-4 w-4 text-purple-300" />
+                                          </div>
+                                        )}
                                       </div>
-                                      <div className="flex flex-col gap-1 text-sm">
-                                        <Badge
-                                          variant="secondary"
-                                          className="bg-blue-100/60 text-blue-800 border-blue-300/50 text-[10px]"
-                                        >
-                                          Modelo:
-                                        </Badge>
-                                        <span>
-                                          {variant.model || "Sin datos"}
-                                        </span>
+
+                                      {/* Detalles de variante */}
+                                      <div className="flex-1 min-w-0">
+                                        <div className="space-y-1">
+                                          <div className="text-xs text-slate-600 space-y-1 grid grid-cols-2 gap-2">
+                                            {/* Presentacion */}
+                                            <div className="flex flex-col gap-1 text-xs">
+                                              <Badge
+                                                variant="secondary"
+                                                className="bg-emerald-100/60 text-emerald-800 border-emerald-300/50 text-[10px]"
+                                              >
+                                                Presentación:
+                                              </Badge>
+                                              <span
+                                                className="break-words line-clamp-2 text-xs"
+                                                title={
+                                                  variant.presentation ||
+                                                  "Sin datos"
+                                                }
+                                              >
+                                                {variant.presentation ||
+                                                  "Sin datos"}
+                                              </span>
+                                            </div>
+                                            {/* Modelo */}
+                                            <div className="flex flex-col gap-1 text-xs">
+                                              <Badge
+                                                variant="secondary"
+                                                className="bg-blue-100/60 text-blue-800 border-blue-300/50 text-[10px]"
+                                              >
+                                                Modelo:
+                                              </Badge>
+                                              <span
+                                                className="break-words line-clamp-2 text-xs"
+                                                title={variant.model || "Sin datos"}
+                                              >
+                                                {variant.model || "Sin datos"}
+                                              </span>
+                                            </div>
+                                            {/* Color */}
+                                            <div className="flex flex-col gap-1 text-xs">
+                                              <Badge
+                                                variant="secondary"
+                                                className="bg-pink-100/60 text-pink-800 border-pink-300/50 text-[10px]"
+                                              >
+                                                Color:
+                                              </Badge>
+                                              <span
+                                                className="break-words line-clamp-2 text-xs"
+                                                title={variant.color || "Sin datos"}
+                                              >
+                                                {variant.color || "Sin datos"}
+                                              </span>
+                                            </div>
+                                            {/* Tamaño */}
+                                            <div className="flex flex-col gap-1 text-xs">
+                                              <Badge
+                                                variant="secondary"
+                                                className="bg-purple-100/60 text-purple-800 border-purple-300/50 text-[10px]"
+                                              >
+                                                Tamaño:
+                                              </Badge>
+                                              <span
+                                                className="break-words line-clamp-2 text-xs"
+                                                title={variant.size || "Sin datos"}
+                                              >
+                                                {variant.size || "Sin datos"}
+                                              </span>
+                                            </div>
+                                          </div>
+                                        </div>
                                       </div>
                                     </div>
-                                  </div>
-                                </td>
+                                  </td>
 
-                                {/* Columna 3: Detalles de variante */}
-                                <td className="p-3 border-r border-purple-200/30 w-56 max-w-[14rem]">
-                                  <div className="space-y-1">
-                                    <div className="text-xs text-slate-600 space-y-1">
-                                      <div className="flex flex-col gap-1 text-sm">
-                                        <Badge
-                                          variant="secondary"
-                                          className="bg-pink-100/60 text-pink-800 border-pink-300/50 text-[10px]"
-                                        >
-                                          Color:
-                                        </Badge>
-                                        <span
-                                          className="break-words line-clamp-2 text-xs"
-                                          title={variant.color || "Sin datos"}
-                                        >
-                                          {variant.color || "Sin datos"}
-                                        </span>
-                                      </div>
-                                      <div className="flex flex-col gap-1 text-xs">
-                                        <Badge
-                                          variant="secondary"
-                                          className="bg-purple-100/60 text-purple-800 border-purple-300/50 text-[10px]"
-                                        >
-                                          Tamaño:
-                                        </Badge>
-                                        <span
-                                          className="break-words line-clamp-2 text-xs"
-                                          title={variant.size || "Sin datos"}
-                                        >
-                                          {variant.size || "Sin datos"}
-                                        </span>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </td>
+                                  {/* Columna 3: Precio */}
+                                  <td className="p-3 text-center border-r border-purple-200/30 w-32">
+                                    <EditableNumericField
+                                      value={variant.price || 0}
+                                      onChange={(value) =>
+                                        updateVariant(
+                                          product.id,
+                                          variant.id,
+                                          "price",
+                                          value
+                                        )
+                                      }
+                                      prefix="$"
+                                      decimalPlaces={2}
+                                    />
+                                  </td>
 
-                                {/* Columna 4: Precio */}
-                                <td className="p-3 text-center border-r border-purple-200/30 w-32">
-                                  <EditableNumericField
-                                    value={variant.price || 0}
-                                    onChange={(value) =>
-                                      updateVariant(
-                                        product.id,
-                                        variant.id,
-                                        "price",
-                                        value
-                                      )
-                                    }
-                                    prefix="$"
-                                    decimalPlaces={2}
-                                  />
-                                </td>
+                                  {/* Columna 4: Cantidad */}
+                                  <td className="p-3 text-center border-r border-purple-200/30 w-24">
+                                    <EditableNumericField
+                                      value={variant.quantity || 0}
+                                      onChange={(value) =>
+                                        updateVariant(
+                                          product.id,
+                                          variant.id,
+                                          "quantity",
+                                          value
+                                        )
+                                      }
+                                      decimalPlaces={0}
+                                      min={0}
+                                    />
+                                  </td>
 
-                                {/* Columna 5: Cantidad */}
-                                <td className="p-3 text-center border-r border-purple-200/30 w-24">
-                                  <EditableNumericField
-                                    value={variant.quantity || 0}
-                                    onChange={(value) =>
-                                      updateVariant(
-                                        product.id,
-                                        variant.id,
-                                        "quantity",
-                                        value
-                                      )
-                                    }
-                                    decimalPlaces={0}
-                                    min={0}
-                                  />
-                                </td>
+                                  {/* Columna 5: Total */}
+                                  <td className="p-3 text-center border-r border-purple-200/30 w-32">
+                                    <span className="text-sm font-semibold text-indigo-700">
+                                      USD{" "}
+                                      {(
+                                        (variant.price || 0) *
+                                        (variant.quantity || 0)
+                                      ).toFixed(2)}
+                                    </span>
+                                  </td>
 
-                                {/* Columna 6: Total */}
-                                <td className="p-3 text-center border-r border-purple-200/30 w-32">
-                                  <span className="text-sm font-semibold text-indigo-700">
-                                    USD{" "}
-                                    {(
-                                      (variant.price || 0) *
-                                      (variant.quantity || 0)
-                                    ).toFixed(2)}
-                                  </span>
-                                </td>
+                                  {/* Columna 6: Equivalencia */}
+                                  <td className="p-3 text-center border-r border-purple-200/30 w-32">
+                                    <span className="text-sm font-medium text-blue-700">
+                                      {(variant.equivalence || 0).toFixed(2)}%
+                                    </span>
+                                  </td>
 
-                                {/* Columna 7: Equivalencia */}
-                                <td className="p-3 text-center border-r border-purple-200/30 w-32">
-                                  <span className="text-sm font-medium text-blue-700">
-                                    {(variant.equivalence || 0).toFixed(2)}%
-                                  </span>
-                                </td>
+                                  {/* Columna 7: Gastos de Importación */}
+                                  <td className="p-3 text-center border-r border-purple-200/30 w-40">
+                                    <span className="text-sm font-medium text-orange-700">
+                                      USD{" "}
+                                      {(variant.importCosts || 0).toFixed(2)}
+                                    </span>
+                                  </td>
 
-                                {/* Columna 8: Gastos de Importación */}
-                                <td className="p-3 text-center border-r border-purple-200/30 w-40">
-                                  <span className="text-sm font-medium text-orange-700">
-                                    USD {(variant.importCosts || 0).toFixed(2)}
-                                  </span>
-                                </td>
+                                  {/* Columna 8: Costo Total */}
+                                  <td className="p-3 text-center border-r border-purple-200/30 w-32">
+                                    <span className="text-sm font-semibold text-emerald-700">
+                                      USD {(variant.totalCost || 0).toFixed(2)}
+                                    </span>
+                                  </td>
 
-                                {/* Columna 9: Costo Total */}
-                                <td className="p-3 text-center border-r border-purple-200/30 w-32">
-                                  <span className="text-sm font-semibold text-emerald-700">
-                                    USD {(variant.totalCost || 0).toFixed(2)}
-                                  </span>
-                                </td>
-
-                                {/* Columna 10: Costo Unitario */}
-                                <td className="p-3 text-center w-32">
-                                  <span className="text-sm font-semibold text-purple-700">
-                                    USD {(variant.unitCost || 0).toFixed(2)}
-                                  </span>
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </>
-                      )}
-                    </React.Fragment>
-                  );
-                })}
-              </tbody>
-              <tfoot>
-                <tr className="bg-gradient-to-r from-amber-100/70 to-orange-100/60 border-t-2 border-amber-300/50">
-                  <td className="p-3 border-r border-amber-200/40"></td>
-                  <td className="p-3 text-left font-bold text-amber-900 border-r border-amber-200/40">
-                    Totales
-                  </td>
-                  <td className="p-3 border-r border-amber-200/40"></td>
-                  <td className="p-3 border-r border-amber-200/40"></td>
-                  <td className="p-3 text-center font-bold text-amber-900 border-r border-amber-200/40">
-                    {totals.totalQuantity}
-                  </td>
-                  <td className="p-3 text-center font-bold text-amber-900 border-r border-amber-200/40">
-                     {totals.totalAmount.toFixed(2)}
-                  </td>
-                  <td className="p-3 text-center font-bold text-amber-900 border-r border-amber-200/40">
-                    {totals.totalEquivalence.toFixed(2)}%
-                  </td>
-                  <td className="p-3 text-center font-bold text-amber-900 border-r border-amber-200/40">
-                     {totals.totalImportCosts.toFixed(2)}
-                  </td>
-                  <td className="p-3 text-center font-bold text-amber-900 border-r border-amber-200/40">
-                     {totals.totalCost.toFixed(2)}
-                  </td>
-                  <td className="p-3"></td>
-                </tr>
-              </tfoot>
-            </table>
+                                  {/* Columna 9: Costo Unitario */}
+                                  <td className="p-3 text-center w-32">
+                                    <span className="text-sm font-semibold text-purple-700">
+                                      USD {(variant.unitCost || 0).toFixed(2)}
+                                    </span>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </>
+                        )}
+                      </React.Fragment>
+                    );
+                  })}
+                </tbody>
+                <tfoot>
+                  <tr className="bg-gradient-to-r from-amber-100/70 to-orange-100/60 border-t-2 border-amber-300/50">
+                    <td className="p-3 border-r border-amber-200/40"></td>
+                    <td className="p-3 text-left font-bold text-amber-900 border-r border-amber-200/40">
+                      Totales
+                    </td>
+                    <td className="p-3 border-r border-amber-200/40"></td>
+                    <td className="p-3 border-r border-amber-200/40"></td>
+                    <td className="p-3 text-center font-bold text-amber-900 border-r border-amber-200/40">
+                      {totals.totalQuantity}
+                    </td>
+                    <td className="p-3 text-center font-bold text-amber-900 border-r border-amber-200/40">
+                      {totals.totalAmount.toFixed(2)}
+                    </td>
+                    <td className="p-3 text-center font-bold text-amber-900 border-r border-amber-200/40">
+                      {totals.totalEquivalence.toFixed(2)}%
+                    </td>
+                    <td className="p-3 text-center font-bold text-amber-900 border-r border-amber-200/40">
+                      {totals.totalImportCosts.toFixed(2)}
+                    </td>
+                    <td className="p-3 text-center font-bold text-amber-900 border-r border-amber-200/40">
+                      {totals.totalCost.toFixed(2)}
+                    </td>
+                    <td className="p-3"></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
           </div>
         </div>
-      </div>
       </div>
 
       {/* Modal de imágenes */}
@@ -942,6 +1051,7 @@ export default function EditableUnitCostTable({
         files={[]}
         attachments={selectedImages.map((img) => img.url)}
         productName="Producto"
+        initialIndex={startImageIndex}
       />
     </>
   );

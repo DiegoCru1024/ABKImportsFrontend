@@ -11,6 +11,7 @@ interface ImageCarouselModalProps {
   files: File[];
   attachments?: string[];
   productName: string;
+  initialIndex?: number;
 }
 
 interface FileItem {
@@ -29,8 +30,9 @@ const ImageCarouselModal: React.FC<ImageCarouselModalProps> = ({
   files,
   attachments = [],
   productName,
+  initialIndex = 0,
 }) => {
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState(0);
   const [allFiles, setAllFiles] = useState<FileItem[]>([]);
@@ -135,10 +137,10 @@ const ImageCarouselModal: React.FC<ImageCarouselModalProps> = ({
     //console.log("ImageCarouselModal - Processed files:", processedFiles);
 
     setAllFiles(processedFiles);
-    setCurrentIndex(0);
+    setCurrentIndex(initialIndex);
     setZoom(1);
     setRotation(0);
-  }, [files, attachments]);
+  }, [files, attachments, initialIndex]);
 
   // Limpiar URLs creadas para archivos File
   useEffect(() => {
@@ -211,7 +213,7 @@ const ImageCarouselModal: React.FC<ImageCarouselModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-xl md:max-w-3xl max-h-[90vh] p-0" showCloseButton={false}>
+      <DialogContent className="max-w-xl md:max-w-3xl lg:max-w-5xl max-h-[90vh] p-0 overflow-hidden" showCloseButton={false}>
         {/* Header */}
         <DialogHeader className="p-6 pb-2">
           <DialogTitle className="flex items-center justify-between">
@@ -231,20 +233,24 @@ const ImageCarouselModal: React.FC<ImageCarouselModalProps> = ({
           {/* Área principal del carrusel */}
           <div className="flex-1 relative bg-gray-50 dark:bg-gray-900">
             {currentFile && (
-              <div className="relative h-[60vh] flex items-center justify-center overflow-hidden">
+              <div className="relative h-[60vh] flex items-center justify-center overflow-hidden p-4">
                 {currentFile.isImage ? (
-                  <img
-                    src={currentFile.url}
-                    alt={currentFile.name}
-                    className="max-w-full max-h-full object-contain transition-transform duration-200"
-                    style={{
-                      transform: `scale(${zoom}) rotate(${rotation}deg)`,
-                    }}
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.style.display = 'none';
-                    }}
-                  />
+                  <div className="w-full h-full flex items-center justify-center">
+                    <img
+                      src={currentFile.url}
+                      alt={currentFile.name}
+                      className="max-w-full max-h-full object-contain transition-transform duration-200"
+                      style={{
+                        transform: `scale(${zoom}) rotate(${rotation}deg)`,
+                        maxWidth: '100%',
+                        maxHeight: '100%',
+                      }}
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                      }}
+                    />
+                  </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center text-gray-600 dark:text-gray-300">
                     <div className="text-8xl mb-4">{currentFile.icon}</div>

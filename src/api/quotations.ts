@@ -1,5 +1,6 @@
+import type { QuotationPayload } from "@/pages/cotizacion-page/utils/types/api.types";
 import { apiFetch } from "./apiFetch";
-import type { Quotation } from "@/pages/cotizacion-page/utils/interface";
+
 import type {
   QuotationResponseIdInterface,
   QuotationsByUserResponseInterface,
@@ -7,10 +8,10 @@ import type {
 
 /**
  * Crea una nueva cotización
- * @param {Quotation} quotation - La cotización a crear
+ * @param {QuotationPayload} quotation - La cotización a crear
  * @returns {Promise<any>} - La cotización creada
  */
-export const createQuotation = async (quotation: Quotation) => {
+export const createQuotation = async (quotation: QuotationPayload) => {
   //console.log("Estas esta la informacion de la cotizacion", JSON.stringify(quotation,null,2));
   try {
     return await apiFetch("/quotations", {
@@ -84,10 +85,10 @@ export const getQuotationsByUser = async (
 /**
  * Actualiza una cotización por su ID
  * @param {string} id - El ID de la cotización
- * @param {Quotation} quotation - La cotización a actualizar
+ * @param {QuotationPayload} quotation - La cotización a actualizar
  * @returns {Promise<any>} - La cotización actualizada
  */
-export const updateQuotation = async (id: string, quotation: Quotation) => {
+export const updateQuotation = async (id: string, quotation: QuotationPayload) => {
   try {
     return await apiFetch(`/quotations/${id}`, {
       method: "PATCH",
@@ -119,10 +120,10 @@ export const deleteQuotation = async (id: string) => {
 /**
  * Actualiza una cotización por su ID
  * @param {string} id - El ID de la cotización
- * @param {Quotation} quotation - La cotización a actualizar
+ * @param {QuotationPayload} quotation - La cotización a actualizar
  * @returns {Promise<any>} - La cotización actualizada
  */
-export const patchQuotation = async (id: string, quotation: Quotation) => {
+export const patchQuotation = async (id: string, quotation: QuotationPayload) => {
   try {
     return await apiFetch(`/quotations/${id}`, {
       method: "PATCH",
@@ -137,10 +138,10 @@ export const patchQuotation = async (id: string, quotation: Quotation) => {
 /**
 * Envia un borrador de cotización
 * @param {string} id - El ID de la cotización
-* @param {Quotation} data - La cotización a enviar
+* @param {QuotationPayload} data - La cotización a enviar
 * @returns {Promise<any>} - La cotización enviada
 */
-export const submitDraft = async(id:string,data:Quotation )=>{
+export const submitDraft = async(id:string,data:QuotationPayload )=>{
   try {
     return await apiFetch(`/quotations/${id}/submit-draft`, {
       method: "POST",

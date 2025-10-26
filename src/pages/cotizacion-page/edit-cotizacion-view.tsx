@@ -56,16 +56,14 @@ import { toast } from "sonner";
 import SendingModal from "@/components/sending-modal";
 
 import { Label } from "@/components/ui/label";
-import {
-  productoSchema,
-  type ProductVariant,
-  type ProductWithVariants,
-} from "@/pages/cotizacion-page/utils/schema";
+
 import { columnasCotizacion } from "@/pages/cotizacion-page/components/table/columnasCotizacion";
 import { servicios } from "@/pages/cotizacion-page/components/data/static";
-import type { QuotationDTO } from "@/pages/cotizacion-page/utils/interface";
 import { handleQuotationUpdateError } from "@/pages/cotizacion-page/utils/error-handler";
 import { useNavigate } from "react-router-dom";
+import type { ProductVariant, ProductWithVariants } from "./utils/types/local.types";
+import { productSchema } from "./utils/types/schemas";
+import { toAPI } from "./utils/types/mappers";
 
 interface EditCotizacionViewProps {
   quotationId: string;
@@ -124,13 +122,16 @@ export default function EditCotizacionView({
   //* Hook para actualizar cotización
   const patchQuotationMut = usePatchQuotation(quotationId);
   const submitDraftMut = useSubmitDraft(quotationId);
-  const form = useForm<z.infer<typeof productoSchema>>({
-    resolver: zodResolver(productoSchema),
+
+  type FormValues = z.infer<typeof productSchema>;
+
+  const form = useForm<FormValues>({
+    resolver: zodResolver(productSchema),
     defaultValues: {
       name: "",
       url: "",
       comment: "",
-      quantityTotal: 0, // Agregar quantityTotal que falta
+      quantityTotal: 0,
       weight: 0,
       volume: 0,
       number_of_boxes: 0,
@@ -531,12 +532,10 @@ export default function EditCotizacionView({
   };
 
   //* Función auxiliar para procesar productos y subir archivos
-  const procesarProductos = async () => {
+  const procesarProductos = async (): Promise<ProductWithVariants[]> => {
     return await Promise.all(
-      productos.map(async (producto, productIndex) => {
-        console.log(
-          `Procesando producto ${productIndex + 1}: ${producto.name}`
-        );
+      productos.map(async (producto) => {
+        console.log(`Procesando producto: ${producto.name}`);
 
         let finalAttachments = producto.attachments || [];
 
@@ -546,25 +545,14 @@ export default function EditCotizacionView({
             `Producto ${producto.name} tiene ${producto.files.length} archivos nuevos`
           );
 
-          let newUrls: string[] = [];
+          // Subir archivos en lotes si es necesario
+          finalAttachments =
+            producto.files.length > 10
+              ? await uploadFilesInBatches(producto.files)
+              : (await uploadMultipleFiles(producto.files)).urls;
 
-          // Subir archivos nuevos del producto en lotes de 10 si hay más de 10 archivos
-          if (producto.files.length > 10) {
-            console.log(
-              `Producto ${producto.name} tiene ${producto.files.length} archivos nuevos, subiendo en lotes...`
-            );
-            newUrls = await uploadFilesInBatches(producto.files);
-          } else {
-            console.log(
-              `Producto ${producto.name} tiene ${producto.files.length} archivos nuevos, subiendo en un solo lote...`
-            );
-            const uploadResponse = await uploadMultipleFiles(producto.files);
-            newUrls = uploadResponse.urls;
-          }
-
-          finalAttachments = newUrls;
           console.log(
-            `Producto ${producto.name}: ${newUrls.length} URLs nuevas obtenidas`
+            `Producto ${producto.name}: ${finalAttachments.length} URLs nuevas obtenidas`
           );
         } else {
           console.log(
@@ -572,24 +560,9 @@ export default function EditCotizacionView({
           );
         }
 
+        // Retornar producto con attachments actualizados
         return {
-          ...(producto.productId && { productId: producto.productId }), // ✅ Incluir productId solo si existe
-          name: producto.name,
-          url: producto.url || "",
-          comment: producto.comment || "",
-          quantityTotal: producto.quantityTotal || 0,
-          weight: producto.weight || 0,
-          volume: producto.volume || 0,
-          number_of_boxes: producto.number_of_boxes || 0,
-          variants: producto.variants.map((variant) => ({
-            //id: variant.id,
-            ...(variant.variantId && { variantId: variant.variantId }), // ✅ Incluir variantId solo si existe
-            size: variant.size || "",
-            presentation: variant.presentation || "",
-            model: variant.model || "",
-            color: variant.color || "",
-            quantity: variant.quantity,
-          })),
+          ...producto,
           attachments: finalAttachments,
         };
       })
@@ -607,16 +580,12 @@ export default function EditCotizacionView({
       setIsLoading(true);
 
       const productosConUrls = await procesarProductos();
+      const payload = toAPI.quotation(productosConUrls, service, true);
 
-      const dataToSend = {
-        service_type: service,
-        products: productosConUrls,
-      };
-
-      console.log("Guardando borrador:", JSON.stringify(dataToSend, null, 2));
+      console.log("Guardando borrador:", JSON.stringify(payload, null, 2));
 
       patchQuotationMut.mutate(
-        { data: dataToSend },
+        { data: payload },
         {
           onSuccess: () => {
             console.log("Borrador guardado exitosamente");
@@ -675,16 +644,12 @@ export default function EditCotizacionView({
       setIsLoading(true);
 
       const productosConUrls = await procesarProductos();
+      const payload = toAPI.quotation(productosConUrls, service, false);
 
-      const dataToSend = {
-        service_type: service,
-        products: productosConUrls,
-      };
-
-      console.log("Enviando borrador:", JSON.stringify(dataToSend, null, 2));
+      console.log("Enviando borrador:", JSON.stringify(payload, null, 2));
 
       submitDraftMut.mutate(
-        { data: dataToSend },
+        { data: payload },
         {
           onSuccess: () => {
             console.log("Borrador enviado exitosamente");
@@ -743,19 +708,15 @@ export default function EditCotizacionView({
       setIsLoading(true);
 
       const productosConUrls = await procesarProductos();
-
-      const dataToSend = {
-        service_type: service,
-        products: productosConUrls,
-      };
+      const payload = toAPI.quotation(productosConUrls, service, false);
 
       console.log(
         "Actualizando cotización:",
-        JSON.stringify(dataToSend, null, 2)
+        JSON.stringify(payload, null, 2)
       );
 
       patchQuotationMut.mutate(
-        { data: dataToSend },
+        { data: payload },
         {
           onSuccess: () => {
             console.log("Cotización actualizada exitosamente");

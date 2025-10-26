@@ -26,6 +26,10 @@ import { useEffect, useRef } from "react"
 interface FileUploadComponentProps {
   onFilesChange?: (files: File[]) => void;
   resetCounter?: any;
+  existingUrls?: string[];
+  existingFiles?: File[]; // Archivos File existentes (para edición antes de subir)
+  onRemoveUrl?: (index: number) => void;
+  onRemoveExistingFile?: (index: number) => void;
 }
 
 const getFileIcon = (file: { file: File | { type: string; name: string } }) => {
@@ -115,7 +119,7 @@ const getFilePreview = (file: {
   )
 }
 
-export default function FileUploadComponent({ onFilesChange, resetCounter }: FileUploadComponentProps) {
+export default function FileUploadComponent({ onFilesChange, resetCounter, existingUrls = [], existingFiles = [], onRemoveUrl, onRemoveExistingFile }: FileUploadComponentProps) {
   const maxSizeMB = 16
   const maxSize = maxSizeMB * 1024 * 1024 // 20MB default
   const maxFiles = 20
@@ -139,22 +143,43 @@ export default function FileUploadComponent({ onFilesChange, resetCounter }: Fil
   })
 
   const prevFilesRef = useRef<string[]>([])
+  const prevUrlsRef = useRef<string[]>([])
+  const totalImages = existingUrls.length + existingFiles.length + files.length
 
+  // Resetear archivos SOLO cuando cambia el resetCounter Y NO hay URLs ni Files existentes
+  // Esto permite que al editar se mantengan las URLs y Files existentes
   useEffect(() => {
-    clearFiles()
-  }, [resetCounter])
+    if (existingUrls.length === 0 && existingFiles.length === 0) {
+      clearFiles()
+    }
+  }, [resetCounter, existingUrls.length, existingFiles.length, clearFiles])
+
+  // Sincronizar cuando cambian las URLs existentes (modo edición)
+  useEffect(() => {
+    const currentUrls = JSON.stringify(existingUrls)
+    const prevUrls = JSON.stringify(prevUrlsRef.current)
+
+    if (currentUrls !== prevUrls) {
+      prevUrlsRef.current = existingUrls
+      // Si hay URLs existentes y no hay archivos nuevos, limpiar los archivos
+      // Esto permite que se vean solo las URLs al editar
+      if (existingUrls.length > 0 && files.length === 0) {
+        // No necesitamos hacer nada, solo actualizar la referencia
+      }
+    }
+  }, [existingUrls, files.length])
 
   useEffect(() => {
     if (onFilesChange) {
       const uploadedFiles = files
         .map(f => f.file)
         .filter((file): file is File => file instanceof File)
-  
+
       const currentNames = uploadedFiles.map(f => f.name + f.size).sort()
       const prevNames = prevFilesRef.current
-  
+
       const hasChanged = JSON.stringify(prevNames) !== JSON.stringify(currentNames)
-  
+
       if (hasChanged) {
         prevFilesRef.current = currentNames
         setTimeout(() => {
@@ -173,7 +198,7 @@ export default function FileUploadComponent({ onFilesChange, resetCounter }: Fil
         onDragOver={handleDragOver}
         onDrop={handleDrop}
         data-dragging={isDragging || undefined}
-        data-files={files.length > 0 || undefined}
+        data-files={totalImages > 0 || undefined}
         className="border-input data-[dragging=true]:bg-accent/50 has-[input:focus]:border-ring has-[input:focus]:ring-ring/50 relative flex min-h-52 flex-col items-center overflow-hidden rounded-xl border border-dashed p-4 transition-colors not-data-[files]:justify-center has-[input:focus]:ring-[3px] bg-background dark:bg-background"
       >
         <input
@@ -181,11 +206,11 @@ export default function FileUploadComponent({ onFilesChange, resetCounter }: Fil
           className="sr-only"
           aria-label="Upload image file"
         />
-        {files.length > 0 ? (
+        {totalImages > 0 ? (
           <div className="flex w-full flex-col gap-3">
             <div className="flex items-center justify-between gap-2">
               <h3 className="truncate text-sm font-medium dark:text-gray-200">
-                Archivos ({files.length})
+                Archivos ({totalImages})
               </h3>
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" type="button" onClick={openFileDialog} >
@@ -195,21 +220,101 @@ export default function FileUploadComponent({ onFilesChange, resetCounter }: Fil
                   />
                   Agregar archivos
                 </Button>
-                <Button variant="outline" size="sm" type="button" onClick={clearFiles}>
-                  <Trash2Icon
-                    className="-ms-0.5 size-3.5 opacity-60 text-orange-500"
-                    aria-hidden="true"
-                  />
-                  Eliminar todos
-                </Button>
+                {files.length > 0 && (
+                  <Button variant="outline" size="sm" type="button" onClick={clearFiles}>
+                    <Trash2Icon
+                      className="-ms-0.5 size-3.5 opacity-60 text-orange-500"
+                      aria-hidden="true"
+                    />
+                    Eliminar nuevos
+                  </Button>
+                )}
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4 md:grid-cols-6">
+              {/* URLs existentes (ya subidas) */}
+              {existingUrls.map((url, idx) => (
+                <div
+                  key={`url-${idx}`}
+                  className="bg-background dark:bg-gray-800 relative flex flex-col rounded-md border dark:border-gray-700"
+                >
+                  <div className="bg-accent flex h-24 items-center justify-center overflow-hidden rounded-t-md">
+                    <img
+                      src={url}
+                      alt={`Imagen ${idx + 1}`}
+                      className="size-full rounded-t-[inherit] object-contain"
+                    />
+                  </div>
+                  {onRemoveUrl && (
+                    <Button
+                      onClick={() => onRemoveUrl(idx)}
+                      size="icon"
+                      type="button"
+                      className="border-background focus-visible:border-background absolute -top-2 -right-2 size-6 rounded-full border-2 shadow-none"
+                      aria-label="Remove image"
+                    >
+                      <XIcon className="size-3.5" />
+                    </Button>
+                  )}
+                  <div className="flex min-w-0 flex-col gap-0.5 border-t dark:border-gray-700 p-3">
+                    <div className="flex items-center justify-between">
+                      <p className="truncate text-[13px] font-medium dark:text-gray-200">
+                        Imagen {idx + 1}
+                      </p>
+                      <span className="bg-gray-600 text-white text-[10px] px-1.5 py-0.5 rounded">
+                        Subida
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              {/* Archivos File existentes (guardados localmente, pendientes de subir) */}
+              {existingFiles.map((file, idx) => (
+                <div
+                  key={`existing-file-${idx}`}
+                  className="bg-background dark:bg-gray-800 relative flex flex-col rounded-md border border-blue-300 dark:border-blue-600"
+                >
+                  <div className="bg-accent flex h-24 items-center justify-center overflow-hidden rounded-t-md">
+                    <img
+                      src={URL.createObjectURL(file)}
+                      alt={file.name}
+                      className="size-full rounded-t-[inherit] object-contain"
+                    />
+                  </div>
+                  {onRemoveExistingFile && (
+                    <Button
+                      onClick={() => onRemoveExistingFile(idx)}
+                      size="icon"
+                      type="button"
+                      className="border-background focus-visible:border-background absolute -top-2 -right-2 size-6 rounded-full border-2 shadow-none"
+                      aria-label="Remove image"
+                    >
+                      <XIcon className="size-3.5" />
+                    </Button>
+                  )}
+                  <div className="flex min-w-0 flex-col gap-0.5 border-t dark:border-gray-700 p-3">
+                    <div className="flex items-center justify-between">
+                      <p className="truncate text-[13px] font-medium dark:text-gray-200">
+                        {file.name}
+                      </p>
+                      <span className="bg-blue-600 text-white text-[10px] px-1.5 py-0.5 rounded">
+                        Guardado
+                      </span>
+                    </div>
+                    <p className="text-muted-foreground truncate text-xs">
+                      {formatBytes(file.size)}
+                    </p>
+                  </div>
+                </div>
+              ))}
+
+              {/* Archivos nuevos (pendientes de subir) */}
               {files.map((file) => (
                 <div
                   key={file.id}
-                  className="bg-background dark:bg-gray-800 relative flex flex-col rounded-md border dark:border-gray-700"
+                  className="bg-background dark:bg-gray-800 relative flex flex-col rounded-md border border-orange-300 dark:border-orange-600"
                 >
                   {getFilePreview(file)}
                   <Button
@@ -222,9 +327,14 @@ export default function FileUploadComponent({ onFilesChange, resetCounter }: Fil
                     <XIcon className="size-3.5" />
                   </Button>
                   <div className="flex min-w-0 flex-col gap-0.5 border-t dark:border-gray-700 p-3">
-                    <p className="truncate text-[13px] font-medium dark:text-gray-200">
-                      {file.file.name}
-                    </p>
+                    <div className="flex items-center justify-between">
+                      <p className="truncate text-[13px] font-medium dark:text-gray-200">
+                        {file.file.name}
+                      </p>
+                      <span className="bg-orange-600 text-white text-[10px] px-1.5 py-0.5 rounded">
+                        Nuevo
+                      </span>
+                    </div>
                     <p className="text-muted-foreground truncate text-xs">
                       {formatBytes(file.file.size)}
                     </p>

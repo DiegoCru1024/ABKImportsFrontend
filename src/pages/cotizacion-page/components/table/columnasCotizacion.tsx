@@ -1,4 +1,4 @@
-import type { ProductWithVariants } from "@/pages/cotizacion-page/utils/schema";
+import type { ProductWithVariants } from "@/pages/cotizacion-page/utils/types";
 import type { ColumnDef } from "@tanstack/react-table";
 import { EyeIcon, Trash, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";

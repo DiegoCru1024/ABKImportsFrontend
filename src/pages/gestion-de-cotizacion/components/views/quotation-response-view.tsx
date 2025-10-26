@@ -83,7 +83,7 @@ export default function QuotationResponseView({
           cbm: parseFloat(product.volume) || 0,
           weight: parseFloat(product.weight) || 0,
           price: 0, // Valor por defecto
-          attachments: product.attachments || [], // Imágenes del producto
+          
           adminComment: product.adminComment || "",
           // Agregar packingList para que calculateProductAggregatedData lo encuentre
           packingList: {
@@ -106,6 +106,7 @@ export default function QuotationResponseView({
               weight: 0, // Valor por defecto
               cbm: 0, // Valor por defecto
               express: 0, // Valor por defecto
+              attachments: variant.attachments || [], // Imágenes del producto
             })) || [],
         }))
       );
@@ -122,9 +123,10 @@ export default function QuotationResponseView({
         cbmTotal: parseFloat(product.volume) || 0,
         cbm: parseFloat(product.volume) || 0,
         weight: parseFloat(product.weight) || 0,
-        attachments: product.attachments || [],
+       
         variants:
           product.variants?.map((variant) => ({
+            attachments: variant.attachments || [],
             id: variant.variantId,
             size: variant.size,
             presentation: variant.presentation,
@@ -157,9 +159,10 @@ export default function QuotationResponseView({
       totalCost: 0,
       unitCost: 0,
       seCotiza: true, // Por defecto seleccionado
-      attachments: product.attachments || [], // Agregar imágenes del producto
+
       variants:
         product.variants?.map((variant) => ({
+          attachments: variant.attachments || [], // Agregar imágenes del producto
           originalVariantId: variant.variantId,
           id: variant.variantId,
           name: `${variant.size} - ${variant.presentation} - ${variant.model} - ${variant.color}`,

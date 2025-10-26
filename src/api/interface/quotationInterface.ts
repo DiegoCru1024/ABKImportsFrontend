@@ -24,7 +24,6 @@ export interface ProductoResponseIdInterface {
   volume: string;
   number_of_boxes: number;
   variants: VariantResponseIdInterface[];
-  attachments: string[];
   adminComment?: string;
 }
 
@@ -35,6 +34,7 @@ export interface VariantResponseIdInterface {
   model: string;
   color: string;
   quantity: number;
+  attachments: string[];
 }
 
 /**
@@ -62,6 +62,7 @@ export interface QuotationsByUserResponseInterfaceContent {
     name: string;
     email: string;
   };
+  products: ProductoResponseIdInterface[];
   productQuantity: number;
   createdAt: string;
   updatedAt: string;

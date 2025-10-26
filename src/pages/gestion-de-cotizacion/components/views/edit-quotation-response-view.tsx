@@ -62,7 +62,8 @@ export default function EditQuotationResponseView() {
   }>();
   const navigate = useNavigate();
   const location = useLocation();
-  const serviceType = (location.state as { serviceType?: string })?.serviceType || "PENDING";
+  const serviceType =
+    (location.state as { serviceType?: string })?.serviceType || "PENDING";
 
   const {
     data: quotationDetail,
@@ -90,7 +91,10 @@ export default function EditQuotationResponseView() {
 
   useEffect(() => {
     if (responseDetails && quotationDetail && !isDataInitialized) {
-      console.log('Inicializando datos desde responseDetails:', responseDetails);
+      console.log(
+        "Inicializando datos desde responseDetails:",
+        responseDetails
+      );
       const resData = responseDetails.responseData;
       const genInfo = resData.generalInformation;
 
@@ -100,7 +104,10 @@ export default function EditQuotationResponseView() {
       quotationForm.setSelectedTypeLoad(genInfo.cargoType);
       quotationForm.setSelectedCourier(genInfo.courier);
 
-      if (responseDetails.serviceType === "MARITIME" && isResponseDataComplete(resData)) {
+      if (
+        responseDetails.serviceType === "MARITIME" &&
+        isResponseDataComplete(resData)
+      ) {
         const maritime = resData.maritimeConfig;
         if (maritime) {
           quotationForm.setSelectedRegimen(maritime.regime);
@@ -127,61 +134,66 @@ export default function EditQuotationResponseView() {
           );
         }
 
-        const productsWithData = responseDetails.products.map((respProduct: any) => {
-          const quotProduct = quotationDetail.products.find(
-            (p) => p.productId === respProduct.productId
-          );
+        const productsWithData = responseDetails.products.map(
+          (respProduct: any) => {
+            const quotProduct = quotationDetail.products.find(
+              (p) => p.productId === respProduct.productId
+            );
 
-          return {
-            id: respProduct.productId,
-            name: quotProduct?.name || "",
-            url: quotProduct?.url || "",
-            comment: quotProduct?.comment || "",
-            quantityTotal: quotProduct?.quantityTotal || 0,
-            boxes: respProduct.packingList?.nroBoxes || 0,
-            priceXiaoYi: 0,
-            cbmTotal: respProduct.packingList?.cbm || 0,
-            express: 0,
-            total: 0,
-            cbm: respProduct.packingList?.cbm || 0,
-            weight: respProduct.packingList?.pesoKg || 0,
-            price: 0,
-            attachments: quotProduct?.attachments || [],
-            adminComment: respProduct.adminComment || "",
-            ghostUrl: respProduct.ghostUrl || "",
-            packingList: {
+            return {
+              id: respProduct.productId,
+              name: quotProduct?.name || "",
+              url: quotProduct?.url || "",
+              comment: quotProduct?.comment || "",
+              quantityTotal: quotProduct?.quantityTotal || 0,
               boxes: respProduct.packingList?.nroBoxes || 0,
+              priceXiaoYi: 0,
+              cbmTotal: respProduct.packingList?.cbm || 0,
+              express: 0,
+              total: 0,
               cbm: respProduct.packingList?.cbm || 0,
-              weightKg: respProduct.packingList?.pesoKg || 0,
-              weightTon: respProduct.packingList?.pesoTn || 0,
-            },
-            cargoHandling: {
-              fragileProduct: respProduct.cargoHandling?.fragileProduct || false,
-              stackProduct: respProduct.cargoHandling?.stackProduct || false,
-            },
-            variants: respProduct.variants?.map((respVar: any) => {
-              const quotVar = quotProduct?.variants?.find(
-                (v) => v.variantId === respVar.variantId
-              );
-              return {
-                id: respVar.variantId,
-                size: quotVar?.size || "",
-                presentation: quotVar?.presentation || "",
-                model: quotVar?.model || "",
-                color: quotVar?.color || "",
-                name: quotVar
-                  ? `Nombre: ${quotVar.size} - Presentacion: ${quotVar.presentation} - Modelo: ${quotVar.model} - Color: ${quotVar.color}`
-                  : "",
-                quantity: respVar.quantity || 0,
-                price: respVar.pendingPricing?.unitPrice || 0,
-                priceExpress: respVar.pendingPricing?.expressPrice || 0,
-                weight: 0,
-                cbm: 0,
-                express: 0,
-              };
-            }) || [],
-          };
-        });
+              weight: respProduct.packingList?.pesoKg || 0,
+              price: 0,
+
+              adminComment: respProduct.adminComment || "",
+              ghostUrl: respProduct.ghostUrl || "",
+              packingList: {
+                boxes: respProduct.packingList?.nroBoxes || 0,
+                cbm: respProduct.packingList?.cbm || 0,
+                weightKg: respProduct.packingList?.pesoKg || 0,
+                weightTon: respProduct.packingList?.pesoTn || 0,
+              },
+              cargoHandling: {
+                fragileProduct:
+                  respProduct.cargoHandling?.fragileProduct || false,
+                stackProduct: respProduct.cargoHandling?.stackProduct || false,
+              },
+              variants:
+                respProduct.variants?.map((respVar: any) => {
+                  const quotVar = quotProduct?.variants?.find(
+                    (v) => v.variantId === respVar.variantId
+                  );
+                  return {
+                    id: respVar.variantId,
+                    size: quotVar?.size || "",
+                    presentation: quotVar?.presentation || "",
+                    model: quotVar?.model || "",
+                    color: quotVar?.color || "",
+                    name: quotVar
+                      ? `Nombre: ${quotVar.size} - Presentacion: ${quotVar.presentation} - Modelo: ${quotVar.model} - Color: ${quotVar.color}`
+                      : "",
+                    attachments: quotVar?.attachments || [],
+                    quantity: respVar.quantity || 0,
+                    price: respVar.pendingPricing?.unitPrice || 0,
+                    priceExpress: respVar.pendingPricing?.expressPrice || 0,
+                    weight: 0,
+                    cbm: 0,
+                    express: 0,
+                  };
+                }) || [],
+            };
+          }
+        );
 
         setPendingProducts(productsWithData);
 
@@ -191,9 +203,12 @@ export default function EditQuotationResponseView() {
           // Calcular datos agregados usando la misma lógica que en quotation-response-view
           const priceData = product.variants.reduce(
             (acc: any, variant: any) => ({
-              totalPrice: acc.totalPrice + (variant.price || 0) * (variant.quantity || 0),
+              totalPrice:
+                acc.totalPrice + (variant.price || 0) * (variant.quantity || 0),
               totalQuantity: acc.totalQuantity + (variant.quantity || 0),
-              totalExpress: acc.totalExpress + (variant.priceExpress || 0) * (variant.quantity || 0),
+              totalExpress:
+                acc.totalExpress +
+                (variant.priceExpress || 0) * (variant.quantity || 0),
             }),
             {
               totalPrice: 0,
@@ -251,54 +266,57 @@ export default function EditQuotationResponseView() {
           });
         }
 
-        const productsForTable = responseDetails.products.map((respProduct: any) => {
-          const quotProduct = quotationDetail.products.find(
-            (p) => p.productId === respProduct.productId
-          );
+        const productsForTable = responseDetails.products.map(
+          (respProduct: any) => {
+            const quotProduct = quotationDetail.products.find(
+              (p) => p.productId === respProduct.productId
+            );
 
-          return {
-            id: respProduct.productId,
-            name: quotProduct?.name || "",
-            price: 0,
-            quantity:
-              respProduct.variants?.reduce(
-                (sum: number, v: any) => sum + (v.quantity || 0),
-                0
-              ) || 1,
-            total: 0,
-            equivalence: respProduct.pricing?.equivalence || 0,
-            importCosts: respProduct.pricing?.importCosts || 0,
-            totalCost: respProduct.pricing?.totalCost || 0,
-            unitCost: respProduct.pricing?.unitCost || 0,
-            seCotiza: respProduct.isQuoted,
-            attachments: quotProduct?.attachments || [], // Agregar imágenes
-            variants:
-              respProduct.variants?.map((respVar: any) => {
-                const quotVar = quotProduct?.variants?.find(
-                  (v) => v.variantId === respVar.variantId
-                );
-                return {
-                  originalVariantId: respVar.variantId,
-                  id: respVar.variantId,
-                  name: quotVar
-                    ? `${quotVar.size} - ${quotVar.presentation} - ${quotVar.model} - ${quotVar.color}`
-                    : "",
-                  price: 0,
-                  size: quotVar?.size || "",
-                  presentation: quotVar?.presentation || "",
-                  model: quotVar?.model || "", // Agregar modelo
-                  color: quotVar?.color || "", // Agregar color
-                  quantity: respVar.quantity || 1,
-                  total: 0,
-                  equivalence: 0,
-                  importCosts: 0,
-                  totalCost: 0,
-                  unitCost: respVar.completePricing?.unitCost || 0,
-                  seCotiza: respVar.isQuoted,
-                };
-              }) || [],
-          };
-        });
+            return {
+              id: respProduct.productId,
+              name: quotProduct?.name || "",
+              price: 0,
+              quantity:
+                respProduct.variants?.reduce(
+                  (sum: number, v: any) => sum + (v.quantity || 0),
+                  0
+                ) || 1,
+              total: 0,
+              equivalence: respProduct.pricing?.equivalence || 0,
+              importCosts: respProduct.pricing?.importCosts || 0,
+              totalCost: respProduct.pricing?.totalCost || 0,
+              unitCost: respProduct.pricing?.unitCost || 0,
+              seCotiza: respProduct.isQuoted,
+
+              variants:
+                respProduct.variants?.map((respVar: any) => {
+                  const quotVar = quotProduct?.variants?.find(
+                    (v) => v.variantId === respVar.variantId
+                  );
+                  return {
+                    originalVariantId: respVar.variantId,
+                    id: respVar.variantId,
+                    name: quotVar
+                      ? `${quotVar.size} - ${quotVar.presentation} - ${quotVar.model} - ${quotVar.color}`
+                      : "",
+                    price: 0,
+                    size: quotVar?.size || "",
+                    presentation: quotVar?.presentation || "",
+                    model: quotVar?.model || "", // Agregar modelo
+                    color: quotVar?.color || "", // Agregar color
+                    quantity: respVar.quantity || 1,
+                    attachments: quotVar?.attachments || [], // Agregar imágenes
+                    total: 0,
+                    equivalence: 0,
+                    importCosts: 0,
+                    totalCost: 0,
+                    unitCost: respVar.completePricing?.unitCost || 0,
+                    seCotiza: respVar.isQuoted,
+                  };
+                }) || [],
+            };
+          }
+        );
 
         quotationForm.setEditableUnitCostProducts(productsForTable);
 
@@ -331,7 +349,7 @@ export default function EditQuotationResponseView() {
         cbmTotal: parseFloat(product.volume) || 0,
         cbm: parseFloat(product.volume) || 0,
         weight: parseFloat(product.weight) || 0,
-        attachments: product.attachments || [],
+
         variants:
           product.variants?.map((variant) => ({
             id: variant.variantId,
@@ -339,6 +357,7 @@ export default function EditQuotationResponseView() {
             presentation: variant.presentation,
             model: variant.model,
             color: variant.color,
+            attachments: variant.attachments || [],
             quantity: variant.quantity || 1,
             price: 0,
             priceExpress: 0,
@@ -350,7 +369,9 @@ export default function EditQuotationResponseView() {
   const editableUnitCostTableProducts = useMemo(() => {
     return (quotationDetail?.products || []).map((product) => {
       // Buscar el producto en pendingProducts para obtener los precios
-      const pendingProduct = pendingProducts.find((p) => p.id === product.productId);
+      const pendingProduct = pendingProducts.find(
+        (p) => p.id === product.productId
+      );
 
       return {
         id: product.productId,
@@ -369,7 +390,7 @@ export default function EditQuotationResponseView() {
         totalCost: 0,
         unitCost: 0,
         seCotiza: true,
-        attachments: product.attachments || [], // Agregar imágenes del producto
+
         variants:
           product.variants?.map((variant) => {
             // Buscar la variante en pendingProduct para obtener el precio
@@ -388,6 +409,7 @@ export default function EditQuotationResponseView() {
               price: price,
               size: variant.size,
               presentation: variant.presentation,
+              attachments: variant.attachments || [], // Agregar imágenes del producto
               model: variant.model, // Agregar modelo
               color: variant.color, // Agregar color
               quantity: quantity,
@@ -585,9 +607,12 @@ export default function EditQuotationResponseView() {
           });
         } else if (isVariantsUpdate) {
           // Recalcular TODO el aggregatedData porque los precios cambiaron
-          const updatedProduct = updatedProducts.find((p) => p.id === productId);
+          const updatedProduct = updatedProducts.find(
+            (p) => p.id === productId
+          );
           if (updatedProduct) {
-            const aggregatedData = calculateProductAggregatedData(updatedProduct);
+            const aggregatedData =
+              calculateProductAggregatedData(updatedProduct);
             handleAggregatedDataChange(productId, aggregatedData);
           }
         }
@@ -890,7 +915,8 @@ export default function EditQuotationResponseView() {
             gestionCertificado:
               serviceCalculationsData.serviceFields.gestionCertificado,
             totalDerechos: calculations.totalTaxes || 0,
-            otrosServicios: serviceCalculationsData.serviceFields.otrosServicios,
+            otrosServicios:
+              serviceCalculationsData.serviceFields.otrosServicios,
           },
           totalExpenses: calculations.finalTotal || 0,
         };
@@ -978,9 +1004,7 @@ export default function EditQuotationResponseView() {
       quotationForm.setIsSendingModalOpen(true);
 
       setTimeout(() => {
-        navigate(
-          `/dashboard/gestion-de-cotizacion/respuestas/${quotationId}`
-        );
+        navigate(`/dashboard/gestion-de-cotizacion/respuestas/${quotationId}`);
       }, 2000);
     } catch (error) {
       console.error("Error al actualizar respuesta:", error);
@@ -1049,7 +1073,10 @@ export default function EditQuotationResponseView() {
             </Button>
             <ConfirmDialog
               trigger={
-                <Button disabled={isSubmitting} className="flex items-center gap-2">
+                <Button
+                  disabled={isSubmitting}
+                  className="flex items-center gap-2"
+                >
                   {isSubmitting ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
@@ -1172,7 +1199,7 @@ export default function EditQuotationResponseView() {
                       weight: product.weight,
                       volume: product.cbm,
                       number_of_boxes: product.boxes,
-                      attachments: product.attachments || [],
+
                       variants:
                         product.variants?.map((variant: any) => ({
                           variantId: variant.id,
@@ -1183,6 +1210,7 @@ export default function EditQuotationResponseView() {
                           quantity: variant.quantity || 1,
                           price: variant.price || 0,
                           priceExpress: variant.priceExpress || 0,
+                          attachments: variant.attachments || [],
                           weight: variant.weight || 0,
                           cbm: variant.cbm || 0,
                         })) || [],
@@ -1292,22 +1320,27 @@ export default function EditQuotationResponseView() {
                 values={{
                   adValorem: calculations.adValoremAmount,
                   antidumping: quotationForm.isMaritimeService()
-                    ? (quotationForm.dynamicValues.antidumpingGobierno || 0) * (quotationForm.dynamicValues.antidumpingCantidad || 0)
+                    ? (quotationForm.dynamicValues.antidumpingGobierno || 0) *
+                      (quotationForm.dynamicValues.antidumpingCantidad || 0)
                     : 0,
                   igvFiscal: calculations.igvAmount,
                   ipm: calculations.ipmAmount,
                   isc: calculations.iscAmount || 0,
                   percepcion: calculations.percepcionAmount,
-                  totalDerechosDolares: calculations.totalTaxes +
+                  totalDerechosDolares:
+                    calculations.totalTaxes +
                     (quotationForm.isMaritimeService()
-                      ? (quotationForm.dynamicValues.antidumpingGobierno || 0) * (quotationForm.dynamicValues.antidumpingCantidad || 0)
+                      ? (quotationForm.dynamicValues.antidumpingGobierno || 0) *
+                        (quotationForm.dynamicValues.antidumpingCantidad || 0)
                       : 0),
                   totalDerechosSoles:
                     (calculations.totalTaxesInSoles ||
-                    calculations.totalTaxes *
-                      quotationForm.dynamicValues.tipoCambio) +
+                      calculations.totalTaxes *
+                        quotationForm.dynamicValues.tipoCambio) +
                     (quotationForm.isMaritimeService()
-                      ? ((quotationForm.dynamicValues.antidumpingGobierno || 0) * (quotationForm.dynamicValues.antidumpingCantidad || 0)) * quotationForm.dynamicValues.tipoCambio
+                      ? (quotationForm.dynamicValues.antidumpingGobierno || 0) *
+                        (quotationForm.dynamicValues.antidumpingCantidad || 0) *
+                        quotationForm.dynamicValues.tipoCambio
                       : 0),
                 }}
               />
@@ -1325,9 +1358,11 @@ export default function EditQuotationResponseView() {
                   transporteLocalFinal:
                     quotationForm.dynamicValues.transporteLocalChinaEnvio +
                     quotationForm.dynamicValues.transporteLocalClienteEnvio,
-                  totalDerechosDolaresFinal: calculations.totalTaxes + 
-                    (quotationForm.isMaritimeService() 
-                      ? (quotationForm.dynamicValues.antidumpingGobierno || 0) * (quotationForm.dynamicValues.antidumpingCantidad || 0)
+                  totalDerechosDolaresFinal:
+                    calculations.totalTaxes +
+                    (quotationForm.isMaritimeService()
+                      ? (quotationForm.dynamicValues.antidumpingGobierno || 0) *
+                        (quotationForm.dynamicValues.antidumpingCantidad || 0)
                       : 0),
                   desaduanajeFleteSaguro:
                     quotationForm.dynamicValues.desaduanaje +

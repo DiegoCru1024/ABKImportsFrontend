@@ -550,7 +550,7 @@ export default function EditableUnitCostTable({
                       NRO.
                     </th>
 
-                    <th className="p-3 text-left text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 w-56 max-w-[14rem]">
+                    <th className="p-3 text-left text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 w-7xl max-w-[36rem]">
                       PRODUCTO & VARIANTES
                     </th>
                     <th className="p-3 text-center text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 w-32">

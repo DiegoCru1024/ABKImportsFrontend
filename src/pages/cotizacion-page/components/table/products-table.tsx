@@ -1,5 +1,12 @@
-import { useState } from "react";
-import { ChevronDown, ChevronUp, Edit, Trash, Images as ImagesIcon } from "lucide-react";
+import { useEffect, useState } from "react";
+import {
+  ChevronDown,
+  ChevronUp,
+  Edit,
+  Trash,
+  Images as ImagesIcon,
+  MessageCircleMore,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { ProductWithVariants } from "../../utils/types/local.types";
@@ -10,7 +17,11 @@ interface ProductsTableProps {
   onDelete: (index: number) => void;
 }
 
-export const ProductsTable = ({ products, onEdit, onDelete }: ProductsTableProps) => {
+export const ProductsTable = ({
+  products,
+  onEdit,
+  onDelete,
+}: ProductsTableProps) => {
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
 
   const toggleRow = (index: number) => {
@@ -22,6 +33,13 @@ export const ProductsTable = ({ products, onEdit, onDelete }: ProductsTableProps
     }
     setExpandedRows(newExpanded);
   };
+
+  useEffect(() => {
+    console.log(
+      "Valor de productos dentro de la tabla y demas valores ",
+      products
+    );
+  }, [products]);
 
   const getTotalQuantity = (product: ProductWithVariants) => {
     return product.variants.reduce((sum, v) => sum + v.quantity, 0);
@@ -38,7 +56,9 @@ export const ProductsTable = ({ products, onEdit, onDelete }: ProductsTableProps
     return (
       <div className="flex flex-col items-center justify-center py-12 text-gray-500">
         <p className="text-lg">No hay productos agregados</p>
-        <p className="text-sm mt-2">Agrega productos usando el formulario de arriba</p>
+        <p className="text-sm mt-2">
+          Agrega productos usando el formulario de arriba
+        </p>
       </div>
     );
   }
@@ -47,7 +67,7 @@ export const ProductsTable = ({ products, onEdit, onDelete }: ProductsTableProps
     <div className="w-full">
       {/* Header de la tabla */}
       <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-gradient-to-r from-gray-100 to-gray-50 dark:from-gray-800 dark:to-gray-700 border-b border-gray-200 dark:border-gray-600 font-semibold text-sm text-gray-700 dark:text-gray-300">
-        <div className="col-span-1"></div>
+        <div className="col-span-1">Nro</div>
         <div className="col-span-3">Producto</div>
         <div className="col-span-2">Variantes</div>
         <div className="col-span-2">Cantidad</div>
@@ -68,6 +88,8 @@ export const ProductsTable = ({ products, onEdit, onDelete }: ProductsTableProps
               <div className="grid grid-cols-12 gap-4 px-4 py-4 items-center hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                 {/* Botón expandir */}
                 <div className="col-span-1">
+                  <span className="text-base">{index + 1}</span>
+
                   <Button
                     variant="ghost"
                     size="sm"
@@ -94,7 +116,7 @@ export const ProductsTable = ({ products, onEdit, onDelete }: ProductsTableProps
                       rel="noopener noreferrer"
                       className="text-xs text-blue-600 hover:underline"
                     >
-                      Ver enlace
+                      URL DEL PRODUCTO
                     </a>
                   )}
                 </div>
@@ -102,22 +124,21 @@ export const ProductsTable = ({ products, onEdit, onDelete }: ProductsTableProps
                 {/* Variantes */}
                 <div className="col-span-2">
                   <Badge variant="secondary" className="font-medium">
-                    {product.variants.length} variant{product.variants.length !== 1 ? "es" : "e"}
+                    {product.variants.length} variant
+                    {product.variants.length !== 1 ? "es" : "e"}
                   </Badge>
                 </div>
 
                 {/* Cantidad total */}
                 <div className="col-span-2">
-                  <div className="flex items-center justify-center">
-                    <span className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 font-bold text-lg">
-                      {totalQuantity}
-                    </span>
-                  </div>
+                  <span className=" items-center justify-center  text-sm">
+                    {totalQuantity} unidad(es)
+                  </span>
                 </div>
 
                 {/* Imágenes */}
                 <div className="col-span-2">
-                  <div className="flex items-center gap-2 justify-center">
+                  <div className="flex  gap-2 ">
                     <ImagesIcon className="w-4 h-4 text-gray-500" />
                     <span className="text-sm text-gray-600 dark:text-gray-400">
                       {totalImages}
@@ -155,9 +176,13 @@ export const ProductsTable = ({ products, onEdit, onDelete }: ProductsTableProps
                     {/* Comentarios */}
                     {product.comment && (
                       <div>
-                        <h4 className="font-semibold text-sm text-gray-700 dark:text-gray-300 mb-2">
-                          Comentarios:
-                        </h4>
+                        <div className="flex gap-2">
+                          <MessageCircleMore className="w-4 h-4 text-orange-600" />
+                          <h4 className="font-semibold text-sm text-gray-700 dark:text-gray-300 mb-2">
+                            Comentarios:
+                          </h4>
+                        </div>
+
                         <p className="text-sm text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
                           {product.comment}
                         </p>
@@ -173,7 +198,9 @@ export const ProductsTable = ({ products, onEdit, onDelete }: ProductsTableProps
                         {product.variants.map((variant, varIdx) => {
                           const variantImages = [
                             ...(variant.attachments || []),
-                            ...(variant.files?.map(f => URL.createObjectURL(f)) || [])
+                            ...(variant.files?.map((f) =>
+                              URL.createObjectURL(f)
+                            ) || []),
                           ];
 
                           return (
@@ -187,7 +214,9 @@ export const ProductsTable = ({ products, onEdit, onDelete }: ProductsTableProps
                                     Tamaño:
                                   </span>
                                   <p className="text-sm font-medium text-gray-900 dark:text-white mt-1">
-                                    {variant.size || "-"}
+                                    <Badge className="text-purple-700 bg-purple-100 border-purple-500">
+                                      {variant.size || "-"}
+                                    </Badge>
                                   </p>
                                 </div>
                                 <div>
@@ -195,7 +224,9 @@ export const ProductsTable = ({ products, onEdit, onDelete }: ProductsTableProps
                                     Presentación:
                                   </span>
                                   <p className="text-sm font-medium text-gray-900 dark:text-white mt-1">
-                                    {variant.presentation || "-"}
+                                    <Badge className="text-green-700 bg-green-100 border-green-500">
+                                      {variant.presentation || "-"}
+                                    </Badge>
                                   </p>
                                 </div>
                                 <div>
@@ -203,21 +234,27 @@ export const ProductsTable = ({ products, onEdit, onDelete }: ProductsTableProps
                                     Modelo:
                                   </span>
                                   <p className="text-sm font-medium text-gray-900 dark:text-white mt-1">
-                                    {variant.model || "-"}
+                                    <Badge className="text-blue-700 bg-blue-100 border-blue-500">
+                                      {variant.model || "-"}
+                                    </Badge>
                                   </p>
                                 </div>
                                 <div>
                                   <span className="text-xs text-gray-500 dark:text-gray-400">
                                     Color:
                                   </span>
+
                                   <p className="text-sm font-medium text-gray-900 dark:text-white mt-1">
-                                    {variant.color || "-"}
+                                    <Badge className="text-red-700 bg-red-100 border-red-500">
+                                      {variant.color || "-"}
+                                    </Badge>
                                   </p>
                                 </div>
                                 <div>
                                   <span className="text-xs text-gray-500 dark:text-gray-400">
                                     Cantidad:
                                   </span>
+
                                   <p className="text-sm font-bold text-orange-600 dark:text-orange-400 mt-1">
                                     {variant.quantity}
                                   </p>
@@ -227,15 +264,19 @@ export const ProductsTable = ({ products, onEdit, onDelete }: ProductsTableProps
                                     Imágenes:
                                   </span>
                                   <div className="flex gap-2 flex-wrap">
-                                    {variantImages.slice(0, 3).map((url, imgIdx) => (
-                                      <img
-                                        key={imgIdx}
-                                        src={url}
-                                        alt={`Imagen ${imgIdx + 1}`}
-                                        className="w-12 h-12 object-cover rounded border border-gray-300 dark:border-gray-600 hover:scale-110 transition-transform cursor-pointer"
-                                        onClick={() => window.open(url, '_blank')}
-                                      />
-                                    ))}
+                                    {variantImages
+                                      .slice(0, 3)
+                                      .map((url, imgIdx) => (
+                                        <img
+                                          key={imgIdx}
+                                          src={url}
+                                          alt={`Imagen ${imgIdx + 1}`}
+                                          className="w-12 h-12 object-cover rounded border border-gray-300 dark:border-gray-600 hover:scale-110 transition-transform cursor-pointer"
+                                          onClick={() =>
+                                            window.open(url, "_blank")
+                                          }
+                                        />
+                                      ))}
                                     {variantImages.length > 3 && (
                                       <div className="w-12 h-12 rounded border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
                                         <span className="text-xs text-gray-600 dark:text-gray-400">

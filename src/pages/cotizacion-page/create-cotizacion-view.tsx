@@ -7,7 +7,7 @@ import {
   Loader2,
   Edit2,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -146,6 +146,7 @@ export default function CreateCotizacionView() {
 
   //* Función para editar producto
   const handleEditar = (index: number) => {
+    console.log("Se dio click al botón de editar");
     const producto = productos[index];
 
     // Cargar datos del producto en el formulario
@@ -160,7 +161,7 @@ export default function CreateCotizacionView() {
     const variantesConNuevosIds = (producto.variants || []).map((variant) => ({
       ...variant,
       id: `${Date.now()}-${Math.random()}`, // Nuevo ID único para forzar re-render
-      files: [], // Reset files (solo mantenemos attachments existentes)
+      //files: va, // Reset files (solo mantenemos attachments existentes)
     }));
 
     form.setValue("variants", variantesConNuevosIds);
@@ -255,9 +256,9 @@ export default function CreateCotizacionView() {
     } else {
       // Agregar nuevo producto
       setProductos((prev) => [...prev, productData]);
+
       toast.success("Producto agregado correctamente");
     }
-
     // Resetear el formulario y las variantes
     form.reset();
     setVariants([
@@ -273,6 +274,13 @@ export default function CreateCotizacionView() {
       },
     ]);
   };
+
+  useEffect(() => {
+    console.log(
+      "Este es el valor de los productos dentro del componente padre",
+      productos
+    );
+  }, [productos]);
 
   //* Función para subir archivos en lotes de 10
   const uploadFilesInBatches = async (files: File[]): Promise<string[]> => {
@@ -370,7 +378,7 @@ export default function CreateCotizacionView() {
       console.log("Payload a enviar:", JSON.stringify(payload, null, 2));
 
       // 3. Enviar cotización al backend
-      const response = await createQuotationMut.mutateAsync({ data: payload });
+      /*const response = await createQuotationMut.mutateAsync({ data: payload });
 
       if (response) {
         setTimeout(() => {
@@ -378,7 +386,7 @@ export default function CreateCotizacionView() {
         }, 1200);
       } else {
         toast.error("Error al crear la cotización");
-      }
+      }*/
     } catch (error) {
       console.error(
         "Error durante el proceso de " +

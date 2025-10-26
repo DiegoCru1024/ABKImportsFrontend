@@ -1,4 +1,4 @@
-import { Calendar, Clock, Eye, EyeOff, Package, Trash } from "lucide-react";
+import { Calendar, Clock, Eye, EyeOff, Package, Pencil, PencilIcon, Trash } from "lucide-react";
 
 import { ProductGrid } from "./product-grid";
 
@@ -18,6 +18,7 @@ import { deleteQuotation } from "@/api/quotations";
 
 import type { QuotationsByUserResponseInterfaceContent } from "@/api/interface/quotationInterface";
 import { useDeleteQuotation } from "@/hooks/use-quation";
+import { useNavigate } from "react-router-dom";
 
 interface QuotationCardProps {
   quotation: QuotationsByUserResponseInterfaceContent;
@@ -38,6 +39,8 @@ export function QuotationCard({
   onOpenImageModal,
   onDelete,
 }: QuotationCardProps) {
+
+  const navigate = useNavigate();
   const canRespond =
     quotation.status !== "pending" && quotation.status !== "draft";
   const isDraft = quotation.status === "draft";
@@ -51,6 +54,11 @@ export function QuotationCard({
       console.error("Error al eliminar la cotización:", error);
     }
   };
+
+  const handleEditQuotation=()=>{
+    let idQuotation=quotation.quotationId
+    navigate(`/dashboard/editar/${idQuotation}`);
+  }
 
   const renderActionButton = () => {
     if (canRespond) {
@@ -82,7 +90,7 @@ export function QuotationCard({
         disabled
         className="flex items-center gap-2 bg-slate-300 text-slate-600 cursor-not-allowed"
       >
-        <EyeOff className="w-4 h-4" />
+        <EyeOff  className="w-4 h-4" />
         Cotización en borrador
       </Button>
     );
@@ -119,10 +127,10 @@ export function QuotationCard({
                 </span>
               </div>
             </div>
-            <div>
+            <div className="flex gap-2">
               <ConfirmDialog
                 trigger={
-                  <Button variant="outline">
+                  <Button variant="outline" title="Eliminar cotizacion">
                     <Trash className="text-red-600" />
                   </Button>
                 }
@@ -133,6 +141,9 @@ export function QuotationCard({
                 onConfirm={handleDeleteQuotation}
                 variant="destructive"
               />
+              <Button variant="outline" title="Editar cotizacion" onClick={handleEditQuotation}>
+                <PencilIcon className="text-green-600"/>
+              </Button>
             </div>
           </div>
         </div>

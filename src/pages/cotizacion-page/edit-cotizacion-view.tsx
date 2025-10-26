@@ -13,7 +13,6 @@ import {
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { DataTable } from "@/components/table/data-table";
 import { Textarea } from "@/components/ui/textarea";
 import { z } from "zod";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -47,7 +46,6 @@ import SendingModal from "@/components/sending-modal";
 
 import { Label } from "@/components/ui/label";
 
-import { columnasCotizacion } from "@/pages/cotizacion-page/components/table/columnasCotizacion";
 import { servicios } from "@/pages/cotizacion-page/components/data/static";
 import { handleQuotationUpdateError } from "@/pages/cotizacion-page/utils/error-handler";
 import { useNavigate } from "react-router-dom";
@@ -56,6 +54,7 @@ import { productSchema } from "./utils/types/schemas";
 import { toAPI } from "./utils/types/mappers";
 import { VariantRow } from "./components/ui/variant-row";
 import { ProductSummary } from "./components/ui/product-summary";
+import { ProductsTable } from "./components/table/products-table";
 
 interface EditCotizacionViewProps {
   quotationId: string;
@@ -73,7 +72,6 @@ export default function EditCotizacionView({
   const [isLoading, setIsLoading] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [tableKey, setTableKey] = useState(0); // Para forzar re-renderización de la tabla
   //Navegacion
   const navigate = useNavigate();
 
@@ -236,8 +234,6 @@ export default function EditCotizacionView({
   //* Función para eliminar producto
   const handleEliminar = (index: number) => {
     setProductos((prev) => prev.filter((_, i) => i !== index));
-    // Forzar re-renderización de la tabla
-    setTableKey((prev) => prev + 1);
   };
 
   //* Función para editar producto
@@ -379,9 +375,6 @@ export default function EditCotizacionView({
         files: [],
       },
     ]);
-
-    // Forzar re-renderización de la tabla
-    setTableKey((prev) => prev + 1);
   };
 
   //* Función para subir archivos en lotes de 10
@@ -668,20 +661,6 @@ export default function EditCotizacionView({
       editingIndex
     );
   }, [productos, isEditing, editingIndex]);
-
-  // Forzar re-renderización de la tabla cuando se actualiza un producto
-  useEffect(() => {
-    if (!isEditing && editingIndex === null) {
-      // Forzar re-renderización de la tabla
-      const tableElement = document.querySelector("[data-table]");
-      if (tableElement) {
-        tableElement.dispatchEvent(new Event("update"));
-      }
-    }
-  }, [isEditing, editingIndex]);
-
-  //* Columnas de la tabla
-  const columns = columnasCotizacion({ handleEliminar, handleEditar });
 
   if (loadingQuotation) {
     return (
@@ -1046,27 +1025,11 @@ export default function EditCotizacionView({
                   </span>
                 </h3>
               </div>
-              <div className="w-full overflow-x-auto px-6 py-4 bg-white dark:bg-gray-900">
-                <DataTable
-                  key={tableKey} // Forzar re-renderización cuando cambie
-                  columns={columns}
-                  data={productos}
-                  toolbarOptions={{ showSearch: false, showViewOptions: false }}
-                  paginationOptions={{
-                    showSelectedCount: false,
-                    showPagination: false,
-                    showNavigation: false,
-                  }}
-                  pageInfo={{
-                    pageNumber: 1,
-                    pageSize: productos?.length || 100,
-                    totalElements: 0,
-                    totalPages: 0,
-                  }}
-                  onPageChange={() => {}}
-                  onSearch={() => {}}
-                  searchTerm={""}
-                  isLoading={false}
+              <div className="w-full px-6 py-4 bg-white dark:bg-gray-900">
+                <ProductsTable
+                  products={productos}
+                  onEdit={handleEditar}
+                  onDelete={handleEliminar}
                 />
               </div>
             </div>

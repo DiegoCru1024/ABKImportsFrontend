@@ -32,6 +32,7 @@ export const VariantRow = ({
   const [existingUrls, setExistingUrls] = useState<string[]>(
     variant.attachments || []
   );
+  const [isDragging, setIsDragging] = useState(false);
 
   // Sincronizar con cambios externos (cuando se edita un producto)
   useEffect(() => {
@@ -63,6 +64,40 @@ export const VariantRow = ({
     const updatedUrls = existingUrls.filter((_, idx) => idx !== indexToRemove);
     setExistingUrls(updatedUrls);
     onUpdate(variant.id, "attachments", updatedUrls);
+  };
+
+  // Drag and Drop handlers
+  const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const droppedFiles = Array.from(e.dataTransfer.files).filter(file =>
+      file.type.startsWith('image/')
+    );
+
+    if (droppedFiles.length > 0) {
+      const updatedFiles = [...selectedFiles, ...droppedFiles];
+      setSelectedFiles(updatedFiles);
+      onUpdate(variant.id, "files", updatedFiles);
+    }
   };
 
   const totalImages = existingUrls.length + selectedFiles.length;
@@ -201,7 +236,17 @@ export const VariantRow = ({
           </Label>
 
           {/* Upload area con previews integrados */}
-          <div className="border-2 border-dashed border-orange-300 dark:border-orange-700 rounded-lg p-6 bg-orange-50/30 dark:bg-orange-900/10 hover:bg-orange-50/50 dark:hover:bg-orange-900/20 transition-colors">
+          <div
+            className={`border-2 border-dashed rounded-lg p-6 transition-colors ${
+              isDragging
+                ? "border-orange-500 bg-orange-100/50 dark:border-orange-400 dark:bg-orange-900/30"
+                : "border-orange-300 bg-orange-50/30 dark:border-orange-700 dark:bg-orange-900/10 hover:bg-orange-50/50 dark:hover:bg-orange-900/20"
+            }`}
+            onDragEnter={handleDragEnter}
+            onDragLeave={handleDragLeave}
+            onDragOver={handleDragOver}
+            onDrop={handleDrop}
+          >
             {/* Previews de imágenes existentes y nuevas - DENTRO del área de upload */}
             {totalImages > 0 && (
               <div className="mb-4 grid grid-cols-4 gap-3">
@@ -259,16 +304,24 @@ export const VariantRow = ({
               className="cursor-pointer block"
             >
               <div className="flex flex-col items-center justify-center text-center">
-                <Upload className="w-8 h-8 text-orange-500 mb-2" />
-                <span className="text-sm font-medium text-orange-600 dark:text-orange-400">
-                  {totalImages > 0
+                <Upload className={`w-8 h-8 mb-2 transition-colors ${
+                  isDragging ? "text-orange-600 dark:text-orange-400" : "text-orange-500"
+                }`} />
+                <span className={`text-sm font-medium transition-colors ${
+                  isDragging
+                    ? "text-orange-700 dark:text-orange-300"
+                    : "text-orange-600 dark:text-orange-400"
+                }`}>
+                  {isDragging
+                    ? "Suelta las imágenes aquí"
+                    : totalImages > 0
                     ? "Agregar más archivos"
-                    : "Seleccionar archivos"}
+                    : "Arrastra imágenes o haz clic para seleccionar"}
                 </span>
                 <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                   Max 20 archivos • Max 16MB c/u
                 </span>
-                {totalImages > 0 && (
+                {totalImages > 0 && !isDragging && (
                   <span className="text-xs text-orange-600 dark:text-orange-400 mt-2 font-medium">
                     {totalImages} archivo{totalImages !== 1 ? "s" : ""}{" "}
                     seleccionado{totalImages !== 1 ? "s" : ""}

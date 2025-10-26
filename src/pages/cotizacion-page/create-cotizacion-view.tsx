@@ -378,7 +378,7 @@ export default function CreateCotizacionView() {
       console.log("Payload a enviar:", JSON.stringify(payload, null, 2));
 
       // 3. Enviar cotización al backend
-      /*const response = await createQuotationMut.mutateAsync({ data: payload });
+      const response = await createQuotationMut.mutateAsync({ data: payload });
 
       if (response) {
         setTimeout(() => {
@@ -386,7 +386,7 @@ export default function CreateCotizacionView() {
         }, 1200);
       } else {
         toast.error("Error al crear la cotización");
-      }*/
+      }
     } catch (error) {
       console.error(
         "Error durante el proceso de " +

@@ -1,22 +1,13 @@
 import {
   FileText,
-  Package,
   Plus,
   Send,
-  Ruler,
-  Hash,
-  Palette,
-  Link,
-  MessageSquare,
   File,
   PackageOpen,
   Loader2,
-  Upload,
   X,
   Edit2,
-  ArrowLeft,
   Undo2,
-  Minus,
   Check,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -26,7 +17,6 @@ import { DataTable } from "@/components/table/data-table";
 import { Textarea } from "@/components/ui/textarea";
 import { z } from "zod";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import FileUploadComponent from "@/components/comp-552";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Select,
@@ -64,6 +54,8 @@ import { useNavigate } from "react-router-dom";
 import type { ProductVariant, ProductWithVariants } from "./utils/types/local.types";
 import { productSchema } from "./utils/types/schemas";
 import { toAPI } from "./utils/types/mappers";
+import { VariantRow } from "./components/ui/variant-row";
+import { ProductSummary } from "./components/ui/product-summary";
 
 interface EditCotizacionViewProps {
   quotationId: string;
@@ -76,12 +68,8 @@ export default function EditCotizacionView({
   onBack,
   status,
 }: EditCotizacionViewProps) {
-  const [productos, setProductos] = useState<
-    (ProductWithVariants & { files?: File[] })[]
-  >([]);
+  const [productos, setProductos] = useState<ProductWithVariants[]>([]);
   const [service, setService] = useState("pending");
-  const [resetCounter, setResetCounter] = useState(0);
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -98,6 +86,8 @@ export default function EditCotizacionView({
       model: "",
       color: "",
       quantity: 0,
+      attachments: [],
+      files: [],
     },
   ]);
 
@@ -143,9 +133,10 @@ export default function EditCotizacionView({
           model: "",
           color: "",
           quantity: 0,
+          attachments: [],
+          files: [],
         },
       ],
-      attachments: [],
     },
   });
 
@@ -158,50 +149,28 @@ export default function EditCotizacionView({
       model: "",
       color: "",
       quantity: 0,
+      attachments: [],
+      files: [],
     };
-    const updatedVariants = [...variants, newVariant];
-    setVariants(updatedVariants);
-
-    // Actualizar quantityTotal en el formulario
-    const totalQuantity = updatedVariants.reduce(
-      (total, variant) => total + variant.quantity,
-      0
-    );
-    form.setValue("quantityTotal", totalQuantity);
+    setVariants([...variants, newVariant]);
   };
 
   const removeVariant = (id: string) => {
     if (variants.length > 1) {
-      const updatedVariants = variants.filter((variant) => variant.id !== id);
-      setVariants(updatedVariants);
-
-      // Actualizar quantityTotal en el formulario
-      const totalQuantity = updatedVariants.reduce(
-        (total, variant) => total + variant.quantity,
-        0
-      );
-      form.setValue("quantityTotal", totalQuantity);
+      setVariants(variants.filter((variant) => variant.id !== id));
     }
   };
 
   const updateVariant = (
     id: string,
     field: keyof ProductVariant,
-    value: string | number
+    value: string | number | File[] | string[]
   ) => {
-    const updatedVariants = variants.map((variant) =>
-      variant.id === id ? { ...variant, [field]: value } : variant
+    setVariants(
+      variants.map((variant) =>
+        variant.id === id ? { ...variant, [field]: value } : variant
+      )
     );
-    setVariants(updatedVariants);
-
-    // Actualizar quantityTotal en el formulario cuando cambie la cantidad
-    if (field === "quantity") {
-      const totalQuantity = updatedVariants.reduce(
-        (total, variant) => total + variant.quantity,
-        0
-      );
-      form.setValue("quantityTotal", totalQuantity);
-    }
   };
 
   const getTotalQuantity = () => {
@@ -244,6 +213,8 @@ export default function EditCotizacionView({
           model: v.model || "",
           color: v.color || "",
           quantity: v.quantity || 0,
+          attachments: v.attachments || [], // URLs de imágenes de esta variante
+          files: [], // Los archivos originales no están disponibles
         })) || [
           {
             id: Date.now().toString(),
@@ -252,10 +223,10 @@ export default function EditCotizacionView({
             model: "",
             color: product.color || "",
             quantity: product.quantity || 0,
+            attachments: product.attachments || [], // Migrar attachments del producto a la variante
+            files: [],
           },
         ], // Convertir datos legacy a formato de variantes
-        attachments: product.attachments || [],
-        files: [], // Los archivos originales no están disponibles, solo las URLs
       }));
 
       setProductos(mappedProducts);
@@ -282,22 +253,22 @@ export default function EditCotizacionView({
     form.setValue("weight", producto.weight || 0);
     form.setValue("volume", producto.volume || 0);
     form.setValue("number_of_boxes", producto.number_of_boxes || 0);
-    form.setValue("variants", producto.variants || []);
 
-    // Establecer variantes (preservando variantId)
-    const productVariants = producto.variants || [];
-    console.log("Estableciendo variantes:", productVariants);
-    setVariants(productVariants);
+    // Establecer variantes preservando los attachments y regenerando IDs
+    const variantesConNuevosIds = (producto.variants || []).map((variant) => ({
+      ...variant,
+      id: `${Date.now()}-${Math.random()}`, // Nuevo ID único para forzar re-render
+    }));
+
+    form.setValue("variants", variantesConNuevosIds);
+    setVariants(variantesConNuevosIds);
 
     // Calcular y establecer quantityTotal
-    const totalQuantity = productVariants.reduce(
+    const totalQuantity = variantesConNuevosIds.reduce(
       (total, variant) => total + variant.quantity,
       0
     );
     form.setValue("quantityTotal", totalQuantity);
-
-    // Establecer archivos seleccionados (vacío porque no tenemos los archivos originales)
-    setSelectedFiles([]);
 
     // Establecer modo edición
     setEditingIndex(index);
@@ -309,8 +280,7 @@ export default function EditCotizacionView({
   //* Función para cancelar edición
   const handleCancelarEdicion = () => {
     form.reset();
-    setSelectedFiles([]);
-    const defaultVariants = [
+    setVariants([
       {
         id: Date.now().toString(),
         size: "",
@@ -318,171 +288,86 @@ export default function EditCotizacionView({
         model: "",
         color: "",
         quantity: 0,
+        attachments: [],
+        files: [],
       },
-    ];
-    setVariants(defaultVariants);
-
-    // Actualizar quantityTotal en el formulario
-    form.setValue("quantityTotal", 0);
-
+    ]);
     setEditingIndex(null);
     setIsEditing(false);
-    setResetCounter((prev) => prev + 1);
   };
 
   //* Función para agregar o actualizar producto
   const handleAgregar = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    console.log("=== INICIO DE handleAgregar ===");
-    console.log("Evento submit capturado");
-
     // Validar que haya al menos una variante con cantidad mayor a 0
-    const totalQuantityValidation = getTotalQuantity();
-    console.log("Cantidad total validada:", totalQuantityValidation);
-
-    if (totalQuantityValidation === 0) {
-      console.log("ERROR: Cantidad total es 0, deteniendo ejecución");
+    const totalQuantity = getTotalQuantity();
+    if (totalQuantity === 0) {
       toast.error("Debe agregar al menos una variante con cantidad mayor a 0.");
       return;
     }
 
-    console.log("Validación de cantidad total pasada");
-
     // Validar formulario antes de proceder
-    console.log("Iniciando validación del formulario...");
     const isValid = await form.trigger();
-    console.log("Resultado de validación del formulario:", isValid);
-
     if (!isValid) {
-      console.log(
-        "ERROR: Validación del formulario falló, deteniendo ejecución"
-      );
-
-      // Obtener los errores específicos del formulario
-      const formErrors = form.formState.errors;
-      console.log("Errores del formulario:", formErrors);
-
-      // Mostrar valores actuales del formulario para debugging
-      const currentValues = form.getValues();
-      console.log(
-        "Valores actuales del formulario:",
-        JSON.stringify(currentValues, null, 2)
-      );
-
-      // Mostrar toast con los errores específicos
-      const errorMessages = Object.entries(formErrors)
-        .map(([field, error]) => {
-          return `${field}: ${error?.message || "Campo requerido"}`;
-        })
-        .join(", ");
-
-      toast.error(`Errores de validación: ${errorMessages}`);
       return;
     }
 
-    console.log("Validación del formulario pasada");
-
-    // Para productos editados, permitir sin archivos (mantener los existentes)
-    // Para productos nuevos, requerir archivos
-    console.log(
-      "Verificando archivos - isEditing:",
-      isEditing,
-      "selectedFiles.length:",
-      selectedFiles.length
+    // Validar que cada variante con cantidad > 0 tenga al menos una imagen
+    const variantsWithQuantity = variants.filter((v) => v.quantity > 0);
+    const variantsWithoutImages = variantsWithQuantity.filter(
+      (v) =>
+        (!v.files || v.files.length === 0) &&
+        (!v.attachments || v.attachments.length === 0)
     );
 
-    if (!isEditing && selectedFiles.length === 0) {
-      console.log(
-        "ERROR: No hay archivos seleccionados para producto nuevo, deteniendo ejecución"
-      );
-      toast.error(
-        "Por favor, adjunte al menos un archivo antes de agregar el producto."
-      );
+    if (variantsWithoutImages.length > 0) {
+      toast.error("Cada variante con cantidad debe tener al menos una imagen.");
       return;
     }
-
-    console.log("Validación de archivos pasada");
 
     // Obtener los valores del formulario
     const values = form.getValues();
-    const totalQuantityForProduct = getTotalQuantity();
-
-    console.log("=== DEBUGGING ACTUALIZACIÓN DE PRODUCTO ===");
-    console.log("Editando producto - Valores del formulario:", values);
-    console.log("Editando producto - Variantes actuales:", variants);
-    console.log(
-      "Editando producto - Cantidad total calculada:",
-      totalQuantityForProduct
-    );
-    console.log(
-      "Estado actual - isEditing:",
-      isEditing,
-      "editingIndex:",
-      editingIndex
-    );
-    console.log("Productos antes de procesar:", productos);
-
-    const productData: ProductWithVariants & { files?: File[] } = {
-      productId: values.productId, // ✅ Preservar productId si existe
+    const productData: ProductWithVariants = {
+      productId: values.productId,
       name: values.name,
       url: values.url || "",
       comment: values.comment || "",
+      quantityTotal: totalQuantity,
       weight: values.weight || 0,
       volume: values.volume || 0,
       number_of_boxes: values.number_of_boxes || 0,
-      quantityTotal: totalQuantityForProduct, // Agregar quantityTotal calculado
-      variants: variants.filter((v) => v.quantity > 0), // Solo incluir variantes con cantidad > 0 (preservando variantId)
-      attachments: [], // Se llenará al enviar
-      files: selectedFiles, // Guardar archivos originales
+      variants: variants
+        .filter((v) => v.quantity > 0)
+        .map((v) => ({
+          ...v,
+          // Asegurar que attachments y files estén presentes
+          attachments: v.attachments || [],
+          files: v.files || [],
+        })),
     };
 
-    console.log("Editando producto - ProductData a guardar:", productData);
-
     if (isEditing && editingIndex !== null) {
-      console.log("Actualizando producto en índice:", editingIndex);
-      console.log("Productos antes de actualizar:", productos);
-
-      // Actualizar producto existente usando una función más robusta
-      setProductos((prev) => {
-        const updatedProductos = [...prev]; // Crear una copia del array
-        updatedProductos[editingIndex] = {
-          ...productData,
-          // Mantener attachments existentes si no hay nuevos archivos
-          attachments:
-            selectedFiles.length > 0 ? [] : prev[editingIndex].attachments,
-        };
-
-        console.log("Productos después de actualizar:", updatedProductos);
-        return updatedProductos;
-      });
-
+      // Actualizar producto existente
+      setProductos((prev) =>
+        prev.map((producto, index) =>
+          index === editingIndex ? productData : producto
+        )
+      );
       toast.success("Producto actualizado correctamente");
 
       // Salir del modo edición
       setEditingIndex(null);
       setIsEditing(false);
-
-      // Forzar re-renderización de la tabla
-      setTableKey((prev) => prev + 1);
-
-      console.log("=== ACTUALIZACIÓN COMPLETADA ===");
-      console.log("Nueva key de tabla:", tableKey + 1);
-      console.log("Estado final - isEditing:", false, "editingIndex:", null);
     } else {
       // Agregar nuevo producto
       setProductos((prev) => [...prev, productData]);
       toast.success("Producto agregado correctamente");
-
-      // Forzar re-renderización de la tabla
-      setTableKey((prev) => prev + 1);
     }
 
-    // Resetear el formulario y los archivos
+    // Resetear el formulario y las variantes
     form.reset();
-    setResetCounter((prev) => prev + 1);
-    setSelectedFiles([]);
-    const defaultVariants = [
+    setVariants([
       {
         id: Date.now().toString(),
         size: "",
@@ -490,12 +375,13 @@ export default function EditCotizacionView({
         model: "",
         color: "",
         quantity: 0,
+        attachments: [],
+        files: [],
       },
-    ];
-    setVariants(defaultVariants);
+    ]);
 
-    // Actualizar quantityTotal en el formulario
-    form.setValue("quantityTotal", 0);
+    // Forzar re-renderización de la tabla
+    setTableKey((prev) => prev + 1);
   };
 
   //* Función para subir archivos en lotes de 10
@@ -531,39 +417,48 @@ export default function EditCotizacionView({
     return allUrls;
   };
 
-  //* Función auxiliar para procesar productos y subir archivos
+  //* Función auxiliar para procesar productos y subir archivos de variantes
   const procesarProductos = async (): Promise<ProductWithVariants[]> => {
     return await Promise.all(
       productos.map(async (producto) => {
         console.log(`Procesando producto: ${producto.name}`);
 
-        let finalAttachments = producto.attachments || [];
+        // Procesar cada variante para subir sus imágenes
+        const variantsConUrls = await Promise.all(
+          producto.variants.map(async (variant) => {
+            let attachments: string[] = variant.attachments || [];
 
-        // Si hay archivos nuevos para este producto, subirlos en lotes
-        if (producto.files && producto.files.length > 0) {
-          console.log(
-            `Producto ${producto.name} tiene ${producto.files.length} archivos nuevos`
-          );
+            // Subir archivos de la variante si existen
+            if (variant.files && variant.files.length > 0) {
+              console.log(
+                `Variante tiene ${variant.files.length} archivos, subiendo...`
+              );
 
-          // Subir archivos en lotes si es necesario
-          finalAttachments =
-            producto.files.length > 10
-              ? await uploadFilesInBatches(producto.files)
-              : (await uploadMultipleFiles(producto.files)).urls;
+              const newUrls =
+                variant.files.length > 10
+                  ? await uploadFilesInBatches(variant.files)
+                  : (await uploadMultipleFiles(variant.files)).urls;
 
-          console.log(
-            `Producto ${producto.name}: ${finalAttachments.length} URLs nuevas obtenidas`
-          );
-        } else {
-          console.log(
-            `Producto ${producto.name}: manteniendo archivos existentes (${finalAttachments.length} URLs)`
-          );
-        }
+              attachments = [...attachments, ...newUrls];
 
-        // Retornar producto con attachments actualizados
+              console.log(
+                `Variante: ${attachments.length} URLs totales obtenidas`
+              );
+            }
+
+            // Retornar variante con attachments actualizados (sin files)
+            return {
+              ...variant,
+              attachments,
+              files: undefined, // Remover files ya que ya fueron subidos
+            };
+          })
+        );
+
+        // Retornar producto con variantes actualizadas
         return {
           ...producto,
-          attachments: finalAttachments,
+          variants: variantsConUrls,
         };
       })
     );
@@ -891,10 +786,11 @@ export default function EditCotizacionView({
 
               <Form {...form}>
                 <form onSubmit={handleAgregar} className="space-y-8">
-                  {/* Información básica del producto */}
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Columna izquierda - Información básica */}
-                    <div className="space-y-6">
+                  {/* Grid: Formulario + Resumen */}
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Columna izquierda: Formulario */}
+                    <div className="lg:col-span-2 space-y-6">
+                      {/* Información básica del producto */}
                       <div className="space-y-4">
                         <FormField
                           control={form.control}
@@ -960,6 +856,32 @@ export default function EditCotizacionView({
                           )}
                         />
                       </div>
+
+                      <FormField
+                        control={form.control}
+                        name="comment"
+                        render={({ field }) => (
+                          <FormItem>
+                            <Label
+                              htmlFor="comment"
+                              className="flex items-center gap-2 text-base font-semibold text-foreground"
+                            >
+                              <span className="text-primary">💬</span>
+                              Comentarios
+                            </Label>
+                            <FormControl>
+                              <Textarea
+                                {...field}
+                                id="comment"
+                                placeholder="Ej: Producto en buen estado, especificaciones especiales, etc."
+                                className="border-input bg-background min-h-[100px] resize-none"
+                                rows={4}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
                       {/* Campos adicionales para Almacenaje de Mercancia */}
                       {service === "Almacenaje de Mercancia" && (
@@ -1036,163 +958,46 @@ export default function EditCotizacionView({
                       )}
                     </div>
 
-                    {/* Sección de Variantes */}
-                    <div className="lg:col-span-2 space-y-6">
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-xl font-bold text-orange-600 flex items-center gap-2">
-                          <span className="text-2xl">🎨</span>
-                          Variantes del Producto
-                        </h3>
-                        <Button
-                          type="button"
-                          onClick={addVariant}
-                          className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg shadow-md transition-all duration-200 hover:shadow-lg"
-                        >
-                          <Plus className="w-5 h-5" />
-                          Agregar Variante
-                        </Button>
-                      </div>
-
-                      <div className="border-2 border-gray-200 rounded-xl overflow-hidden shadow-sm">
-                        <div className="bg-gradient-to-r from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 grid grid-cols-12 gap-3 p-4 text-sm font-semibold text-orange-700 dark:text-orange-300">
-                          <div className="col-span-2">Tamaño</div>
-                          <div className="col-span-2">Presentación</div>
-                          <div className="col-span-2">Modelo</div>
-                          <div className="col-span-2">Color</div>
-                          <div className="col-span-2">Cantidad</div>
-                          <div className="col-span-2">Acciones</div>
-                        </div>
-
-                        <div className="space-y-2 p-2">
-                          {variants.map((variant) => (
-                            <div
-                              key={variant.id}
-                              className="grid grid-cols-12 gap-3 p-4 border border-gray-100 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors duration-200"
-                            >
-                              <div className="col-span-2">
-                                <Input
-                                  placeholder="7*7 cm"
-                                  value={variant.size || ""}
-                                  onChange={(e) =>
-                                    updateVariant(
-                                      variant.id,
-                                      "size",
-                                      e.target.value
-                                    )
-                                  }
-                                  className="text-sm h-10 border-2 border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all duration-200"
-                                />
-                              </div>
-                              <div className="col-span-2">
-                                <Input
-                                  placeholder="Pack de 10"
-                                  value={variant.presentation || ""}
-                                  onChange={(e) =>
-                                    updateVariant(
-                                      variant.id,
-                                      "presentation",
-                                      e.target.value
-                                    )
-                                  }
-                                  className="text-sm h-10 border-2 border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all duration-200"
-                                />
-                              </div>
-                              <div className="col-span-2">
-                                <Input
-                                  placeholder="Ave"
-                                  value={variant.model || ""}
-                                  onChange={(e) =>
-                                    updateVariant(
-                                      variant.id,
-                                      "model",
-                                      e.target.value
-                                    )
-                                  }
-                                  className="text-sm h-10 border-2 border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all duration-200"
-                                />
-                              </div>
-                              <div className="col-span-2">
-                                <Input
-                                  placeholder="Verde"
-                                  value={variant.color || ""}
-                                  onChange={(e) =>
-                                    updateVariant(
-                                      variant.id,
-                                      "color",
-                                      e.target.value
-                                    )
-                                  }
-                                  className="text-sm h-10 border-2 border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all duration-200"
-                                />
-                              </div>
-                              <div className="col-span-2">
-                                <Input
-                                  type="number"
-                                  placeholder="5"
-                                  min="0"
-                                  value={variant.quantity || ""}
-                                  onChange={(e) =>
-                                    updateVariant(
-                                      variant.id,
-                                      "quantity",
-                                      Number.parseInt(e.target.value) || 0
-                                    )
-                                  }
-                                  className="text-sm h-10 border-2 border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all duration-200"
-                                />
-                              </div>
-                              <div className="col-span-2 flex items-center justify-center">
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => removeVariant(variant.id)}
-                                  disabled={variants.length === 1}
-                                  className="w-12 h-10 border-2 border-red-200 hover:border-red-300 hover:bg-red-50 transition-all duration-200"
-                                >
-                                  <Minus className="w-4 h-4 text-red-600 font-bold" />
-                                </Button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Total de cantidad */}
-                      <div className="flex items-center justify-end gap-4 p-4 bg-gradient-to-r from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 rounded-lg border border-orange-200">
-                        <Label className="flex items-center gap-2 text-orange-700 dark:text-orange-300 font-bold text-lg">
-                          <span className="text-xl">📊</span>
-                          Cantidad Total:
-                        </Label>
-                        <Input
-                          value={getTotalQuantity()}
-                          readOnly
-                          className="w-24 h-12 bg-white font-bold text-lg text-center border-2 border-orange-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-200"
-                        />
-                      </div>
+                    {/* Columna derecha: Resumen */}
+                    <div className="lg:col-span-1">
+                      <ProductSummary
+                        variants={variants}
+                        productCount={productos.length}
+                      />
                     </div>
                   </div>
 
-                  {/* File Upload Section */}
-                  <div className="space-y-4">
-                    <Label className="flex items-center gap-2 text-orange-600 font-semibold text-lg">
-                      <span className="text-xl">📁</span>
-                      Imágenes del Producto
-                    </Label>
-
-                    <div className="border-2 border-dashed border-orange-300 rounded-xl p-6 bg-gradient-to-r from-orange-50 to-orange-100 dark:from-orange-900/10 dark:to-orange-800/10 hover:border-orange-400 transition-colors duration-200">
-                      <FileUploadComponent
-                        onFilesChange={setSelectedFiles}
-                        resetCounter={resetCounter}
-                      />
+                  {/* Sección de Variantes */}
+                  <div className="space-y-4 pt-4 border-t border-border">
+                    <div className="flex items-center justify-between">
+                      <Label className="flex items-center gap-2 text-base font-semibold text-foreground">
+                        <span className="text-primary">🎨</span> Variantes del
+                        Producto
+                      </Label>
+                      <Button
+                        type="button"
+                        onClick={addVariant}
+                        variant="default"
+                        size="sm"
+                        className="bg-orange-500 hover:bg-orange-600 text-white"
+                      >
+                        <Plus className="w-4 h-4 mr-1" />
+                        Agregar Variante
+                      </Button>
                     </div>
 
-                    {isEditing && (
-                      <p className="text-sm text-gray-500 mt-2">
-                        * Si no selecciona archivos nuevos, se mantendrán los
-                        archivos existentes del producto.
-                      </p>
-                    )}
+                    <div className="space-y-4">
+                      {variants.map((variant, index) => (
+                        <VariantRow
+                          key={variant.id}
+                          variant={variant}
+                          index={index}
+                          canDelete={variants.length > 1}
+                          onUpdate={updateVariant}
+                          onDelete={removeVariant}
+                        />
+                      ))}
+                    </div>
                   </div>
 
                   {/* Botones de acción del formulario */}

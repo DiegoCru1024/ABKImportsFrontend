@@ -8,19 +8,19 @@ import type { ProductVariant, ProductWithVariants } from "./local.types";
  * @property variantId - null = crear nueva, string = actualizar existente
  * @property attachments - URLs de imágenes de esta variante
  */
-export type VariantDTO = Omit<ProductVariant, "id" | "files"> & {
+export type VariantDTO = Omit<ProductVariant, "id" | "files" | "variantId"> & {
   variantId?: string | null;
 };
 
 /**
  * DTO de producto para enviar al backend
- * Omite campos locales ('quantityTotal')
+ * Omite campos locales ('quantityTotal', 'variants')
  * Las imágenes ahora están en cada variante, no en el producto
  *
  * @property productId - undefined = crear nuevo, string = actualizar existente
  * @property variants - Lista de variantes con sus propias imágenes
  */
-export type ProductDTO = Omit<ProductWithVariants, "quantityTotal"> & {
+export type ProductDTO = Omit<ProductWithVariants, "quantityTotal" | "variants"> & {
   variants: VariantDTO[];
 };
 

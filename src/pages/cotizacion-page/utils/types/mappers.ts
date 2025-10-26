@@ -14,15 +14,15 @@ export const toAPI = {
    * @param variant - Variante del estado local
    * @returns DTO de variante listo para enviar al backend
    */
-  variant: (variant: ProductVariant): VariantDTO => ({
-    variantId: variant.variantId ?? null, // Convertir undefined a null para el backend
-    size: variant.size,
-    presentation: variant.presentation,
-    model: variant.model,
-    color: variant.color,
-    quantity: variant.quantity,
-    attachments: variant.attachments, // URLs de imágenes de esta variante
-  }),
+  variant: (variant: ProductVariant): VariantDTO => {
+    // Crear objeto base sin los campos temporales
+    const { id, files, ...baseVariant } = variant;
+
+    return {
+      ...baseVariant,
+      variantId: variant.variantId ?? null, // Convertir undefined a null para el backend
+    };
+  },
 
   /**
    * Convierte un producto del estado local a DTO para API
@@ -32,18 +32,17 @@ export const toAPI = {
    * @param product - Producto del estado local
    * @returns DTO de producto listo para enviar al backend
    */
-  product: (product: ProductWithVariants): ProductDTO => ({
-    productId: product.productId,
-    name: product.name,
-    url: product.url,
-    comment: product.comment,
-    weight: product.weight,
-    volume: product.volume,
-    number_of_boxes: product.number_of_boxes,
-    variants: product.variants
-      .filter((v) => v.quantity > 0) // Solo incluir variantes con cantidad > 0
-      .map(toAPI.variant),
-  }),
+  product: (product: ProductWithVariants): ProductDTO => {
+    // Crear objeto base sin los campos temporales
+    const { quantityTotal, variants, ...baseProduct } = product;
+
+    return {
+      ...baseProduct,
+      variants: variants
+        .filter((v) => v.quantity > 0) // Solo incluir variantes con cantidad > 0
+        .map(toAPI.variant),
+    };
+  },
 
   /**
    * Convierte array de productos y metadata a payload completo de cotización

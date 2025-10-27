@@ -6,6 +6,8 @@ import {
   ChevronRight,
   ChevronLeft,
   Package,
+  Link,
+  Link2Icon,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -493,6 +495,10 @@ export default function QuotationProductRow({
                   <Badge variant="secondary" className="text-xs">
                     {localProduct.quantityTotal} items
                   </Badge>
+
+                  <Link2Icon >
+                    <a href={localProduct.url}></a>
+                  </Link2Icon>
                 </div>
 
                 {/* Botón para expandir variantes */}
@@ -812,22 +818,26 @@ export default function QuotationProductRow({
                                   className="relative cursor-pointer w-full h-full"
                                   onClick={() =>
                                     handleOpenImages(
-                                      variant.attachments?.map((url, index) => ({
-                                        id: index.toString(),
-                                        url,
-                                        name: `${localProduct.name} - ${
-                                          variant.color
-                                        } - Imagen ${index + 1}`,
-                                      })) || [],
-                                      variantImageIndices[variant.variantId] || 0
+                                      variant.attachments?.map(
+                                        (url, index) => ({
+                                          id: index.toString(),
+                                          url,
+                                          name: `${localProduct.name} - ${
+                                            variant.color
+                                          } - Imagen ${index + 1}`,
+                                        })
+                                      ) || [],
+                                      variantImageIndices[variant.variantId] ||
+                                        0
                                     )
                                   }
                                 >
                                   <img
                                     src={
                                       variant.attachments[
-                                        variantImageIndices[variant.variantId] ||
-                                          0
+                                        variantImageIndices[
+                                          variant.variantId
+                                        ] || 0
                                       ] || "/placeholder.svg"
                                     }
                                     alt={`${localProduct.name} - ${variant.color}`}
@@ -847,8 +857,9 @@ export default function QuotationProductRow({
                                   {/* Indicador de cantidad de imágenes */}
                                   {variant.attachments.length > 1 && (
                                     <div className="absolute top-1 right-1 px-1.5 py-0.5 bg-gray-900 bg-opacity-80 rounded-full text-white text-xs font-medium">
-                                      {(variantImageIndices[variant.variantId] ||
-                                        0) + 1}
+                                      {(variantImageIndices[
+                                        variant.variantId
+                                      ] || 0) + 1}
                                       /{variant.attachments.length}
                                     </div>
                                   )}

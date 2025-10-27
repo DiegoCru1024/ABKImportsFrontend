@@ -54,6 +54,13 @@ export default function QuotationResponseView({
 
   const quotationForm = useQuotationResponseForm();
 
+  const [administrador,setAdministrador] = useState<string>("")
+
+  useEffect(()=>{
+    let access_token= localStorage.getItem("access_token")
+    setAdministrador(administrador);
+  },[])
+
   // Estado local para productos pendientes con precios actualizables
   const [pendingProducts, setPendingProducts] = useState<any[]>([]);
 
@@ -832,7 +839,7 @@ export default function QuotationResponseView({
 
           dto = QuotationResponseDirector.buildCompleteMaritimeService({
             quotationId: selectedQuotationId,
-            advisorId: "75500ef2-e35c-4a77-8074-9104c9d971cb",
+            advisorId: administrador,
             logisticConfig,
             maritimeConfig,
             products: directorProducts,
@@ -849,7 +856,7 @@ export default function QuotationResponseView({
           // Usar Director para servicio express
           dto = QuotationResponseDirector.buildCompleteExpressService({
             quotationId: selectedQuotationId,
-            advisorId: "75500ef2-e35c-4a77-8074-9104c9d971cb",
+            advisorId: administrador, //nOMBRE PAULO
             logisticConfig,
             products: directorProducts,
             calculations: calculationsData,

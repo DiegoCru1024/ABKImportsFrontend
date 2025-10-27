@@ -25,6 +25,11 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 
 import ImageCarouselModal from "@/components/ImageCarouselModal";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface ProductVariant {
   variantId: string;
@@ -199,7 +204,6 @@ export default function QuotationProductRow({
   }, [
     product.productId,
     product.name,
-
     product.variants,
     localProduct.productId,
     localProduct.name,
@@ -493,29 +497,39 @@ export default function QuotationProductRow({
                     {localProduct.name}
                   </h3>
                   <Badge variant="secondary" className="text-xs">
-                    {localProduct.quantityTotal} items
+                    {localProduct.variants?.length} variantes
                   </Badge>
-
-                  <Link2Icon >
-                    <a href={localProduct.url}></a>
-                  </Link2Icon>
                 </div>
 
                 {/* Botón para expandir variantes */}
                 {localProduct.variants && localProduct.variants.length > 0 && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleToggleExpanded}
-                    className="text-xs bg-green-100 hover:bg-green-200 "
-                  >
-                    {isExpanded ? (
-                      <ChevronDown className="h-3 w-3 mr-1" />
-                    ) : (
-                      <ChevronRight className="h-3 w-3 mr-1" />
-                    )}
-                    Variantes ({localProduct.variants.length})
-                  </Button>
+                  <div className="flex gap-4 align-middle items-center">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleToggleExpanded}
+                      className="text-xs bg-green-100 hover:bg-green-200 "
+                    >
+                      {isExpanded ? (
+                        <ChevronDown className="h-3 w-3 mr-1" />
+                      ) : (
+                        <ChevronRight className="h-3 w-3 mr-1" />
+                      )}
+                      Variantes ({localProduct.variants.length})
+                    </Button>
+
+                    <a
+                      href={localProduct.url}
+                      className="text-blue-600 text-sm flex gap-2 items-center"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title="URL del producto"
+                    >
+                      <Link2Icon className="w-4 h-4" />{" "}
+                      {/* Corregí el 'w- h-4' */}
+                      URL
+                    </a>
+                  </div>
                 )}
               </div>
             </td>
@@ -640,47 +654,39 @@ export default function QuotationProductRow({
             </td>
 
             {/* Columna 6: URL */}
-            <td className="p-3 align-top border-r border-blue-200/30 w-40">
-              <div className="space-y-2">
-                <Input
-                  placeholder="URL fantasma..."
-                  onChange={(e) => handleGhostUrlChange(e.target.value)}
-                  className="h-8 text-xs"
-                />
+            <td className="space-y-4 align-top border-r border-blue-200/30 w-40">
+              <div className=" flex flex-col justify-center items-center gap-3 p-2">
+
                 {/* Botón para ver comentarios y URL */}
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button variant="outline" size="sm" className="text-xs">
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Badge
+                      variant="secondary"
+                      className="bg-emerald-100/60 text-emerald-800 border-emerald-300/50"
+                    >
                       <MessageSquare className="h-3 w-3 " /> Comentario cliente
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Comentario del cliente: </DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <div>
-                        <p className="text-lg text-gray-600">
-                          {localProduct.comment || "Sin comentarios"}
-                        </p>
-                      </div>
-                    </div>
-                  </DialogContent>
-                </Dialog>
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-sm ">
+                      {localProduct.comment || "Sin comentarios"}
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
                 {/* Comentario del administrador */}
+
                 <Dialog
                   open={isCommentModalOpen}
                   onOpenChange={setIsCommentModalOpen}
                 >
                   <DialogTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-xs w-full"
+                    <Badge
+                      variant="secondary"
+                      className="bg-emerald-100/60 text-emerald-800 border-emerald-300/50"
                     >
-                      <MessageSquare className="h-3 w-3 mr-1" />
-                      Comentario Admin
-                    </Button>
+                      <MessageSquare className="h-3 w-3 " /> Comentario Admi
+                    </Badge>
                   </DialogTrigger>
                   <DialogContent>
                     <DialogHeader>
@@ -709,6 +715,12 @@ export default function QuotationProductRow({
                     </div>
                   </DialogContent>
                 </Dialog>
+
+                <Input
+                  placeholder="URL fantasma..."
+                  onChange={(e) => handleGhostUrlChange(e.target.value)}
+                  className="h-8 text-xs"
+                />
               </div>
             </td>
 

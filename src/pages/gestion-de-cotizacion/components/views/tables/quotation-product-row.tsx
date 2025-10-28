@@ -239,14 +239,14 @@ export default function QuotationProductRow({
 
     // IMPORTANTE: En la vista Pendiente, los totales de CBM y Peso vienen del packingList del producto
     // Solo los precios (price y priceExpress) deben sumarse desde las variantes
+    // NOTA: priceExpress es un valor total por variante, NO se multiplica por cantidad
     const priceData = selectedVariants.reduce(
       (acc, variant) => ({
         totalPrice:
           acc.totalPrice + (variant.price || 0) * (variant.quantity || 0),
         totalQuantity: acc.totalQuantity + (variant.quantity || 0),
         totalExpress:
-          acc.totalExpress +
-          (variant.priceExpress || 0) * (variant.quantity || 0),
+          acc.totalExpress + (variant.priceExpress || 0),
       }),
       {
         totalPrice: 0,

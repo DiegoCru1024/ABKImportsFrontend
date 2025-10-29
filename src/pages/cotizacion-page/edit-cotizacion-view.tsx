@@ -836,31 +836,6 @@ export default function EditCotizacionView({
                         />
                       </div>
 
-                      <FormField
-                        control={form.control}
-                        name="comment"
-                        render={({ field }) => (
-                          <FormItem>
-                            <Label
-                              htmlFor="comment"
-                              className="flex items-center gap-2 text-base font-semibold text-foreground"
-                            >
-                              <span className="text-primary">💬</span>
-                              Comentarios
-                            </Label>
-                            <FormControl>
-                              <Textarea
-                                {...field}
-                                id="comment"
-                                placeholder="Ej: Producto en buen estado, especificaciones especiales, etc."
-                                className="border-input bg-background min-h-[100px] resize-none"
-                                rows={4}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
 
                       {/* Campos adicionales para Almacenaje de Mercancia */}
                       {service === "Almacenaje de Mercancia" && (

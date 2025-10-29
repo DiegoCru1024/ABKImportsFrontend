@@ -533,12 +533,12 @@ export default function EditQuotationResponseView() {
 
       // Retornar con los valores del packingList para CBM y Weight (no se calculan desde variantes)
       return {
-        totalPrice: priceData.totalPrice,
+        totalPrice: Number(priceData.totalPrice),
         totalWeight:
           product.packingList?.weightKg || parseFloat(product.weight) || 0,
         totalCBM: product.packingList?.cbm || parseFloat(product.volume) || 0,
-        totalQuantity: priceData.totalQuantity,
-        totalExpress: priceData.totalExpress,
+        totalQuantity: Number(priceData.totalQuantity),
+        totalExpress: Number(priceData.totalExpress),
       };
     },
     [quotationForm.variantQuotationState]

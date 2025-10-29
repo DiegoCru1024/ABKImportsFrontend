@@ -257,11 +257,11 @@ export default function QuotationProductRow({
 
     // Retornar con los valores del packingList para CBM y Weight (no se calculan desde variantes)
     return {
-      totalPrice: priceData.totalPrice,
+      totalPrice: Number(priceData.totalPrice),
       totalWeight: localProduct.packingList?.weightKg || 0,
       totalCBM: localProduct.packingList?.cbm || 0,
-      totalQuantity: priceData.totalQuantity,
-      totalExpress: priceData.totalExpress,
+      totalQuantity: Number(priceData.totalQuantity),
+      totalExpress: Number(priceData.totalExpress),
     };
   }, [
     localProduct.variants,

@@ -236,8 +236,8 @@ export function useQuotationResponse({ selectedQuotationId }: UseQuotationRespon
         variants: (product.variants || []).map((variant: any) => ({
           variantId: variant.variantId,
           quantity: Number(variant.quantity) || 0,
-          precio_unitario: 0,
-          precio_express: 0,
+          precio_unitario: Number(variant.pendingPricing?.unitPrice) || 0,
+          precio_express: Number(variant.pendingPricing?.expressPrice) || 0,
           seCotizaVariante: variantQuotationState[product.productId]?.[variant.variantId] !== false,
         })),
       })) || [],

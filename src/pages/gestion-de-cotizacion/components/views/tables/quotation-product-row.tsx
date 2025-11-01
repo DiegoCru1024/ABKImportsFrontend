@@ -55,6 +55,7 @@ interface PackingList {
 interface CargoHandling {
   fragileProduct: boolean;
   stackProduct: boolean;
+  bulkyProduct: boolean;
 }
 
 interface Product {
@@ -161,6 +162,7 @@ export default function QuotationProductRow({
     cargoHandling: product.cargoHandling || {
       fragileProduct: false,
       stackProduct: false,
+      bulkyProduct: false,
     },
     ghostUrl: product.ghostUrl || product.url || "",
   });
@@ -195,6 +197,7 @@ export default function QuotationProductRow({
           prev.cargoHandling || {
             fragileProduct: false,
             stackProduct: false,
+            bulkyProduct: false,
           },
         // Preservar ghostUrl existente si ya fue editado
         ghostUrl: product.ghostUrl || prev.ghostUrl || product.url || "",
@@ -648,6 +651,25 @@ export default function QuotationProductRow({
                     className="text-sm text-gray-600"
                   >
                     Producto Apilable
+                  </label>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`bulky-${product.productId}`}
+                    checked={localProduct.cargoHandling?.bulkyProduct || false}
+                    onCheckedChange={(checked) =>
+                      handleCargoHandlingChange(
+                        "bulkyProduct",
+                        checked as boolean
+                      )
+                    }
+                  />
+                  <label
+                    htmlFor={`bulky-${product.productId}`}
+                    className="text-sm text-gray-600"
+                  >
+                    Producto Voluminoso
                   </label>
                 </div>
               </div>

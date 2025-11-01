@@ -140,6 +140,7 @@ export class QuotationResponseBuilder {
     return {
       fragileProduct: cargoHandling.fragileProduct || false,
       stackProduct: cargoHandling.stackProduct || false,
+      bulkyProduct: cargoHandling.bulkyProduct || false,
     };
   }
 

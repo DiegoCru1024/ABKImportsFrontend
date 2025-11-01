@@ -1,7 +1,7 @@
 import { API_URL } from "../../config";
 
 export async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  const access_token = localStorage.getItem("access_token"); // 🔹 Obtener el token del localStorage
+  const access_token = localStorage.getItem("access_token"); // 🔹 Obtener el token del localStorag
 
   const headers = {
     "Content-Type": "application/json",

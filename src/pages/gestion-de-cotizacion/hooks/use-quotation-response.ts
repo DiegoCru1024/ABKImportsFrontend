@@ -4,6 +4,7 @@ import { useCreateQuatitationResponse } from "@/hooks/use-quatitation-response";
 import { obtenerUser } from "@/lib/functions";
 import { formatDate } from "@/lib/format-time";
 import type { DynamicValuesInterface } from "@/api/interface/quotation-response/dto/complete/objects/dynamic-values";
+import type { dynamicValues } from "@/api/interface/quotationResponseInterfaces";
 
 interface UseQuotationResponseProps {
   selectedQuotationId: string;
@@ -81,7 +82,7 @@ export function useQuotationResponse({ selectedQuotationId }: UseQuotationRespon
   const [isFirstPurchase, setIsFirstPurchase] = useState<boolean>(false);
 
   // Exemption state
-  const [exemptionState, setExemptionState] = useState<ExemptionState>({
+  const [exemptionState, setExemptionState] = useState<ExemptionStateInterface>({
     servicioConsolidadoAereo: false,
     separacionCarga: false,
     inspeccionProductos: false,
@@ -145,7 +146,7 @@ export function useQuotationResponse({ selectedQuotationId }: UseQuotationRespon
     );
   };
 
-  const updateDynamicValue = (key: keyof DynamicValues, value: number) => {
+  const updateDynamicValue = (key: keyof dynamicValues, value: number) => {
     setDynamicValues((prev) => ({ ...prev, [key]: value }));
   };
 

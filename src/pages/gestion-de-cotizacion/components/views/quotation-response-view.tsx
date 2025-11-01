@@ -57,8 +57,8 @@ export default function QuotationResponseView({
   const [administrador,setAdministrador] = useState<string>("")
 
   useEffect(()=>{
-    let access_token= localStorage.getItem("access_token")
-    setAdministrador(administrador);
+    let access_token= localStorage?.getItem("access_token")||""
+    setAdministrador(access_token);
   },[])
 
   // Estado local para productos pendientes con precios actualizables
@@ -265,6 +265,7 @@ export default function QuotationResponseView({
     }
   }, [calculations.totalTaxes]);
 
+  //Estado para manera el envio de la cotizacion
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Estado para los datos agregados de cada producto (para vista pendiente)
@@ -518,8 +519,9 @@ export default function QuotationResponseView({
         weightTon: (parseFloat(product.weight) || 0) / 1000,
       },
       cargoHandling: product.cargoHandling || {
-        fragileProduct: false,
-        stackProduct: false,
+        fragileProduct: product.cargoHandling?.fragileProduct || false,
+        stackProduct: product.cargoHandling?.stackProduct || false,
+        bulkyProduct: product.cargoHandling?.bulkyProduct || false,
       },
       variants: (product.variants || []).map((variant: any) => ({
         variantId: variant.id,
@@ -535,7 +537,7 @@ export default function QuotationResponseView({
     // Usar Director Pattern para construir la respuesta
     return QuotationResponseDirector.buildPendingService({
       quotationId: selectedQuotationId,
-      advisorId: "75500ef2-e35c-4a77-8074-9104c9d971cb",
+      advisorId: administrador,
       logisticConfig: {
         serviceLogistic: quotationForm.selectedServiceLogistic,
         incoterm: quotationForm.selectedIncoterm,
@@ -628,6 +630,7 @@ export default function QuotationResponseView({
     calculations.totalTaxes,
   ]);
 
+  //! Función de envio de la cotizacion
   const handleSubmitQuotation = async () => {
     setIsSubmitting(true);
     try {
@@ -1336,8 +1339,8 @@ export default function QuotationResponseView({
 
       {/* Modales */}
       <SendingModal
-        isOpen={quotationForm.isSendingModalOpen}
-        onClose={() => quotationForm.setIsSendingModalOpen(false)}
+        isOpen={isSubmitting}
+        onClose={() => setIsSubmitting(false)}
       />
     </div>
   );

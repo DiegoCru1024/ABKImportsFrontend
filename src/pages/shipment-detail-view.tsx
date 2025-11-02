@@ -40,6 +40,7 @@ import {
   Navigation,
 } from "lucide-react";
 import type { UpdateShipmentStatusRequest, ShipmentStatus, CurrentLocation, StatusHistoryEntry } from "@/api/interface/shipmentInterface";
+import { formatDateLong } from "@/lib/format-time";
 
 export default function ShipmentDetailView() {
   const { id } = useParams<{ id: string }>();
@@ -127,15 +128,6 @@ export default function ShipmentDetailView() {
     return type === "aerial" ? "Aéreo" : "Marítimo";
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("es-ES", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
 
   const handleUpdateStatus = () => {
     if (!id) return;
@@ -386,7 +378,7 @@ export default function ShipmentDetailView() {
                         {getStatusText(entry.status)}
                       </Badge>
                       <span className="text-sm text-muted-foreground">
-                        {formatDate(entry.timestamp)}
+                        {formatDateLong(entry.timestamp)}
                       </span>
                     </div>
                     <p className="text-sm font-medium mb-1">{entry.location}</p>

@@ -1,12 +1,13 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Edit, Eye, Trash, Truck } from "lucide-react";
+import { Edit, Eye, Trash } from "lucide-react";
 import type { QuotationListItem } from "../../types/interfaces";
 import {
   defaultStatusConfig,
   statusMap,
 } from "@/pages/cotizacion-page/components/static";
+import { formatDate, formatTime } from "@/lib/format-time";
 
 interface ColumnsQuotationsListProps {
   onViewDetails: (quotationId: string, correlative: string) => void;
@@ -23,25 +24,6 @@ export function columnsQuotationsList({
   onEditQuotation,
   onDelete,
 }: ColumnsQuotationsListProps): ColumnDef<QuotationListItem, any>[] {
-  const formatDateTime = (dateString: string) => {
-    try {
-      const date = new Date(dateString);
-      const formattedDate = date.toLocaleDateString("es-ES", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      });
-      const formattedTime = date.toLocaleTimeString("es-ES", {
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-      });
-      return { date: formattedDate, time: formattedTime };
-    } catch {
-      return { date: "Fecha inválida", time: "Hora inválida" };
-    }
-  };
-
   return [
     {
       id: "correlative",
@@ -100,7 +82,7 @@ export function columnsQuotationsList({
       id: "fecha",
       header: "Fecha",
       cell: ({ row }) => {
-        const { date } = formatDateTime(row.original.createdAt);
+        const date = formatDate(row.original.createdAt);
         return <div className="text-sm">{date}</div>;
       },
       size: 100,
@@ -109,7 +91,7 @@ export function columnsQuotationsList({
       id: "hora",
       header: "Hora",
       cell: ({ row }) => {
-        const { time } = formatDateTime(row.original.createdAt);
+        const time = formatTime(row.original.createdAt);
         return <div className="text-sm font-mono">{time}</div>;
       },
       size: 100,

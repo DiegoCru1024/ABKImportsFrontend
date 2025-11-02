@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { Shipment } from "@/api/interface/shipmentInterface";
+import { formatDateShort } from "@/lib/format-time";
 
 interface ShipmentColumnsProps {
   onViewDetails: (shipmentId: string) => void;
@@ -88,13 +89,6 @@ export function getShipmentColumns({ onViewDetails }: ShipmentColumnsProps): Col
     return type === "aerial" ? "Aéreo" : "Marítimo";
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("es-ES", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  };
 
   return [
     {
@@ -201,7 +195,7 @@ export function getShipmentColumns({ onViewDetails }: ShipmentColumnsProps): Col
       accessorKey: "created_at",
       header: "Fecha Creación",
       cell: ({ row }) => {
-        return formatDate(row.getValue("created_at"));
+        return formatDateShort(row.getValue("created_at"));
       },
     },
     {

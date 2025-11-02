@@ -22,6 +22,7 @@ import type { DynamicValuesInterface } from "@/api/interface/quotation-response/
 import type { ExemptionsInterface } from "@/api/interface/quotation-response/dto/complete/objects/exemptions";
 import type { TaxPercentageInterface } from "@/api/interface/quotation-response/dto/complete/tax-percentage";
 import type { PendingBuildData, CompleteBuildData } from "../types/quotation-response-dto";
+import { getNowUTC } from "@/lib/format-time";
 
 export class QuotationResponseBuilder {
   private baseDto: CreateUpdateQuotationResponseDTO;
@@ -32,7 +33,7 @@ export class QuotationResponseBuilder {
     quotationDetail?: unknown
   ) {
     this.baseDto = {
-      response_date: new Date().toISOString(), // ISO 8601 format
+      response_date: getNowUTC(), // Genera fecha actual en UTC para enviar al backend
       advisorId: "75500ef2-e35c-4a77-8074-9104c9d971cb",
       serviceType,
       responseData: null as unknown as ResponseDataPending | ResponseDataComplete,

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { isExpired, getTimeUntil } from "@/lib/format-time";
 
 export function useTokenExpiration() {
   const navigate = useNavigate();
@@ -11,21 +12,20 @@ export function useTokenExpiration() {
 
       if (!tokenExpiration) return;
 
-      const expirationDate = new Date(tokenExpiration);
-      const now = new Date();
-      const oneDayInMs = 24 * 60 * 60 * 1000;
-      const timeUntilExpiration = expirationDate.getTime() - now.getTime();
+      // Verificar si ya expiró
+      if (isExpired(tokenExpiration)) {
+        localStorage.clear();
+        navigate("/login");
+        return;
+      }
 
-      // Si falta un día o menos para que expire el token
+      // Verificar si expirará pronto (menos de 1 día)
+      const oneDayInMs = 24 * 60 * 60 * 1000;
+      const timeUntilExpiration = getTimeUntil(tokenExpiration);
+
       if (timeUntilExpiration <= oneDayInMs && timeUntilExpiration > 0) {
         setIsExpiringSoon(true);
         navigate("/sesion-por-expirar");
-      }
-
-      // Si el token ya expiró
-      if (timeUntilExpiration <= 0) {
-        localStorage.clear();
-        navigate("/login");
       }
     };
 

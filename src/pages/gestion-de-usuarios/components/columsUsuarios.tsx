@@ -3,6 +3,7 @@ import type { UserProfile, UserType } from "@/api/interface/user";
 import { UserIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { transformUserType } from "../utils/utils";
+import { formatDateShort } from "@/lib/format-time";
 
 // Definición de columnas para la tabla
 export const columnsUsuarios = (
@@ -68,14 +69,9 @@ export const columnsUsuarios = (
     accessorKey: "createdAt",
     header: "Fecha de Registro",
     cell: ({ row }) => {
-      const date = new Date(row.getValue("createdAt"));
       return (
         <span className="text-muted-foreground">
-          {date.toLocaleDateString("es-ES", {
-            year: "numeric",
-            month: "short",
-            day: "numeric",
-          })}
+          {formatDateShort(row.getValue("createdAt"))}
         </span>
       );
     },

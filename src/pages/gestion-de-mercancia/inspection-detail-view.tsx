@@ -35,6 +35,7 @@ import {
   Trash2
 } from "lucide-react";
 import { toast } from "sonner";
+import { formatDateLong } from "@/lib/format-time";
 
 export default function InspectionDetailView() {
   const { id } = useParams<{ id: string }>();
@@ -108,15 +109,6 @@ export default function InspectionDetailView() {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("es-ES", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
 
   const handleEditProduct = (product: any) => {
     setEditingProductId(product.product_id);
@@ -367,7 +359,7 @@ export default function InspectionDetailView() {
                     <Calendar className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm font-medium text-muted-foreground">Última Actualización</span>
                   </div>
-                  <p className="font-medium">{formatDate(inspection.updated_at)}</p>
+                  <p className="font-medium">{formatDateLong(inspection.updated_at)}</p>
                 </div>
 
                 <div className="space-y-2">

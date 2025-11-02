@@ -23,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { formatDateTime } from "@/lib/format-time";
 
 interface QuotationResponse {
   quotationInfo: {
@@ -54,20 +55,6 @@ export default function ResponseSelector({
   selectedResponseId,
   onResponseSelect,
 }: ResponseSelectorProps) {
-  const formatDate = (dateString: string) => {
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString("es-ES", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-    } catch {
-      return "Fecha inválida";
-    }
-  };
 
   const getServiceTypeBadge = (serviceType: string) => {
     const serviceConfig = {
@@ -133,7 +120,7 @@ export default function ResponseSelector({
               </div>
               <div>
                 <div className="font-semibold text-gray-900">Fecha</div>
-                <div className="text-sm text-gray-600">{formatDate(response.quotationInfo.date)}</div>
+                <div className="text-sm text-gray-600">{formatDateTime(response.quotationInfo.date)}</div>
               </div>
             </div>
             
@@ -193,7 +180,7 @@ export default function ResponseSelector({
                     <div className="flex flex-col">
                       <div className="font-medium">{response.user.name}</div>
                       <div className="text-sm text-muted-foreground">
-                        {response.user.email} • {formatDate(response.quotationInfo.date)}
+                        {response.user.email} • {formatDateTime(response.quotationInfo.date)}
                       </div>
                     </div>
                     <div className="ml-4">

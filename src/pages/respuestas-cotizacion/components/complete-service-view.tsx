@@ -121,7 +121,7 @@ export function CompleteServiceView({
       </div>
 
       {mappedProducts && mappedProducts.length > 0 && (
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 space-y-4">
           <h3 className="text-xl font-bold text-gray-800">
             Productos con Costos Calculados ({mappedProducts.length})
           </h3>

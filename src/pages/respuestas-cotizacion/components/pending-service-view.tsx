@@ -72,7 +72,7 @@ export function PendingServiceView({
       </div>
 
       {mappedProducts && mappedProducts.length > 0 && (
-        <div className="space-y-4">
+        <div className="space-y-4 grid grid-cols-1">
           <h3 className="text-xl font-bold text-gray-800">
             Productos Cotizados ({mappedProducts.length})
           </h3>

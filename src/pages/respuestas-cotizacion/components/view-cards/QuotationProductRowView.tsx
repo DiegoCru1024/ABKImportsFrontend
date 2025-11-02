@@ -1,23 +1,18 @@
 import { useState } from "react";
 import {
-  Eye,
-  MessageSquare,
   ChevronDown,
   ChevronRight,
+  ChevronLeft,
+  Eye,
   Package,
+  MessageSquare,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 
 import ImageCarouselModal from "@/components/ImageCarouselModal";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface ProductVariant {
   variantId: string;
@@ -47,6 +42,7 @@ interface PackingList {
 interface CargoHandling {
   fragileProduct: boolean;
   stackProduct: boolean;
+  bulkyProduct:boolean;
 }
 
 interface PendingProduct {
@@ -84,6 +80,10 @@ export default function QuotationProductRowView({
   const [selectedImages, setSelectedImages] = useState<
     Array<{ id: string; url: string; name?: string }>
   >([]);
+  const [variantImageIndices, setVariantImageIndices] = useState<
+    Record<string, number>
+  >({});
+  const [startImageIndex, setStartImageIndex] = useState<number>(0);
 
   const handleToggleExpanded = () => {
     setIsExpanded(!isExpanded);
@@ -94,7 +94,32 @@ export default function QuotationProductRowView({
     startIndex: number = 0
   ) => {
     setSelectedImages(images);
+    setStartImageIndex(startIndex);
     setIsImageModalOpen(true);
+  };
+
+  const handlePrevImage = (
+    variantId: string,
+    totalImages: number,
+    e: React.MouseEvent
+  ) => {
+    e.stopPropagation();
+    setVariantImageIndices((prev) => ({
+      ...prev,
+      [variantId]: ((prev[variantId] || 0) - 1 + totalImages) % totalImages,
+    }));
+  };
+
+  const handleNextImage = (
+    variantId: string,
+    totalImages: number,
+    e: React.MouseEvent
+  ) => {
+    e.stopPropagation();
+    setVariantImageIndices((prev) => ({
+      ...prev,
+      [variantId]: ((prev[variantId] || 0) + 1) % totalImages,
+    }));
   };
 
   // Cálculos agregados de las variantes
@@ -114,34 +139,32 @@ export default function QuotationProductRowView({
 
   return (
     <div className="bg-gradient-to-br from-white via-slate-50/30 to-blue-50/20 border border-slate-200/60 rounded-lg overflow-hidden">
-      <table className="w-full border-collapse">
+      <div className="w-full overflow-x-auto">
+        <table className="w-full min-w-max border-collapse">
         <thead>
           <tr className="bg-gradient-to-r from-blue-100/60 to-indigo-100/50 border-b-2 border-blue-200/50">
-            <th className="p-3 text-center text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 w-16">
+            <th className="p-3 text-center text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 min-w-[4rem]">
               NRO
             </th>
-            <th className="p-3 text-left text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 w-24">
-              IMAGEN
-            </th>
-            <th className="p-3 text-left text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 w-56">
+            <th className="p-3 text-left text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 min-w-[14rem]">
               PRODUCTO & VARIANTES
             </th>
-            <th className="p-3 text-left text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 w-44">
+            <th className="p-3 text-left text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 min-w-[11rem]">
               PACKING LIST
             </th>
-            <th className="p-3 text-left text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 w-44">
+            <th className="p-3 text-left text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 min-w-[11rem]">
               MANIPULACIÓN DE CARGA
             </th>
-            <th className="p-3 text-left text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 w-40">
+            <th className="p-3 text-left text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 min-w-[10rem]">
               COMENTARIOS
             </th>
-            <th className="p-3 text-center text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 w-28">
+            <th className="p-3 text-center text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 min-w-[7rem]">
               PRECIO
             </th>
-            <th className="p-3 text-center text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 w-28">
+            <th className="p-3 text-center text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 min-w-[7rem]">
               EXPRESS
             </th>
-            <th className="p-3 text-center text-xs font-semibold text-indigo-800 w-28">
+            <th className="p-3 text-center text-xs font-semibold text-indigo-800 min-w-[7rem]">
               P. TOTAL
             </th>
           </tr>
@@ -149,65 +172,12 @@ export default function QuotationProductRowView({
         <tbody>
           <tr className="border-b border-blue-200/30">
             {/* Columna 1: NRO. */}
-            <td className="p-3 text-center align-top border-r border-blue-200/30 w-16">
+            <td className="p-3 text-center align-top border-r border-blue-200/30">
               <div className="text-lg font-bold text-gray-800">{index + 1}</div>
             </td>
 
-            {/* Columna 2: IMAGEN */}
-            <td className="p-3 text-center align-top border-r border-blue-200/30 w-24">
-              {product.attachments && product.attachments.length > 0 ? (
-                <div className="flex flex-col">
-                  <div
-                    className="relative cursor-pointer"
-                    onClick={() =>
-                      handleOpenImages(
-                        product.attachments?.map((url, index) => ({
-                          id: index.toString(),
-                          url,
-                          name: `Imagen ${index + 1}`,
-                        })) || [],
-                        0
-                      )
-                    }
-                  >
-                    <img
-                      src={product.attachments[0] || "/placeholder.svg"}
-                      alt={product.name}
-                      className="w-20 h-20 object-cover rounded-lg border border-gray-200"
-                      onError={(e) => {
-                        e.currentTarget.src = "/placeholder.svg";
-                      }}
-                    />
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      className="absolute top-6 right-6 h-5 w-5 rounded-full p-0"
-                    >
-                      <Eye className="h-3 w-3" />
-                    </Button>
-                  </div>
-                  <div className="flex flex-col">
-                    <a
-                      href={product.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="no-underline"
-                    >
-                      <span className="text-xs text-blue-600 break-all">
-                        Ver link
-                      </span>
-                    </a>
-                  </div>
-                </div>
-              ) : (
-                <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
-                  <Package className="h-6 w-6 text-gray-400" />
-                </div>
-              )}
-            </td>
-
-            {/* Columna 3: PRODUCTO & VARIANTES */}
-            <td className="p-3 align-top border-r border-blue-200/30 w-56">
+            {/* Columna 2: PRODUCTO & VARIANTES */}
+            <td className="p-3 align-top border-r border-blue-200/30">
               <div className="space-y-2 w-56 max-w-[14rem]">
                 <div>
                   <h3 className="font-semibold text-gray-800 truncate uppercase">
@@ -237,8 +207,8 @@ export default function QuotationProductRowView({
               </div>
             </td>
 
-            {/* Columna 4: PACKING LIST */}
-            <td className="p-3 align-top border-r border-blue-200/30 w-40">
+            {/* Columna 3: PACKING LIST */}
+            <td className="p-3 align-top border-r border-blue-200/30">
               <div className="grid grid-cols-2 text-xs gap-4">
                 <div>
                   <Badge className="bg-red-100 text-red-600 border-1 border-red-200 mb-2">
@@ -282,8 +252,8 @@ export default function QuotationProductRowView({
               </div>
             </td>
 
-            {/* Columna 5: MANIPULACIÓN DE CARGA */}
-            <td className="p-3 align-top border-r border-blue-200/30 w-44">
+            {/* Columna 4: MANIPULACIÓN DE CARGA */}
+            <td className="p-3 align-top border-r border-blue-200/30">
               <div className="space-y-4">
                 <div className="flex items-center space-x-2">
                   <div
@@ -309,65 +279,60 @@ export default function QuotationProductRowView({
                     Producto Apilable
                   </label>
                 </div>
+                <div className="flex items-center space-x-2">
+                  <div
+                    className={`h-4 w-4 rounded border ${
+                      product.cargoHandling?.bulkyProduct
+                        ? "bg-blue-500 border-blue-500"
+                        : "border-gray-300"
+                    }`}
+                  />
+                  <label className="text-sm text-gray-600">
+                    Producto Voluminoso
+                  </label>
+                </div>
               </div>
             </td>
 
-            {/* Columna 6: COMENTARIOS*/}
-            <td className="p-3 align-top border-r border-blue-200/30 w-40">
-              <div className="space-y-2">
-                {/* Botón para ver comentarios */}
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button variant="outline" size="sm" className="text-xs w-full">
-                      <MessageSquare className="h-3 w-3 " /> Comentario Cliente
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Comentario del cliente:</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <div>
-                        <p className="text-lg text-gray-600">
-                          {product.comment || "Sin comentarios"}
-                        </p>
-                      </div>
-                    </div>
-                  </DialogContent>
-                </Dialog>
+            {/* Columna 5: Comentarios */}
+            <td className="p-3 align-top border-r border-blue-200/30">
+              <div className="space-y-2 flex flex-col items-center gap-4">
+              <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Badge
+                      variant="secondary"
+                      className="bg-emerald-100/60 text-emerald-800 border-emerald-300/50"
+                    >
+                      <MessageSquare className="h-3 w-3 " /> Comentario cliente
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-sm ">
+                      {product.comment || "Sin comentarios"}
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
 
-                {product.adminComment && (
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="text-xs w-full"
-                      >
-                        <MessageSquare className="h-3 w-3 mr-1" />
-                        Comentario Admi
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Comentario del Administrador</DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        <p className="text-sm text-gray-600">
-                          Comentario para: {product.name}
-                        </p>
-                        <p className="text-base text-gray-800">
-                          {product.adminComment}
-                        </p>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                )}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Badge
+                      variant="secondary"
+                      className="bg-emerald-100/60 text-emerald-800 border-emerald-300/50"
+                    >
+                      <MessageSquare className="h-3 w-3 " /> Comentario administrador
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-sm ">
+                      {product.adminComment || "Sin comentarios"}
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
               </div>
             </td>
 
-            {/* Columna 7: PRECIO */}
-            <td className="p-3 text-center align-top border-r border-blue-200/30 w-28">
+            {/* Columna 6: PRECIO */}
+            <td className="p-3 text-center align-top border-r border-blue-200/30">
               <div className="text-xs text-slate-600 mb-1">USD</div>
               <div className="text-lg font-semibold text-emerald-700 border border-emerald-300/50 rounded-lg px-2 py-1 bg-emerald-100/50">
                 $
@@ -377,8 +342,8 @@ export default function QuotationProductRowView({
               </div>
             </td>
 
-            {/* Columna 8: EXPRESS */}
-            <td className="p-3 text-center align-top border-r border-blue-200/30 w-28">
+            {/* Columna 7: EXPRESS */}
+            <td className="p-3 text-center align-top border-r border-blue-200/30">
               <div className="text-xs text-slate-600 mb-1">USD</div>
               <div className="text-lg font-semibold text-blue-700 border border-blue-300/50 rounded-lg px-2 py-1 bg-blue-100/50">
                 $
@@ -388,8 +353,8 @@ export default function QuotationProductRowView({
               </div>
             </td>
 
-            {/* Columna 9: P. TOTAL */}
-            <td className="p-3 text-center align-top w-28">
+            {/* Columna 8: P. TOTAL */}
+            <td className="p-3 text-center align-top">
               <div className="text-xs text-slate-600 mb-1">USD</div>
               <div className="text-lg font-semibold text-indigo-700 border border-indigo-300/50 rounded-lg px-2 py-1 bg-indigo-100/50">
                 $
@@ -403,6 +368,7 @@ export default function QuotationProductRowView({
           </tr>
         </tbody>
       </table>
+      </div>
 
       {/* Expanded Variants */}
       {isExpanded && product.variants && product.variants.length > 0 && (
@@ -414,28 +380,32 @@ export default function QuotationProductRowView({
 
             {/* Tabla de variantes con HTML nativo */}
             <div className="bg-white rounded-lg border border-slate-200/60 overflow-hidden">
-              <table className="w-full border-collapse">
+              <div className="w-full overflow-x-auto">
+              <table className="w-full min-w-max border-collapse">
                 <thead>
                   <tr className="bg-gradient-to-r from-purple-100/60 to-pink-100/50 border-b-2 border-purple-200/50">
-                    <th className="p-3 text-left text-xs font-semibold text-purple-800 border-r border-purple-200/30 w-32">
+                    <th className="p-3 text-center text-xs font-semibold text-purple-800 border-r border-purple-200/30 min-w-[6rem]">
+                      Imagen
+                    </th>
+                    <th className="p-3 text-left text-xs font-semibold text-purple-800 border-r border-purple-200/30 min-w-[8rem]">
                       Presentación
                     </th>
-                    <th className="p-3 text-left text-xs font-semibold text-purple-800 border-r border-purple-200/30 w-32">
+                    <th className="p-3 text-left text-xs font-semibold text-purple-800 border-r border-purple-200/30 min-w-[8rem]">
                       Modelo
                     </th>
-                    <th className="p-3 text-left text-xs font-semibold text-purple-800 border-r border-purple-200/30 w-32">
+                    <th className="p-3 text-left text-xs font-semibold text-purple-800 border-r border-purple-200/30 min-w-[8rem]">
                       Color
                     </th>
-                    <th className="p-3 text-left text-xs font-semibold text-purple-800 border-r border-purple-200/30 w-32">
+                    <th className="p-3 text-left text-xs font-semibold text-purple-800 border-r border-purple-200/30 min-w-[8rem]">
                       Tamaño
                     </th>
-                    <th className="p-3 text-center text-xs font-semibold text-orange-700 border-r border-purple-200/30 w-24">
+                    <th className="p-3 text-center text-xs font-semibold text-orange-700 border-r border-purple-200/30 min-w-[6rem]">
                       Cantidad
                     </th>
-                    <th className="p-3 text-center text-xs font-semibold text-emerald-700 border-r border-purple-200/30 w-32">
+                    <th className="p-3 text-center text-xs font-semibold text-emerald-700 border-r border-purple-200/30 min-w-[8rem]">
                       Precio unitario
                     </th>
-                    <th className="p-3 text-center text-xs font-semibold text-blue-700 w-32">
+                    <th className="p-3 text-center text-xs font-semibold text-blue-700 min-w-[8rem]">
                       Express
                     </th>
                   </tr>
@@ -443,8 +413,92 @@ export default function QuotationProductRowView({
                 <tbody className="divide-y divide-slate-200/60">
                   {product.variants.map((variant) => (
                     <tr key={variant.variantId} className="text-sm">
+                      {/* Imagen con mini carrusel */}
+                      <td className="p-3 border-r border-purple-200/30">
+                        {variant.images && variant.images.length > 0 ? (
+                          <div className="relative w-20 h-20">
+                            {/* Imagen principal */}
+                            <div
+                              className="relative cursor-pointer w-full h-full"
+                              onClick={() =>
+                                handleOpenImages(
+                                  variant.images || [],
+                                  variantImageIndices[variant.variantId] || 0
+                                )
+                              }
+                            >
+                              <img
+                                src={
+                                  variant.images[
+                                    variantImageIndices[variant.variantId] || 0
+                                  ]?.url || "/placeholder.svg"
+                                }
+                                alt={`${product.name} - ${variant.color}`}
+                                className="w-full h-full object-cover rounded-lg border border-gray-200 hover:opacity-80 transition-opacity"
+                                onError={(e) => {
+                                  e.currentTarget.src = "/placeholder.svg";
+                                }}
+                              />
+                              <Button
+                                size="sm"
+                                variant="secondary"
+                                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-6 w-6 rounded-full p-0 opacity-0 hover:opacity-100 transition-opacity bg-white/90"
+                              >
+                                <Eye className="h-3 w-3" />
+                              </Button>
+
+                              {/* Indicador de cantidad de imágenes */}
+                              {variant.images.length > 1 && (
+                                <div className="absolute top-1 right-1 px-1.5 py-0.5 bg-gray-900 bg-opacity-80 rounded-full text-white text-xs font-medium">
+                                  {(variantImageIndices[variant.variantId] || 0) + 1}
+                                  /{variant.images.length}
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Controles de navegación del mini carrusel */}
+                            {variant.images.length > 1 && (
+                              <>
+                                <Button
+                                  size="sm"
+                                  variant="secondary"
+                                  className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-5 rounded-full p-0 bg-white/90 hover:bg-white shadow-md z-10"
+                                  onClick={(e) =>
+                                    handlePrevImage(
+                                      variant.variantId,
+                                      variant.images!.length,
+                                      e
+                                    )
+                                  }
+                                >
+                                  <ChevronLeft className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="secondary"
+                                  className="absolute right-0 top-1/2 -translate-y-1/2 h-5 w-5 rounded-full p-0 bg-white/90 hover:bg-white shadow-md z-10"
+                                  onClick={(e) =>
+                                    handleNextImage(
+                                      variant.variantId,
+                                      variant.images!.length,
+                                      e
+                                    )
+                                  }
+                                >
+                                  <ChevronRight className="h-3 w-3" />
+                                </Button>
+                              </>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center">
+                            <Package className="h-6 w-6 text-gray-400" />
+                          </div>
+                        )}
+                      </td>
+
                       {/* Presentación */}
-                      <td className="p-3 border-r border-purple-200/30 w-32">
+                      <td className="p-3 border-r border-purple-200/30">
                         <Badge
                           variant="secondary"
                           className="bg-emerald-100/60 text-emerald-800 border-emerald-300/50"
@@ -454,7 +508,7 @@ export default function QuotationProductRowView({
                       </td>
 
                       {/* Modelo */}
-                      <td className="p-3 border-r border-purple-200/30 w-32">
+                      <td className="p-3 border-r border-purple-200/30">
                         <Badge
                           variant="secondary"
                           className="bg-blue-100/60 text-blue-800 border-blue-300/50"
@@ -464,7 +518,7 @@ export default function QuotationProductRowView({
                       </td>
 
                       {/* Color */}
-                      <td className="p-3 border-r border-purple-200/30 w-32">
+                      <td className="p-3 border-r border-purple-200/30">
                         <Badge
                           variant="secondary"
                           className="bg-pink-100/60 text-pink-800 border-pink-300/50"
@@ -474,7 +528,7 @@ export default function QuotationProductRowView({
                       </td>
 
                       {/* Tamaño */}
-                      <td className="p-3 border-r border-purple-200/30 w-32">
+                      <td className="p-3 border-r border-purple-200/30">
                         <Badge
                           variant="secondary"
                           className="bg-purple-100/60 text-purple-800 border-purple-300/50"
@@ -484,21 +538,21 @@ export default function QuotationProductRowView({
                       </td>
 
                       {/* Cantidad */}
-                      <td className="p-3 text-center border-r border-purple-200/30 w-24">
+                      <td className="p-3 text-center border-r border-purple-200/30">
                         <span className="text-sm font-medium text-gray-700">
                           {variant.quantity || 0}
                         </span>
                       </td>
 
                       {/* Precio unitario */}
-                      <td className="p-3 text-center border-r border-purple-200/30 w-32">
+                      <td className="p-3 text-center border-r border-purple-200/30">
                         <span className="text-sm font-semibold text-emerald-700">
                           ${(variant.price || 0).toFixed(2)}
                         </span>
                       </td>
 
                       {/* Express */}
-                      <td className="p-3 text-center w-32">
+                      <td className="p-3 text-center">
                         <span className="text-sm font-semibold text-blue-700">
                           ${(variant.priceExpress || 0).toFixed(2)}
                         </span>
@@ -507,6 +561,7 @@ export default function QuotationProductRowView({
                   ))}
                 </tbody>
               </table>
+              </div>
             </div>
           </div>
         </div>
@@ -519,6 +574,7 @@ export default function QuotationProductRowView({
         files={[]}
         attachments={selectedImages.map((img) => img.url)}
         productName={product.name}
+        initialIndex={startImageIndex}
       />
     </div>
   );

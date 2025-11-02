@@ -34,6 +34,7 @@ interface DynamicValues {
 }
 
 interface UseQuotationCalculationsProps {
+  isMaritimeConsolidated: boolean;
   products: Product[];
   dynamicValues: DynamicValues;
   cif: number;
@@ -43,6 +44,7 @@ interface UseQuotationCalculationsProps {
 }
 
 export function useQuotationCalculations({
+  isMaritimeConsolidated,
   products,
   dynamicValues,
   cif,
@@ -113,7 +115,7 @@ export function useQuotationCalculations({
     const ipmAmount = (baseIPM * dynamicValues.ipmRate) / 100;
 
 
-    const basePERCEPCION = cif + adValoremAmount + iscAmount + antidumpingAmount + igvAmount + ipmAmount;
+    const basePERCEPCION = isMaritimeConsolidated ? cif + adValoremAmount + iscAmount + antidumpingAmount + igvAmount + ipmAmount : 0;
     const percepcionAmount = (basePERCEPCION * dynamicValues.percepcionRate) / 100;
 
 

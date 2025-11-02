@@ -543,35 +543,46 @@ export default function EditableUnitCostTable({
             )}
 
             <div className="w-full overflow-x-auto rounded-lg border border-slate-200/60 bg-white">
-              <table className="w-full border-collapse">
+              <table className="w-full table-fixed border-collapse">
+                <colgroup>
+                  <col style={{ width: "5%" }} />
+                  <col style={{ width: "25%" }} />
+                  <col style={{ width: "10%" }} />
+                  <col style={{ width: "8%" }} />
+                  <col style={{ width: "10%" }} />
+                  <col style={{ width: "10%" }} />
+                  <col style={{ width: "12%" }} />
+                  <col style={{ width: "10%" }} />
+                  <col style={{ width: "10%" }} />
+                </colgroup>
                 <thead>
                   <tr className="bg-gradient-to-r from-indigo-100/60 to-purple-100/50 border-b-2 border-indigo-200/50">
-                    <th className="p-3 text-center text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 w-16">
+                    <th className="p-3 text-center text-xs font-semibold text-indigo-800 border-r border-indigo-200/30">
                       NRO.
                     </th>
 
-                    <th className="p-3 text-left text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 w-7xl max-w-[36rem]">
+                    <th className="p-3 text-left text-xs font-semibold text-indigo-800 border-r border-indigo-200/30">
                       PRODUCTO & VARIANTES
                     </th>
-                    <th className="p-3 text-center text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 w-32">
+                    <th className="p-3 text-center text-xs font-semibold text-indigo-800 border-r border-indigo-200/30">
                       PRECIO
                     </th>
-                    <th className="p-3 text-center text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 w-24">
+                    <th className="p-3 text-center text-xs font-semibold text-indigo-800 border-r border-indigo-200/30">
                       CANTIDAD
                     </th>
-                    <th className="p-3 text-center text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 w-32">
+                    <th className="p-3 text-center text-xs font-semibold text-indigo-800 border-r border-indigo-200/30">
                       TOTAL
                     </th>
-                    <th className="p-3 text-center text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 w-32">
+                    <th className="p-3 text-center text-xs font-semibold text-indigo-800 border-r border-indigo-200/30">
                       EQUIVALENCIA
                     </th>
-                    <th className="p-3 text-center text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 w-40">
+                    <th className="p-3 text-center text-xs font-semibold text-indigo-800 border-r border-indigo-200/30">
                       GASTOS DE IMPORTACIÓN
                     </th>
-                    <th className="p-3 text-center text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 w-32">
+                    <th className="p-3 text-center text-xs font-semibold text-indigo-800 border-r border-indigo-200/30">
                       COSTO TOTAL
                     </th>
-                    <th className="p-3 text-center text-xs font-semibold text-indigo-800 w-36">
+                    <th className="p-3 text-center text-xs font-semibold text-indigo-800">
                       COSTO UNITARIO
                     </th>
                   </tr>
@@ -609,7 +620,7 @@ export default function EditableUnitCostTable({
                           </td>
 
                           {/* Columna 2: PRODUCTO & VARIANTES */}
-                          <td className="p-3 border-r border-slate-200/30 w-7xl max-w-[36rem]">
+                          <td className="p-3 border-r border-slate-200/30">
                             <div className="space-y-2">
                               <div>
                                 <h3
@@ -741,7 +752,7 @@ export default function EditableUnitCostTable({
                                   className="bg-gradient-to-br from-purple-50/40 to-pink-50/30 border-b border-purple-200/30 hover:bg-purple-50/50 transition-colors"
                                 >
                                   {/* Columna 1: Checkbox */}
-                                  <td className="p-3 text-center border-r border-purple-200/30 w-16">
+                                  <td className="p-3 text-center border-r border-purple-200/30">
                                     <Checkbox
                                       checked={isVariantSelected}
                                       onCheckedChange={(checked) =>
@@ -755,7 +766,7 @@ export default function EditableUnitCostTable({
                                   </td>
 
                                   {/* Columna 2: Detalles de variante con imagen */}
-                                  <td className="p-3 border-r border-purple-200/30 w-56 max-w-[14rem]">
+                                  <td className="p-3 border-r border-purple-200/30">
                                     <div className="flex gap-3">
                                       {/* Mini carrusel de imágenes */}
                                       <div className="flex-shrink-0">
@@ -931,7 +942,7 @@ export default function EditableUnitCostTable({
                                   </td>
 
                                   {/* Columna 3: Precio */}
-                                  <td className="p-3 text-center border-r border-purple-200/30 w-32">
+                                  <td className="p-3 text-center border-r border-purple-200/30">
                                     <EditableNumericField
                                       value={variant.price || 0}
                                       onChange={(value) =>
@@ -948,7 +959,7 @@ export default function EditableUnitCostTable({
                                   </td>
 
                                   {/* Columna 4: Cantidad */}
-                                  <td className="p-3 text-center border-r border-purple-200/30 w-24">
+                                  <td className="p-3 text-center border-r border-purple-200/30">
                                     <EditableNumericField
                                       value={variant.quantity || 0}
                                       onChange={(value) =>
@@ -965,7 +976,7 @@ export default function EditableUnitCostTable({
                                   </td>
 
                                   {/* Columna 5: Total */}
-                                  <td className="p-3 text-center border-r border-purple-200/30 w-32">
+                                  <td className="p-3 text-center border-r border-purple-200/30">
                                     <span className="text-sm font-semibold text-indigo-700">
                                       USD{" "}
                                       {(
@@ -976,14 +987,14 @@ export default function EditableUnitCostTable({
                                   </td>
 
                                   {/* Columna 6: Equivalencia */}
-                                  <td className="p-3 text-center border-r border-purple-200/30 w-32">
+                                  <td className="p-3 text-center border-r border-purple-200/30">
                                     <span className="text-sm font-medium text-blue-700">
                                       {(variant.equivalence || 0).toFixed(2)}%
                                     </span>
                                   </td>
 
                                   {/* Columna 7: Gastos de Importación */}
-                                  <td className="p-3 text-center border-r border-purple-200/30 w-40">
+                                  <td className="p-3 text-center border-r border-purple-200/30">
                                     <span className="text-sm font-medium text-orange-700">
                                       USD{" "}
                                       {(variant.importCosts || 0).toFixed(2)}
@@ -991,14 +1002,14 @@ export default function EditableUnitCostTable({
                                   </td>
 
                                   {/* Columna 8: Costo Total */}
-                                  <td className="p-3 text-center border-r border-purple-200/30 w-32">
+                                  <td className="p-3 text-center border-r border-purple-200/30">
                                     <span className="text-sm font-semibold text-emerald-700">
                                       USD {(variant.totalCost || 0).toFixed(2)}
                                     </span>
                                   </td>
 
                                   {/* Columna 9: Costo Unitario */}
-                                  <td className="p-3 text-center w-32">
+                                  <td className="p-3 text-center">
                                     <span className="text-sm font-semibold text-purple-700">
                                       USD {(variant.unitCost || 0).toFixed(2)}
                                     </span>

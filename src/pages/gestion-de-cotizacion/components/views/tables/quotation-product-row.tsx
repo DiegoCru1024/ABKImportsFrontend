@@ -445,31 +445,32 @@ export default function QuotationProductRow({
 
   return (
     <div className="bg-gradient-to-br from-white via-slate-50/30 to-blue-50/20 border border-slate-200/60 rounded-lg overflow-hidden">
-      <table className="w-full border-collapse">
+      <div className="w-full overflow-x-auto">
+        <table className="w-full min-w-max border-collapse">
         <thead>
           <tr className="bg-gradient-to-r from-blue-100/60 to-indigo-100/50 border-b-2 border-blue-200/50">
-            <th className="p-3 text-center text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 w-16">
+            <th className="p-3 text-center text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 min-w-[4rem]">
               NRO
             </th>
-            <th className="p-3 text-left text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 w-56 max-w-[14rem]">
+            <th className="p-3 text-left text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 min-w-[14rem]">
               PRODUCTO & VARIANTES
             </th>
-            <th className="p-3 text-left text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 w-44">
+            <th className="p-3 text-left text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 min-w-[11rem]">
               PACKING LIST
             </th>
-            <th className="p-3 text-left text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 w-44">
+            <th className="p-3 text-left text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 min-w-[11rem]">
               MANIPULACIÓN DE CARGA
             </th>
-            <th className="p-3 text-left text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 w-40">
+            <th className="p-3 text-left text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 min-w-[10rem]">
               URL FANSTAMA
             </th>
-            <th className="p-3 text-center text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 w-28">
+            <th className="p-3 text-center text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 min-w-[7rem]">
               PRECIO
             </th>
-            <th className="p-3 text-center text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 w-28">
+            <th className="p-3 text-center text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 min-w-[7rem]">
               EXPRESS
             </th>
-            <th className="p-3 text-center text-xs font-semibold text-indigo-800 w-28">
+            <th className="p-3 text-center text-xs font-semibold text-indigo-800 min-w-[7rem]">
               P. TOTAL
             </th>
           </tr>
@@ -477,7 +478,7 @@ export default function QuotationProductRow({
         <tbody>
           <tr className="border-b border-blue-200/30">
             {/* Columna 1: NRO. */}
-            <td className="p-3 text-center align-top border-r border-blue-200/30 w-16">
+            <td className="p-3 text-center align-top border-r border-blue-200/30">
               <div className="flex flex-col items-center space-y-2">
                 <div className="text-lg font-bold text-gray-800">
                   {index + 1}
@@ -490,7 +491,7 @@ export default function QuotationProductRow({
             </td>
 
             {/* Columna 3: PRODUCTO & VARIANTES */}
-            <td className="p-3 align-top border-r border-blue-200/30 w-56 max-w-[14rem]">
+            <td className="p-3 align-top border-r border-blue-200/30">
               <div className="space-y-2">
                 <div>
                   <h3
@@ -538,7 +539,7 @@ export default function QuotationProductRow({
             </td>
 
             {/* Columna 4: PACKING LIST */}
-            <td className="p-3 align-top border-r border-blue-200/30 w-40">
+            <td className="p-3 align-top border-r border-blue-200/30">
               <div className="grid grid-cols-2  text-xs gap-4">
                 <div>
                   <Badge className="bg-red-100 text-red-600 border-1 border-red-200 mb-2">
@@ -613,7 +614,7 @@ export default function QuotationProductRow({
             </td>
 
             {/* Columna 5: MANIPULACIÓN DE CARGA */}
-            <td className="p-3 align-top border-r border-blue-200/30 w-44">
+            <td className="p-3 align-top border-r border-blue-200/30">
               <div className="space-y-4 ">
                 <div className="flex items-center space-x-2">
                   <Checkbox
@@ -676,7 +677,7 @@ export default function QuotationProductRow({
             </td>
 
             {/* Columna 6: URL */}
-            <td className="space-y-4 align-top border-r border-blue-200/30 w-40">
+            <td className="space-y-4 align-top border-r border-blue-200/30">
               <div className=" flex flex-col justify-center items-center gap-3 p-2">
 
                 {/* Botón para ver comentarios y URL */}
@@ -747,7 +748,7 @@ export default function QuotationProductRow({
             </td>
 
             {/* Columna 7: PRECIO */}
-            <td className="p-3 text-center align-top border-r border-blue-200/30 w-28">
+            <td className="p-3 text-center align-top border-r border-blue-200/30">
               <div className="text-xs text-slate-600 mb-1">USD</div>
               <div className="text-lg font-semibold text-emerald-700 border border-emerald-300/50 rounded-lg px-2 py-1 bg-emerald-100/50">
                 ${aggregatedData.totalPrice.toFixed(2)}
@@ -755,7 +756,7 @@ export default function QuotationProductRow({
             </td>
 
             {/* Columna 8: EXPRESS */}
-            <td className="p-3 text-center align-top border-r border-blue-200/30 w-28">
+            <td className="p-3 text-center align-top border-r border-blue-200/30">
               <div className="text-xs text-slate-600 mb-1">USD</div>
               <div className="text-lg font-semibold text-blue-700 border border-blue-300/50 rounded-lg px-2 py-1 bg-blue-100/50">
                 ${(aggregatedData.totalExpress || 0).toFixed(2)}
@@ -763,7 +764,7 @@ export default function QuotationProductRow({
             </td>
 
             {/* Columna 9: P. TOTAL */}
-            <td className="p-3 text-center align-top w-28">
+            <td className="p-3 text-center align-top">
               <div className="text-xs text-slate-600 mb-1">USD</div>
               <div className="text-lg font-semibold text-indigo-700 border border-indigo-300/50 rounded-lg px-2 py-1 bg-indigo-100/50">
                 $
@@ -776,6 +777,7 @@ export default function QuotationProductRow({
           </tr>
         </tbody>
       </table>
+      </div>
 
       {/* Expanded Variants */}
       {isExpanded &&
@@ -789,34 +791,35 @@ export default function QuotationProductRow({
 
               {/* Tabla de variantes con HTML nativo */}
               <div className="bg-white rounded-lg border border-slate-200/60 overflow-hidden">
-                <table className="w-full border-collapse">
+                <div className="w-full overflow-x-auto">
+                  <table className="w-full min-w-max border-collapse">
                   <thead>
                     <tr className="bg-gradient-to-r from-purple-100/60 to-pink-100/50 border-b-2 border-purple-200/50">
-                      <th className="p-3 text-center text-xs font-semibold text-purple-800 border-r border-purple-200/30 w-16">
+                      <th className="p-3 text-center text-xs font-semibold text-purple-800 border-r border-purple-200/30 min-w-[4rem]">
                         Cotizar
                       </th>
-                      <th className="p-3 text-center text-xs font-semibold text-purple-800 border-r border-purple-200/30 w-16">
+                      <th className="p-3 text-center text-xs font-semibold text-purple-800 border-r border-purple-200/30 min-w-[6rem]">
                         Imagen
                       </th>
-                      <th className="p-3 text-left text-xs font-semibold text-purple-800 border-r border-purple-200/30 w-32">
+                      <th className="p-3 text-left text-xs font-semibold text-purple-800 border-r border-purple-200/30 min-w-[8rem]">
                         Presentación
                       </th>
-                      <th className="p-3 text-left text-xs font-semibold text-purple-800 border-r border-purple-200/30 w-32">
+                      <th className="p-3 text-left text-xs font-semibold text-purple-800 border-r border-purple-200/30 min-w-[8rem]">
                         Modelo
                       </th>
-                      <th className="p-3 text-left text-xs font-semibold text-purple-800 border-r border-purple-200/30 w-32">
+                      <th className="p-3 text-left text-xs font-semibold text-purple-800 border-r border-purple-200/30 min-w-[8rem]">
                         Color
                       </th>
-                      <th className="p-3 text-left text-xs font-semibold text-purple-800 border-r border-purple-200/30 w-32">
+                      <th className="p-3 text-left text-xs font-semibold text-purple-800 border-r border-purple-200/30 min-w-[8rem]">
                         Tamaño
                       </th>
-                      <th className="p-3 text-center text-xs font-semibold text-orange-700 border-r border-purple-200/30 w-24">
+                      <th className="p-3 text-center text-xs font-semibold text-orange-700 border-r border-purple-200/30 min-w-[7rem]">
                         Cantidad
                       </th>
-                      <th className="p-3 text-center text-xs font-semibold text-emerald-700 border-r border-purple-200/30 w-32">
+                      <th className="p-3 text-center text-xs font-semibold text-emerald-700 border-r border-purple-200/30 min-w-[9rem]">
                         Precio unitario
                       </th>
-                      <th className="p-3 text-center text-xs font-semibold text-blue-700 w-32">
+                      <th className="p-3 text-center text-xs font-semibold text-blue-700 min-w-[8rem]">
                         Express
                       </th>
                     </tr>
@@ -831,7 +834,7 @@ export default function QuotationProductRow({
                       return (
                         <tr key={variant.variantId} className="text-sm">
                           {/* Checkbox para seleccionar */}
-                          <td className="p-3 text-center border-r border-purple-200/30 w-16">
+                          <td className="p-3 text-center border-r border-purple-200/30">
                             <Checkbox
                               checked={isVariantSelected}
                               onCheckedChange={(checked) =>
@@ -843,7 +846,7 @@ export default function QuotationProductRow({
                             />
                           </td>
                           {/* Imagen con mini carrusel */}
-                          <td className="p-3 border-r border-purple-200/30 w-32">
+                          <td className="p-3 border-r border-purple-200/30">
                             {variant.attachments &&
                             variant.attachments.length > 0 ? (
                               <div className="relative w-20 h-20">
@@ -941,7 +944,7 @@ export default function QuotationProductRow({
                           </td>
 
                           {/* Presentación */}
-                          <td className="p-3 border-r border-purple-200/30 w-32">
+                          <td className="p-3 border-r border-purple-200/30">
                             <Badge
                               variant="secondary"
                               className="bg-emerald-100/60 text-emerald-800 border-emerald-300/50"
@@ -951,7 +954,7 @@ export default function QuotationProductRow({
                           </td>
 
                           {/* Modelo */}
-                          <td className="p-3 border-r border-purple-200/30 w-32">
+                          <td className="p-3 border-r border-purple-200/30">
                             <Badge
                               variant="secondary"
                               className="bg-blue-100/60 text-blue-800 border-blue-300/50"
@@ -961,7 +964,7 @@ export default function QuotationProductRow({
                           </td>
 
                           {/* Color */}
-                          <td className="p-3 border-r border-purple-200/30 w-32">
+                          <td className="p-3 border-r border-purple-200/30">
                             <Badge
                               variant="secondary"
                               className="bg-pink-100/60 text-pink-800 border-pink-300/50"
@@ -971,7 +974,7 @@ export default function QuotationProductRow({
                           </td>
 
                           {/* Tamaño */}
-                          <td className="p-3 border-r border-purple-200/30 w-32">
+                          <td className="p-3 border-r border-purple-200/30">
                             <Badge
                               variant="secondary"
                               className="bg-purple-100/60 text-purple-800 border-purple-300/50"
@@ -981,7 +984,7 @@ export default function QuotationProductRow({
                           </td>
 
                           {/* Cantidad */}
-                          <td className="p-3 text-center border-r border-purple-200/30 w-24">
+                          <td className="p-3 text-center border-r border-purple-200/30">
                             {isVariantSelected ? (
                               <EditableNumericField
                                 value={Number(variant.quantity) || 0}
@@ -1003,7 +1006,7 @@ export default function QuotationProductRow({
                           </td>
 
                           {/* Precio unitario */}
-                          <td className="p-3 text-center border-r border-purple-200/30 w-32">
+                          <td className="p-3 text-center border-r border-purple-200/30">
                             {isVariantSelected ? (
                               <EditableNumericField
                                 value={Number(variant.price) || 0}
@@ -1025,7 +1028,7 @@ export default function QuotationProductRow({
                           </td>
 
                           {/* Express */}
-                          <td className="p-3 text-center w-32">
+                          <td className="p-3 text-center">
                             {isVariantSelected ? (
                               <EditableNumericField
                                 value={Number(variant.priceExpress) || 0}
@@ -1050,6 +1053,7 @@ export default function QuotationProductRow({
                     })}
                   </tbody>
                 </table>
+                </div>
               </div>
             </div>
           </div>

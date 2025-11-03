@@ -11,15 +11,15 @@ import { ErrorState } from "@/components/ui/error-state";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import SendingModal from "@/components/sending-modal";
 
-import { QuotationSummaryCard } from "../forms/quotation-summary-card";
-import { QuotationConfigurationForm } from "../forms/quotation-configuration-form";
-import { MaritimeServiceForm } from "../forms/maritime-service-form";
-import { UnifiedConfigurationForm } from "../forms/unified-configuration-form";
+import { QuotationSummaryCard } from "../components/forms/quotation-summary-card";
+import { QuotationConfigurationForm } from "../components/forms/quotation-configuration-form";
+import { MaritimeServiceForm } from "../components/forms/maritime-service-form";
+import { UnifiedConfigurationForm } from "../components/forms/unified-configuration-form";
 
-import { useQuotationResponseForm } from "../../hooks/use-quotation-response-form";
-import { useQuotationCalculations } from "../../hooks/use-quotation-calculations";
-import type { DetailsResponseProps } from "../utils/interface";
-import { QuotationResponseDirector } from "../../utils/quotation-response-director";
+import { useQuotationResponseForm } from "../hooks/use-quotation-response-form";
+import { useQuotationCalculations } from "../hooks/use-quotation-calculations";
+import type { DetailsResponseProps } from "../components/utils/interface";
+import { QuotationResponseDirector } from "../utils/quotation-response-director";
 import {
   aduana,
   courier,
@@ -33,13 +33,13 @@ import {
   serviciosLogisticos,
   tipoServicio,
   typeLoad,
-} from "../utils/static";
-import ServiceConsolidationCard from "./partials/ServiceConsolidationCard";
-import ImportExpensesCard from "./partials/ImportExpensesCard";
-import ImportSummaryCard from "./partials/ImportSummaryCard";
-import TaxObligationsCard from "./partials/TaxObligationsCard";
-import EditableUnitCostTable from "./tables/editable-unit-cost-table";
-import QuotationProductRow from "./tables/quotation-product-row";
+} from "../components/utils/static";
+import ServiceConsolidationCard from "../components/views/partials/ServiceConsolidationCard";
+import ImportExpensesCard from "../components/views/partials/ImportExpensesCard";
+import ImportSummaryCard from "../components/views/partials/ImportSummaryCard";
+import TaxObligationsCard from "../components/views/partials/TaxObligationsCard";
+import EditableUnitCostTable from "../components/views/tables/editable-unit-cost-table";
+import QuotationProductRow from "../components/views/tables/quotation-product-row";
 
 export default function QuotationResponseView({
   selectedQuotationId,

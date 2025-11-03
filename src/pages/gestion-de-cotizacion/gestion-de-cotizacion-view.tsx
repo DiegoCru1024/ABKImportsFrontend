@@ -5,7 +5,7 @@ import {
   FileText,
 } from "lucide-react";
 
-import QuotationResponseView from "./components/views/quotation-response-view";
+import QuotationResponseView from "./quotation-response-view/quotation-response-view";
 import QuotationResponsesList from "./components/views/quotation-responses-list";
 import { QuotationCard } from "./components/shared/quotation-card";
 

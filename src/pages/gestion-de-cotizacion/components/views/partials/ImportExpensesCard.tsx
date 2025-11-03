@@ -66,6 +66,7 @@ export default function ImportExpensesCard({
   serviceType,
   serviceFieldsFromConsolidation,
 }: ImportExpensesCardProps) {
+
   const getExpenseIcon = (id: string) => {
     switch (id) {
       case "servicioConsolidadoMaritimo":
@@ -79,7 +80,6 @@ export default function ImportExpensesCard({
         return <FileText className="h-4 w-4 text-green-500" />;
       case "servicioInspeccion":
         return <Shield className="h-4 w-4 text-purple-500" />;
-      case "transporteLocal":
       case "transporteLocalChina":
       case "transporteLocalDestino":
       case "servicioTransporte":

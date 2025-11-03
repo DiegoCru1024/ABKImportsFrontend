@@ -1228,6 +1228,7 @@ export default function QuotationResponseView({
             </div>
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6">
               <ImportExpensesCard
+                comercialValue={quotationForm.dynamicValues.comercialValue}
                 isMaritime={quotationForm.isMaritimeService()}
                 values={{
                   servicioConsolidadoMaritimoFinal:

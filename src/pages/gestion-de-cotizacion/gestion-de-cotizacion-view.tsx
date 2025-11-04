@@ -3,11 +3,14 @@ import { useNavigate } from "react-router-dom";
 import {
   ChevronLeft,
   FileText,
+  LayoutGrid,
+  Columns3,
 } from "lucide-react";
 
 import QuotationResponseView from "./quotation-response-view/quotation-response-view";
 import QuotationResponsesList from "./components/views/quotation-responses-list";
 import { QuotationCard } from "./components/shared/quotation-card";
+import { QuotationsKanbanView } from "./components/views/quotations-kanban-view";
 
 import { useQuotationList } from "./hooks/use-quotation-list";
 import { useImageModal } from "./hooks/use-image-modal";
@@ -36,6 +39,7 @@ export default function GestionDeCotizacionesView() {
 
   const [mainTab, setMainTab] = useState<string>("solicitudes");
   const [selectedQuotationId, setSelectedQuotationId] = useState<string>("");
+  const [viewMode, setViewMode] = useState<"grid" | "kanban">("grid");
 
   const quotationList = useQuotationList();
   const imageModal = useImageModal();
@@ -104,16 +108,41 @@ export default function GestionDeCotizacionesView() {
       />
 
       <div className="flex-1 flex flex-col container mx-auto px-4 py-6 max-w-full">
-        <SearchFilters
-          searchValue={quotationList.searchTerm}
-          onSearchChange={quotationList.handleSearchChange}
-          filterValue={quotationList.filter}
-          onFilterChange={quotationList.handleFilterChange}
-          filterOptions={filterOptions}
-          searchPlaceholder="Buscar por cliente o ID de cotización..."
-          filterPlaceholder="Filtrar por estado"
-          onClearFilter={quotationList.clearFilter}
-        />
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2 bg-white rounded-lg p-1 shadow-sm border border-slate-200">
+            <Button
+              variant={viewMode === "grid" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("grid")}
+              className="flex items-center gap-2"
+            >
+              <LayoutGrid className="w-4 h-4" />
+              <span className="hidden sm:inline">Tarjetas</span>
+            </Button>
+            <Button
+              variant={viewMode === "kanban" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("kanban")}
+              className="flex items-center gap-2"
+            >
+              <Columns3 className="w-4 h-4" />
+              <span className="hidden sm:inline">Kanban</span>
+            </Button>
+          </div>
+        </div>
+
+        {viewMode === "grid" && (
+          <SearchFilters
+            searchValue={quotationList.searchTerm}
+            onSearchChange={quotationList.handleSearchChange}
+            filterValue={quotationList.filter}
+            onFilterChange={quotationList.handleFilterChange}
+            filterOptions={filterOptions}
+            searchPlaceholder="Buscar por cliente o ID de cotización..."
+            filterPlaceholder="Filtrar por estado"
+            onClearFilter={quotationList.clearFilter}
+          />
+        )}
 
         {quotationList.isLoading && (
           <LoadingState message="Cargando cotizaciones..." variant="card" />
@@ -129,34 +158,45 @@ export default function GestionDeCotizacionesView() {
 
         {!quotationList.isLoading && !quotationList.isError && (
           <>
-            <div className="grid gap-6 grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3">
-              {quotationList.data.map((quotation) => (
-                <QuotationCard
-                  key={quotation.quotationId}
-                  quotation={quotation}
+            {viewMode === "grid" ? (
+              <>
+                <div className="grid gap-6 grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3">
+                  {quotationList.data.map((quotation) => (
+                    <QuotationCard
+                      key={quotation.quotationId}
+                      quotation={quotation}
+                      onViewDetails={handleViewDetails}
+                      onViewResponses={handleViewListResponses}
+                      onOpenImageModal={imageModal.openModal}
+                    />
+                  ))}
+                </div>
+
+                <PaginationControls
+                  currentPage={quotationList.pageInfo.pageNumber}
+                  totalPages={quotationList.pageInfo.totalPages}
+                  totalElements={quotationList.pageInfo.totalElements}
+                  pageSize={quotationList.pageInfo.pageSize}
+                  onPageChange={quotationList.handlePageChange}
+                />
+
+                {quotationList.data.length === 0 && (
+                  <div className="flex flex-col items-center justify-center flex-1 py-12">
+                    <FileText className="w-16 h-16 mb-4 text-gray-400" />
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      No se encontraron cotizaciones
+                    </h3>
+                    <p className="text-sm text-gray-600">No hay cotizaciones que coincidan con tu búsqueda.</p>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="flex-1 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <QuotationsKanbanView
+                  quotations={quotationList.data}
                   onViewDetails={handleViewDetails}
                   onViewResponses={handleViewListResponses}
-                  onOpenImageModal={imageModal.openModal}
-                 
                 />
-              ))}
-            </div>
-
-            <PaginationControls
-              currentPage={quotationList.pageInfo.pageNumber}
-              totalPages={quotationList.pageInfo.totalPages}
-              totalElements={quotationList.pageInfo.totalElements}
-              pageSize={quotationList.pageInfo.pageSize}
-              onPageChange={quotationList.handlePageChange}
-            />
-
-            {quotationList.data.length === 0 && (
-              <div className="flex flex-col items-center justify-center flex-1 py-12">
-                <FileText className="w-16 h-16 mb-4 text-gray-400" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  No se encontraron cotizaciones
-                </h3>
-                <p className="text-sm text-gray-600">No hay cotizaciones que coincidan con tu búsqueda.</p>
               </div>
             )}
           </>

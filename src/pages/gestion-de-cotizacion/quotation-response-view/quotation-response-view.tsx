@@ -83,7 +83,7 @@ export default function QuotationResponseView({
           comment: product.comment || "",
           quantityTotal: product.quantityTotal || 0,
           boxes: product.number_of_boxes,
-          priceXiaoYi: 0, // Valor por defecto
+          priceXiaoYi: 0, // Valor por defecto 
           cbmTotal: parseFloat(product.volume) || 0,
           express: 0, // Valor por defecto
           total: 0, // Valor por defecto

@@ -138,39 +138,6 @@ export default function ImportExpensesCard({
   const isExpressConsolidatedGrupal =
     serviceType === "Consolidado Grupal Express";
 
-  useEffect(() => {
-    console.log("=== IMPORT EXPENSES CARD DEBUG ===");
-    console.log("Service Type:", serviceType);
-    console.log("Commercial Value:", comercialValue);
-    console.log("Is Maritime:", isMaritime);
-    console.log("\n--- Express Booleans ---");
-    console.log("isExpressConsolidatedPersonal:", isExpressConsolidatedPersonal);
-    console.log("isExpressConsolidatedSimplificada:", isExpressConsolidatedSimplificada);
-    console.log("isExpressConsolidatedGrupal:", isExpressConsolidatedGrupal);
-
-    if (isExpressConsolidatedPersonal) {
-      console.log("\n--- Express Personal Calculations (<$200) ---");
-      console.log("Flete Internacional:", values.flete || 0);
-      console.log("Desaduanaje:", values.desaduanaje || 0);
-      console.log("Se exoneran impuestos: SÍ");
-    }
-
-    if (isExpressConsolidatedSimplificada) {
-      console.log("\n--- Express Simplificada Calculations (>=$200) ---");
-      console.log("AD/VALOREM + IGV + IPM:", values.totalDerechosDolaresFinal);
-      console.log("DESADUANAJE + FLETE + SEGURO:", values.desaduanajeFleteSaguro);
-      console.log("Se exoneran impuestos: NO");
-    }
-
-    if (isExpressConsolidatedGrupal) {
-      console.log("\n--- Express Grupal Calculations ---");
-      console.log("AD/VALOREM + IGV + IPM (50% desc):", values.totalDerechosDolaresFinal * 0.5);
-      console.log("Flete Internacional:", values.flete || 0);
-      console.log("Se exonera INSPECCIÓN DE PRODUCTOS: SÍ");
-    }
-
-    console.log("==================================\n");
-  }, [serviceType, comercialValue, isExpressConsolidatedPersonal, isExpressConsolidatedSimplificada, isExpressConsolidatedGrupal, values]);
 
   const calculateMaritimeConsolidatedValues = () => {
     if (!isMaritimeConsolidated || !serviceFieldsFromConsolidation) {

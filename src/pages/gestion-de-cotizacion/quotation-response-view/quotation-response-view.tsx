@@ -849,6 +849,14 @@ export default function QuotationResponseView({
         serviceCalculationsData.totalServices = subtotal * 1.18;
 
         //? Gastos de importación
+        const comercialValue = quotationForm.dynamicValues.comercialValue || 0;
+        const isExpressConsolidatedPersonal =
+          quotationForm.selectedServiceLogistic === "Consolidado Express" && comercialValue < 200;
+        const isExpressConsolidatedSimplificada =
+          quotationForm.selectedServiceLogistic === "Consolidado Express" && comercialValue >= 200;
+        const isExpressConsolidatedGrupal =
+          quotationForm.selectedServiceLogistic === "Consolidado Grupal Express";
+
         const importCostsData = {
           expenseFields: {
             servicioConsolidado:
@@ -861,23 +869,40 @@ export default function QuotationResponseView({
               serviceCalculationsData.serviceFields.gestionCertificado,
             inspeccionProductos:
               serviceCalculationsData.serviceFields.inspeccionProductos,
-            addvaloremigvipm: {
-              descuento: calculationsData.exemptions.obligacionesFiscales,
-              valor: calculations.totalTaxes || 0,
-            },
-            desadunajefleteseguro: calculationsData.dynamicValues.desaduanaje,
             totalDerechos:
               calculations.totalTaxes || 0,
             servicioTransporte:
               (quotationForm.dynamicValues.transporteLocalChinaEnvio || 0) +
-              (quotationForm.dynamicValues.transporteLocalClienteEnvio || 0)* 1.18 ,
+              (quotationForm.dynamicValues.transporteLocalClienteEnvio || 0) * 1.18,
             servicioInspeccion:
               (serviceCalculationsData.serviceFields.inspeccionProductos || 0) +
               (serviceCalculationsData.serviceFields.inspeccionFabrica || 0),
             otrosServicios:
               serviceCalculationsData.serviceFields.otrosServicios || 0,
+
+            desaduanaje: isExpressConsolidatedPersonal
+              ? quotationForm.dynamicValues.desaduanaje || 0
+              : 0,
+
+            addvaloremigvipm: isExpressConsolidatedSimplificada
+              ? calculations.totalTaxes || 0
+              : 0,
+
+            desadunajefleteseguro: isExpressConsolidatedSimplificada
+              ? (quotationForm.dynamicValues.desaduanaje || 0) +
+                (quotationForm.dynamicValues.flete || 0) +
+                (quotationForm.dynamicValues.seguro || 0)
+              : 0,
+
+            addvaloremigvipm50: isExpressConsolidatedGrupal
+              ? (calculations.totalTaxes || 0) * 0.5
+              : 0,
+
+            fleteInternacional: (isExpressConsolidatedPersonal || isExpressConsolidatedGrupal)
+              ? quotationForm.dynamicValues.flete || 0
+              : 0,
           },
-          totalExpenses: calculations.finalTotal || 0,
+          totalExpenses: totalImportCosts,
         };
 
         //? Resumen de importación

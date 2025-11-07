@@ -10,18 +10,27 @@ export interface ExpenseFieldsInterface {
 
   seguroProductos: number;
 
-  gestionCertificado:number;
+  gestionCertificado: number;
 
-
-  addvaloremigvipm: AddValoremIgvImpInterface;
-
-  desadunajefleteseguro: number;
-
-  totalDerechos:number;
+  totalDerechos: number;
 
   servicioTransporte: number;
 
   servicioInspeccion: number;
 
   otrosServicios: number;
+
+  //! Solo consolidado express simplificada
+
+  desaduanaje: number;
+
+  //! Solo para consolidado express personal
+  addvaloremigvipm: number;
+
+  desadunajefleteseguro: number;
+  //! Solo consolidado express grupal
+  addvaloremigvipm50: number;
+
+  //? Aplica para consolidado express simplificada y grupal
+  fleteInternacional: number;
 }

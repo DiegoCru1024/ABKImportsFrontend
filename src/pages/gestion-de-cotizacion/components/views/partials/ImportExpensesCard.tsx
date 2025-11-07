@@ -1,4 +1,5 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
+
 import { Badge } from "@/components/ui/badge";
 import {
   CheckCircle,
@@ -32,6 +33,9 @@ export interface ImportExpensesCardProps {
     desaduanajeFleteSaguro: number;
     transporteLocalChinaEnvio: number;
     transporteLocalClienteEnvio: number;
+    flete?: number;
+    desaduanaje?: number;
+    seguro?: number;
   };
   exemptionState: Record<string, boolean>;
   handleExemptionChange: (field: string, checked: boolean) => void;
@@ -135,12 +139,38 @@ export default function ImportExpensesCard({
     serviceType === "Consolidado Grupal Express";
 
   useEffect(() => {
-    console.log("Este es el valor de serviceType", serviceType);
-    console.log(
-      "Valor de isExpressConsolidatedSimplificada",
-      isExpressConsolidatedSimplificada
-    );
-  }, [serviceType, comercialValue]);
+    console.log("=== IMPORT EXPENSES CARD DEBUG ===");
+    console.log("Service Type:", serviceType);
+    console.log("Commercial Value:", comercialValue);
+    console.log("Is Maritime:", isMaritime);
+    console.log("\n--- Express Booleans ---");
+    console.log("isExpressConsolidatedPersonal:", isExpressConsolidatedPersonal);
+    console.log("isExpressConsolidatedSimplificada:", isExpressConsolidatedSimplificada);
+    console.log("isExpressConsolidatedGrupal:", isExpressConsolidatedGrupal);
+
+    if (isExpressConsolidatedPersonal) {
+      console.log("\n--- Express Personal Calculations (<$200) ---");
+      console.log("Flete Internacional:", values.flete || 0);
+      console.log("Desaduanaje:", values.desaduanaje || 0);
+      console.log("Se exoneran impuestos: SÍ");
+    }
+
+    if (isExpressConsolidatedSimplificada) {
+      console.log("\n--- Express Simplificada Calculations (>=$200) ---");
+      console.log("AD/VALOREM + IGV + IPM:", values.totalDerechosDolaresFinal);
+      console.log("DESADUANAJE + FLETE + SEGURO:", values.desaduanajeFleteSaguro);
+      console.log("Se exoneran impuestos: NO");
+    }
+
+    if (isExpressConsolidatedGrupal) {
+      console.log("\n--- Express Grupal Calculations ---");
+      console.log("AD/VALOREM + IGV + IPM (50% desc):", values.totalDerechosDolaresFinal * 0.5);
+      console.log("Flete Internacional:", values.flete || 0);
+      console.log("Se exonera INSPECCIÓN DE PRODUCTOS: SÍ");
+    }
+
+    console.log("==================================\n");
+  }, [serviceType, comercialValue, isExpressConsolidatedPersonal, isExpressConsolidatedSimplificada, isExpressConsolidatedGrupal, values]);
 
   const calculateMaritimeConsolidatedValues = () => {
     if (!isMaritimeConsolidated || !serviceFieldsFromConsolidation) {
@@ -231,11 +261,15 @@ export default function ImportExpensesCard({
       label: "SEGURO DE PRODUCTOS",
       value: inspeccionProductosFinal * 1.18,
     },
-    {
-      id: "inspeccionProductos",
-      label: "INSPECCIÓN DE PRODUCTOS",
-      value: inspeccionProductosFinal * 1.18,
-    },
+    ...(isExpressConsolidatedGrupal
+      ? []
+      : [
+          {
+            id: "inspeccionProductos",
+            label: "INSPECCIÓN DE PRODUCTOS",
+            value: inspeccionProductosFinal * 1.18,
+          },
+        ]),
     {
       id: "servicioTransporte",
       label: "SERVICIO DE TRANSPORTE",
@@ -246,12 +280,12 @@ export default function ImportExpensesCard({
           {
             id: "fleteInternacional",
             label: "FLETE INTERNACIONAL",
-            value: inspeccionProductosFinal * 1.18,
+            value: values.flete || 0,
           },
           {
             id: "desaduanaje",
             label: "DESADUANAJE",
-            value: inspeccionProductosFinal * 1.18,
+            value: values.desaduanaje || 0,
           },
         ]
       : []),
@@ -272,14 +306,14 @@ export default function ImportExpensesCard({
     ...(isExpressConsolidatedGrupal
       ? [
           {
-            id: "fleteInternacional",
-            label: "FLETE INTERNACIONAL",
-            value: inspeccionProductosFinal * 1.18,
+            id: "adValoremIgvIpmDescuento",
+            label: "AD/VALOREM + IGV + IPM (-50%)",
+            value: values.totalDerechosDolaresFinal * 0.5,
           },
           {
-            id: "adValoremIgvIpm",
-            label: "AD/VALOREM + IGV + IPM",
-            value: values.totalDerechosDolaresFinal,
+            id: "fleteInternacional",
+            label: "FLETE INTERNACIONAL",
+            value: values.flete || 0,
           },
         ]
       : []),

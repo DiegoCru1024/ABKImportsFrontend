@@ -47,6 +47,10 @@ interface ExemptionState {
   servicioInspeccion: boolean;
   totalDerechos: boolean;
   descuentoGrupalExpress: boolean;
+  fleteInternacional: boolean;
+  desaduanaje: boolean;
+  adValoremIgvIpm: boolean;
+  adValoremIgvIpmDescuento: boolean;
 }
 
 interface UseQuotationResponseFormProps {
@@ -140,6 +144,10 @@ export function useQuotationResponseForm({
     servicioInspeccion: false,
     totalDerechos: false,
     descuentoGrupalExpress: false,
+    fleteInternacional: false,
+    desaduanaje: false,
+    adValoremIgvIpm: false,
+    adValoremIgvIpmDescuento: false,
   });
   
   // Estados para productos editables

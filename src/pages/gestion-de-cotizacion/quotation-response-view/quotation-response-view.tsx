@@ -591,43 +591,129 @@ export default function QuotationResponseView({
     };
   }, [quotationDetail?.products]);
 
-  // Calcular totalImportCosts correctamente
+  // Calcular totalImportCosts correctamente - debe coincidir con ImportExpensesCard
   const totalImportCosts = useMemo(() => {
     const serviceFields = quotationForm.getServiceFields();
+    const isMaritime = quotationForm.isMaritimeService();
+    const comercialValue = quotationForm.dynamicValues.comercialValue || 0;
 
-    // Calcular valores con IGV (1.18)
-    const servicioConsolidado = (serviceFields.servicioConsolidado || 0) * 1.18;
-    const gestionCertificado = (serviceFields.gestionCertificado || 0) * 1.18;
+    const isExpressConsolidatedPersonal =
+      quotationForm.selectedServiceLogistic === "Consolidado Express" && comercialValue < 200;
+    const isExpressConsolidatedSimplificada =
+      quotationForm.selectedServiceLogistic === "Consolidado Express" && comercialValue >= 200;
+    const isExpressConsolidatedGrupal =
+      quotationForm.selectedServiceLogistic === "Consolidado Grupal Express";
 
-    // servicioInspeccion = (inspeccionProductos + inspeccionFabrica) × 1.18
-    const servicioInspeccion = (
-      (serviceFields.inspeccionProductos || 0) +
-      (serviceFields.inspeccionFabrica || 0)
-    ) * 1.18;
+    const applyExemption = (value: number, exempted: boolean) => (exempted ? 0 : value);
 
-    // servicioTransporte = (transporteLocalChina × 1.18) + transporteLocalDestino
-    const servicioTransporte =
-      (quotationForm.dynamicValues.transporteLocalChinaEnvio || 0) * 1.18 +
-      (quotationForm.dynamicValues.transporteLocalClienteEnvio || 0);
+    if (isMaritime) {
+      const servicioConsolidado = applyExemption(
+        (serviceFields.servicioConsolidado || 0) * 1.18,
+        quotationForm.exemptionState.servicioConsolidadoMaritimo
+      );
+      const gestionCertificado = applyExemption(
+        (serviceFields.gestionCertificado || 0) * 1.18,
+        quotationForm.exemptionState.gestionCertificado
+      );
+      const servicioInspeccion = applyExemption(
+        ((serviceFields.inspeccionProductos || 0) + (serviceFields.inspeccionFabrica || 0)) * 1.18,
+        quotationForm.exemptionState.servicioInspeccion
+      );
+      const servicioTransporte =
+        quotationForm.dynamicValues.transporteLocalChinaEnvio +
+        quotationForm.dynamicValues.transporteLocalClienteEnvio;
+      const otrosServicios = (serviceFields.otrosServicios || 0) * 1.18;
+      const totalDerechos = applyExemption(
+        calculations.totalTaxes || 0,
+        quotationForm.exemptionState.totalDerechos
+      );
 
-    const otrosServicios = (serviceFields.otrosServicios || 0) * 1.18;
+      return parseFloat((
+        servicioConsolidado +
+        gestionCertificado +
+        servicioInspeccion +
+        servicioTransporte +
+        otrosServicios +
+        totalDerechos
+      ).toFixed(2));
+    } else {
+      const servicioConsolidado = applyExemption(
+        (serviceFields.servicioConsolidado || 0) * 1.18,
+        quotationForm.exemptionState.servicioConsolidadoAereo
+      );
+      const separacionCarga = applyExemption(
+        (serviceFields.separacionCarga || 0) * 1.18,
+        quotationForm.exemptionState.separacionCarga
+      );
+      const seguroProductos = applyExemption(
+        (serviceFields.inspeccionProductos || 0) * 1.18,
+        quotationForm.exemptionState.inspeccionProductos
+      );
+      const inspeccionProductos = isExpressConsolidatedGrupal
+        ? 0
+        : applyExemption(
+            (serviceFields.inspeccionProductos || 0) * 1.18,
+            quotationForm.exemptionState.inspeccionProductos
+          );
+      const servicioTransporte =
+        quotationForm.dynamicValues.transporteLocalChinaEnvio +
+        quotationForm.dynamicValues.transporteLocalClienteEnvio;
 
-    // totalDerechos viene de fiscalObligations.totalTaxes
-    const totalDerechos = calculations.totalTaxes || 0;
+      let additionalExpenses = 0;
 
-    // totalExpenses es la suma de los conceptos especificados
-    return parseFloat((
-      servicioConsolidado +
-      gestionCertificado +
-      servicioInspeccion +
-      servicioTransporte +
-      otrosServicios +
-      totalDerechos
-    ).toFixed(2));
+      if (isExpressConsolidatedPersonal) {
+        additionalExpenses =
+          applyExemption(
+            quotationForm.dynamicValues.flete || 0,
+            quotationForm.exemptionState.fleteInternacional || false
+          ) +
+          applyExemption(
+            quotationForm.dynamicValues.desaduanaje || 0,
+            quotationForm.exemptionState.desaduanaje || false
+          );
+      } else if (isExpressConsolidatedSimplificada) {
+        additionalExpenses =
+          applyExemption(
+            calculations.totalTaxes || 0,
+            quotationForm.exemptionState.adValoremIgvIpm || false
+          ) +
+          applyExemption(
+            quotationForm.dynamicValues.desaduanaje +
+              quotationForm.dynamicValues.flete +
+              quotationForm.dynamicValues.seguro,
+            quotationForm.exemptionState.desaduanajeFleteSaguro || false
+          );
+      } else if (isExpressConsolidatedGrupal) {
+        additionalExpenses =
+          applyExemption(
+            (calculations.totalTaxes || 0) * 0.5,
+            quotationForm.exemptionState.adValoremIgvIpmDescuento || false
+          ) +
+          applyExemption(
+            quotationForm.dynamicValues.flete || 0,
+            quotationForm.exemptionState.fleteInternacional || false
+          );
+      }
+
+      return parseFloat((
+        servicioConsolidado +
+        separacionCarga +
+        seguroProductos +
+        inspeccionProductos +
+        servicioTransporte +
+        additionalExpenses
+      ).toFixed(2));
+    }
   }, [
     quotationForm.getServiceFields,
+    quotationForm.selectedServiceLogistic,
+    quotationForm.dynamicValues.comercialValue,
     quotationForm.dynamicValues.transporteLocalChinaEnvio,
     quotationForm.dynamicValues.transporteLocalClienteEnvio,
+    quotationForm.dynamicValues.flete,
+    quotationForm.dynamicValues.desaduanaje,
+    quotationForm.dynamicValues.seguro,
+    quotationForm.exemptionState,
     calculations.totalTaxes,
   ]);
 
@@ -1247,6 +1333,9 @@ export default function QuotationResponseView({
                     quotationForm.dynamicValues.transporteLocalChinaEnvio,
                   transporteLocalClienteEnvio:
                     quotationForm.dynamicValues.transporteLocalClienteEnvio,
+                  flete: quotationForm.dynamicValues.flete,
+                  desaduanaje: quotationForm.dynamicValues.desaduanaje,
+                  seguro: quotationForm.dynamicValues.seguro,
                 }}
                 exemptionState={
                   quotationForm.exemptionState as unknown as Record<

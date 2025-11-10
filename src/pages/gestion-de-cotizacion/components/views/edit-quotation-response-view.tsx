@@ -449,7 +449,13 @@ export default function EditQuotationResponseView() {
     }
   }, [editableUnitCostTableProducts, isPendingView, isDataInitialized]);
 
+  // Detectar si es servicio marítimo consolidado
+  const isMaritimeConsolidated =
+    quotationForm.selectedServiceLogistic === "Consolidado Maritimo" ||
+    quotationForm.selectedServiceLogistic === "Consolidado Grupal Maritimo";
+
   const calculations = useQuotationCalculations({
+    isMaritimeConsolidated: isMaritimeConsolidated,
     products: mappedProducts,
     dynamicValues: quotationForm.dynamicValues,
     cif: quotationForm.cif,
@@ -764,6 +770,132 @@ export default function EditQuotationResponseView() {
       totalProducts,
     };
   }, [quotationDetail?.products]);
+
+  // Calcular totalImportCosts correctamente - debe coincidir con ImportExpensesCard
+  const totalImportCosts = useMemo(() => {
+    const serviceFields = quotationForm.getServiceFields();
+    const isMaritime = quotationForm.isMaritimeService();
+    const comercialValue = quotationForm.dynamicValues.comercialValue || 0;
+
+    const isExpressConsolidatedPersonal =
+      quotationForm.selectedServiceLogistic === "Consolidado Express" && comercialValue < 200;
+    const isExpressConsolidatedSimplificada =
+      quotationForm.selectedServiceLogistic === "Consolidado Express" && comercialValue >= 200;
+    const isExpressConsolidatedGrupal =
+      quotationForm.selectedServiceLogistic === "Consolidado Grupal Express";
+
+    const applyExemption = (value: number, exempted: boolean) => (exempted ? 0 : value);
+
+    if (isMaritime) {
+      const servicioConsolidado = applyExemption(
+        (serviceFields.servicioConsolidado || 0) * 1.18,
+        quotationForm.exemptionState.servicioConsolidadoMaritimo
+      );
+      const gestionCertificado = applyExemption(
+        (serviceFields.gestionCertificado || 0) * 1.18,
+        quotationForm.exemptionState.gestionCertificado
+      );
+      const servicioInspeccion = applyExemption(
+        ((serviceFields.inspeccionProductos || 0) + (serviceFields.inspeccionFabrica || 0)) * 1.18,
+        quotationForm.exemptionState.servicioInspeccion
+      );
+      const servicioTransporte =
+        quotationForm.dynamicValues.transporteLocalChinaEnvio +
+        quotationForm.dynamicValues.transporteLocalClienteEnvio;
+      const otrosServicios = (serviceFields.otrosServicios || 0) * 1.18;
+      const totalDerechos = applyExemption(
+        calculations.totalTaxes || 0,
+        quotationForm.exemptionState.totalDerechos
+      );
+
+      return parseFloat((
+        servicioConsolidado +
+        gestionCertificado +
+        servicioInspeccion +
+        servicioTransporte +
+        otrosServicios +
+        totalDerechos
+      ).toFixed(2));
+    } else {
+      const servicioConsolidado = applyExemption(
+        (serviceFields.servicioConsolidado || 0) * 1.18,
+        quotationForm.exemptionState.servicioConsolidadoAereo
+      );
+      const separacionCarga = applyExemption(
+        (serviceFields.separacionCarga || 0) * 1.18,
+        quotationForm.exemptionState.separacionCarga
+      );
+      const seguroProductos = applyExemption(
+        (serviceFields.inspeccionProductos || 0) * 1.18,
+        quotationForm.exemptionState.inspeccionProductos
+      );
+      const inspeccionProductos = isExpressConsolidatedGrupal
+        ? 0
+        : applyExemption(
+            (serviceFields.inspeccionProductos || 0) * 1.18,
+            quotationForm.exemptionState.inspeccionProductos
+          );
+      const servicioTransporte =
+        quotationForm.dynamicValues.transporteLocalChinaEnvio +
+        quotationForm.dynamicValues.transporteLocalClienteEnvio;
+
+      let additionalExpenses = 0;
+
+      if (isExpressConsolidatedPersonal) {
+        additionalExpenses =
+          applyExemption(
+            quotationForm.dynamicValues.flete || 0,
+            quotationForm.exemptionState.fleteInternacional || false
+          ) +
+          applyExemption(
+            quotationForm.dynamicValues.desaduanaje || 0,
+            quotationForm.exemptionState.desaduanaje || false
+          );
+      } else if (isExpressConsolidatedSimplificada) {
+        additionalExpenses =
+          applyExemption(
+            calculations.totalTaxes || 0,
+            quotationForm.exemptionState.adValoremIgvIpm || false
+          ) +
+          applyExemption(
+            quotationForm.dynamicValues.desaduanaje +
+              quotationForm.dynamicValues.flete +
+              quotationForm.dynamicValues.seguro,
+            quotationForm.exemptionState.desaduanajeFleteSaguro || false
+          );
+      } else if (isExpressConsolidatedGrupal) {
+        additionalExpenses =
+          applyExemption(
+            (calculations.totalTaxes || 0) * 0.5,
+            quotationForm.exemptionState.adValoremIgvIpmDescuento || false
+          ) +
+          applyExemption(
+            quotationForm.dynamicValues.flete || 0,
+            quotationForm.exemptionState.fleteInternacional || false
+          );
+      }
+
+      return parseFloat((
+        servicioConsolidado +
+        separacionCarga +
+        seguroProductos +
+        inspeccionProductos +
+        servicioTransporte +
+        additionalExpenses
+      ).toFixed(2));
+    }
+  }, [
+    quotationForm.getServiceFields,
+    quotationForm.selectedServiceLogistic,
+    quotationForm.dynamicValues.comercialValue,
+    quotationForm.dynamicValues.transporteLocalChinaEnvio,
+    quotationForm.dynamicValues.transporteLocalClienteEnvio,
+    quotationForm.dynamicValues.flete,
+    quotationForm.dynamicValues.desaduanaje,
+    quotationForm.dynamicValues.seguro,
+    quotationForm.exemptionState,
+    calculations.totalTaxes,
+  ]);
 
   const handleUpdateQuotation = async () => {
     setIsSubmitting(true);
@@ -1101,22 +1233,32 @@ export default function EditQuotationResponseView() {
               : nonPendingViewTotals.totalProducts
           }
           totalCBM={
-            isPendingView ? pendingViewTotals.totalCBM : calculations.totalCBM
+            isPendingView
+              ? pendingViewTotals.totalCBM
+              : isMaritimeConsolidated
+                ? quotationForm.dynamicValues.volumenCBM
+                : calculations.totalCBM
           }
           totalWeight={
             isPendingView
               ? pendingViewTotals.totalWeight
-              : calculations.totalWeight
+              : isMaritimeConsolidated
+                ? quotationForm.dynamicValues.kg
+                : calculations.totalWeight
           }
           totalPrice={
             isPendingView
               ? pendingViewTotals.totalPrice
-              : calculations.totalPrice
+              : isMaritimeConsolidated
+                ? quotationForm.dynamicValues.comercialValue
+                : calculations.totalPrice
           }
           totalExpress={
             isPendingView
               ? pendingViewTotals.totalExpress
-              : quotationForm.dynamicValues.transporteLocalChinaEnvio || 0
+              : isMaritimeConsolidated
+                ? quotationForm.dynamicValues.transporteLocalChinaEnvio
+                : calculations.totalExpress
           }
           totalGeneral={
             isPendingView
@@ -1260,6 +1402,7 @@ export default function EditQuotationResponseView() {
               onExemptionChange={quotationForm.updateExemptionState}
               isMaritimeService={quotationForm.isMaritimeService()}
               cif={quotationForm.cif}
+              serviceType={quotationForm.selectedServiceLogistic}
             />
 
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6">
@@ -1285,6 +1428,12 @@ export default function EditQuotationResponseView() {
                   ) * 1.18
                 }
                 serviceType={quotationForm.selectedServiceLogistic}
+                transporteLocalChina={
+                  quotationForm.dynamicValues.transporteLocalChinaEnvio
+                }
+                transporteLocalDestino={
+                  quotationForm.dynamicValues.transporteLocalClienteEnvio
+                }
               />
 
               <TaxObligationsCard
@@ -1347,6 +1496,7 @@ export default function EditQuotationResponseView() {
             </div>
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6">
               <ImportExpensesCard
+                comercialValue={quotationForm.dynamicValues.comercialValue}
                 isMaritime={quotationForm.isMaritimeService()}
                 values={{
                   servicioConsolidadoMaritimoFinal:
@@ -1354,16 +1504,9 @@ export default function EditQuotationResponseView() {
                   gestionCertificadoFinal:
                     quotationForm.dynamicValues.gestionCertificado,
                   servicioInspeccionFinal:
-                    quotationForm.dynamicValues.inspeccionProducto,
-                  transporteLocalFinal:
-                    quotationForm.dynamicValues.transporteLocalChinaEnvio +
-                    quotationForm.dynamicValues.transporteLocalClienteEnvio,
-                  totalDerechosDolaresFinal:
-                    calculations.totalTaxes +
-                    (quotationForm.isMaritimeService()
-                      ? (quotationForm.dynamicValues.antidumpingGobierno || 0) *
-                        (quotationForm.dynamicValues.antidumpingCantidad || 0)
-                      : 0),
+                    quotationForm.dynamicValues.inspeccionProductos,
+                  transporteLocalFinal: 0,
+                  totalDerechosDolaresFinal: calculations.totalTaxes,
                   desaduanajeFleteSaguro:
                     quotationForm.dynamicValues.desaduanaje +
                     quotationForm.dynamicValues.flete +
@@ -1372,6 +1515,9 @@ export default function EditQuotationResponseView() {
                     quotationForm.dynamicValues.transporteLocalChinaEnvio,
                   transporteLocalClienteEnvio:
                     quotationForm.dynamicValues.transporteLocalClienteEnvio,
+                  flete: quotationForm.dynamicValues.flete,
+                  desaduanaje: quotationForm.dynamicValues.desaduanaje,
+                  seguro: quotationForm.dynamicValues.seguro,
                 }}
                 exemptionState={
                   quotationForm.exemptionState as unknown as Record<
@@ -1399,6 +1545,21 @@ export default function EditQuotationResponseView() {
                   quotationForm.exemptionState.obligacionesFiscales
                 }
                 serviceType={quotationForm.selectedServiceLogistic}
+                serviceFieldsFromConsolidation={{
+                  servicioConsolidado:
+                    quotationForm.dynamicValues.servicioConsolidado,
+                  gestionCertificado:
+                    quotationForm.dynamicValues.gestionCertificado,
+                  inspeccionProductos:
+                    quotationForm.dynamicValues.inspeccionProductos,
+                  inspeccionFabrica:
+                    quotationForm.dynamicValues.inspeccionFabrica,
+                  otrosServicios: quotationForm.dynamicValues.otrosServicios,
+                  transporteLocalChina:
+                    quotationForm.dynamicValues.transporteLocalChinaEnvio,
+                  transporteLocalDestino:
+                    quotationForm.dynamicValues.transporteLocalClienteEnvio,
+                }}
               />
 
               <ImportSummaryCard
@@ -1409,17 +1570,7 @@ export default function EditQuotationResponseView() {
                   percepcion: quotationForm.exemptionState.obligacionesFiscales,
                 }}
                 comercialValue={quotationForm.dynamicValues.comercialValue}
-                totalImportCosts={
-                  calculations.totalTaxes +
-                  quotationForm.dynamicValues.servicioConsolidado * 1.18 +
-                  quotationForm.dynamicValues.separacionCarga * 1.18 +
-                  quotationForm.dynamicValues.inspeccionProductos * 1.18 +
-                  quotationForm.dynamicValues.desaduanaje +
-                  quotationForm.dynamicValues.flete +
-                  quotationForm.dynamicValues.seguro +
-                  quotationForm.dynamicValues.transporteLocalChinaEnvio +
-                  quotationForm.dynamicValues.transporteLocalClienteEnvio
-                }
+                totalImportCosts={totalImportCosts}
               />
             </div>
 

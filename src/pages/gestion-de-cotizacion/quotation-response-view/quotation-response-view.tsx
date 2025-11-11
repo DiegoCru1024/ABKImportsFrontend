@@ -591,14 +591,17 @@ export default function QuotationResponseView({
     };
   }, [quotationDetail?.products]);
 
+  // Detectar tipo de servicio Express Personal (< $200)
+  const isExpressConsolidatedPersonal =
+    quotationForm.selectedServiceLogistic === "Consolidado Express" &&
+    (quotationForm.dynamicValues.comercialValue || 0) < 200;
+
   // Calcular totalImportCosts correctamente - debe coincidir con ImportExpensesCard
   const totalImportCosts = useMemo(() => {
     const serviceFields = quotationForm.getServiceFields();
     const isMaritime = quotationForm.isMaritimeService();
     const comercialValue = quotationForm.dynamicValues.comercialValue || 0;
 
-    const isExpressConsolidatedPersonal =
-      quotationForm.selectedServiceLogistic === "Consolidado Express" && comercialValue < 200;
     const isExpressConsolidatedSimplificada =
       quotationForm.selectedServiceLogistic === "Consolidado Express" && comercialValue >= 200;
     const isExpressConsolidatedGrupal =
@@ -1414,6 +1417,7 @@ export default function QuotationResponseView({
                 }}
                 comercialValue={quotationForm.dynamicValues.comercialValue}
                 totalImportCosts={totalImportCosts}
+                isExpressConsolidatedPersonal={isExpressConsolidatedPersonal}
               />
             </div>
 

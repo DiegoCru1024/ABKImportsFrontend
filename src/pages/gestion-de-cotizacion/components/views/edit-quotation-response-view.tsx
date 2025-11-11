@@ -1571,6 +1571,10 @@ export default function EditQuotationResponseView() {
                 }}
                 comercialValue={quotationForm.dynamicValues.comercialValue}
                 totalImportCosts={totalImportCosts}
+                isExpressConsolidatedPersonal={
+                  quotationForm.selectedServiceLogistic === "Consolidado Express" &&
+                  quotationForm.dynamicValues.comercialValue < 200
+                }
               />
             </div>
 

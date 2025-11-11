@@ -39,7 +39,7 @@ export default function GestionDeCotizacionesView() {
 
   const [mainTab, setMainTab] = useState<string>("solicitudes");
   const [selectedQuotationId, setSelectedQuotationId] = useState<string>("");
-  const [viewMode, setViewMode] = useState<"grid" | "kanban">("grid");
+  const [viewMode, setViewMode] = useState<"grid" | "kanban">("kanban");
 
   const quotationList = useQuotationList();
   const imageModal = useImageModal();

@@ -20,14 +20,17 @@ export interface ImportSummaryCardProps {
   };
   comercialValue: number;
   totalImportCosts: number;
+  isExpressConsolidatedPersonal?: boolean;
 }
 
 export default function ImportSummaryCard({
   exemptionState,
   comercialValue,
   totalImportCosts,
+  isExpressConsolidatedPersonal = false,
 }: ImportSummaryCardProps) {
   const isAnyExempted = Object.values(exemptionState).some(Boolean);
+  const showExemptionMessage = isAnyExempted || isExpressConsolidatedPersonal;
   
   const summaryItems = [
     {
@@ -139,27 +142,52 @@ export default function ImportSummaryCard({
               </div>
             </div>
             
-            {isAnyExempted && (
-              <div className="bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-lg p-4">
+            {showExemptionMessage && (
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-300 rounded-lg p-4">
                 <div className="flex items-start gap-3">
-                  <div className="p-2 bg-orange-100 rounded-lg">
-                    <AlertTriangle className="h-5 w-5 text-orange-600" />
+                  <div className="p-2 bg-green-100 rounded-lg">
+                    <AlertTriangle className="h-5 w-5 text-green-600" />
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
-                      <Badge variant="outline" className="bg-orange-100 text-orange-800 border-orange-300 text-xs">
-                        EXONERACIÓN AUTOMÁTICA
+                      <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300 text-xs">
+                        {isExpressConsolidatedPersonal ? "EXONERACIÓN TRIBUTARIA ACTIVA" : "EXONERACIÓN AUTOMÁTICA"}
                       </Badge>
-                      <span className="text-sm font-medium text-orange-800">
-                        Activa
+                      <span className="text-sm font-medium text-green-800">
+                        ✓ Activa
                       </span>
                     </div>
-                    <p className="text-sm text-orange-700 leading-relaxed">
-                      Los impuestos están exonerados automáticamente porque el valor comercial es menor a <strong>USD $200.00</strong>. 
-                      Esta exoneración aplica a todos los impuestos y aranceles correspondientes.
+                    <p className="text-sm text-green-700 leading-relaxed">
+                      {isExpressConsolidatedPersonal ? (
+                        <>
+                          <strong>¡Ahorro en impuestos de importación!</strong> El valor comercial es menor a <strong>USD $200.00</strong>,
+                          lo que significa que esta importación está <strong>exonerada de impuestos aduaneros</strong> (Ad Valorem, IGV, IPM).
+                          Solo se aplican los costos de desaduanaje y flete internacional.
+                        </>
+                      ) : (
+                        <>
+                          Los impuestos están exonerados automáticamente porque el valor comercial es menor a <strong>USD $200.00</strong>.
+                          Esta exoneración aplica a todos los impuestos y aranceles correspondientes.
+                        </>
+                      )}
                     </p>
-                    <div className="mt-2 text-xs text-orange-600">
-                      <strong>Beneficio:</strong> Ahorro en costos de importación
+                    <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                      <div className="bg-green-100 rounded p-2">
+                        <div className="font-semibold text-green-800">Beneficio Principal</div>
+                        <div className="text-green-700">
+                          {isExpressConsolidatedPersonal
+                            ? "Sin Ad Valorem, IGV ni IPM"
+                            : "Ahorro en costos de importación"}
+                        </div>
+                      </div>
+                      <div className="bg-green-100 rounded p-2">
+                        <div className="font-semibold text-green-800">Gastos Aplicables</div>
+                        <div className="text-green-700">
+                          {isExpressConsolidatedPersonal
+                            ? "Solo flete y desaduanaje"
+                            : "Servicios logísticos básicos"}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>

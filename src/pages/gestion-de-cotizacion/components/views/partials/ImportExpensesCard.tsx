@@ -359,7 +359,8 @@ export default function ImportExpensesCard({
 
                       <div className="flex items-center gap-3">
                         {(exemptionState[id] ||
-                          (shouldExemptTaxes && !isMaritime)) && (
+                          (shouldExemptTaxes && !isMaritime) ||
+                          (id === "inspeccionProductos" && isExpressConsolidatedGrupal)) && (
                           <Badge
                             variant="outline"
                             className="bg-green-50 text-green-700 border-green-200 text-xs"
@@ -371,11 +372,14 @@ export default function ImportExpensesCard({
                         <div className="text-right min-w-[100px]">
                           <div className="font-semibold text-gray-900">
                             USD{" "}
-                            {applyExemption(value, exemptionState[id]).toFixed(
-                              2
-                            )}
+                            {applyExemption(
+                              value,
+                              exemptionState[id] ||
+                              (id === "inspeccionProductos" && isExpressConsolidatedGrupal)
+                            ).toFixed(2)}
                           </div>
-                          {exemptionState[id] && (
+                          {(exemptionState[id] ||
+                            (id === "inspeccionProductos" && isExpressConsolidatedGrupal)) && (
                             <div className="text-xs text-green-600 font-medium">
                               Original: {value.toFixed(2)}
                             </div>
@@ -409,7 +413,10 @@ export default function ImportExpensesCard({
                         .reduce(
                           (total, expense) =>
                             total +
-                            (exemptionState[expense.id] ? 0 : expense.value),
+                            (exemptionState[expense.id] ||
+                            (expense.id === "inspeccionProductos" && isExpressConsolidatedGrupal)
+                              ? 0
+                              : expense.value),
                           0
                         )
                         .toFixed(2)}

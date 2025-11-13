@@ -1,6 +1,6 @@
 // Enums
 export enum ServiceType {
-  PENDING = 'PENDING',
+  COTIZACIODEORIGEN = 'COTIZACION DE ORIGEN',
   EXPRESS = 'EXPRESS',
   MARITIME = 'MARITIME',
 }

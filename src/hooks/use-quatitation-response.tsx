@@ -7,16 +7,11 @@ import {
   getListResponsesByQuotationId,
   getDetailsResponse,
   } from "@/api/quotation-responses";
-import type {
-  QuotationCreateUpdateResponseDTO
-} from "@/api/interface/quotationResponseInterfaces";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type {
-  QuotationResponseBase,
   CreateUpdateQuotationResponseDTO
 } from "@/api/interface/quotation-response/quotation-response-base";
-import type { ServiceType } from "@/api/interface/quotation-response/enums/enum";
 
 
 /**

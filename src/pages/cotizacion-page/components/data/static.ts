@@ -1,8 +1,8 @@
 export const servicios = [
   {
     id: 1,
-    value: "pending",
-    label: "Pendiente",
+    value: "Cotizacion de Origen",
+    label: "Cotizacion de Origen",
   },
   {
     id: 2,

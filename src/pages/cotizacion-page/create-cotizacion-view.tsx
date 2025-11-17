@@ -54,7 +54,7 @@ import { toAPI } from "./utils/types/mappers";
 export default function CreateCotizacionView() {
   const navigate = useNavigate();
   const [productos, setProductos] = useState<ProductWithVariants[]>([]);
-  const [service, setService] = useState("pending");
+  const [service, setService] = useState("Cotizacion de Origen");
   const [isLoading, setIsLoading] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [isEditing, setIsEditing] = useState(false);

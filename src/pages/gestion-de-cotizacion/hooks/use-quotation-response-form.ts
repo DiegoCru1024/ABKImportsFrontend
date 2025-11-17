@@ -61,7 +61,7 @@ interface UseQuotationResponseFormProps {
 }
 
 export function useQuotationResponseForm({
-  initialServiceLogistic = "Pendiente",
+  initialServiceLogistic = "Cotizacion de Origen",
   initialIncoterm = "DDP",
   initialTypeLoad = "mixto",
   initialCourier = "ups",

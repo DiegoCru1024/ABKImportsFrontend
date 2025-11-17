@@ -65,7 +65,7 @@ export default function QuotationResponseView({
   const [pendingProducts, setPendingProducts] = useState<any[]>([]);
 
   // Detectar si es vista "Pendiente" (administrativa) vs vista completa
-  const isPendingView = quotationForm.selectedServiceLogistic === "Pendiente";
+  const isPendingView = quotationForm.selectedServiceLogistic === "Cotizacion de Origen";
 
   // Detectar si es servicio marítimo consolidado
   const isMaritimeConsolidated =

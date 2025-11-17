@@ -32,9 +32,11 @@ export class QuotationResponseBuilder {
     serviceType: ServiceType,
     quotationDetail?: unknown
   ) {
+
+      const userString = localStorage?.getItem("user.id_usuario") || "";
     this.baseDto = {
       response_date: getNowUTC(), // Genera fecha actual en UTC para enviar al backend
-      advisorId: "75500ef2-e35c-4a77-8074-9104c9d971cb",
+      advisorId: userString,
       serviceType,
       responseData: null as unknown as ResponseDataPending | ResponseDataComplete,
       products: [],
@@ -418,7 +420,7 @@ export class QuotationResponseBuilder {
 
     this.baseDto.responseData = responseData;
     this.baseDto.products = this.buildPendingProducts(data);
-    this.baseDto.serviceType = ServiceType.PENDING;
+    this.baseDto.serviceType = ServiceType.COTIZACIODEORIGEN;
 
     return this.baseDto;
   }

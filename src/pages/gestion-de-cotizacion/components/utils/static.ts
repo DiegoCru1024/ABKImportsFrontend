@@ -13,7 +13,7 @@ export const incotermsOptions = [
 
 //! Servicios logisticos
 export const serviciosLogisticos = [
-  { value: "Pendiente", label: "Pendiente" },
+  { value: "Cotizacion de Origen", label: "Cotizacion de Origen" },
   { value: "Consolidado Express", label: "Consolidado Express" },
   { value: "Consolidado Grupal Express", label: "Consolidado Grupal Express" },
   { value: "Consolidado Maritimo", label: "Consolidado Maritimo" },

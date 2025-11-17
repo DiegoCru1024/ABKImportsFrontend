@@ -87,7 +87,7 @@ export class QuotationResponseDirector {
     // Crear el builder para servicios pendientes
     const builder = new QuotationResponseBuilder(
       data.quotationId,
-      "PENDING" as ServiceType,
+      "COTIZACION DE ORIGEN" as ServiceType,
       data.quotationDetail
     );
 

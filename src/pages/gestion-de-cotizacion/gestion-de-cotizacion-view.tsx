@@ -27,7 +27,6 @@ const filterOptions = [
   { value: "all", label: "Todos los estados" },
   { value: "draft", label: "Borrador" },
   { value: "pending", label: "Pendiente" },
-  { value: "observed", label: "Observado" },
   { value: "approved", label: "Aprobado" },
   { value: "cancelled", label: "Cancelado" },
   { value: "completed", label: "Completado" },

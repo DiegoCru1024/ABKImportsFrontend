@@ -312,8 +312,8 @@ export function UnifiedConfigurationForm({
       {/* Valores Dinámicos Agrupados */}
       <Accordion type="single" collapsible defaultValue="valores-dinamicos">
         <AccordionItem value="valores-dinamicos" className="border-0">
-          <Card className="bg-gradient-to-br from-emerald-50/40 to-green-50/30 shadow-lg border border-emerald-200/60 rounded-2xl overflow-hidden">
-            <CardHeader className="pb-3">
+          <div className="shadow-lg border-1  bg-white rounded-lg">
+            <div className="  p-4 rounded-lg rounded-b-none">
               <AccordionTrigger className="hover:no-underline py-0">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-gradient-to-br from-emerald-100/60 to-green-100/50 rounded-lg shadow-sm">
@@ -329,10 +329,10 @@ export function UnifiedConfigurationForm({
                   </div>
                 </div>
               </AccordionTrigger>
-            </CardHeader>
+            </div>
 
             <AccordionContent>
-              <CardContent className="space-y-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-6 grid grid-cols-1 md:grid-cols-3 gap-4 p-2">
                 {/* Primera columna: Información Logistica */}
                 <div className="space-y-3 flex flex-col gap-2 p-4 bg-gradient-to-r from-white to-white-50 border-1 border-blue-300 rounded-lg">
                   <div className="flex items-center gap-2 pb-2 border-b border-blue-200">
@@ -634,9 +634,9 @@ export function UnifiedConfigurationForm({
                     </div>
                   </div>
                 </div>
-              </CardContent>
+              </div>
             </AccordionContent>
-          </Card>
+          </div>
         </AccordionItem>
       </Accordion>
     </div>

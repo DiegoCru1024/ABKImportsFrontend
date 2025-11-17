@@ -48,14 +48,6 @@ export default function ImportSummaryCard({
       icon: <DollarSign className="h-4 w-4 text-green-500" />,
       color: 'green',
       category: 'Gastos'
-    },
-    {
-      key: 'totalInvestment',
-      label: 'INVERSIÓN TOTAL DE IMPORTACIÓN',
-      value: `USD ${(comercialValue + totalImportCosts).toFixed(2)}`,
-      icon: <TrendingUp className="h-4 w-4 text-orange-500" />,
-      color: 'orange',
-      category: 'Inversión'
     }
   ];
 
@@ -127,17 +119,11 @@ export default function ImportSummaryCard({
                   <div className="font-bold text-lg">
                     INVERSION TOTAL DE IMPORTACION
                   </div>
-                  <div className="text-sm opacity-90">
-                    Valor comercial + Gastos
-                  </div>
                 </div>
               </div>
               <div className="text-right">
                 <div className="font-bold text-2xl">
                   USD {(comercialValue + totalImportCosts).toFixed(2)}
-                </div>
-                <div className="text-sm opacity-90">
-                  Compra + Gastos
                 </div>
               </div>
             </div>

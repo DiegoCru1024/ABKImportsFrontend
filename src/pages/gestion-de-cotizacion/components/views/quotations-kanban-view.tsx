@@ -48,14 +48,6 @@ const kanbanColumns: KanbanColumn[] = [
     textColor: "text-blue-700",
   },
   {
-    id: "observed",
-    title: "Observado",
-    status: ["observed"],
-    bgColor: "bg-yellow-50",
-    borderColor: "border-yellow-300",
-    textColor: "text-yellow-700",
-  },
-  {
     id: "approved",
     title: "Aprobado",
     status: ["approved"],

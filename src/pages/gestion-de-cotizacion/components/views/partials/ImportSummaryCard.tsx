@@ -1,5 +1,4 @@
-import React from "react";
-import { AlertTriangle, ChartBar, DollarSign, FileText, TrendingUp } from "lucide-react";
+import { AlertTriangle, ChartBar, DollarSign, FileText } from "lucide-react";
 
 import {
   Accordion,
@@ -21,6 +20,7 @@ export interface ImportSummaryCardProps {
   comercialValue: number;
   totalImportCosts: number;
   isExpressConsolidatedPersonal?: boolean;
+  isExpressConsolidatedGrupal?: boolean;
 }
 
 export default function ImportSummaryCard({
@@ -28,9 +28,11 @@ export default function ImportSummaryCard({
   comercialValue,
   totalImportCosts,
   isExpressConsolidatedPersonal = false,
+  isExpressConsolidatedGrupal=false,
 }: ImportSummaryCardProps) {
   const isAnyExempted = Object.values(exemptionState).some(Boolean);
   const showExemptionMessage = isAnyExempted || isExpressConsolidatedPersonal;
+  const showExemptionGrupalMessage=isExpressConsolidatedGrupal;
   
   const summaryItems = [
     {
@@ -172,6 +174,43 @@ export default function ImportSummaryCard({
                           {isExpressConsolidatedPersonal
                             ? "Solo flete y desaduanaje"
                             : "Servicios logísticos básicos"}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {showExemptionGrupalMessage && (
+              <div className="bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-300 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-amber-100 rounded-lg">
+                    <AlertTriangle className="h-5 w-5 text-amber-600" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 text-xs">
+                        DESCUENTO GRUPAL EXPRESS ACTIVO
+                      </Badge>
+                      <span className="text-sm font-medium text-amber-800">
+                        ✓ Aplicado
+                      </span>
+                    </div>
+                    <p className="text-sm text-amber-700 leading-relaxed">
+                      <strong>¡Beneficios del Consolidado Grupal Express!</strong> Esta modalidad incluye:
+                    </p>
+                    <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                      <div className="bg-amber-100 rounded p-2">
+                        <div className="font-semibold text-amber-800">Exoneración Aplicada</div>
+                        <div className="text-amber-700">
+                          Inspección de productos <strong>EXONERADA</strong>
+                        </div>
+                      </div>
+                      <div className="bg-amber-100 rounded p-2">
+                        <div className="font-semibold text-amber-800">Descuento en Impuestos</div>
+                        <div className="text-amber-700">
+                          <strong>50% de descuento</strong> en AD/VALOREM + IGV + IPM
                         </div>
                       </div>
                     </div>

@@ -597,7 +597,7 @@ export default function QuotationResponseView({
     (quotationForm.dynamicValues.comercialValue || 0) < 200;
 
   // Detectar tipo de servicio Express Consolidado Grupal
-
+  const isExpressConsolidatedGrupal= quotationForm.selectedServiceLogistic === "Consolidado Grupal Express"
   
 
   // Calcular totalImportCosts correctamente - debe coincidir con ImportExpensesCard
@@ -1422,6 +1422,7 @@ export default function QuotationResponseView({
                 comercialValue={quotationForm.dynamicValues.comercialValue}
                 totalImportCosts={totalImportCosts}
                 isExpressConsolidatedPersonal={isExpressConsolidatedPersonal}
+                isExpressConsolidatedGrupal={isExpressConsolidatedGrupal}
               />
             </div>
 

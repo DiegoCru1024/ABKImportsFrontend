@@ -87,7 +87,7 @@ export default function EditQuotationResponseView() {
   const [pendingProducts, setPendingProducts] = useState<any[]>([]);
   const [isDataInitialized, setIsDataInitialized] = useState<boolean>(false);
 
-  const isPendingView = quotationForm.selectedServiceLogistic === "Cotizacion de Origen";
+  const isPendingView = quotationForm.selectedServiceLogistic === "Pendiente";
 
   useEffect(() => {
     if (responseDetails && quotationDetail && !isDataInitialized) {
@@ -1136,7 +1136,7 @@ export default function EditQuotationResponseView() {
       quotationForm.setIsSendingModalOpen(true);
 
       setTimeout(() => {
-        navigate(`/dashboard/gestion-de-cotizacion/respuestas/${quotationId}`);
+        navigate(`/dashboard/gestion-de-cotizacion`);
       }, 2000);
     } catch (error) {
       console.error("Error al actualizar respuesta:", error);

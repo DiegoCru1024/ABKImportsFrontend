@@ -211,6 +211,7 @@ export interface QuotationCreateUpdateResponseDTO {
 //*****************************************************************************************************/
 
 export interface contentQuotationResponseDTO {
+    id_sub_quotation:string;
   id_quotation_response: string;
   response_date: string;
   advisorName: string;

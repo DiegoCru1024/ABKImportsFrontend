@@ -177,7 +177,7 @@ export default function RespuestasCotizacionView() {
 
             {responseData.responses.map((response: any, index: number) => (
               <TabsContent key={response.responseId} value={index.toString()}>
-                {response.serviceType === "PENDING" ? (
+                {response.serviceType === "COTIZACION DE ORIGEN" ? (
                   <PendingServiceView
                     serviceResponse={response}
                     quotationDetail={quotationDetail}
@@ -195,7 +195,7 @@ export default function RespuestasCotizacionView() {
           <>
             {responseData?.responses && responseData.responses.length > 0 && (
               <>
-                {responseData.responses[0].serviceType === "PENDING" ? (
+                {responseData.responses[0].serviceType === "COTIZACION DE ORIGEN" ? (
                   <PendingServiceView
                     serviceResponse={responseData.responses[0]}
                     quotationDetail={quotationDetail}

@@ -54,7 +54,7 @@ export function columnsListResponses({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => onEditQuotation(row.original.id_quotation_response, row.original.serviceType)}
+            onClick={() => onEditQuotation(row.original.id_sub_quotation, row.original.serviceType)}
             className="h-8 w-8 p-0 text-blue-500 hover:text-blue-700"
             title="Editar respuesta"
           >

@@ -65,7 +65,7 @@ export const patchQuatitationResponse = async (
 ) => {
   try {
     const response = await apiFetch(
-      `/quotation-responses/update-responses/${quotationId}/${quotationResponseId}`,
+      `/quotation-responses/update-responses/${quotationResponseId}/${quotationId}`,
       {
         method: "PATCH",
         body: JSON.stringify(data),

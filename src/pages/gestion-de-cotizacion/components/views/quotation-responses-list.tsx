@@ -42,6 +42,8 @@ export default function QuotationResponsesList({
     refetch,
   } = useListQuatitationResponse(selectedQuotationId, page, size);
 
+  console.log("Lista de de respuestas de una cotizacion",responses);
+
   const deleteResponseMutation = useDeleteQuatitationResponse();
 
   const handleCreateNewResponse = () => {

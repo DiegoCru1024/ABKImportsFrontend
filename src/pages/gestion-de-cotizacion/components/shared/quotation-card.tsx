@@ -1,4 +1,14 @@
-import { Calendar, Clock, Eye, EyeOff, Package, Pencil, PencilIcon, Trash } from "lucide-react";
+import {
+  Calendar,
+  Check,
+  Clock,
+  Eye,
+  EyeOff,
+  Package,
+  Pencil,
+  PencilIcon,
+  Trash,
+} from "lucide-react";
 
 import { ProductGrid } from "./product-grid";
 
@@ -19,6 +29,7 @@ import { deleteQuotation } from "@/api/quotations";
 import type { QuotationsByUserResponseInterfaceContent } from "@/api/interface/quotationInterface";
 import { useDeleteQuotation } from "@/hooks/use-quation";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 interface QuotationCardProps {
   quotation: QuotationsByUserResponseInterfaceContent;
@@ -30,6 +41,7 @@ interface QuotationCardProps {
     index?: number
   ) => void;
   onDelete?: (id: string) => void;
+  setModalOpen: (v: boolean) => void;
 }
 
 export function QuotationCard({
@@ -38,14 +50,14 @@ export function QuotationCard({
   onViewResponses,
   onOpenImageModal,
   onDelete,
+  setModalOpen,
 }: QuotationCardProps) {
-
   const navigate = useNavigate();
   const canRespond =
     quotation.status !== "pending" && quotation.status !== "draft";
   const isDraft = quotation.status === "draft";
 
-  const { mutateAsync:mutationDelete}= useDeleteQuotation()
+  const { mutateAsync: mutationDelete } = useDeleteQuotation();
 
   const handleDeleteQuotation = async () => {
     try {
@@ -55,21 +67,32 @@ export function QuotationCard({
     }
   };
 
-  const handleEditQuotation=()=>{
-    let idQuotation=quotation.quotationId
+  const handleEditQuotation = () => {
+    let idQuotation = quotation.quotationId;
     navigate(`/dashboard/editar/${idQuotation}`);
-  }
+  };
 
   const renderActionButton = () => {
     if (canRespond) {
       return (
-        <Button
-          onClick={() => onViewResponses(quotation.quotationId)}
-          className="flex items-center gap-2 bg-emerald-400 hover:bg-emerald-500 text-emerald-900 shadow-sm transition-colors"
-        >
-          <Eye className="w-4 h-4" />
-          Ver respuestas
-        </Button>
+        <div className="gap-4 flex ">
+          <Button
+            onClick={() => {setModalOpen(true)
+              console.log("Click")
+            }}
+            className="flex items-center gap-2 bg-blue-400 hover:bg-blue-400 text-blue-700 shadow-sm transition-colors"
+          >
+            <Check className="w-4 h-4" />
+            Aprobar
+          </Button>
+          <Button
+            onClick={() => onViewResponses(quotation.quotationId)}
+            className="flex items-center gap-2 bg-emerald-400 hover:bg-emerald-500 text-emerald-900 shadow-sm transition-colors"
+          >
+            <Eye className="w-4 h-4" />
+            Ver respuestas
+          </Button>
+        </div>
       );
     }
 
@@ -90,7 +113,7 @@ export function QuotationCard({
         disabled
         className="flex items-center gap-2 bg-slate-300 text-slate-600 cursor-not-allowed"
       >
-        <EyeOff  className="w-4 h-4" />
+        <EyeOff className="w-4 h-4" />
         Cotización en borrador
       </Button>
     );
@@ -117,12 +140,6 @@ export function QuotationCard({
               <div className="flex items-center gap-2 text-slate-600">
                 <Calendar className="w-4 h-4 text-blue-400" />
                 <span className="text-sm font-medium">
-                  {formatDate(quotation.createdAt)}
-                </span>
-              </div>
-              <div className="flex items-center gap-2 text-slate-600">
-                <Clock className="w-4 h-4 text-blue-400" />
-                <span className="text-sm font-medium">
                   {formatDateTime(quotation.createdAt)}
                 </span>
               </div>
@@ -141,8 +158,12 @@ export function QuotationCard({
                 onConfirm={handleDeleteQuotation}
                 variant="destructive"
               />
-              <Button variant="outline" title="Editar cotizacion" onClick={handleEditQuotation}>
-                <PencilIcon className="text-green-600"/>
+              <Button
+                variant="outline"
+                title="Editar cotizacion"
+                onClick={handleEditQuotation}
+              >
+                <PencilIcon className="text-green-600" />
               </Button>
             </div>
           </div>

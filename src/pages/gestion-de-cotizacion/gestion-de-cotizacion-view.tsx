@@ -40,8 +40,10 @@ export default function GestionDeCotizacionesView() {
   const [mainTab, setMainTab] = useState<string>("solicitudes");
   const [selectedQuotationId, setSelectedQuotationId] = useState<string>("");
   const [viewMode, setViewMode] = useState<"grid" | "kanban">("kanban");
+  const [isModalConfirmOpen, setModalConfirmOpen]=useState(false);
 
   const quotationList = useQuotationList();
+
   const imageModal = useImageModal();
 
   const handleViewDetails = (quotationId: string) => {
@@ -181,6 +183,7 @@ export default function GestionDeCotizacionesView() {
                       onViewDetails={handleViewDetails}
                       onViewResponses={handleViewListResponses}
                       onOpenImageModal={imageModal.openModal}
+                      setModalOpen={setModalConfirmOpen}
                     />
                   ))}
                 </div>
@@ -215,6 +218,11 @@ export default function GestionDeCotizacionesView() {
           </>
         )}
       </div>
+
+      
+        {isModalConfirmOpen && <div>
+          Hola
+          </div>}
 
       <ImageCarouselModal
         isOpen={imageModal.isOpen}

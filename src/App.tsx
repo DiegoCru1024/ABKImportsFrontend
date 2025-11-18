@@ -4,7 +4,7 @@ import Tracking from "@/pages/Tracking";
 
 
 import GestionDeCotizacionesView from "@/pages/gestion-de-cotizacion/gestion-de-cotizacion-view";
-
+import AdminCreateQuotationView from "@/pages/gestion-de-cotizacion/admin-create-quotation-view";
 
 import LoginPage from "@/pages/login";
 import SesionPorExpirar from "@/pages/sesion-por-expirar";
@@ -83,6 +83,10 @@ function App() {
         <Route
           path="/dashboard/gestion-de-cotizacion"
           element={<GestionDeCotizacionesView />}
+        />
+        <Route
+          path="/dashboard/gestion-de-cotizacion/crear-para-cliente"
+          element={<AdminCreateQuotationView />}
         />
         <Route
           path="/dashboard/gestion-de-usuarios"

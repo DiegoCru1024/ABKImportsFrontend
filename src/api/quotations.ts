@@ -1,4 +1,4 @@
-import type { QuotationPayload } from "@/pages/cotizacion-page/utils/types/api.types";
+import type { QuotationPayload, QuotationPayloadAdministrador } from "@/pages/cotizacion-page/utils/types/api.types";
 import { apiFetch } from "./apiFetch";
 
 import type {
@@ -23,6 +23,26 @@ export const createQuotation = async (quotation: QuotationPayload) => {
     throw error;
   }
 };
+
+
+/**
+ * Crea una nueva cotización
+ * @param {QuotationPayloadAdministrador} quotation - La cotización a crear
+ * @returns {Promise<any>} - La cotización creada
+ */
+export const createQuotationAdministrador = async (quotation: QuotationPayloadAdministrador) => {
+  //console.log("Estas esta la informacion de la cotizacion", JSON.stringify(quotation,null,2));
+  try {
+    return await apiFetch("/quotations/admin", {
+      method: "POST",
+      body: JSON.stringify(quotation),
+    });
+  } catch (error) {
+    console.error("Error al crear la cotización:", error);
+    throw error;
+  }
+};
+
 
 /**
  * Obtiene una cotización por su ID

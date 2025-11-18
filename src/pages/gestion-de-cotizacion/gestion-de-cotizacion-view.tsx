@@ -5,6 +5,7 @@ import {
   FileText,
   LayoutGrid,
   Columns3,
+  Plus,
 } from "lucide-react";
 
 import QuotationResponseView from "./quotation-response-view/quotation-response-view";
@@ -50,6 +51,10 @@ export default function GestionDeCotizacionesView() {
   const handleViewListResponses = (quotationId: string) => {
     setSelectedQuotationId(quotationId);
     setMainTab("listResponses");
+  };
+
+  const handleCreateQuotationForClient = () => {
+    navigate("/dashboard/gestion-de-cotizacion/crear-para-cliente");
   };
 
   if (mainTab === "detalles" && selectedQuotationId) {
@@ -104,6 +109,15 @@ export default function GestionDeCotizacionesView() {
         icon={<FileText className="h-6 w-6 text-white" />}
         title="Panel de Administración de Cotizaciones"
         description="Gestiona las cotizaciones de tus productos"
+        actions={
+          <Button
+            onClick={handleCreateQuotationForClient}
+            className="bg-orange-500 hover:bg-orange-600 text-white flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Crear Cotización para Cliente
+          </Button>
+        }
       />
 
       <div className="flex-1 flex flex-col container mx-auto px-4 py-6 max-w-full">

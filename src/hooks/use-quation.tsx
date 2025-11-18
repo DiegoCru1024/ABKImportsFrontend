@@ -3,6 +3,7 @@ import type { Quotation } from "@/pages/cotizacion-page/utils/interface";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createQuotation,
+  createQuotationAdministrador,
   deleteQuotation,
   getQuotationById,
   getQuotationsByUser,
@@ -12,6 +13,7 @@ import {
 } from "@/api/quotations";
 import { toast } from "sonner";
 import { Check, X } from "lucide-react";
+import type { QuotationPayloadAdministrador } from "@/pages/cotizacion-page/utils/types/api.types";
 
 /**
  * Hook para crear una cotización
@@ -63,6 +65,66 @@ export function useCreateQuotation() {
         toast.error("Error desconocido al crear la cotización", {
           className: "bg-red-50 border-red-500",
           duration: 3000, // 3 segundos
+          descriptionClassName: "text-red-600",
+          icon: <X className="text-red-500" />,
+          style: { border: "1px solid #ef4444" },
+        });
+      }
+    },
+  });
+}
+
+/**
+ * Hook para crear una cotización de administrador
+ * @returns {useMutation} - Mutación para crear una cotización de administrador
+ */
+export function useCreateQuotationAdministrador() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ data }: { data: QuotationPayloadAdministrador }) =>
+      createQuotationAdministrador(data),
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({
+        queryKey: ["useGetQuotationsByUser"],
+      });
+      if (data.saveAsDraft) {
+        toast.success("Borrador creado exitosamente", {
+          description:
+            "El borrador ha sido asignado al cliente seleccionado",
+          className: "bg-green-50 border-green-500",
+          duration: 3000,
+          descriptionClassName: "text-green-600",
+          icon: <Check className="text-green-500" />,
+          style: { border: "1px solid #22c55e" },
+        });
+      } else {
+        toast.success("Éxito", {
+          description:
+            "Cotización creada y asignada exitosamente al cliente",
+          className: "bg-green-50 border-green-500",
+          duration: 3000,
+          descriptionClassName: "text-green-600",
+          icon: <Check className="text-green-500" />,
+          style: { border: "1px solid #22c55e" },
+        });
+      }
+    },
+    onError: (error: any) => {
+      console.error("Error al crear la cotización de administrador:", error);
+      if (error instanceof Error) {
+        toast.error("Error", {
+          description: `Error: ${error.message}`,
+          className: "bg-red-50 border-red-500",
+          duration: 3000,
+          descriptionClassName: "text-red-600",
+          icon: <X className="text-red-500" />,
+          style: { border: "1px solid #ef4444" },
+        });
+      } else {
+        toast.error("Error desconocido al crear la cotización", {
+          className: "bg-red-50 border-red-500",
+          duration: 3000,
           descriptionClassName: "text-red-600",
           icon: <X className="text-red-500" />,
           style: { border: "1px solid #ef4444" },

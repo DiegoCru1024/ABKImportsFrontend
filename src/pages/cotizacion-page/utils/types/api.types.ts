@@ -37,3 +37,10 @@ export interface QuotationPayload {
   products: ProductDTO[];
   saveAsDraft?: boolean;
 }
+
+/**
+ * Payload para crear cotizaciones con un cliente
+ */
+export interface QuotationPayloadAdministrador extends QuotationPayload {
+  id_cliente:string;
+}

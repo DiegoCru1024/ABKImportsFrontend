@@ -1,11 +1,9 @@
 import {
   Calendar,
   Check,
-  Clock,
   Eye,
   EyeOff,
   Package,
-  Pencil,
   PencilIcon,
   Trash,
 } from "lucide-react";
@@ -23,35 +21,33 @@ import {
 } from "@/components/ui/accordion";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
-import { formatDate, formatDateTime } from "@/lib/format-time";
-import { deleteQuotation } from "@/api/quotations";
+import {formatDateTime } from "@/lib/format-time";
 
 import type { QuotationsByUserResponseInterfaceContent } from "@/api/interface/quotationInterface";
 import { useDeleteQuotation } from "@/hooks/use-quation";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
 
 interface QuotationCardProps {
-  quotation: QuotationsByUserResponseInterfaceContent;
-  onViewDetails: (id: string) => void;
-  onViewResponses: (id: string) => void;
-  onOpenImageModal: (
-    images: string[],
-    productName: string,
-    index?: number
-  ) => void;
-  onDelete?: (id: string) => void;
-  setModalOpen: (v: boolean) => void;
+    quotation: QuotationsByUserResponseInterfaceContent;
+    onViewDetails: (id: string) => void;
+    onViewResponses: (id: string) => void;
+    onOpenImageModal: (
+        images: string[],
+        productName: string,
+        index?: number
+    ) => void;
+    onDelete?: (id: string) => void;
+    onApprove: (id: string, correlative: string) => void;
 }
 
 export function QuotationCard({
-  quotation,
-  onViewDetails,
-  onViewResponses,
-  onOpenImageModal,
-  onDelete,
-  setModalOpen,
-}: QuotationCardProps) {
+                                  quotation,
+                                  onViewDetails,
+                                  onViewResponses,
+                                  onOpenImageModal,
+                                  onDelete,
+                                  onApprove, // AGREGAR AQUÍ
+                              }: QuotationCardProps) {
   const navigate = useNavigate();
   const canRespond =
     quotation.status !== "pending" && quotation.status !== "draft";
@@ -74,26 +70,24 @@ export function QuotationCard({
 
   const renderActionButton = () => {
     if (canRespond) {
-      return (
-        <div className="gap-4 flex ">
-          <Button
-            onClick={() => {setModalOpen(true)
-              console.log("Click")
-            }}
-            className="flex items-center gap-2 bg-blue-400 hover:bg-blue-400 text-blue-700 shadow-sm transition-colors"
-          >
-            <Check className="w-4 h-4" />
-            Aprobar
-          </Button>
-          <Button
-            onClick={() => onViewResponses(quotation.quotationId)}
-            className="flex items-center gap-2 bg-emerald-400 hover:bg-emerald-500 text-emerald-900 shadow-sm transition-colors"
-          >
-            <Eye className="w-4 h-4" />
-            Ver respuestas
-          </Button>
-        </div>
-      );
+        return (
+            <div className="gap-4 flex ">
+                <Button
+                    onClick={() => onApprove(quotation.quotationId, quotation.correlative)}
+                    className="flex items-center gap-2 bg-blue-400 hover:bg-blue-500 text-white shadow-sm transition-colors"
+                >
+                    <Check className="w-4 h-4" />
+                    Aprobar
+                </Button>
+                <Button
+                    onClick={() => onViewResponses(quotation.quotationId)}
+                    className="flex items-center gap-2 bg-emerald-400 hover:bg-emerald-500 text-emerald-900 shadow-sm transition-colors"
+                >
+                    <Eye className="w-4 h-4" />
+                    Ver respuestas
+                </Button>
+            </div>
+        );
     }
 
     if (!isDraft) {

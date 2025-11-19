@@ -1,7 +1,7 @@
 import { apiFetch } from "./apiFetch";
 import type {
-  QuotationResponseBase,
-  CreateUpdateQuotationResponseDTO
+    QuotationResponseBase,
+    CreateUpdateQuotationResponseDTO, SubQuotationSelect
 } from "./interface/quotation-response/quotation-response-base";
 import type {
   QuotationGetResponsesForUsersDTO,
@@ -176,4 +176,24 @@ export const getDetailsResponse = async (quotationResponseId: string, serviceTyp
     throw error;
   }
 }
+
+/**
+ * Obtiene la lista de sub-cotizaciones de una cotización por su ID (Admin Only)
+ * @param {string} quotationId - El ID de la cotización
+ * @returns {Promise<SubQuotationSelect[]>} - La lista de sub-cotizaciones
+ */
+export const getSubQuotationsList = async (quotationId: string): Promise<SubQuotationSelect[]> => {
+    try {
+        const response: SubQuotationSelect[] = await apiFetch(
+            `/quotation-responses/list-subquotations/${quotationId}`,
+            {
+                method: "GET",
+            }
+        );
+        return response;
+    } catch (error) {
+        console.error("Error al obtener la lista de sub-cotizaciones:", error);
+        throw error;
+    }
+};
 

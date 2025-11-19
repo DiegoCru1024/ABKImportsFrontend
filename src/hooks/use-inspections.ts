@@ -10,8 +10,8 @@ export function useGenerateInspectionId() {
     const queryClient = useQueryClient();
   
     return useMutation({
-      mutationFn: ({ quotation_id, shipping_service_type }: { quotation_id: string, shipping_service_type: string }) =>
-        generateInspectionId(quotation_id, shipping_service_type),
+      mutationFn: ({ quotation_id, subquotation_id }: { quotation_id: string, subquotation_id: string }) =>
+        generateInspectionId(quotation_id, subquotation_id),
       onSuccess: () => {
         queryClient.invalidateQueries({
           queryKey: ["Inspections"],

@@ -41,17 +41,17 @@ export const getInspectionsByUser = async (searchTerm: string, page: number, siz
  * @param {string} shipping_service_type - El tipo de servicio de envío
  * @returns {Promise<any>} - El ID de la inspección
  */
-export const generateInspectionId = async (quotation_id: string, shipping_service_type: string) => {
+export const generateInspectionId = async (quotation_id: string, subquotation_id: string) => {
     console.log("Esto se está enviando", JSON.stringify({
         quotation_id,
-        shipping_service_type
+        subquotation_id
     }))
     try {
         return await apiFetch(`/inspections`, {
             method: "POST",
             body: JSON.stringify({
                 quotation_id,
-                shipping_service_type
+                subquotation_id
             })
         });
     } catch (error) {

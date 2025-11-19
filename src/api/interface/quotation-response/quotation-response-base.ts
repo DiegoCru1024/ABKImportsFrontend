@@ -22,3 +22,10 @@ export interface QuotationResponseBase {
   responseData: ResponseDataPending | ResponseDataComplete;
   products: PendingProductInterface[] | CompleteProductInterface[];
 }
+
+
+export interface SubQuotationSelect {
+    id_subQuotation: string;
+    servicio: string;
+    precioTotal: number;
+}

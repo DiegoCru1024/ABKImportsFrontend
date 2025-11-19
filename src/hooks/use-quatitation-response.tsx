@@ -1,12 +1,12 @@
 import {
-  createQuatitationResponse,
-  deleteQuatitationResponse,
-  patchQuatitationResponse,
-  getResponsesForUsers,
-  listQuatitationResponses,
-  getListResponsesByQuotationId,
-  getDetailsResponse,
-  } from "@/api/quotation-responses";
+    createQuatitationResponse,
+    deleteQuatitationResponse,
+    patchQuatitationResponse,
+    getResponsesForUsers,
+    listQuatitationResponses,
+    getListResponsesByQuotationId,
+    getDetailsResponse, getSubQuotationsList,
+} from "@/api/quotation-responses";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type {
@@ -172,11 +172,18 @@ export function useGetDetailsResponse(quotationResponseId: string, serviceType: 
 
 
 /**
- * Hook para obtener las respuestas de una cotización por su ID (Admin Only)
- * @param {string} quotationResponseId - El ID de la cotización
- * @param {ServiceType} serviceType - La página actual
- * @returns {useQuery} - 
+ * Hook para obtener la lista de sub-cotizaciones de una cotización por su ID (Admin Only)
+ * @param {string} quotationId - El ID de la cotización
+ * @returns {useQuery} - La lista de sub-cotizaciones
  */
+export function useGetSubQuotationsList(quotationId: string) {
+    return useQuery({
+        queryKey: ["getSubQuotationsList", quotationId],
+        queryFn: () => getSubQuotationsList(quotationId),
+        enabled: Boolean(quotationId),
+    });
+}
+
 
 
 

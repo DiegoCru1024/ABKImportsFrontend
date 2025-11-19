@@ -63,7 +63,7 @@ export default function EditQuotationResponseView() {
   const navigate = useNavigate();
   const location = useLocation();
   const serviceType =
-    (location.state as { serviceType?: string })?.serviceType || "PENDING";
+    (location.state as { serviceType?: string })?.serviceType || "COTIZACION DE ORIGEN";
 
   const {
     data: quotationDetail,
@@ -123,7 +123,7 @@ export default function EditQuotationResponseView() {
         }
       }
 
-      if (responseDetails.serviceType === "PENDING") {
+      if (responseDetails.serviceType === "COTIZACION DE ORIGEN") {
         // IMPORTANTE: Mapear totalExpress (Total Destino) a transporteLocalChinaEnvio
         // según el nuevo flujo de edición PENDING
         const resData = responseDetails.responseData as any;
@@ -1136,7 +1136,7 @@ export default function EditQuotationResponseView() {
       quotationForm.setIsSendingModalOpen(true);
 
       setTimeout(() => {
-        navigate(`/dashboard/gestion-de-cotizacion/respuestas/${quotationId}`);
+        navigate(`/dashboard/gestion-de-cotizacion`);
       }, 2000);
     } catch (error) {
       console.error("Error al actualizar respuesta:", error);

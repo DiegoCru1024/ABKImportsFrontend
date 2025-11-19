@@ -29,8 +29,15 @@ import Herramientas from "./pages/Herramientas";
 import RespuestasCotizacionView from "./pages/respuestas-cotizacion";
 import EditQuotationResponseView from "./pages/gestion-de-cotizacion/components/views/edit-quotation-response-view";
 import QuotationResponseView from "./pages/gestion-de-cotizacion/quotation-response-view/quotation-response-view";
+import useTawkTo from "@/hooks/useTawkTo";
 
 function App() {
+    const rutasConChat = [
+        '/dashboard/cotizacion-de-productos',
+        '/dashboard/mis-cotizaciones'
+    ];
+
+    useTawkTo(rutasConChat);
   return (  
     <Routes>
       {/* Layout básico para login */}

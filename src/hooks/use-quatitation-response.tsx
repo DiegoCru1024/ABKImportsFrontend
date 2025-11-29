@@ -5,7 +5,7 @@ import {
     getResponsesForUsers,
     listQuatitationResponses,
     getListResponsesByQuotationId,
-    getDetailsResponse, getSubQuotationsList,
+    getDetailsResponse, getSubQuotationsList, checkOriginQuotation,
 } from "@/api/quotation-responses";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -168,6 +168,23 @@ export function useGetDetailsResponse(quotationResponseId: string, serviceType: 
     queryFn: () => getDetailsResponse(quotationResponseId, serviceType),
     enabled: Boolean(quotationResponseId) && Boolean(serviceType),
   });
+}
+
+/**
+ * Hook para verificar si existe una cotización de origen
+ * @param {string} quotationId - El ID de la cotización a verificar
+ * @param {boolean} enabled - Habilitar o deshabilitar la consulta (opcional)
+ * @returns {useQuery} - Estado de la verificación
+ */
+export function useCheckOriginQuotation(
+    quotationId: string,
+    enabled: boolean = true
+) {
+    return useQuery({
+        queryKey: ["checkOriginQuotation", quotationId],
+        queryFn: () => checkOriginQuotation(quotationId),
+        enabled: Boolean(quotationId) && enabled,
+    });
 }
 
 

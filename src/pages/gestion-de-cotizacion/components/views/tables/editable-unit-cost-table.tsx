@@ -1023,32 +1023,33 @@ export default function EditableUnitCostTable({
                     );
                   })}
                 </tbody>
-                <tfoot>
+                  <tfoot>
                   <tr className="bg-gradient-to-r from-amber-100/70 to-orange-100/60 border-t-2 border-amber-300/50">
-                    <td className="p-3 border-r border-amber-200/40"></td>
-                    <td className="p-3 text-left font-bold text-amber-900 border-r border-amber-200/40">
-                      Totales
-                    </td>
-                    <td className="p-3 border-r border-amber-200/40"></td>
-                    <td className="p-3 border-r border-amber-200/40"></td>
-                    <td className="p-3 text-center font-bold text-amber-900 border-r border-amber-200/40">
-                      {totals.totalQuantity}
-                    </td>
-                    <td className="p-3 text-center font-bold text-amber-900 border-r border-amber-200/40">
-                      {totals.totalAmount.toFixed(2)}
-                    </td>
-                    <td className="p-3 text-center font-bold text-amber-900 border-r border-amber-200/40">
-                      {totals.totalEquivalence.toFixed(2)}%
-                    </td>
-                    <td className="p-3 text-center font-bold text-amber-900 border-r border-amber-200/40">
-                      {totals.totalImportCosts.toFixed(2)}
-                    </td>
-                    <td className="p-3 text-center font-bold text-amber-900 border-r border-amber-200/40">
-                      {totals.totalCost.toFixed(2)}
-                    </td>
-                    <td className="p-3"></td>
+                      <td className="p-3 border-r border-amber-200/40"></td>
+                      <td className="p-3 text-left font-bold text-amber-900 border-r border-amber-200/40">
+                          Totales
+                      </td>
+                      <td className="p-3 border-r border-amber-200/40"></td>
+                      <td className="p-3 text-center font-bold text-amber-900 border-r border-amber-200/40">
+                          {totals.totalQuantity}
+                      </td>
+                      <td className="p-3 text-center font-bold text-amber-900 border-r border-amber-200/40">
+                          {totals.totalAmount.toFixed(2)}
+                      </td>
+                      <td className="p-3 text-center font-bold text-amber-900 border-r border-amber-200/40">
+                          {totals.totalEquivalence.toFixed(2)}%
+                      </td>
+                      <td className="p-3 text-center font-bold text-amber-900 border-r border-amber-200/40">
+                          {totals.totalImportCosts.toFixed(2)}
+                      </td>
+                      <td
+                          colSpan={2}
+                          className="p-3 text-center font-bold text-amber-900"
+                      >
+                          {totals.totalCost.toFixed(2)}
+                      </td>
                   </tr>
-                </tfoot>
+                  </tfoot>
               </table>
             </div>
           </div>

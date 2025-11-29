@@ -1,7 +1,7 @@
 import { apiFetch } from "./apiFetch";
 import type {
     QuotationResponseBase,
-    CreateUpdateQuotationResponseDTO, SubQuotationSelect
+    CreateUpdateQuotationResponseDTO, SubQuotationSelect, CheckOriginQuotationResponse
 } from "./interface/quotation-response/quotation-response-base";
 import type {
   QuotationGetResponsesForUsersDTO,
@@ -176,6 +176,28 @@ export const getDetailsResponse = async (quotationResponseId: string, serviceTyp
     throw error;
   }
 }
+
+/**
+ * Verifica si existe una cotización de origen para una cotización específica
+ * @param {string} quotationId - El ID de la cotización a verificar
+ * @returns {Promise<CheckOriginQuotationResponse>} - Resultado de la verificación
+ */
+export const checkOriginQuotation = async (
+    quotationId: string
+): Promise<CheckOriginQuotationResponse> => {
+    try {
+        const response: CheckOriginQuotationResponse = await apiFetch(
+            `/quotation-responses/checkRespuestas/${quotationId}`,
+            {
+                method: "GET",
+            }
+        );
+        return response;
+    } catch (error) {
+        console.error("Error al verificar cotización de origen:", error);
+        throw error;
+    }
+};
 
 /**
  * Obtiene la lista de sub-cotizaciones de una cotización por su ID (Admin Only)

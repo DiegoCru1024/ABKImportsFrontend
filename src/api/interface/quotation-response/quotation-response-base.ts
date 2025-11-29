@@ -29,3 +29,11 @@ export interface SubQuotationSelect {
     servicio: string;
     precioTotal: number;
 }
+
+/**
+ * Respuesta de la verificación de cotización de origen
+ */
+export interface CheckOriginQuotationResponse {
+    hayCotizacionDeOrigen: boolean;
+    id: string | null;
+}

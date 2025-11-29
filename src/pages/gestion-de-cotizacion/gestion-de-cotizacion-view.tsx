@@ -137,6 +137,16 @@ export default function GestionDeCotizacionesView() {
       <div className="flex-1 flex flex-col container mx-auto px-4 py-6 max-w-full">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2 bg-white rounded-lg p-1 shadow-sm border border-slate-200">
+          <Button
+              variant={viewMode === "kanban" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("kanban")}
+              className="flex items-center gap-2"
+            >
+              <Columns3 className="w-4 h-4" />
+              <span className="hidden sm:inline">Kanban</span>
+            </Button>
+            
             <Button
               variant={viewMode === "grid" ? "default" : "ghost"}
               size="sm"
@@ -146,15 +156,7 @@ export default function GestionDeCotizacionesView() {
               <LayoutGrid className="w-4 h-4" />
               <span className="hidden sm:inline">Tarjetas</span>
             </Button>
-            <Button
-              variant={viewMode === "kanban" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setViewMode("kanban")}
-              className="flex items-center gap-2"
-            >
-              <Columns3 className="w-4 h-4" />
-              <span className="hidden sm:inline">Kanban</span>
-            </Button>
+          
           </div>
         </div>
 

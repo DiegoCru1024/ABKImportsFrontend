@@ -20,11 +20,15 @@ export const createQuatitationResponse = async (
   quotationId: string
 ) => {
   try {
+      const dataWithClientTimestamp = {
+          ...data,
+          createdAtClient: new Date().toISOString(), // Formato: "2024-01-15T14:30:00.000Z"
+      };
     const response = await apiFetch(
       `/quotation-responses/quotation/${quotationId}/complete-service`,
       {
         method: "POST",
-        body: JSON.stringify(data),
+        body: JSON.stringify(dataWithClientTimestamp),
       }
     );
     return response;

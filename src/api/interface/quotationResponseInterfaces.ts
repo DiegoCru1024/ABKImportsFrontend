@@ -214,8 +214,11 @@ export interface contentQuotationResponseDTO {
     id_sub_quotation:string;
   id_quotation_response: string;
   response_date: string;
+  hora: string;
+  timezone: string;
   advisorName: string;
   serviceType: string;
+  version: number;
 }
 
 

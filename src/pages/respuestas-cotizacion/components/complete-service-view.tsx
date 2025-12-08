@@ -75,6 +75,7 @@ export function CompleteServiceView({
           totalCost: 0,
           unitCost: Number(variant.completePricing?.unitCost) || 0,
           seCotiza: variant.isQuoted,
+          attachments: quotVariant?.attachments || [],
         };
       }) || [],
     };

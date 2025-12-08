@@ -17,7 +17,11 @@ export interface TaxObligationsCardViewProps {
     ipm: number;
     adValorem: number;
     totalTaxes: number;
-    antidumping: number;
+    antidumping: {
+      antidumpingGobierno: number;
+      antidumpingCantidad: number;
+      antidumpingValor: number;
+    };
   };
   isMaritime?: boolean;
 }
@@ -26,6 +30,11 @@ export default function TaxObligationsCardView({
   fiscalObligations,
   isMaritime = false,
 }: TaxObligationsCardViewProps) {
+  const totalAntidumping =
+    fiscalObligations.antidumping.antidumpingGobierno +
+    fiscalObligations.antidumping.antidumpingCantidad +
+    fiscalObligations.antidumping.antidumpingValor;
+
   const taxItems = [
     {
       key: "adValorem",
@@ -34,12 +43,12 @@ export default function TaxObligationsCardView({
       icon: <Percent className="h-4 w-4 text-blue-500" />,
       color: "blue",
     },
-    ...(isMaritime && fiscalObligations.antidumping > 0
+    ...(isMaritime && totalAntidumping > 0
       ? [
           {
             key: "antidumping",
             label: "ANTIDUMPING",
-            value: fiscalObligations.antidumping,
+            value: totalAntidumping,
             icon: <DollarSign className="h-4 w-4 text-red-500" />,
             color: "red",
           },

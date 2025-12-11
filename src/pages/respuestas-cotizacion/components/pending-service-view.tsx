@@ -3,7 +3,6 @@ import type { ResponseDataPending } from "@/api/interface/quotation-response/dto
 import type { PendingProductInterface } from "@/api/interface/quotation-response/dto/pending/products/pending-products";
 
 import QuotationSummaryCardView from "./view-cards/QuotationSummaryCardView";
-import QuotationConfigurationFormView from "./view-cards/QuotationConfigurationFormView";
 import QuotationProductRowView from "./view-cards/QuotationProductRowView";
 
 interface PendingServiceViewProps {

@@ -1,6 +1,6 @@
 import React from "react";
 import { Badge } from "@/components/ui/badge";
-import { Calculator, DollarSign, Percent, Receipt } from "lucide-react";
+import { Calculator, DollarSign, Percent, Receipt, Radiation, TrendingUp } from "lucide-react";
 
 import {
   Accordion,
@@ -26,17 +26,17 @@ export interface TaxObligationsCardViewProps {
     };
   };
   isMaritime?: boolean;
+  tipoCambio?: number;
 }
 
 export default function TaxObligationsCardView({
   fiscalObligations,
   isMaritime = false,
+  tipoCambio = 3.7,
 }: TaxObligationsCardViewProps) {
-  // Calcular total de antidumping (suma de gobierno, cantidad y valor)
-  const totalAntidumping =
-    fiscalObligations.antidumping.antidumpingGobierno +
-    fiscalObligations.antidumping.antidumpingCantidad +
-    fiscalObligations.antidumping.antidumpingValor;
+  // El antidumping debe mostrar solo el valor calculado (antidumpingValor), no la suma
+  // En la edición, se calcula como antidumpingGobierno × antidumpingCantidad
+  const antidumpingValue = fiscalObligations.antidumping.antidumpingValor;
 
   // Configurar items de impuestos según tipo de servicio
   // Marítimos: AD/VALOREM, ANTIDUMPING, ISC, IGV, IPM, PERCEPCIÓN
@@ -49,25 +49,25 @@ export default function TaxObligationsCardView({
       icon: <Percent className="h-4 w-4 text-blue-500" />,
       color: "blue",
     },
-    ...(isMaritime && totalAntidumping > 0
+    ...(isMaritime && antidumpingValue > 0
       ? [
           {
             key: "antidumping",
             label: "ANTIDUMPING",
-            value: totalAntidumping,
-            icon: <DollarSign className="h-4 w-4 text-red-500" />,
+            value: antidumpingValue,
+            icon: <TrendingUp className="h-4 w-4 text-red-500" />,
             color: "red",
           },
         ]
       : []),
-    ...(isMaritime && fiscalObligations.isc && fiscalObligations.isc > 0
+    ...(isMaritime && fiscalObligations.isc !== undefined && fiscalObligations.isc > 0
       ? [
           {
             key: "isc",
             label: "ISC",
             value: fiscalObligations.isc,
-            icon: <Receipt className="h-4 w-4 text-purple-500" />,
-            color: "purple",
+            icon: <Radiation className="h-4 w-4 text-green-500" />,
+            color: "green",
           },
         ]
       : []),
@@ -75,8 +75,8 @@ export default function TaxObligationsCardView({
       key: "igv",
       label: "IGV",
       value: fiscalObligations.igv,
-      icon: <Calculator className="h-4 w-4 text-green-500" />,
-      color: "green",
+      icon: <Calculator className="h-4 w-4 text-purple-500" />,
+      color: "purple",
     },
     {
       key: "ipm",
@@ -86,19 +86,22 @@ export default function TaxObligationsCardView({
       color: "orange",
     },
     ...(isMaritime &&
-    fiscalObligations.percepcion &&
+    fiscalObligations.percepcion !== undefined &&
     fiscalObligations.percepcion > 0
       ? [
           {
             key: "percepcion",
             label: "PERCEPCIÓN",
             value: fiscalObligations.percepcion,
-            icon: <Percent className="h-4 w-4 text-teal-500" />,
+            icon: <Receipt className="h-4 w-4 text-teal-500" />,
             color: "teal",
           },
         ]
       : []),
   ];
+
+  // Calcular total en soles
+  const totalDerechosSoles = fiscalObligations.totalTaxes * tipoCambio;
 
   return (
     <Accordion type="single" collapsible>
@@ -176,7 +179,7 @@ export default function TaxObligationsCardView({
                           Total de Derechos
                         </div>
                         <div className="text-sm opacity-90">
-                          Total impuestos
+                          En Dólares Americanos
                         </div>
                       </div>
                     </div>
@@ -184,7 +187,29 @@ export default function TaxObligationsCardView({
                       <div className="font-bold text-2xl">
                         USD {fiscalObligations.totalTaxes.toFixed(2)}
                       </div>
-                      <div className="text-sm opacity-90">Suma total</div>
+                      <div className="text-sm opacity-90">Total impuestos</div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center p-4 bg-gradient-to-r from-emerald-200 to-teal-200 text-emerald-900 rounded-lg shadow-md">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-emerald-300 rounded-lg">
+                        <Receipt className="h-5 w-5 text-emerald-800" />
+                      </div>
+                      <div>
+                        <div className="font-bold text-lg">
+                          Total de Derechos
+                        </div>
+                        <div className="text-sm opacity-90">
+                          En Soles Peruanos
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-bold text-2xl">
+                        S/. {totalDerechosSoles.toFixed(2)}
+                      </div>
+                      <div className="text-sm opacity-90">Total impuestos</div>
                     </div>
                   </div>
                 </div>

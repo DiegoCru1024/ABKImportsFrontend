@@ -24,6 +24,7 @@ export function CompleteServiceView({
   const serviceType =
     responseData.generalInformation?.serviceLogistic || "";
   const comercialValue = responseData.quoteSummary?.comercialValue || 0;
+  const tipoCambio = responseData.calculations?.dynamicValues?.tipoCambio || 3.7;
 
   // Mapear productos de la API al formato esperado por la vista
   const mappedProducts = products.map((product) => {
@@ -97,6 +98,7 @@ export function CompleteServiceView({
           <TaxObligationsCardView
             fiscalObligations={responseData.fiscalObligations}
             isMaritime={isMaritime}
+            tipoCambio={tipoCambio}
           />
         )}
       </div>

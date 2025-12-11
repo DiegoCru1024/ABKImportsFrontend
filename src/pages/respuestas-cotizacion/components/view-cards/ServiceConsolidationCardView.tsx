@@ -1,6 +1,6 @@
 import React from "react";
 import { Badge } from "@/components/ui/badge";
-import { Calculator, DollarSign, Plane } from "lucide-react";
+import { Calculator, DollarSign, Plane, Ship, TrendingUp } from "lucide-react";
 
 import {
   Accordion,
@@ -63,6 +63,73 @@ export default function ServiceConsolidationCardView({
     return true;
   };
 
+  const getFieldIcon = (key: string) => {
+    switch (key) {
+      case "servicioConsolidado":
+        return <Plane className="h-4 w-4 text-blue-500" />;
+      case "separacionCarga":
+        return <Calculator className="h-4 w-4 text-green-500" />;
+      case "inspeccionProductos":
+      case "inspeccionFabrica":
+        return <TrendingUp className="h-4 w-4 text-purple-500" />;
+      case "transporteLocal":
+      case "transporteLocalChina":
+      case "transporteLocalDestino":
+        return <DollarSign className="h-4 w-4 text-orange-500" />;
+      default:
+        return <DollarSign className="h-4 w-4 text-gray-500" />;
+    }
+  };
+
+  // Función para obtener los campos filtrados según el tipo de servicio
+  const getFilteredServiceFields = (): Record<string, number> => {
+    const allFields = serviceCalculations.serviceFields as Record<string, number>;
+    
+    if (serviceType === "Consolidado Express") {
+      return {
+        servicioConsolidado: allFields.servicioConsolidado || 0,
+        separacionCarga: allFields.separacionCarga || 0,
+        inspeccionProductos: allFields.inspeccionProductos || 0,
+      };
+    } else if (serviceType === "Consolidado Grupal Express") {
+      return {
+        servicioConsolidado: allFields.servicioConsolidado || 0,
+        seguroProductos: allFields.seguroProductos || allFields.separacionCarga || 0,
+        inspeccionProductos: allFields.inspeccionProductos || 0,
+      };
+    } else if (serviceType === "Almacenaje de mercancías") {
+      return {
+        servicioConsolidado: allFields.servicioConsolidado || 0,
+        separacionCarga: allFields.separacionCarga || 0,
+        inspeccionProductos: allFields.inspeccionProductos || 0,
+      };
+    } else if (isMaritime) {
+      // Para servicios marítimos, mostramos los campos principales
+      const mainFields: Record<string, number> = {
+        servicioConsolidado: allFields.servicioConsolidado || 0,
+        gestionCertificado: allFields.gestionCertificado || 0,
+        inspeccionProductos: allFields.inspeccionProductos || 0,
+        inspeccionFabrica: allFields.inspeccionFabrica || 0,
+        otrosServicios: allFields.otrosServicios || 0,
+      };
+      
+      // Agregar campos de transporte si existen
+      if (allFields.transporteLocalChina !== undefined) {
+        mainFields.transporteLocalChina = allFields.transporteLocalChina;
+      }
+      if (allFields.transporteLocalDestino !== undefined) {
+        mainFields.transporteLocalDestino = allFields.transporteLocalDestino;
+      }
+      
+      return mainFields;
+    }
+    
+    // Por defecto, retornar todos los campos (para compatibilidad)
+    return allFields;
+  };
+
+  const filteredFields = getFilteredServiceFields();
+
   return (
     <Accordion type="single" collapsible>
       <AccordionItem value="service-consolidation" className="border-0">
@@ -71,7 +138,11 @@ export default function ServiceConsolidationCardView({
             <AccordionTrigger className="hover:no-underline py-0">
               <CardTitle className="flex items-center gap-3 text-xl font-bold">
                 <div className="p-2 bg-blue-200 rounded-lg">
-                  <Plane className="h-6 w-6 text-blue-700" />
+                  {title === "Servicio de Carga Consolidada (CARGA- ADUANA)" ? (
+                    <Ship className="h-6 w-6 text-blue-700" />
+                  ) : (
+                    <Plane className="h-6 w-6 text-blue-700" />
+                  )}
                 </div>
                 <div>
                   <div>{title}</div>
@@ -97,9 +168,7 @@ export default function ServiceConsolidationCardView({
                 </div>
 
                 <div className="space-y-3">
-                  {Object.entries(
-                    serviceCalculations.serviceFields as Record<string, number>
-                  ).map(([key, value]) => {
+                  {Object.entries(filteredFields).map(([key, value]) => {
                     const affectedByIGV = isFieldAffectedByIGV(key);
                     return (
                       <div
@@ -108,16 +177,16 @@ export default function ServiceConsolidationCardView({
                       >
                         <div className="flex items-center gap-3">
                           <div className="p-2 bg-gray-50 rounded-lg">
-                            <DollarSign className="h-4 w-4 text-blue-500" />
+                            {getFieldIcon(key)}
                           </div>
                           <div>
                             <div className="font-medium text-gray-900 text-sm">
                               {getFieldLabel(key)}
                             </div>
                             <div className="text-xs text-gray-500">
-                              {affectedByIGV
-                                ? "Afecto a IGV (18%)"
-                                : "NO afecto a IGV"}
+                              {key === "transporteLocalChina" && isMaritime
+                                ? "Se excluye de IGV"
+                                : "Servicio de consolidación"}
                             </div>
                           </div>
                         </div>

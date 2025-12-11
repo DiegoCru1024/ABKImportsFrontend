@@ -4,7 +4,7 @@ import {
   ChartBar,
   DollarSign,
   FileText,
-  TrendingUp,
+  AlertTriangle,
   CheckCircle,
 } from "lucide-react";
 
@@ -39,6 +39,8 @@ export default function ImportSummaryCardView({
   // Consolidado Grupal Express (Descuento del 50% en impuestos)
   const isExpressConsolidatedGrupal =
     serviceType === "Consolidado Grupal Express";
+  
+  // Mostrar solo 2 items como en la versión de edición
   const summaryItems = [
     {
       key: "comercialValue",
@@ -55,14 +57,6 @@ export default function ImportSummaryCardView({
       icon: <DollarSign className="h-4 w-4 text-green-500" />,
       color: "green",
       category: "Gastos",
-    },
-    {
-      key: "totalInvestment",
-      label: "INVERSIÓN TOTAL DE IMPORTACIÓN",
-      value: `USD ${quoteSummary.totalInvestment.toFixed(2)}`,
-      icon: <TrendingUp className="h-4 w-4 text-orange-500" />,
-      color: "orange",
-      category: "Inversión",
     },
   ];
 
@@ -131,94 +125,6 @@ export default function ImportSummaryCardView({
 
                 <Separator className="my-4" />
 
-                {isExpressConsolidatedPersonal && (
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
-                    <div className="flex items-start gap-3">
-                      <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
-                      <div className="flex-1">
-                        <h4 className="font-bold text-green-800 mb-2">
-                          ✓ EXONERACIÓN TRIBUTARIA ACTIVA
-                        </h4>
-                        <p className="text-sm text-green-700 mb-2">
-                          ¡Ahorro en impuestos de importación! El valor
-                          comercial es menor a USD $200.00, lo que significa
-                          que esta importación está exonerada de impuestos
-                          aduaneros (Ad Valorem, IGV, IPM). Solo se aplican los
-                          costos de desaduanaje y flete internacional.
-                        </p>
-                        <div className="text-xs text-green-600 space-y-1">
-                          <p>
-                            <strong>Beneficio Principal:</strong> Sin Ad
-                            Valorem, IGV ni IPM
-                          </p>
-                          <p>
-                            <strong>Gastos Aplicables:</strong> Solo flete y
-                            desaduanaje
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {isExpressConsolidatedGrupal && (
-                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
-                    <div className="flex items-start gap-3">
-                      <CheckCircle className="h-5 w-5 text-amber-600 mt-0.5" />
-                      <div className="flex-1">
-                        <h4 className="font-bold text-amber-800 mb-2">
-                          ✓ DESCUENTO GRUPAL EXPRESS ACTIVO
-                        </h4>
-                        <p className="text-sm text-amber-700 mb-2">
-                          ¡Beneficios del Consolidado Grupal Express! Esta
-                          modalidad incluye:
-                        </p>
-                        <div className="text-xs text-amber-600 space-y-1">
-                          <p>
-                            <strong>Exoneración Aplicada:</strong> Inspección de
-                            productos EXONERADA
-                          </p>
-                          <p>
-                            <strong>Descuento en Impuestos:</strong> 50% de
-                            descuento en AD/VALOREM + IGV + IPM
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {hasManualExemption &&
-                  !isExpressConsolidatedPersonal &&
-                  !isExpressConsolidatedGrupal && (
-                    <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
-                      <div className="flex items-start gap-3">
-                        <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
-                        <div className="flex-1">
-                          <h4 className="font-bold text-green-800 mb-2">
-                            ✓ EXONERACIÓN AUTOMÁTICA
-                          </h4>
-                          <p className="text-sm text-green-700 mb-2">
-                            Los impuestos están exonerados automáticamente
-                            porque el valor comercial es menor a USD $200.00.
-                            Esta exoneración aplica a todos los impuestos y
-                            aranceles correspondientes.
-                          </p>
-                          <div className="text-xs text-green-600 space-y-1">
-                            <p>
-                              <strong>Beneficio Principal:</strong> Ahorro en
-                              costos de importación
-                            </p>
-                            <p>
-                              <strong>Gastos Aplicables:</strong> Servicios
-                              logísticos básicos
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
                 <div className="space-y-3">
                   <div className="flex justify-between items-center p-4 bg-gradient-to-r from-purple-200 to-indigo-200 text-purple-900 rounded-lg shadow-md">
                     <div className="flex items-center gap-3">
@@ -227,10 +133,7 @@ export default function ImportSummaryCardView({
                       </div>
                       <div>
                         <div className="font-bold text-lg">
-                          INVERSIÓN TOTAL DE IMPORTACIÓN
-                        </div>
-                        <div className="text-sm opacity-90">
-                          Valor comercial + Gastos
+                          INVERSION TOTAL DE IMPORTACION
                         </div>
                       </div>
                     </div>
@@ -238,9 +141,124 @@ export default function ImportSummaryCardView({
                       <div className="font-bold text-2xl">
                         USD {quoteSummary.totalInvestment.toFixed(2)}
                       </div>
-                      <div className="text-sm opacity-90">Compra + Gastos</div>
                     </div>
                   </div>
+
+                  {isExpressConsolidatedPersonal && (
+                    <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-300 rounded-lg p-4">
+                      <div className="flex items-start gap-3">
+                        <div className="p-2 bg-green-100 rounded-lg">
+                          <AlertTriangle className="h-5 w-5 text-green-600" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300 text-xs">
+                              EXONERACIÓN TRIBUTARIA ACTIVA
+                            </Badge>
+                            <span className="text-sm font-medium text-green-800">
+                              ✓ Activa
+                            </span>
+                          </div>
+                          <p className="text-sm text-green-700 leading-relaxed">
+                            <strong>¡Ahorro en impuestos de importación!</strong> El valor comercial es menor a <strong>USD $200.00</strong>,
+                            lo que significa que esta importación está <strong>exonerada de impuestos aduaneros</strong> (Ad Valorem, IGV, IPM).
+                            Solo se aplican los costos de desaduanaje y flete internacional.
+                          </p>
+                          <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                            <div className="bg-green-100 rounded p-2">
+                              <div className="font-semibold text-green-800">Beneficio Principal</div>
+                              <div className="text-green-700">
+                                Sin Ad Valorem, IGV ni IPM
+                              </div>
+                            </div>
+                            <div className="bg-green-100 rounded p-2">
+                              <div className="font-semibold text-green-800">Gastos Aplicables</div>
+                              <div className="text-green-700">
+                                Solo flete y desaduanaje
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {isExpressConsolidatedGrupal && (
+                    <div className="bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-300 rounded-lg p-4">
+                      <div className="flex items-start gap-3">
+                        <div className="p-2 bg-amber-100 rounded-lg">
+                          <AlertTriangle className="h-5 w-5 text-amber-600" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 text-xs">
+                              DESCUENTO GRUPAL EXPRESS ACTIVO
+                            </Badge>
+                            <span className="text-sm font-medium text-amber-800">
+                              ✓ Aplicado
+                            </span>
+                          </div>
+                          <p className="text-sm text-amber-700 leading-relaxed">
+                            <strong>¡Beneficios del Consolidado Grupal Express!</strong> Esta modalidad incluye:
+                          </p>
+                          <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                            <div className="bg-amber-100 rounded p-2">
+                              <div className="font-semibold text-amber-800">Exoneración Aplicada</div>
+                              <div className="text-amber-700">
+                                Inspección de productos <strong>EXONERADA</strong>
+                              </div>
+                            </div>
+                            <div className="bg-amber-100 rounded p-2">
+                              <div className="font-semibold text-amber-800">Descuento en Impuestos</div>
+                              <div className="text-amber-700">
+                                <strong>50% de descuento</strong> en AD/VALOREM + IGV + IPM
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {hasManualExemption &&
+                    !isExpressConsolidatedPersonal &&
+                    !isExpressConsolidatedGrupal && (
+                      <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-300 rounded-lg p-4">
+                        <div className="flex items-start gap-3">
+                          <div className="p-2 bg-green-100 rounded-lg">
+                            <AlertTriangle className="h-5 w-5 text-green-600" />
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300 text-xs">
+                                EXONERACIÓN AUTOMÁTICA
+                              </Badge>
+                              <span className="text-sm font-medium text-green-800">
+                                ✓ Activa
+                              </span>
+                            </div>
+                            <p className="text-sm text-green-700 leading-relaxed">
+                              Los impuestos están exonerados automáticamente porque el valor comercial es menor a <strong>USD $200.00</strong>.
+                              Esta exoneración aplica a todos los impuestos y aranceles correspondientes.
+                            </p>
+                            <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                              <div className="bg-green-100 rounded p-2">
+                                <div className="font-semibold text-green-800">Beneficio Principal</div>
+                                <div className="text-green-700">
+                                  Ahorro en costos de importación
+                                </div>
+                              </div>
+                              <div className="bg-green-100 rounded p-2">
+                                <div className="font-semibold text-green-800">Gastos Aplicables</div>
+                                <div className="text-green-700">
+                                  Servicios logísticos básicos
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                 </div>
               </div>
             </div>

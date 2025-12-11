@@ -16,22 +16,51 @@ export interface ImportExpensesCardViewProps {
     expenseFields: Record<string, any>;
     totalExpenses: number;
   };
+  serviceType?: string;
+  comercialValue?: number;
 }
 
 export default function ImportExpensesCardView({
   importCosts,
+  serviceType = "",
+  comercialValue = 0,
 }: ImportExpensesCardViewProps) {
+  // Detección de servicios según documentación actualizada
+  const isMaritime =
+    serviceType === "Consolidado Maritimo" ||
+    serviceType === "Consolidado Grupal Maritimo";
+
+  const isExpressConsolidated = serviceType === "Consolidado Express";
+
+  const isExpressConsolidatedGrupal =
+    serviceType === "Consolidado Grupal Express";
+
+  const isAlmacenaje = serviceType === "Almacenaje de mercancías";
+
+  // Express Personal: Consolidado Express con valor comercial < $200
+  const isExpressPersonal = isExpressConsolidated && comercialValue < 200;
+
+  // Express Simplificada: Consolidado Express con valor comercial >= $200
+  const isExpressSimplificada = isExpressConsolidated && comercialValue >= 200;
+
   const getFieldLabel = (key: string): string => {
     const labels: Record<string, string> = {
+      servicioConsolidadoMaritimo: "SERVICIO CONSOLIDADO MARÍTIMO",
+      servicioConsolidadoAereo: "SERVICIO CONSOLIDADO AÉREO",
+      gestionCertificado: "GESTIÓN DE CERTIFICADO DE ORIGEN",
+      servicioInspeccion: "SERVICIO DE INSPECCIÓN",
+      servicioTransporte: "SERVICIO DE TRANSPORTE",
+      otrosServicios: "OTROS SERVICIOS",
+      totalDerechos: "TOTAL DE DERECHOS",
       seguroProductos: "SEGURO DE PRODUCTOS",
       separacionCarga: "SEPARACIÓN DE CARGA",
+      inspeccionProductos: "INSPECCIÓN DE PRODUCTOS",
+      fleteInternacional: "FLETE INTERNACIONAL",
+      desaduanaje: "DESADUANAJE",
+      adValoremIgvIpm: "AD/VALOREM + IGV + IPM",
+      adValoremIgvIpmDescuento: "AD/VALOREM + IGV + IPM (-50%)",
+      desaduanajeFleteSaguro: "DESADUANAJE + FLETE + SEGURO",
       transporteLocal: "TRANSPORTE LOCAL",
-      addvaloremigvipm: "AD VALOREM + IGV + IPM",
-      inspeccionProducts: "INSPECCIÓN DE PRODUCTOS",
-      servicioConsolidado: "SERVICIO CONSOLIDADO",
-      desadunajefleteseguro: "DESADUANAJE + FLETE + SEGURO",
-      transporteLocalChinaEnvio: "TRANSPORTE LOCAL CHINA",
-      transporteLocalClienteEnvio: "TRANSPORTE LOCAL CLIENTE",
     };
     return labels[key] || key.toUpperCase();
   };

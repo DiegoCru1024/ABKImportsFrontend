@@ -16,6 +16,8 @@ export interface TaxObligationsCardViewProps {
     igv: number;
     ipm: number;
     adValorem: number;
+    isc?: number;
+    percepcion?: number;
     totalTaxes: number;
     antidumping: {
       antidumpingGobierno: number;
@@ -30,11 +32,15 @@ export default function TaxObligationsCardView({
   fiscalObligations,
   isMaritime = false,
 }: TaxObligationsCardViewProps) {
+  // Calcular total de antidumping (suma de gobierno, cantidad y valor)
   const totalAntidumping =
     fiscalObligations.antidumping.antidumpingGobierno +
     fiscalObligations.antidumping.antidumpingCantidad +
     fiscalObligations.antidumping.antidumpingValor;
 
+  // Configurar items de impuestos según tipo de servicio
+  // Marítimos: AD/VALOREM, ANTIDUMPING, ISC, IGV, IPM, PERCEPCIÓN
+  // Aéreos: AD/VALOREM, IGV, IPM
   const taxItems = [
     {
       key: "adValorem",
@@ -54,6 +60,17 @@ export default function TaxObligationsCardView({
           },
         ]
       : []),
+    ...(isMaritime && fiscalObligations.isc && fiscalObligations.isc > 0
+      ? [
+          {
+            key: "isc",
+            label: "ISC",
+            value: fiscalObligations.isc,
+            icon: <Receipt className="h-4 w-4 text-purple-500" />,
+            color: "purple",
+          },
+        ]
+      : []),
     {
       key: "igv",
       label: "IGV",
@@ -68,6 +85,19 @@ export default function TaxObligationsCardView({
       icon: <DollarSign className="h-4 w-4 text-orange-500" />,
       color: "orange",
     },
+    ...(isMaritime &&
+    fiscalObligations.percepcion &&
+    fiscalObligations.percepcion > 0
+      ? [
+          {
+            key: "percepcion",
+            label: "PERCEPCIÓN",
+            value: fiscalObligations.percepcion,
+            icon: <Percent className="h-4 w-4 text-teal-500" />,
+            color: "teal",
+          },
+        ]
+      : []),
   ];
 
   return (

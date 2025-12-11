@@ -2,9 +2,6 @@ import type { ResponseInformationDTO } from "@/api/interface/quotationResponseIn
 import type { ResponseDataComplete } from "@/api/interface/quotation-response/dto/complete/response-data-complete";
 import type { CompleteProductInterface } from "@/api/interface/quotation-response/dto/complete/products/complete-products";
 
-import QuotationSummaryCardView from "./view-cards/QuotationSummaryCardView";
-import QuotationConfigurationFormView from "./view-cards/QuotationConfigurationFormView";
-import MaritimeServiceFormView from "./view-cards/MaritimeServiceFormView";
 import ServiceConsolidationCardView from "./view-cards/ServiceConsolidationCardView";
 import TaxObligationsCardView from "./view-cards/TaxObligationsCardView";
 import ImportExpensesCardView from "./view-cards/ImportExpensesCardView";
@@ -23,6 +20,10 @@ export function CompleteServiceView({
   const responseData = serviceResponse.responseData as ResponseDataComplete;
   const products = serviceResponse.products as CompleteProductInterface[];
   const isMaritime = serviceResponse.serviceType === "MARITIME";
+
+  const serviceType =
+    responseData.generalInformation?.serviceLogistic || "";
+  const comercialValue = responseData.quoteSummary?.comercialValue || 0;
 
   // Mapear productos de la API al formato esperado por la vista
   const mappedProducts = products.map((product) => {
@@ -84,22 +85,11 @@ export function CompleteServiceView({
   return (
     <div className="w-full space-y-8 pt-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <QuotationConfigurationFormView
-          generalInformation={responseData.generalInformation}
-        />
-
-        <QuotationSummaryCardView resumenInfo={responseData.resumenInfo} />
-      </div>
-
-      {isMaritime && responseData.maritimeConfig && (
-        <MaritimeServiceFormView maritimeConfig={responseData.maritimeConfig} />
-      )}
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {responseData.serviceCalculations && (
           <ServiceConsolidationCardView
             serviceCalculations={responseData.serviceCalculations}
             title={responseData.type || "Servicios de Consolidación"}
+            serviceType={serviceType}
           />
         )}
 
@@ -113,11 +103,18 @@ export function CompleteServiceView({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {responseData.importCosts && (
-          <ImportExpensesCardView importCosts={responseData.importCosts} />
+          <ImportExpensesCardView
+            importCosts={responseData.importCosts}
+            serviceType={serviceType}
+            comercialValue={comercialValue}
+          />
         )}
 
         {responseData.quoteSummary && (
-          <ImportSummaryCardView quoteSummary={responseData.quoteSummary} />
+          <ImportSummaryCardView
+            quoteSummary={responseData.quoteSummary}
+            serviceType={serviceType}
+          />
         )}
       </div>
 

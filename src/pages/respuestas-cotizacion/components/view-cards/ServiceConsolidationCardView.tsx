@@ -1,15 +1,6 @@
-import React from "react";
-import { Badge } from "@/components/ui/badge";
 import { Calculator, DollarSign, Plane, Ship, TrendingUp } from "lucide-react";
 
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import { CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import { Card, CardContent } from "@/components/ui/card";
 import type { ServiceCalculationsInterface } from "@/api/interface/quotation-response/dto/complete/service-calculations";
 
 export interface ServiceConsolidationCardViewProps {
@@ -23,44 +14,28 @@ export default function ServiceConsolidationCardView({
   title = "Servicios de Consolidación",
   serviceType = "",
 }: ServiceConsolidationCardViewProps) {
-  // Detección de tipo de servicio según documentación
   const isMaritime =
     serviceType === "Consolidado Maritimo" ||
     serviceType === "Consolidado Grupal Maritimo";
 
   const isGrupalExpress = serviceType === "Consolidado Grupal Express";
 
-  // Servicios aéreos: Consolidado Express, Consolidado Grupal Express, Almacenaje de mercancías
-  const isAirService =
-    serviceType === "Consolidado Express" ||
-    serviceType === "Consolidado Grupal Express" ||
-    serviceType === "Almacenaje de mercancías";
-
   const getFieldLabel = (key: string): string => {
     const labels: Record<string, string> = {
-      servicioConsolidado: "SERVICIO CONSOLIDADO",
-      // Para Consolidado Grupal Express, separacionCarga se muestra como "SEGURO DE PRODUCTOS"
-      // pero internamente usa el valor de separacionCarga
+      servicioConsolidado: "Servicio Consolidado",
       separacionCarga: isGrupalExpress
-        ? "SEGURO DE PRODUCTOS"
-        : "SEPARACIÓN DE CARGA",
-      seguroProductos: "SEGURO DE PRODUCTOS",
-      inspeccionProductos: "INSPECCIÓN DE PRODUCTOS",
-      gestionCertificado: "GESTIÓN DE CERTIFICADO DE ORIGEN",
-      inspeccionFabrica: "INSPECCIÓN DE FÁBRICA",
-      otrosServicios: "OTROS SERVICIOS",
-      transporteLocalChina: "TRANSPORTE LOCAL (CHINA)",
-      transporteLocalDestino: "TRANSPORTE LOCAL (DESTINO)",
-      transporteLocal: "TRANSPORTE LOCAL",
+        ? "Seguro de Productos"
+        : "Separación de Carga",
+      seguroProductos: "Seguro de Productos",
+      inspeccionProductos: "Inspección de Productos",
+      gestionCertificado: "Gestión de Certificado de Origen",
+      inspeccionFabrica: "Inspección de Fábrica",
+      otrosServicios: "Otros Servicios",
+      transporteLocalChina: "Transporte Local (China)",
+      transporteLocalDestino: "Transporte Local (Destino)",
+      transporteLocal: "Transporte Local",
     };
-    return labels[key] || key.toUpperCase();
-  };
-
-  const isFieldAffectedByIGV = (key: string): boolean => {
-    if (isMaritime && key === "transporteLocalChina") {
-      return false;
-    }
-    return true;
+    return labels[key] || key;
   };
 
   const getFieldIcon = (key: string) => {
@@ -81,10 +56,9 @@ export default function ServiceConsolidationCardView({
     }
   };
 
-  // Función para obtener los campos filtrados según el tipo de servicio
   const getFilteredServiceFields = (): Record<string, number> => {
     const allFields = serviceCalculations.serviceFields as Record<string, number>;
-    
+
     if (serviceType === "Consolidado Express") {
       return {
         servicioConsolidado: allFields.servicioConsolidado || 0,
@@ -104,7 +78,6 @@ export default function ServiceConsolidationCardView({
         inspeccionProductos: allFields.inspeccionProductos || 0,
       };
     } else if (isMaritime) {
-      // Para servicios marítimos, mostramos los campos principales
       const mainFields: Record<string, number> = {
         servicioConsolidado: allFields.servicioConsolidado || 0,
         gestionCertificado: allFields.gestionCertificado || 0,
@@ -112,136 +85,87 @@ export default function ServiceConsolidationCardView({
         inspeccionFabrica: allFields.inspeccionFabrica || 0,
         otrosServicios: allFields.otrosServicios || 0,
       };
-      
-      // Agregar campos de transporte si existen
+
       if (allFields.transporteLocalChina !== undefined) {
         mainFields.transporteLocalChina = allFields.transporteLocalChina;
       }
       if (allFields.transporteLocalDestino !== undefined) {
         mainFields.transporteLocalDestino = allFields.transporteLocalDestino;
       }
-      
+
       return mainFields;
     }
-    
-    // Por defecto, retornar todos los campos (para compatibilidad)
+
     return allFields;
   };
 
   const filteredFields = getFilteredServiceFields();
 
   return (
-    <Accordion type="single" collapsible>
-      <AccordionItem value="service-consolidation" className="border-0">
-        <div className="shadow-lg border-1 border-blue-200 bg-white rounded-lg">
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-4 rounded-lg rounded-b-none">
-            <AccordionTrigger className="hover:no-underline py-0">
-              <CardTitle className="flex items-center gap-3 text-xl font-bold">
-                <div className="p-2 bg-blue-200 rounded-lg">
-                  {title === "Servicio de Carga Consolidada (CARGA- ADUANA)" ? (
-                    <Ship className="h-6 w-6 text-blue-700" />
-                  ) : (
-                    <Plane className="h-6 w-6 text-blue-700" />
-                  )}
-                </div>
-                <div>
-                  <div>{title}</div>
-                  <div className="text-sm font-normal text-blue-700">
-                    Servicios de Consolidación
-                  </div>
-                </div>
-              </CardTitle>
-            </AccordionTrigger>
+    <Card className="border border-gray-200 shadow-sm">
+      <CardContent className="p-6">
+        <div className="space-y-6">
+          <div className="flex items-center gap-2 pb-4 border-b border-gray-200">
+            <div className="p-2 bg-blue-100 rounded-lg">
+              {isMaritime ? (
+                <Ship className="h-5 w-5 text-blue-700" />
+              ) : (
+                <Plane className="h-5 w-5 text-blue-700" />
+              )}
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
+              <p className="text-xs text-gray-500">Afecto a IGV (18%)</p>
+            </div>
           </div>
 
-          <AccordionContent>
-            <div className="space-y-4 p-6">
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 mb-4">
-                  <Badge
-                    variant="secondary"
-                    className="bg-blue-100 text-blue-800 border-blue-200"
-                  >
-                    AFECTO A IGV
-                  </Badge>
-                  <span className="text-sm text-gray-600">(18%)</span>
-                </div>
-
-                <div className="space-y-3">
-                  {Object.entries(filteredFields).map(([key, value]) => {
-                    const affectedByIGV = isFieldAffectedByIGV(key);
-                    return (
-                      <div
-                        key={key}
-                        className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-100 hover:border-blue-200 transition-all duration-200 hover:shadow-sm"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 bg-gray-50 rounded-lg">
-                            {getFieldIcon(key)}
-                          </div>
-                          <div>
-                            <div className="font-medium text-gray-900 text-sm">
-                              {getFieldLabel(key)}
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              {key === "transporteLocalChina" && isMaritime
-                                ? "Se excluye de IGV"
-                                : "Servicio de consolidación"}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="font-semibold text-gray-900">
-                            USD {value.toFixed(2)}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                <Separator className="my-4" />
-
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <Calculator className="h-4 w-4 text-gray-600" />
-                      <span className="text-sm font-medium text-gray-700">
-                        IGV (18%)
-                      </span>
-                    </div>
-                    <span className="font-semibold text-gray-900">
-                      USD {serviceCalculations.igvServices.toFixed(2)}
-                    </span>
+          <div className="grid grid-cols-2 gap-x-32 gap-y-4">
+            {Object.entries(filteredFields).map(([key, value]) => (
+              <div key={key} className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  {getFieldIcon(key)}
+                  <div>
+                    <span className="text-sm text-gray-600">{getFieldLabel(key)}</span>
+                    {key === "transporteLocalChina" && isMaritime && (
+                      <p className="text-xs text-gray-400">Excluido de IGV</p>
+                    )}
                   </div>
+                </div>
+                <p className="text-sm font-semibold text-gray-900">
+                  USD {value.toFixed(2)}
+                </p>
+              </div>
+            ))}
+          </div>
 
-                  <div className="flex justify-between items-center p-4 bg-gradient-to-r from-blue-200 to-indigo-200 text-blue-900 rounded-lg shadow-md">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-blue-300 rounded-lg">
-                        <DollarSign className="h-5 w-5 text-blue-800" />
-                      </div>
-                      <div>
-                        <div className="font-bold text-lg">
-                          Total del Servicio
-                        </div>
-                        <div className="text-sm opacity-90">
-                          Consolidación + IGV
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-bold text-2xl">
-                        USD {serviceCalculations.totalServices.toFixed(2)}
-                      </div>
-                      <div className="text-sm opacity-90">Total incluido</div>
-                    </div>
-                  </div>
+          <div className="pt-4 border-t border-gray-200 space-y-3">
+            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
+              <div className="flex items-center space-x-2">
+                <Calculator className="h-4 w-4 text-gray-600" />
+                <span className="text-sm font-medium text-gray-700">IGV (18%)</span>
+              </div>
+              <p className="text-sm font-semibold text-gray-900">
+                USD {serviceCalculations.igvServices.toFixed(2)}
+              </p>
+            </div>
+
+            <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-100">
+              <div className="flex items-center space-x-2">
+                <DollarSign className="h-4 w-4 text-blue-600" />
+                <div>
+                  <span className="text-sm font-medium text-gray-700">Total del Servicio</span>
+                  <p className="text-xs text-gray-500">Consolidación + IGV</p>
                 </div>
               </div>
+              <div className="text-right">
+                <p className="text-lg font-bold text-blue-700">
+                  USD {serviceCalculations.totalServices.toFixed(2)}
+                </p>
+              </div>
             </div>
-          </AccordionContent>
+          </div>
         </div>
-      </AccordionItem>
-    </Accordion>
+      </CardContent>
+    </Card>
   );
 }

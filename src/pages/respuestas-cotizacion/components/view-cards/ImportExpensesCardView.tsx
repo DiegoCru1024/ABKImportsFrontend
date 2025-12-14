@@ -1,5 +1,3 @@
-import React from "react";
-import { Badge } from "@/components/ui/badge";
 import {
   CheckCircle,
   DollarSign,
@@ -10,14 +8,7 @@ import {
   Truck,
 } from "lucide-react";
 
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import { CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import { Card, CardContent } from "@/components/ui/card";
 
 export interface ImportExpensesCardViewProps {
   importCosts: {
@@ -33,12 +24,7 @@ export default function ImportExpensesCardView({
   serviceType = "",
   comercialValue = 0,
 }: ImportExpensesCardViewProps) {
-  // Detección de servicios según documentación
   const isMaritime =
-    serviceType === "Consolidado Maritimo" ||
-    serviceType === "Consolidado Grupal Maritimo";
-
-  const isMaritimeConsolidated =
     serviceType === "Consolidado Maritimo" ||
     serviceType === "Consolidado Grupal Maritimo";
 
@@ -93,21 +79,6 @@ export default function ImportExpensesCardView({
       default:
         return <DollarSign className="h-4 w-4 text-gray-500" />;
     }
-  };
-
-  const getExpenseCategory = (id: string) => {
-    if (id.includes("transporte")) return "Transporte";
-    if (id.includes("servicio") || id.includes("consolidado"))
-      return "Servicio";
-    if (id.includes("inspeccion")) return "Inspección";
-    if (id.includes("gestion") || id.includes("certificado")) return "Gestión";
-    if (id.includes("separacion") || id.includes("desaduanaje"))
-      return "Aduana";
-    if (id.includes("flete")) return "Flete";
-    if (id.includes("adValorem") || id.includes("totalDerechos") || id.includes("addvalorem"))
-      return "Impuestos";
-    if (id.includes("seguro")) return "Seguro";
-    return "Otros";
   };
 
   const getFieldLabel = (key: string): string => {
@@ -273,133 +244,86 @@ export default function ImportExpensesCardView({
 
   const expenses = getFilteredExpenses();
 
+  const totalExpenses = expenses.reduce(
+    (total, expense) =>
+      total +
+      (expense.id === "inspeccionProductos" && isExpressConsolidatedGrupal
+        ? 0
+        : expense.value),
+    0
+  );
+
   return (
-    <Accordion type="single" collapsible>
-      <AccordionItem value="import-expenses" className="border-0">
-        <div className="shadow-lg border-1 border-orange-200 bg-white rounded-lg">
-          <div className="bg-gradient-to-br from-orange-50 to-amber-50 p-4 rounded-lg rounded-b-none">
-            <AccordionTrigger className="hover:no-underline py-0">
-              <CardTitle className="flex items-center gap-3 text-xl font-bold">
-                <div className="p-2 bg-orange-200 rounded-lg">
-                  <DollarSign className="h-6 w-6 text-orange-700" />
-                </div>
-                <div>
-                  <div>Gastos de Importación</div>
-                  <div className="text-sm font-normal text-orange-700">
-                    {isMaritime ? "Servicios Marítimos" : "Servicios Aéreos"}
-                  </div>
-                </div>
-              </CardTitle>
-            </AccordionTrigger>
+    <Card className="border border-gray-200 shadow-sm">
+      <CardContent className="p-6">
+        <div className="space-y-6">
+          <div className="flex items-center gap-2 pb-4 border-b border-gray-200">
+            <div className="p-2 bg-orange-100 rounded-lg">
+              {isMaritime ? (
+                <Ship className="h-5 w-5 text-orange-700" />
+              ) : (
+                <Plane className="h-5 w-5 text-orange-700" />
+              )}
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-gray-900">Gastos de Importación</h3>
+              <p className="text-xs text-gray-500">
+                {isMaritime ? "Servicios marítimos y logísticos" : "Servicios aéreos y logísticos"}
+              </p>
+            </div>
           </div>
 
-          <AccordionContent>
-            <div className="space-y-4 p-6">
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 mb-4">
-                  <Badge
-                    variant="secondary"
-                    className="bg-orange-100 text-orange-800 border-orange-200"
-                  >
-                    GASTOS
-                  </Badge>
-                  <span className="text-sm text-gray-600">
-                    {isMaritime
-                      ? "Servicios marítimos y logísticos"
-                      : "Servicios aéreos y logísticos"}
-                  </span>
-                </div>
+          <div className="grid grid-cols-2 gap-x-32 gap-y-4">
+            {expenses.map(({ id, label, value }) => {
+              const isExonerated = id === "inspeccionProductos" && isExpressConsolidatedGrupal;
 
-                <div className="space-y-3">
-                  {expenses.map(({ id, label, value }) => {
-                    // Verificar si está exonerado (solo para inspeccionProductos en Consolidado Grupal Express)
-                    const isExonerated = id === "inspeccionProductos" && isExpressConsolidatedGrupal;
-
-                    return (
-                      <div
-                        key={id}
-                        className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-100 hover:border-orange-200 transition-all duration-200 hover:shadow-sm"
-                      >
-                        <div className="flex items-center gap-3 flex-1">
-                          <div className="p-2 bg-gray-50 rounded-lg">
-                            {getExpenseIcon(id)}
-                          </div>
-                          <div className="flex-1">
-                            <div>
-                              <div className="font-medium text-gray-900 text-sm">
-                                {label}
-                              </div>
-                              <div className="text-xs text-gray-500">
-                                {getExpenseCategory(id)}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-3">
-                          {isExonerated && (
-                            <Badge
-                              variant="outline"
-                              className="bg-green-50 text-green-700 border-green-200 text-xs"
-                            >
-                              <CheckCircle className="h-3 w-3 mr-1" />
-                              EXONERADO
-                            </Badge>
-                          )}
-                          <div className="text-right min-w-[100px]">
-                            <div className="font-semibold text-gray-900">
-                              USD {isExonerated ? "0.00" : value.toFixed(2)}
-                            </div>
-                            {isExonerated && (
-                              <div className="text-xs text-green-600 font-medium">
-                                Original: {value.toFixed(2)}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                <Separator className="my-4" />
-
-                <div className="flex justify-between items-center p-4 bg-gradient-to-r from-orange-200 to-amber-200 text-orange-900 rounded-lg shadow-md">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-orange-300 rounded-lg">
-                      <DollarSign className="h-5 w-5 text-orange-800" />
-                    </div>
+              return (
+                <div key={id} className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    {getExpenseIcon(id)}
                     <div>
-                      <div className="font-bold text-lg">
-                        Total Gastos de Importación
-                      </div>
-                      <div className="text-sm opacity-90">
-                        Incluye todos los servicios
-                      </div>
+                      <span className="text-sm text-gray-600">{label}</span>
+                      {isExonerated && (
+                        <div className="flex items-center space-x-1">
+                          <CheckCircle className="h-3 w-3 text-green-600" />
+                          <span className="text-xs text-green-600">Exonerado</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="font-bold text-2xl">
-                      USD{" "}
-                      {expenses
-                        .reduce(
-                          (total, expense) =>
-                            total +
-                            (expense.id === "inspeccionProductos" && isExpressConsolidatedGrupal
-                              ? 0
-                              : expense.value),
-                          0
-                        )
-                        .toFixed(2)}
-                    </div>
-                    <div className="text-sm opacity-90">Total consolidado</div>
+                    <p className="text-sm font-semibold text-gray-900">
+                      USD {isExonerated ? "0.00" : value.toFixed(2)}
+                    </p>
+                    {isExonerated && (
+                      <p className="text-xs text-gray-400 line-through">
+                        {value.toFixed(2)}
+                      </p>
+                    )}
                   </div>
                 </div>
+              );
+            })}
+          </div>
+
+          <div className="pt-4 border-t border-gray-200">
+            <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg border border-orange-100">
+              <div className="flex items-center space-x-2">
+                <DollarSign className="h-4 w-4 text-orange-600" />
+                <div>
+                  <span className="text-sm font-medium text-gray-700">Total Gastos de Importación</span>
+                  <p className="text-xs text-gray-500">Incluye todos los servicios</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="text-lg font-bold text-orange-700">
+                  USD {totalExpenses.toFixed(2)}
+                </p>
               </div>
             </div>
-          </AccordionContent>
+          </div>
         </div>
-      </AccordionItem>
-    </Accordion>
+      </CardContent>
+    </Card>
   );
 }

@@ -332,9 +332,9 @@ export function UnifiedConfigurationForm({
             </div>
 
             <AccordionContent>
-              <div className="space-y-6 grid grid-cols-1 md:grid-cols-3 gap-4 p-2">
+              <div className="space-y-6 grid grid-cols-1 md:grid-cols-3 gap-4 p-2 items-start">
                 {/* Primera columna: Información Logistica */}
-                <div className="space-y-3 flex flex-col gap-2 p-4 bg-gradient-to-r from-white to-white-50 border-1 border-blue-300 rounded-lg">
+                <div className="space-y-3 flex flex-col gap-2 p-4 bg-gradient-to-r from-white to-white-50 border-1 border-blue-300 rounded-lg h-full">
                   <div className="flex items-center gap-2 pb-2 border-b border-blue-200">
                     {/* Linea de separación */}
                     <div className="h-2 w-2 rounded-full bg-blue-600"></div>
@@ -438,7 +438,7 @@ export function UnifiedConfigurationForm({
                 </div>
 
                 {/* Segunda columna: Información General */}
-                <div className="space-y-3 p-4 bg-gradient-to-r from-white to-white-50 border-1 border-purple-300 rounded-lg">
+                <div className="space-y-3 p-4 bg-gradient-to-r from-white to-white-50 border-1 border-purple-300 rounded-lg h-full">
                   <div className="flex items-center gap-2 pb-2 border-b border-purple-200">
                     <div className="h-2 w-2 rounded-full bg-purple-600"></div>
                     <h3 className="text-sm font-semibold text-slate-700">
@@ -532,7 +532,7 @@ export function UnifiedConfigurationForm({
                 </div>
 
                 {/* Tercera columna: Calculo CIF */}
-                <div className="space-y-3 p-4 bg-gradient-to-r from-green-50 to-green-50 border-1 border-green-300 rounded-lg">
+                <div className="space-y-3 p-4 bg-gradient-to-r from-green-50 to-green-50 border-1 border-green-300 rounded-lg h-full">
                   <div className="flex items-center gap-2 pb-2 border-b border-green-200">
                     <div className="h-3 w-3 rounded-full bg-emerald-600 animate-pulse"></div>
                     <h4 className="text-sm font-bold text-emerald-800  tracking-wide">
@@ -612,7 +612,9 @@ export function UnifiedConfigurationForm({
 
                     {/* Separador visual */}
                     <div className="border-t-2 border-emerald-400 my-2"></div>
-
+                    <Label className="text-xs font-semibold text-emerald-700">
+                        Total:
+                      </Label>
                     {/* CIF - Resultado destacado */}
                     <div className="space-y-2 p-4 bg-gradient-to-br from-emerald-100 to-green-100 rounded-lg border-2 border-emerald-500 shadow-md">
                       <Label className="text-base font-extrabold text-emerald-900 flex items-center gap-2">

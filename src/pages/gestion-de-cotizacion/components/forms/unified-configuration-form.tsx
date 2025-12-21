@@ -532,7 +532,7 @@ export function UnifiedConfigurationForm({
                 </div>
 
                 {/* Tercera columna: Calculo CIF */}
-                <div className="space-y-3 p-4 bg-gradient-to-r from-green-50 to-green-50 border-1 border-green-300 rounded-lg h-full">
+                <div className="space-y-3 p-4  to-green-50 border-1 border-green-300 rounded-lg h-full">
                   <div className="flex items-center gap-2 pb-2 border-b border-green-200">
                     <div className="h-3 w-3 rounded-full bg-emerald-600 animate-pulse"></div>
                     <h4 className="text-sm font-bold text-emerald-800  tracking-wide">
@@ -576,22 +576,7 @@ export function UnifiedConfigurationForm({
                           decimalPlaces={2}
                           readOnly={isMaritimeService}
                         />
-                        {/*{isMaritimeService && (
-                            <div className="space-y-1 flex-1">
-                              <Label className="text-[10px] font-medium text-slate-500">
-                                Cálculo Flete
-                              </Label>
-                              <EditableNumericField
-                                value={dynamicValues.calculoFlete}
-                                onChange={(value: number) =>
-                                  onUpdateValue("calculoFlete", value)
-                                }
-                                prefix="$"
-                                decimalPlaces={2}
-                              />
-                            </div>
-                          )
-                            }*/}
+                       
                       </div>
                     </div>
 
@@ -616,7 +601,7 @@ export function UnifiedConfigurationForm({
                         Total:
                       </Label>
                     {/* CIF - Resultado destacado */}
-                    <div className="space-y-2 p-4 bg-gradient-to-br from-emerald-100 to-green-100 rounded-lg border-2 border-emerald-500 shadow-md">
+                    <div className="space-y-2 p-4  rounded-lg border-2 border-emerald-500 shadow-md">
                       <Label className="text-base font-extrabold text-emerald-900 flex items-center gap-2">
                         VALOR CIF
                       </Label>

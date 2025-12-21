@@ -32,7 +32,7 @@ const data = {
       url: "/dashboard/inspeccion-de-mercancias",
       icon: PackageSearch,
       //rolesPermitidos: ["temporal", "guest", "final"],
-      rolesPermitidos: ["final", "admin"],
+      rolesPermitidos: ["final"],
     },
     {
       title: "Gestión de mercancias",

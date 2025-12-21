@@ -1,31 +1,31 @@
-import {useEffect, useState} from "react";
-import {useParams, useNavigate, useLocation} from "react-router-dom";
-import {FileText, ArrowLeft, Loader2, Save} from "lucide-react";
+import { useEffect, useState } from "react";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { FileText, ArrowLeft, Loader2, Save } from "lucide-react";
 
-import {useGetQuotationById} from "@/hooks/use-quation";
+import { useGetQuotationById } from "@/hooks/use-quation";
 import {
     useGetDetailsResponse,
     usePatchQuatitationResponse,
 } from "@/hooks/use-quatitation-response";
 
-import type {ResponseDataComplete} from "@/api/interface/quotation-response/dto/complete/response-data-complete";
-import type {ResponseDataPending} from "@/api/interface/quotation-response/dto/pending/response-data-pending";
+import type { ResponseDataComplete } from "@/api/interface/quotation-response/dto/complete/response-data-complete";
+import type { ResponseDataPending } from "@/api/interface/quotation-response/dto/pending/response-data-pending";
 
-import {Button} from "@/components/ui/button";
-import {SectionHeader} from "@/components/ui/section-header";
-import {LoadingState} from "@/components/ui/loading-state";
-import {ErrorState} from "@/components/ui/error-state";
-import {ConfirmDialog} from "@/components/ui/confirm-dialog";
+import { Button } from "@/components/ui/button";
+import { SectionHeader } from "@/components/ui/section-header";
+import { LoadingState } from "@/components/ui/loading-state";
+import { ErrorState } from "@/components/ui/error-state";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import SendingModal from "@/components/sending-modal";
 
-import {QuotationSummaryCard} from "../forms/quotation-summary-card";
-import {QuotationConfigurationForm} from "../forms/quotation-configuration-form";
-import {MaritimeServiceForm} from "../forms/maritime-service-form";
-import {UnifiedConfigurationForm} from "../forms/unified-configuration-form";
+import { QuotationSummaryCard } from "../forms/quotation-summary-card";
+import { QuotationConfigurationForm } from "../forms/quotation-configuration-form";
+import { MaritimeServiceForm } from "../forms/maritime-service-form";
+import { UnifiedConfigurationForm } from "../forms/unified-configuration-form";
 
-import {useQuotationResponseForm} from "../../hooks/use-quotation-response-form";
-import {useQuotationCalculations} from "../../hooks/use-quotation-calculations";
-import {QuotationResponseDirector} from "../../utils/quotation-response-director";
+import { useQuotationResponseForm } from "../../hooks/use-quotation-response-form";
+import { useQuotationCalculations } from "../../hooks/use-quotation-calculations";
+import { QuotationResponseDirector } from "../../utils/quotation-response-director";
 
 import {
     aduana,
@@ -47,7 +47,7 @@ import ImportSummaryCard from "./partials/ImportSummaryCard";
 import TaxObligationsCard from "./partials/TaxObligationsCard";
 import EditableUnitCostTable from "./tables/editable-unit-cost-table";
 import QuotationProductRow from "./tables/quotation-product-row";
-import {useCallback, useMemo} from "react";
+import { useCallback, useMemo } from "react";
 
 function isResponseDataComplete(
     data: ResponseDataPending | ResponseDataComplete
@@ -56,7 +56,7 @@ function isResponseDataComplete(
 }
 
 export default function EditQuotationResponseView() {
-    const {quotationId, responseId} = useParams<{
+    const { quotationId, responseId } = useParams<{
         quotationId: string;
         responseId: string;
     }>();
@@ -581,7 +581,7 @@ export default function EditQuotationResponseView() {
                 const updatedProducts = prev.map((product) => {
                     if (product.id === productId) {
                         // Sincronizar packingList con cbm y weight - BIDIRECCIONAL
-                        const syncedUpdates = {...updates};
+                        const syncedUpdates = { ...updates };
 
                         // Si viene packingList desde el hijo, sincronizar con cbm/weight del padre
                         if (updates.packingList) {
@@ -591,7 +591,7 @@ export default function EditQuotationResponseView() {
                         }
 
                         // Siempre mantener packingList actualizado
-                        const updatedProduct = {...product, ...syncedUpdates};
+                        const updatedProduct = { ...product, ...syncedUpdates };
 
                         // Asegurar que packingList esté sincronizado con los valores finales
                         updatedProduct.packingList = {
@@ -663,7 +663,7 @@ export default function EditQuotationResponseView() {
                             ...product,
                             variants: product.variants?.map((variant: any) =>
                                 variant.id === variantId
-                                    ? {...variant, ...updates}
+                                    ? { ...variant, ...updates }
                                     : variant
                             ),
                         }
@@ -811,9 +811,9 @@ export default function EditQuotationResponseView() {
                 return (
                     sum +
                     (product.variants?.reduce(
-                            (variantSum, variant) => variantSum + (variant.quantity || 0),
-                            0
-                        ) ||
+                        (variantSum, variant) => variantSum + (variant.quantity || 0),
+                        0
+                    ) ||
                         product.number_of_boxes ||
                         1)
                 );
@@ -1196,7 +1196,7 @@ export default function EditQuotationResponseView() {
 
             console.log("DTO para actualización:", JSON.stringify(dto, null, 2));
 
-            await patchQuotationResponseMutation.mutateAsync({data: dto});
+            await patchQuotationResponseMutation.mutateAsync({ data: dto });
 
             quotationForm.setIsSendingModalOpen(true);
 
@@ -1218,7 +1218,7 @@ export default function EditQuotationResponseView() {
         return (
             <div className="min-h-screen bg-gray-50">
                 <SectionHeader
-                    icon={<FileText className="h-6 w-6 text-white"/>}
+                    icon={<FileText className="h-6 w-6 text-white" />}
                     title="Cargando Respuesta"
                     description="Obteniendo detalles de la respuesta..."
                 />
@@ -1239,7 +1239,7 @@ export default function EditQuotationResponseView() {
         return (
             <div className="min-h-screen bg-gray-50">
                 <SectionHeader
-                    icon={<FileText className="h-6 w-6 text-white"/>}
+                    icon={<FileText className="h-6 w-6 text-white" />}
                     title="Error"
                     description="No se pudo cargar la respuesta"
                 />
@@ -1255,7 +1255,7 @@ export default function EditQuotationResponseView() {
     return (
         <div className="min-h-screen bg-gray-50">
             <SectionHeader
-                icon={<FileText className="h-6 w-6 text-white"/>}
+                icon={<FileText className="h-6 w-6 text-white" />}
                 title={
                     isPendingView
                         ? "Editar Respuesta - Vista Administrativa"
@@ -1265,7 +1265,7 @@ export default function EditQuotationResponseView() {
                 actions={
                     <div className="flex gap-2">
                         <Button variant="outline" onClick={handleGoBack}>
-                            <ArrowLeft className="h-4 w-4 mr-2"/>
+                            <ArrowLeft className="h-4 w-4 mr-2" />
                             Cancelar
                         </Button>
                         <ConfirmDialog
@@ -1275,9 +1275,9 @@ export default function EditQuotationResponseView() {
                                     className="flex items-center gap-2"
                                 >
                                     {isSubmitting ? (
-                                        <Loader2 className="h-4 w-4 animate-spin"/>
+                                        <Loader2 className="h-4 w-4 animate-spin" />
                                     ) : (
-                                        <Save className="h-4 w-4"/>
+                                        <Save className="h-4 w-4" />
                                     )}
                                     {isSubmitting ? "Actualizando..." : "Guardar Cambios"}
                                 </Button>
@@ -1291,51 +1291,56 @@ export default function EditQuotationResponseView() {
             />
 
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-                <QuotationSummaryCard
-                    productCount={
-                        isPendingView
-                            ? pendingViewTotals.totalProducts
-                            : nonPendingViewTotals.totalProducts
-                    }
-                    totalCBM={
-                        isPendingView
-                            ? pendingViewTotals.totalCBM
-                            : isMaritimeConsolidated
-                                ? quotationForm.dynamicValues.volumenCBM
-                                : calculations.totalCBM
-                    }
-                    totalWeight={
-                        isPendingView
-                            ? pendingViewTotals.totalWeight
-                            : isMaritimeConsolidated
-                                ? quotationForm.dynamicValues.kg
-                                : calculations.totalWeight
-                    }
-                    totalPrice={
-                        isPendingView
-                            ? pendingViewTotals.totalPrice
-                            : isMaritimeConsolidated
-                                ? quotationForm.dynamicValues.comercialValue
-                                : calculations.totalPrice
-                    }
-                    totalExpress={
-                        isPendingView
-                            ? pendingViewTotals.totalExpress
-                            : isMaritimeConsolidated
-                                ? quotationForm.dynamicValues.transporteLocalChinaEnvio
-                                : calculations.totalExpress
-                    }
-                    totalGeneral={
-                        isPendingView
-                            ? pendingViewTotals.grandTotal
-                            : calculations.totalGeneral
-                    }
-                    itemCount={
-                        isPendingView
-                            ? pendingViewTotals.totalItems
-                            : nonPendingViewTotals.totalItems
-                    }
-                />
+
+                {isPendingView && (
+
+                    <QuotationSummaryCard
+                        productCount={
+                            isPendingView
+                                ? pendingViewTotals.totalProducts
+                                : nonPendingViewTotals.totalProducts
+                        }
+                        totalCBM={
+                            isPendingView
+                                ? pendingViewTotals.totalCBM
+                                : isMaritimeConsolidated
+                                    ? quotationForm.dynamicValues.volumenCBM
+                                    : calculations.totalCBM
+                        }
+                        totalWeight={
+                            isPendingView
+                                ? pendingViewTotals.totalWeight
+                                : isMaritimeConsolidated
+                                    ? quotationForm.dynamicValues.kg
+                                    : calculations.totalWeight
+                        }
+                        totalPrice={
+                            isPendingView
+                                ? pendingViewTotals.totalPrice
+                                : isMaritimeConsolidated
+                                    ? quotationForm.dynamicValues.comercialValue
+                                    : calculations.totalPrice
+                        }
+                        totalExpress={
+                            isPendingView
+                                ? pendingViewTotals.totalExpress
+                                : isMaritimeConsolidated
+                                    ? quotationForm.dynamicValues.transporteLocalChinaEnvio
+                                    : calculations.totalExpress
+                        }
+                        totalGeneral={
+                            isPendingView
+                                ? pendingViewTotals.grandTotal
+                                : calculations.totalGeneral
+                        }
+                        itemCount={
+                            isPendingView
+                                ? pendingViewTotals.totalItems
+                                : nonPendingViewTotals.totalItems
+                        }
+                    />
+
+                )}
 
                 <QuotationConfigurationForm
                     selectedServiceLogistic={quotationForm.selectedServiceLogistic}
@@ -1565,11 +1570,11 @@ export default function EditQuotationResponseView() {
                                 isMaritime={quotationForm.isMaritimeService()}
                                 values={{
                                     servicioConsolidadoMaritimoFinal:
-                                    quotationForm.dynamicValues.servicioConsolidado,
+                                        quotationForm.dynamicValues.servicioConsolidado,
                                     gestionCertificadoFinal:
-                                    quotationForm.dynamicValues.gestionCertificado,
+                                        quotationForm.dynamicValues.gestionCertificado,
                                     servicioInspeccionFinal:
-                                    quotationForm.dynamicValues.inspeccionProductos,
+                                        quotationForm.dynamicValues.inspeccionProductos,
                                     transporteLocalFinal: 0,
                                     totalDerechosDolaresFinal: calculations.totalTaxes,
                                     desaduanajeFleteSaguro:
@@ -1577,9 +1582,9 @@ export default function EditQuotationResponseView() {
                                         quotationForm.dynamicValues.flete +
                                         quotationForm.dynamicValues.seguro,
                                     transporteLocalChinaEnvio:
-                                    quotationForm.dynamicValues.transporteLocalChinaEnvio,
+                                        quotationForm.dynamicValues.transporteLocalChinaEnvio,
                                     transporteLocalClienteEnvio:
-                                    quotationForm.dynamicValues.transporteLocalClienteEnvio,
+                                        quotationForm.dynamicValues.transporteLocalClienteEnvio,
                                     flete: quotationForm.dynamicValues.flete,
                                     desaduanaje: quotationForm.dynamicValues.desaduanaje,
                                     seguro: quotationForm.dynamicValues.seguro,
@@ -1612,18 +1617,18 @@ export default function EditQuotationResponseView() {
                                 serviceType={quotationForm.selectedServiceLogistic}
                                 serviceFieldsFromConsolidation={{
                                     servicioConsolidado:
-                                    quotationForm.dynamicValues.servicioConsolidado,
+                                        quotationForm.dynamicValues.servicioConsolidado,
                                     gestionCertificado:
-                                    quotationForm.dynamicValues.gestionCertificado,
+                                        quotationForm.dynamicValues.gestionCertificado,
                                     inspeccionProductos:
-                                    quotationForm.dynamicValues.inspeccionProductos,
+                                        quotationForm.dynamicValues.inspeccionProductos,
                                     inspeccionFabrica:
-                                    quotationForm.dynamicValues.inspeccionFabrica,
+                                        quotationForm.dynamicValues.inspeccionFabrica,
                                     otrosServicios: quotationForm.dynamicValues.otrosServicios,
                                     transporteLocalChina:
-                                    quotationForm.dynamicValues.transporteLocalChinaEnvio,
+                                        quotationForm.dynamicValues.transporteLocalChinaEnvio,
                                     transporteLocalDestino:
-                                    quotationForm.dynamicValues.transporteLocalClienteEnvio,
+                                        quotationForm.dynamicValues.transporteLocalClienteEnvio,
                                 }}
                             />
 

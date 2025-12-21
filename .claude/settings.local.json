@@ -9,7 +9,11 @@
       "Bash(npm run lint:*)",
       "mcp__ide__executeCode",
       "Bash(pip install:*)",
-      "Bash(bun add:*)"
+      "Bash(bun add:*)",
+      "Bash(tsx:*)",
+      "Bash(npm ls:*)",
+      "Bash(node --help:*)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []

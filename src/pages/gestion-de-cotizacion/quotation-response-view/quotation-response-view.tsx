@@ -1248,8 +1248,10 @@ export default function QuotationResponseView({
       />
 
       <div className=" min-w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        {/* Resumen de productos */}
-        <QuotationSummaryCard
+
+{isPendingView &&
+
+(   <QuotationSummaryCard
           productCount={
             isPendingView
               ? pendingViewTotals.totalProducts
@@ -1293,8 +1295,10 @@ export default function QuotationResponseView({
               ? pendingViewTotals.totalItems
               : nonPendingViewTotals.totalItems
           }
-        />
+        />)
 
+
+}
           <QuotationConfigurationForm
               selectedServiceLogistic={quotationForm.selectedServiceLogistic}
               onServiceLogisticChange={quotationForm.setSelectedServiceLogistic}

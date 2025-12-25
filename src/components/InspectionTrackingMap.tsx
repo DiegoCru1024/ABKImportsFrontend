@@ -224,7 +224,7 @@ export default function InspectionTrackingMap({ className, inspectionData }: Ins
   }
 
   return (
-    <div className={`bg-white rounded-lg border ${className}`}>
+    <div className={`bg-white rounded-lg border ${className}`} style={{ position: 'relative', zIndex: 0 }}>
       <div className="p-4 border-b">
         <h4 className="font-medium text-gray-900">Tracking de Inspección</h4>
         <p className="text-sm text-gray-600">
@@ -267,11 +267,11 @@ export default function InspectionTrackingMap({ className, inspectionData }: Ins
         </div>
       </div>
 
-      <div className="h-96 relative">
+      <div className="h-96 relative" style={{ zIndex: 0 }}>
         <MapContainer
           center={center}
           zoom={12}
-          style={{ height: '100%', width: '100%' }}
+          style={{ height: '100%', width: '100%', zIndex: 0 }}
           zoomControl={true}
           scrollWheelZoom={true}
           doubleClickZoom={true}

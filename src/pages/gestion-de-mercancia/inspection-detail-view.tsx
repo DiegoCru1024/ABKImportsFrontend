@@ -1,26 +1,16 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useGetInspectionById } from "@/hooks/use-inspections";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { useUpdateInspectionProduct } from "@/hooks/use-inspections";
-import { uploadMultipleFiles } from "@/api/fileUpload";
-import { updateInspectionProduct } from "@/api/inspection";
 import { useQueryClient } from "@tanstack/react-query";
-import FileUploadComponent from "@/components/comp-552";
 import { ViewFilesModal } from "./components/ViewFilesModal";
+import { EditProductModal } from "./components/EditProductModal";
 import CreateShipmentModal from "@/components/CreateShipmentModal";
 import InspectionTrackingMap from "@/components/InspectionTrackingMap";
 import {
   Package,
-  Calendar,
-  DollarSign,
-  FileText,
   ArrowLeft,
   ExternalLink,
   AlertTriangle,
@@ -28,13 +18,8 @@ import {
   Clock,
   Edit,
   Eye,
-  Image as ImageIcon,
-  Save,
-  X,
-  Upload,
-  Trash2
+  Image as ImageIcon
 } from "lucide-react";
-import { toast } from "sonner";
 import { formatDateLong } from "@/lib/format-time";
 
 export default function InspectionDetailView() {
@@ -43,19 +28,10 @@ export default function InspectionDetailView() {
   const queryClient = useQueryClient();
   const { data: inspection, isLoading, error } = useGetInspectionById(id || "");
 
-  // Estados para la edición inline
-  const [editingProductId, setEditingProductId] = useState<string | null>(null);
-  const [editingStatus, setEditingStatus] = useState("");
-  const [existingFiles, setExistingFiles] = useState<string[]>([]);
-  const [newFiles, setNewFiles] = useState<File[]>([]);
-  const [resetCounter, setResetCounter] = useState(0);
-  const [isUploading, setIsUploading] = useState(false);
-
-  // Estados para el modal de visualización
+  // Estados para los modales
   const [viewFilesModalOpen, setViewFilesModalOpen] = useState(false);
+  const [editProductModalOpen, setEditProductModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
-
-  // Estados para el modal de crear envío
   const [createShipmentModalOpen, setCreateShipmentModalOpen] = useState(false);
 
   const getStatusColor = (status: string) => {
@@ -111,54 +87,15 @@ export default function InspectionDetailView() {
 
 
   const handleEditProduct = (product: any) => {
-    setEditingProductId(product.product_id);
-    setEditingStatus(product.status);
-    setExistingFiles(product.files);
-    setNewFiles([]);
-    setResetCounter(prev => prev + 1);
+    setSelectedProduct(product);
+    setEditProductModalOpen(true);
   };
 
-  const handleCancelEdit = () => {
-    setEditingProductId(null);
-    setEditingStatus("");
-    setExistingFiles([]);
-    setNewFiles([]);
-  };
-
-  const handleSaveEdit = async () => {
-    if (!editingProductId) return;
-
-    try {
-      setIsUploading(true);
-
-      // Subir nuevos archivos si los hay
-      let uploadedUrls: string[] = [];
-      if (newFiles.length > 0) {
-        const uploadResponse = await uploadMultipleFiles(newFiles);
-        uploadedUrls = uploadResponse.urls;
-        toast.success(`${uploadedUrls.length} archivo(s) subido(s) exitosamente`);
-      }
-
-      // Combinar archivos existentes con los nuevos
-      const allFiles = [...existingFiles, ...uploadedUrls];
-
-      // Actualizar el producto usando la API directamente
-      await updateInspectionProduct(id || "", editingProductId, {
-        status: editingStatus,
-        files: allFiles
-      });
-
-      // Invalidar la query para refrescar los datos
-      queryClient.invalidateQueries({ queryKey: ["Inspections", id] });
-
-      setIsUploading(false);
-      handleCancelEdit();
-      toast.success("Producto actualizado exitosamente");
-    } catch (error) {
-      console.error("Error al actualizar el producto:", error);
-      setIsUploading(false);
-      toast.error("Error al actualizar el producto");
-    }
+  const handleCloseEditModal = () => {
+    setEditProductModalOpen(false);
+    setSelectedProduct(null);
+    // Invalidar la query para refrescar los datos
+    queryClient.invalidateQueries({ queryKey: ["Inspections", id] });
   };
 
   const handleViewFiles = (product: any) => {
@@ -171,48 +108,7 @@ export default function InspectionDetailView() {
     setSelectedProduct(null);
   };
 
-  const handleRemoveExistingFile = (index: number) => {
-    setExistingFiles(prev => prev.filter((_, i) => i !== index));
-  };
 
-  // Verificar si todos los productos están en tránsito para habilitar crear envío
-  const canCreateShipment = inspection?.content.every((product: any) => product.status === "in_transit");
-
-  const handleCreateShipment = () => {
-    setCreateShipmentModalOpen(true);
-  };
-
-  const getFileType = (url: string) => {
-    if (url.includes('.jpg') || url.includes('.jpeg') || url.includes('.png') || url.includes('.gif') || url.includes('.webp')) return 'image';
-    if (url.includes('.pdf')) return 'pdf';
-    if (url.includes('.doc') || url.includes('.docx')) return 'document';
-    return 'other';
-  };
-
-  const getFileIcon = (url: string) => {
-    const fileType = getFileType(url);
-    switch (fileType) {
-      case 'image':
-        return <ImageIcon className="h-4 w-4" />;
-      case 'pdf':
-        return <ExternalLink className="h-4 w-4" />;
-      case 'document':
-        return <ExternalLink className="h-4 w-4" />;
-      default:
-        return <ExternalLink className="h-4 w-4" />;
-    }
-  };
-
-  const getFileName = (url: string) => {
-    try {
-      const urlObj = new URL(url);
-      const pathname = urlObj.pathname;
-      const fileName = pathname.split('/').pop();
-      return fileName || 'Archivo';
-    } catch {
-      return 'Archivo';
-    }
-  };
 
   if (isLoading) {
     return (
@@ -278,310 +174,240 @@ export default function InspectionDetailView() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-500/5 via-background to-blue-400/10">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
       {/* Header con navegación */}
-      <div className="border-t border-border/60 bg-background/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="w-full px-4 py-4 border-b border-border/60">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="ghost"
-                onClick={() => navigate("/dashboard/gestion-de-mercancias")}
-                className="flex items-center gap-2"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Volver
-              </Button>
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500 hover:bg-blue-600">
-                <Package className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">
-                  Detalles de Inspección
-                </h1>
-                <p className="text-sm text-muted-foreground">
-                  ID: {inspection.id}
-                </p>
-              </div>
+      <div className="border-b border-border/60 bg-white/80 backdrop-blur-sm sticky top-0 z-10">
+        <div className="w-full px-6 py-4">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              onClick={() => navigate("/dashboard/gestion-de-mercancias")}
+              className="flex items-center gap-2 hover:bg-slate-100"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Volver
+            </Button>
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500">
+              <Package className="h-5 w-5 text-white" />
             </div>
-            <div className="flex items-center gap-2">
-              <Button
-                onClick={handleCreateShipment}
-                disabled={!canCreateShipment}
-                className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-full shadow-md flex items-center gap-2"
-              >
-                <Package className="h-4 w-4" />
-                Crear Envío
-              </Button>
-              {!canCreateShipment && (
-                <p className="text-xs text-muted-foreground">
-                  Todos los productos deben estar en tránsito
-                </p>
-              )}
+            <div>
+              <h1 className="text-xl font-bold text-gray-900">
+                Detalles de Inspección
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                ID: {inspection.id}
+              </p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Contenido principal */}
+      {/* Contenido principal con bentogrid */}
       <div className="p-6 space-y-6">
-        {/* Información general - oculta durante edición */}
-        {!editingProductId && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Package className="h-5 w-5" />
-                Información General
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Package className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-medium text-muted-foreground">Tipo de Servicio</span>
-                  </div>
-                  <Badge variant="outline" className="capitalize text-sm">
+        {/* Grid de información general - 4 columnas */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Card: Tipo de Servicio */}
+            <Card className="border border-slate-200 bg-white hover:shadow-md transition-shadow">
+              <CardContent className="p-6">
+                <div className="space-y-3">
+                  <p className="text-sm font-medium text-muted-foreground">Tipo de Servicio</p>
+                  <p className="text-2xl font-bold text-gray-900 capitalize">
                     {inspection.shipping_service_type}
-                  </Badge>
+                  </p>
                 </div>
+              </CardContent>
+            </Card>
 
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-medium text-muted-foreground">Servicio de Logística</span>
-                  </div>
-                  <p className="font-medium">{inspection.logistics_service}</p>
+            {/* Card: Servicio de Logística */}
+            <Card className="border border-slate-200 bg-white hover:shadow-md transition-shadow">
+              <CardContent className="p-6">
+                <div className="space-y-3">
+                  <p className="text-sm font-medium text-muted-foreground">Servicio de Logística</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {inspection.logistics_service}
+                  </p>
                 </div>
+              </CardContent>
+            </Card>
 
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-medium text-muted-foreground">Última Actualización</span>
-                  </div>
-                  <p className="font-medium">{formatDateLong(inspection.updated_at)}</p>
+            {/* Card: Última Actualización */}
+            <Card className="border border-slate-200 bg-white hover:shadow-md transition-shadow">
+              <CardContent className="p-6">
+                <div className="space-y-3">
+                  <p className="text-sm font-medium text-muted-foreground">Última Actualización</p>
+                  <p className="text-lg font-semibold text-gray-900">
+                    {formatDateLong(inspection.updated_at)}
+                  </p>
                 </div>
+              </CardContent>
+            </Card>
 
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-medium text-muted-foreground">Precio Total</span>
-                  </div>
-                  <p className="font-bold text-green-600 text-lg">
+            {/* Card: Precio Total */}
+            <Card className="border border-emerald-200 bg-emerald-50/50 hover:shadow-md transition-shadow">
+              <CardContent className="p-6">
+                <div className="space-y-3">
+                  <p className="text-sm font-medium text-emerald-700">Precio Total</p>
+                  <p className="text-3xl font-bold text-emerald-600">
                     ${inspection.total_price}
                   </p>
                 </div>
+              </CardContent>
+            </Card>
+        </div>
+
+        {/* Layout principal: Productos (izquierda) y Mapa (abajo) */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Sección izquierda: Lista de productos */}
+            <div className="lg:col-span-1 space-y-4">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <Package className="h-5 w-5 text-blue-500" />
+                  Productos ({inspection.content.length})
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  {inspection.content.filter((p: any) => p.status === 'in_transit').length}/{inspection.content.length} en estado actual
+                </p>
               </div>
-            </CardContent>
-          </Card>
-        )}
 
-        {/* Mapa de tracking de inspección */}
-        {!editingProductId && (
-          <InspectionTrackingMap inspectionData={inspection} />
-        )}
+              {/* Lista de productos como cards */}
+              <div className="space-y-3">
+                {inspection.content.map((product: any, index: number) => (
+                  <Card
+                    key={product.product_id}
+                    className={`border transition-all hover:shadow-md cursor-pointer ${
+                      index === 0 ? 'border-blue-300 bg-blue-50/30' : 'border-slate-200 bg-white'
+                    }`}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex gap-3">
+                        {/* Imagen del producto */}
+                        <div className="w-16 h-16 bg-gradient-to-br from-slate-100 to-slate-200 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <ImageIcon className="h-8 w-8 text-slate-400" />
+                        </div>
 
-        {/* Productos en tabla */}
-        {!editingProductId && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Package className="h-5 w-5" />
-                Productos ({inspection.content.length})
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Imagen</TableHead>
-                      <TableHead>Nombre</TableHead>
-                      <TableHead>Cantidad</TableHead>
-                      <TableHead>Precio</TableHead>
-                      <TableHead>Precio Express</TableHead>
-                      <TableHead>Estado</TableHead>
-                      <TableHead>Archivos</TableHead>
-                      <TableHead>Acciones</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {inspection.content.map((product: any) => (
-                      <TableRow key={product.product_id}>
-                        <TableCell>
-                          <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                            <ImageIcon className="h-6 w-6 text-gray-400" />
+                        {/* Información del producto */}
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-gray-900 text-sm truncate">
+                            {product.name}
+                          </h3>
+                          <p className="text-xs text-muted-foreground truncate">
+                            ID: {product.product_id.slice(0, 20)}...
+                          </p>
+
+                          <div className="mt-2 flex items-center justify-between">
+                            <div className="flex items-baseline gap-1">
+                              <span className="text-xs text-muted-foreground">Cant:</span>
+                              <span className="font-semibold text-sm">{product.quantity}</span>
+                            </div>
+                            <div className="flex flex-col items-end">
+                              <span className="text-xs line-through text-muted-foreground">
+                                ${(product.quantity * Number(product.regular_price || product.express_price)).toFixed(2)}
+                              </span>
+                              <span className="text-sm font-bold text-emerald-600">
+                                ${product.express_price}
+                              </span>
+                            </div>
                           </div>
-                        </TableCell>
-                        <TableCell>
-                          <div>
-                            <p className="font-medium">{product.name}</p>
-                            <p className="text-sm text-muted-foreground">ID: {product.product_id}</p>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <span className="font-medium">{product.quantity}</span>
-                        </TableCell>
-                        <TableCell>
-                          <span className="font-medium">${(product.quantity * Number(product.express_price)).toFixed(2)}</span>
-                        </TableCell>
-                        <TableCell>
-                          <span className="font-medium text-green-600">${product.express_price}</span>
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={`flex items-center gap-1 w-fit ${getStatusColor(product.status)}`}>
-                            {getStatusIcon(product.status)}
-                            {getStatusText(product.status)}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm text-muted-foreground">
+
+                          {/* Estado y archivos */}
+                          <div className="mt-3 flex items-center justify-between gap-2">
+                            <Badge
+                              className={`flex items-center gap-1 text-xs px-2 py-0.5 ${getStatusColor(product.status)}`}
+                            >
+                              {getStatusIcon(product.status)}
+                              {getStatusText(product.status)}
+                            </Badge>
+                            <span className="text-xs text-muted-foreground">
                               {product.files.length} archivo{product.files.length !== 1 ? 's' : ''}
                             </span>
+                          </div>
+
+                          {/* Botones de acción */}
+                          <div className="mt-3 flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEditProduct(product)}
+                              className="flex-1 text-xs h-8"
+                            >
+                              <Edit className="h-3 w-3 mr-1" />
+                              Editar
+                            </Button>
                             {product.files.length > 0 && (
                               <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleViewFiles(product)}
+                                className="h-8 px-2"
                               >
-                                <Eye className="h-4 w-4" />
+                                <Eye className="h-3 w-3" />
                               </Button>
                             )}
                           </div>
-                        </TableCell>
-                        <TableCell>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleEditProduct(product)}
-                          >
-                            <Edit className="h-4 w-4 mr-1" />
-                            Editar
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Formulario de edición inline */}
-        {editingProductId && (
-          <Card className="border-2 border-blue-200 bg-blue-50/30">
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Edit className="h-5 w-5 text-blue-600" />
-                  Editando Producto
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleCancelEdit}
-                    disabled={isUploading}
-                  >
-                    <X className="h-4 w-4 mr-1" />
-                    Cancelar
-                  </Button>
-                  <Button
-                    size="sm"
-                    onClick={handleSaveEdit}
-                    disabled={isUploading}
-                  >
-                    {isUploading ? (
-                      <>
-                        <Upload className="h-4 w-4 mr-2 animate-spin" />
-                        Guardando...
-                      </>
-                    ) : (
-                      <>
-                        <Save className="h-4 w-4 mr-1" />
-                        Guardar
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Estado */}
-              <div className="space-y-2">
-                <Label htmlFor="status">Estado</Label>
-                <Select value={editingStatus} onValueChange={setEditingStatus}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar estado" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pending">Pendiente</SelectItem>
-                    <SelectItem value="in_inspection">En Inspección</SelectItem>
-                    <SelectItem value="awaiting_pickup">Esperando Recogida</SelectItem>
-                    <SelectItem value="in_transit">En Tránsito</SelectItem>
-                    <SelectItem value="dispatched">Despachado</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Archivos existentes */}
-              {existingFiles.length > 0 && (
-                <div className="space-y-4">
-                  <Label className="text-sm font-medium">Archivos existentes ({existingFiles.length})</Label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {existingFiles.map((file, index) => (
-                      <div key={index} className="flex items-center gap-2 p-3 bg-white rounded border">
-                        {getFileIcon(file)}
-                        <span className="flex-1 text-sm truncate">{getFileName(file)}</span>
-                        <div className="flex gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => window.open(file, '_blank')}
-                          >
-                            <ExternalLink className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleRemoveExistingFile(index)}
-                            className="text-red-500 hover:text-red-700"
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Subida de nuevos archivos */}
-              <div className="space-y-4">
-                <Label className="text-sm font-medium">Agregar nuevos archivos</Label>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 bg-white">
-                  <FileUploadComponent
-                    onFilesChange={setNewFiles}
-                    resetCounter={resetCounter}
-                  />
-                </div>
-                <p className="text-xs text-gray-500">
-                  Máx 20 archivos • Máx 16MB c/u • Formatos: imágenes, PDF, documentos
-                </p>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
-            </CardContent>
-          </Card>
-        )}
+            </div>
+
+            {/* Sección derecha e inferior: Mapa y ubicación */}
+            <div className="lg:col-span-2 space-y-4">
+              {/* Card de información de ubicación */}
+              <Card className="border border-slate-200 bg-white shadow-sm">
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100">
+                          <Package className="h-5 w-5 text-blue-600" />
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-medium text-muted-foreground">
+                            Ubicación del Envío
+                          </h3>
+                          <p className="text-lg font-bold text-gray-900">
+                            {inspection.origin || 'Shenzhen, China'}
+                          </p>
+                        </div>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Provincia de Cantón, China
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Card del mapa */}
+              <Card className="border border-slate-200 bg-white shadow-sm overflow-hidden">
+                <CardContent className="p-0">
+                  <div className="relative h-[450px] w-full">
+                    <InspectionTrackingMap inspectionData={inspection} />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+        </div>
       </div>
 
       {/* Modal de visualización de archivos */}
-      {selectedProduct && (
+      {selectedProduct && viewFilesModalOpen && (
         <ViewFilesModal
           isOpen={viewFilesModalOpen}
           onClose={handleCloseViewFilesModal}
           product={selectedProduct}
+        />
+      )}
+
+      {/* Modal de edición de producto */}
+      {selectedProduct && editProductModalOpen && (
+        <EditProductModal
+          isOpen={editProductModalOpen}
+          onClose={handleCloseEditModal}
+          product={selectedProduct}
+          inspectionId={id || ""}
         />
       )}
 

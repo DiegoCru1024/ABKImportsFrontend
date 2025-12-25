@@ -118,75 +118,93 @@ export function EditProductModal({ isOpen, onClose, product, inspectionId }: Edi
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <ImageIcon className="h-5 w-5" />
-            Editar Producto: {product.name}
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader className="border-b pb-4">
+          <DialogTitle className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-100 to-blue-200">
+              <ImageIcon className="h-6 w-6 text-blue-600" />
+            </div>
+            <div>
+              <p className="text-xl font-bold text-gray-900">Editar Producto</p>
+              <p className="text-sm font-normal text-muted-foreground mt-0.5">{product.name}</p>
+            </div>
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-6 py-4">
           {/* Información del producto */}
-          <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
-            <div>
-              <Label className="text-sm font-medium text-gray-600">Nombre</Label>
-              <p className="font-medium">{product.name}</p>
+          <div className="grid grid-cols-2 gap-4 p-5 bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl border border-slate-200">
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-muted-foreground">Nombre del Producto</p>
+              <p className="font-semibold text-sm text-gray-900">{product.name}</p>
             </div>
-            <div>
-              <Label className="text-sm font-medium text-gray-600">Cantidad</Label>
-              <p className="font-medium">{product.quantity}</p>
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-muted-foreground">Cantidad</p>
+              <p className="font-semibold text-sm text-gray-900">{product.quantity} unidades</p>
             </div>
-            <div>
-              <Label className="text-sm font-medium text-gray-600">Precio Express</Label>
-              <p className="font-medium text-green-600">${product.express_price}</p>
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-muted-foreground">Precio Express</p>
+              <p className="font-bold text-base text-emerald-600">${product.express_price}</p>
             </div>
-            <div>
-              <Label className="text-sm font-medium text-gray-600">Subtotal</Label>
-              <p className="font-medium">${product.quantity * Number(product.express_price)}</p>
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-muted-foreground">Subtotal</p>
+              <p className="font-bold text-base text-gray-900">${(product.quantity * Number(product.express_price)).toFixed(2)}</p>
             </div>
           </div>
 
           {/* Estado */}
-          <div className="space-y-2">
-            <Label htmlFor="status">Estado</Label>
+          <div className="space-y-3">
+            <Label htmlFor="status" className="text-sm font-semibold text-gray-900">
+              Estado del Producto
+            </Label>
             <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger>
+              <SelectTrigger className="w-full h-11">
                 <SelectValue placeholder="Seleccionar estado" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="pending">Pendiente</SelectItem>
                 <SelectItem value="in_inspection">En Inspección</SelectItem>
-                <SelectItem value="completed">Completado</SelectItem>
-                <SelectItem value="rejected">Rechazado</SelectItem>
+                <SelectItem value="awaiting_pickup">Esperando Recogida</SelectItem>
+                <SelectItem value="in_transit">En Tránsito</SelectItem>
+                <SelectItem value="dispatched">Despachado</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           {/* Archivos existentes */}
           {existingFiles.length > 0 && (
-            <div className="space-y-4">
-              <Label className="text-sm font-medium">Archivos existentes ({existingFiles.length})</Label>
+            <div className="space-y-3">
+              <Label className="text-sm font-semibold text-gray-900">
+                Archivos existentes ({existingFiles.length})
+              </Label>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {existingFiles.map((file, index) => (
-                  <div key={index} className="flex items-center gap-2 p-3 bg-gray-50 rounded border">
-                    {getFileIcon(file)}
-                    <span className="flex-1 text-sm truncate">{getFileName(file)}</span>
+                  <div
+                    key={index}
+                    className="flex items-center gap-3 p-3 bg-white rounded-lg border border-slate-200 hover:border-slate-300 transition-colors group"
+                  >
+                    <div className="flex h-8 w-8 items-center justify-center rounded-md bg-slate-100 group-hover:bg-slate-200 transition-colors">
+                      {getFileIcon(file)}
+                    </div>
+                    <span className="flex-1 text-sm truncate font-medium text-gray-700">
+                      {getFileName(file)}
+                    </span>
                     <div className="flex gap-1">
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => window.open(file, '_blank')}
+                        className="h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-600"
                       >
-                        <ExternalLink className="h-3 w-3" />
+                        <ExternalLink className="h-3.5 w-3.5" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => handleRemoveExistingFile(index)}
-                        className="text-red-500 hover:text-red-700"
+                        className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
                       >
-                        <Trash2 className="h-3 w-3" />
+                        <Trash2 className="h-3.5 w-3.5" />
                       </Button>
                     </div>
                   </div>
@@ -196,28 +214,36 @@ export function EditProductModal({ isOpen, onClose, product, inspectionId }: Edi
           )}
 
           {/* Subida de nuevos archivos */}
-          <div className="space-y-4">
-            <Label className="text-sm font-medium">Agregar nuevos archivos</Label>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 bg-white">
+          <div className="space-y-3">
+            <Label className="text-sm font-semibold text-gray-900">Agregar nuevos archivos</Label>
+            <div className="border-2 border-dashed border-slate-300 rounded-xl p-6 bg-slate-50/50 hover:bg-slate-100/50 transition-colors">
               <FileUploadComponent
                 onFilesChange={setNewFiles}
                 resetCounter={resetCounter}
               />
             </div>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-muted-foreground flex items-center gap-1">
+              <Upload className="h-3 w-3" />
               Máx 20 archivos • Máx 16MB c/u • Formatos: imágenes, PDF, documentos
             </p>
           </div>
         </div>
 
         {/* Botones de acción */}
-        <div className="flex justify-end gap-2 pt-4 border-t">
-          <Button variant="outline" onClick={onClose} disabled={isUploading}>
+        <div className="flex justify-end gap-3 pt-4 border-t">
+          <Button
+            variant="outline"
+            onClick={onClose}
+            disabled={isUploading}
+            className="px-6"
+          >
+            <X className="h-4 w-4 mr-2" />
             Cancelar
           </Button>
-          <Button 
+          <Button
             onClick={handleSave}
             disabled={isUploading || updateProductMutation.isPending}
+            className="px-6 bg-blue-600 hover:bg-blue-700"
           >
             {isUploading ? (
               <>
@@ -225,9 +251,15 @@ export function EditProductModal({ isOpen, onClose, product, inspectionId }: Edi
                 Subiendo archivos...
               </>
             ) : updateProductMutation.isPending ? (
-              "Guardando..."
+              <>
+                <Upload className="h-4 w-4 mr-2 animate-spin" />
+                Guardando...
+              </>
             ) : (
-              "Guardar Cambios"
+              <>
+                <Plus className="h-4 w-4 mr-2" />
+                Guardar Cambios
+              </>
             )}
           </Button>
         </div>

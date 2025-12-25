@@ -3,6 +3,7 @@ import type { ResponseDataComplete } from "./dto/complete/response-data-complete
 import type { PendingProductInterface } from "./dto/pending/products/pending-products";
 import type { ResponseDataPending } from "./dto/pending/response-data-pending";
 import type { ServiceType } from "./enums/enum";
+import type {PurchaseOrderType} from "@/api/interface/orden-compra-interface.ts";
 
 // DTO para crear/actualizar respuestas (sin quotationId en el body)
 export interface CreateUpdateQuotationResponseDTO {
@@ -28,6 +29,7 @@ export interface SubQuotationSelect {
     id_subQuotation: string;
     servicio: string;
     precioTotal: number;
+    version:number;
 }
 
 /**
@@ -36,4 +38,18 @@ export interface SubQuotationSelect {
 export interface CheckOriginQuotationResponse {
     hayCotizacionDeOrigen: boolean;
     id: string | null;
+}
+
+export interface GetAvailableSubQuotationsDto {
+    type: PurchaseOrderType;
+}
+
+/**
+ * Respuesta de sub-quotations disponibles para orden de compra
+ */
+export interface AvailableSubQuotationResponseDto {
+    id_sub_quotation: string;
+    version: number;
+    type: string;
+    quotation_correlative: string;
 }

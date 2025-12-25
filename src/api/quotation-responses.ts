@@ -1,7 +1,8 @@
 import { apiFetch } from "./apiFetch";
 import type {
     QuotationResponseBase,
-    CreateUpdateQuotationResponseDTO, SubQuotationSelect, CheckOriginQuotationResponse
+    CreateUpdateQuotationResponseDTO, SubQuotationSelect, CheckOriginQuotationResponse, GetAvailableSubQuotationsDto,
+    AvailableSubQuotationResponseDto
 } from "./interface/quotation-response/quotation-response-base";
 import type {
   QuotationGetResponsesForUsersDTO,
@@ -219,6 +220,32 @@ export const getSubQuotationsList = async (quotationId: string): Promise<SubQuot
         return response;
     } catch (error) {
         console.error("Error al obtener la lista de sub-cotizaciones:", error);
+        throw error;
+    }
+};
+
+/**
+ * Obtiene la lista de sub-quotations disponibles para orden de compra
+ * @param {GetAvailableSubQuotationsDto} filters - Filtros (type es obligatorio)
+ * @returns {Promise<AvailableSubQuotationResponseDto[]>} - Lista de sub-quotations disponibles
+ */
+export const getAvailableSubQuotations = async (
+    filters: GetAvailableSubQuotationsDto
+): Promise<AvailableSubQuotationResponseDto[]> => {
+    try {
+        const queryParams = new URLSearchParams({
+            type: filters.type,
+        });
+
+        const response: AvailableSubQuotationResponseDto[] = await apiFetch(
+            `/quotation-responses/available-for-purchase-order?${queryParams.toString()}`,
+            {
+                method: "GET",
+            }
+        );
+        return response;
+    } catch (error) {
+        console.error("Error al obtener sub-quotations disponibles:", error);
         throw error;
     }
 };

@@ -5,13 +5,14 @@ import {
     getResponsesForUsers,
     listQuatitationResponses,
     getListResponsesByQuotationId,
-    getDetailsResponse, getSubQuotationsList, checkOriginQuotation,
+    getDetailsResponse, getSubQuotationsList, checkOriginQuotation, getAvailableSubQuotations,
 } from "@/api/quotation-responses";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type {
   CreateUpdateQuotationResponseDTO
 } from "@/api/interface/quotation-response/quotation-response-base";
+import type {PurchaseOrderType} from "@/api/interface/orden-compra-interface.ts";
 
 
 /**
@@ -198,6 +199,19 @@ export function useGetSubQuotationsList(quotationId: string) {
         queryKey: ["getSubQuotationsList", quotationId],
         queryFn: () => getSubQuotationsList(quotationId),
         enabled: Boolean(quotationId),
+    });
+}
+
+/**
+ * Hook para obtener sub-quotations disponibles para orden de compra
+ * @param {PurchaseOrderType} type - Tipo de servicio (obligatorio)
+ * @returns {useQuery} - Lista de sub-quotations disponibles
+ */
+export function useGetAvailableSubQuotations(type: PurchaseOrderType | null) {
+    return useQuery({
+        queryKey: ["availableSubQuotations", type],
+        queryFn: () => getAvailableSubQuotations({ type: type! }),
+        enabled: Boolean(type), // Solo se ejecuta si type tiene valor
     });
 }
 

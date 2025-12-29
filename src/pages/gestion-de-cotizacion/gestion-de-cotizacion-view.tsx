@@ -23,7 +23,7 @@ import { ErrorState } from "@/components/ui/error-state";
 import { SearchFilters } from "@/components/shared/search-filters";
 import { PaginationControls } from "@/components/shared/pagination-controls";
 import { ImageCarouselModal } from "@/components/shared/image-carousel-modal";
-import {ApproveQuotationModal} from "@/pages/gestion-de-cotizacion/components/shared/ApproveQuotationModal.tsx";
+import { ApproveQuotationModal } from "@/pages/gestion-de-cotizacion/components/shared/ApproveQuotationModal.tsx";
 
 const filterOptions = [
   { value: "all", label: "Todos los estados" },
@@ -41,10 +41,10 @@ export default function GestionDeCotizacionesView() {
   const [mainTab, setMainTab] = useState<string>("solicitudes");
   const [selectedQuotationId, setSelectedQuotationId] = useState<string>("");
   const [viewMode, setViewMode] = useState<"grid" | "kanban">("kanban");
-    const [selectedQuotationForApproval, setSelectedQuotationForApproval] = useState<{
-        id: string;
-        correlative: string;
-    } | null>(null);
+  const [selectedQuotationForApproval, setSelectedQuotationForApproval] = useState<{
+    id: string;
+    correlative: string;
+  } | null>(null);
 
   const quotationList = useQuotationList();
 
@@ -63,13 +63,13 @@ export default function GestionDeCotizacionesView() {
     navigate("/dashboard/gestion-de-cotizacion/crear-para-cliente");
   };
 
-    const handleOpenApprovalModal = (quotationId: string, correlative: string) => {
-        setSelectedQuotationForApproval({ id: quotationId, correlative });
-    };
+  const handleOpenApprovalModal = (quotationId: string, correlative: string) => {
+    setSelectedQuotationForApproval({ id: quotationId, correlative });
+  };
 
-    const handleCloseApprovalModal = () => {
-        setSelectedQuotationForApproval(null);
-    };
+  const handleCloseApprovalModal = () => {
+    setSelectedQuotationForApproval(null);
+  };
 
   if (mainTab === "detalles" && selectedQuotationId) {
     return (
@@ -137,7 +137,7 @@ export default function GestionDeCotizacionesView() {
       <div className="flex-1 flex flex-col container mx-auto px-4 py-6 max-w-full">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2 bg-white rounded-lg p-1 shadow-sm border border-slate-200">
-          <Button
+            <Button
               variant={viewMode === "kanban" ? "default" : "ghost"}
               size="sm"
               onClick={() => setViewMode("kanban")}
@@ -146,7 +146,7 @@ export default function GestionDeCotizacionesView() {
               <Columns3 className="w-4 h-4" />
               <span className="hidden sm:inline">Kanban</span>
             </Button>
-            
+
             <Button
               variant={viewMode === "grid" ? "default" : "ghost"}
               size="sm"
@@ -156,7 +156,7 @@ export default function GestionDeCotizacionesView() {
               <LayoutGrid className="w-4 h-4" />
               <span className="hidden sm:inline">Tarjetas</span>
             </Button>
-          
+
           </div>
         </div>
 
@@ -190,16 +190,16 @@ export default function GestionDeCotizacionesView() {
             {viewMode === "grid" ? (
               <>
                 <div className="grid gap-6 grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3">
-                    {quotationList.data.map((quotation) => (
-                        <QuotationCard
-                            key={quotation.quotationId}
-                            quotation={quotation}
-                            onViewDetails={handleViewDetails}
-                            onViewResponses={handleViewListResponses}
-                            onOpenImageModal={imageModal.openModal}
-                            onApprove={handleOpenApprovalModal}
-                        />
-                    ))}
+                  {quotationList.data.map((quotation) => (
+                    <QuotationCard
+                      key={quotation.quotationId}
+                      quotation={quotation}
+                      onViewDetails={handleViewDetails}
+                      onViewResponses={handleViewListResponses}
+                      onOpenImageModal={imageModal.openModal}
+                      onApprove={handleOpenApprovalModal}
+                    />
+                  ))}
                 </div>
 
                 <PaginationControls
@@ -233,12 +233,12 @@ export default function GestionDeCotizacionesView() {
         )}
       </div>
 
-        <ApproveQuotationModal
-            isOpen={selectedQuotationForApproval !== null}
-            onClose={handleCloseApprovalModal}
-            quotationId={selectedQuotationForApproval?.id || ""}
-            quotationCorrelative={selectedQuotationForApproval?.correlative}
-        />
+      <ApproveQuotationModal
+        isOpen={selectedQuotationForApproval !== null}
+        onClose={handleCloseApprovalModal}
+        quotationId={selectedQuotationForApproval?.id || ""}
+        quotationCorrelative={selectedQuotationForApproval?.correlative}
+      />
 
       <ImageCarouselModal
         isOpen={imageModal.isOpen}

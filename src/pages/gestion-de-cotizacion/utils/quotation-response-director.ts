@@ -31,6 +31,8 @@ export interface PendingProductData {
     isQuoted: boolean;
     unitPrice: number;
     expressPrice: number;
+    id_profit_percentage?: string | null;
+    value_profit_porcentage?: number | null;
   }>;
 }
 
@@ -108,6 +110,8 @@ export class QuotationResponseDirector {
           price: variant.unitPrice,
           priceExpress: variant.expressPrice,
           express: variant.expressPrice,
+          id_profit_percentage: variant.id_profit_percentage || null,
+          value_profit_porcentage: variant.value_profit_porcentage || null,
         })),
       })),
       aggregatedTotals: data.aggregatedTotals || {

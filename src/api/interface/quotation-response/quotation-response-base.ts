@@ -37,3 +37,9 @@ export interface CheckOriginQuotationResponse {
     hayCotizacionDeOrigen: boolean;
     id: string | null;
 }
+
+export interface IProfitPercentage {
+    id_profit_percentage: string;
+
+    percentage: number;
+}

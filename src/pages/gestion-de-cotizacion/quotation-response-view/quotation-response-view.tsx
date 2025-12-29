@@ -3,9 +3,9 @@ import { FileText, Send, Loader2 } from "lucide-react";
 
 import { useGetQuotationById } from "@/hooks/use-quation";
 import {
-    useCheckOriginQuotation,
-    useCreateQuatitationResponse,
-    useGetDetailsResponse
+  useCheckOriginQuotation,
+  useCreateQuatitationResponse,
+  useGetDetailsResponse
 } from "@/hooks/use-quatitation-response";
 
 import { Button } from "@/components/ui/button";
@@ -45,7 +45,7 @@ import TaxObligationsCard from "../components/views/partials/TaxObligationsCard"
 import EditableUnitCostTable from "../components/views/tables/editable-unit-cost-table";
 import QuotationProductRow from "../components/views/tables/quotation-product-row";
 import type {
-    PendingVariantInterface
+  PendingVariantInterface
 } from "@/api/interface/quotation-response/dto/pending/variants/pending-variants.ts";
 
 export default function QuotationResponseView({
@@ -57,32 +57,32 @@ export default function QuotationResponseView({
     isError,
   } = useGetQuotationById(selectedQuotationId);
 
-    const {
-        data: originQuotationCheck,
-        isLoading: isLoadingOriginCheck,
-    } = useCheckOriginQuotation(selectedQuotationId);
+  const {
+    data: originQuotationCheck,
+    isLoading: isLoadingOriginCheck,
+  } = useCheckOriginQuotation(selectedQuotationId);
 
-    const hasOriginQuotation = originQuotationCheck?.hayCotizacionDeOrigen || false;
-    const originResponseId = originQuotationCheck?.id || null;
+  const hasOriginQuotation = originQuotationCheck?.hayCotizacionDeOrigen || false;
+  const originResponseId = originQuotationCheck?.id || null;
 
-    const {
-        data: originResponseDetails,
-        isLoading: isLoadingOriginResponse,
-    } = useGetDetailsResponse(
-        originResponseId || "",
-        "COTIZACION DE ORIGEN",
-    );
+  const {
+    data: originResponseDetails,
+    isLoading: isLoadingOriginResponse,
+  } = useGetDetailsResponse(
+    originResponseId || "",
+    "COTIZACION DE ORIGEN",
+  );
 
   const createQuotationResponseMutation = useCreateQuatitationResponse();
 
   const quotationForm = useQuotationResponseForm();
 
-  const [administrador,setAdministrador] = useState<string>("")
+  const [administrador, setAdministrador] = useState<string>("")
 
-  useEffect(()=>{
-    let access_token= localStorage?.getItem("access_token")||""
+  useEffect(() => {
+    let access_token = localStorage?.getItem("access_token") || ""
     setAdministrador(access_token);
-  },[])
+  }, [])
 
   // Estado local para productos pendientes con precios actualizables
   const [pendingProducts, setPendingProducts] = useState<any[]>([]);
@@ -95,244 +95,244 @@ export default function QuotationResponseView({
     quotationForm.selectedServiceLogistic === "Consolidado Maritimo" ||
     quotationForm.selectedServiceLogistic === "Consolidado Grupal Maritimo";
 
-    useEffect(() => {
-        if (!isLoadingOriginCheck && originQuotationCheck) {
-            if (hasOriginQuotation) {
-                // Si ya existe cotización de origen, seleccionar "Consolidado Express" por defecto
-                if (!quotationForm.selectedServiceLogistic || quotationForm.selectedServiceLogistic === "Cotizacion de Origen") {
-                    quotationForm.setSelectedServiceLogistic("Consolidado Express");
-                }
-            } else {
-                // Si NO existe, forzar "Cotizacion de Origen"
-                quotationForm.setSelectedServiceLogistic("Cotizacion de Origen");
-            }
+  useEffect(() => {
+    if (!isLoadingOriginCheck && originQuotationCheck) {
+      if (hasOriginQuotation) {
+        // Si ya existe cotización de origen, seleccionar "Consolidado Express" por defecto
+        if (!quotationForm.selectedServiceLogistic || quotationForm.selectedServiceLogistic === "Cotizacion de Origen") {
+          quotationForm.setSelectedServiceLogistic("Consolidado Express");
         }
-    }, [isLoadingOriginCheck, originQuotationCheck, hasOriginQuotation]);
+      } else {
+        // Si NO existe, forzar "Cotizacion de Origen"
+        quotationForm.setSelectedServiceLogistic("Cotizacion de Origen");
+      }
+    }
+  }, [isLoadingOriginCheck, originQuotationCheck, hasOriginQuotation]);
 
   // Inicializar productos pendientes cuando quotationDetail esté disponible
-    useEffect(() => {
-        if (quotationDetail?.products && pendingProducts.length === 0) {
-            // Si NO hay cotización de origen, usar datos base del quotationDetail
-            if (!hasOriginQuotation) {
-                setPendingProducts(
-                    quotationDetail.products.map((product) => ({
-                        id: product.productId,
-                        name: product.name,
-                        url: product.url || "",
-                        comment: product.comment || "",
-                        quantityTotal: product.quantityTotal || 0,
-                        boxes: product.number_of_boxes,
-                        priceXiaoYi: 0,
-                        cbmTotal: parseFloat(product.volume) || 0,
-                        express: 0,
-                        total: 0,
-                        cbm: parseFloat(product.volume) || 0,
-                        weight: parseFloat(product.weight) || 0,
-                        price: 0,
-                        adminComment: product.adminComment || "",
-                        packingList: {
-                            boxes: product.number_of_boxes || 0,
-                            cbm: parseFloat(product.volume) || 0,
-                            weightKg: parseFloat(product.weight) || 0,
-                            weightTon: (parseFloat(product.weight) || 0) / 1000,
-                        },
-                        variants:
-                            product.variants?.map((variant) => ({
-                                id: variant.variantId,
-                                size: variant.size || "",
-                                presentation: variant.presentation || "",
-                                model: variant.model || "",
-                                color: variant.color || "",
-                                name: `Nombre: ${variant.size} - Presentacion: ${variant.presentation} - Modelo: ${variant.model} - Color: ${variant.color}`,
-                                quantity: variant.quantity || 1,
-                                price: 0,
-                                priceExpress: 0,
-                                weight: 0,
-                                cbm: 0,
-                                express: 0,
-                                attachments: variant.attachments || [],
-                            })) || [],
-                    }))
+  useEffect(() => {
+    if (quotationDetail?.products && pendingProducts.length === 0) {
+      // Si NO hay cotización de origen, usar datos base del quotationDetail
+      if (!hasOriginQuotation) {
+        setPendingProducts(
+          quotationDetail.products.map((product) => ({
+            id: product.productId,
+            name: product.name,
+            url: product.url || "",
+            comment: product.comment || "",
+            quantityTotal: product.quantityTotal || 0,
+            boxes: product.number_of_boxes,
+            priceXiaoYi: 0,
+            cbmTotal: parseFloat(product.volume) || 0,
+            express: 0,
+            total: 0,
+            cbm: parseFloat(product.volume) || 0,
+            weight: parseFloat(product.weight) || 0,
+            price: 0,
+            adminComment: product.adminComment || "",
+            packingList: {
+              boxes: product.number_of_boxes || 0,
+              cbm: parseFloat(product.volume) || 0,
+              weightKg: parseFloat(product.weight) || 0,
+              weightTon: (parseFloat(product.weight) || 0) / 1000,
+            },
+            variants:
+              product.variants?.map((variant) => ({
+                id: variant.variantId,
+                size: variant.size || "",
+                presentation: variant.presentation || "",
+                model: variant.model || "",
+                color: variant.color || "",
+                name: `Nombre: ${variant.size} - Presentacion: ${variant.presentation} - Modelo: ${variant.model} - Color: ${variant.color}`,
+                quantity: variant.quantity || 1,
+                price: 0,
+                priceExpress: 0,
+                weight: 0,
+                cbm: 0,
+                express: 0,
+                attachments: variant.attachments || [],
+              })) || [],
+          }))
+        );
+      }
+      // Si SÍ hay cotización de origen, mapear desde originResponseDetails
+      else if (originResponseDetails && quotationDetail) {
+        const productsWithOriginData = originResponseDetails.products.map((respProduct: any) => {
+          const quotProduct = quotationDetail.products.find(
+            (p) => p.productId === respProduct.productId
+          );
+
+          return {
+            id: respProduct.productId,
+            name: quotProduct?.name || "",
+            url: quotProduct?.url || "",
+            comment: quotProduct?.comment || "",
+            quantityTotal: quotProduct?.quantityTotal || 0,
+            boxes: respProduct.packingList?.nroBoxes || 0,
+            priceXiaoYi: 0,
+            cbmTotal: respProduct.packingList?.cbm || 0,
+            express: 0,
+            total: 0,
+            cbm: respProduct.packingList?.cbm || 0,
+            weight: respProduct.packingList?.pesoKg || 0,
+            price: 0,
+            adminComment: respProduct.adminComment || "",
+            ghostUrl: respProduct.ghostUrl || "",
+            packingList: {
+              boxes: respProduct.packingList?.nroBoxes || 0,
+              cbm: respProduct.packingList?.cbm || 0,
+              weightKg: respProduct.packingList?.pesoKg || 0,
+              weightTon: respProduct.packingList?.pesoTn || 0,
+            },
+            cargoHandling: {
+              fragileProduct: respProduct.cargoHandling?.fragileProduct || false,
+              stackProduct: respProduct.cargoHandling?.stackProduct || false,
+            },
+            variants:
+              respProduct.variants?.map((respVar: any) => {
+                const quotVar = quotProduct?.variants?.find(
+                  (v) => v.variantId === respVar.variantId
                 );
-            }
-            // Si SÍ hay cotización de origen, mapear desde originResponseDetails
-            else if (originResponseDetails && quotationDetail) {
-                const productsWithOriginData = originResponseDetails.products.map((respProduct: any) => {
-                    const quotProduct = quotationDetail.products.find(
-                        (p) => p.productId === respProduct.productId
-                    );
+                return {
+                  id: respVar.variantId,
+                  size: quotVar?.size || "",
+                  presentation: quotVar?.presentation || "",
+                  model: quotVar?.model || "",
+                  color: quotVar?.color || "",
+                  name: quotVar
+                    ? `Nombre: ${quotVar.size} - Presentacion: ${quotVar.presentation} - Modelo: ${quotVar.model} - Color: ${quotVar.color}`
+                    : "",
+                  attachments: quotVar?.attachments || [],
+                  quantity: respVar.quantity || 0,
+                  price: parseFloat(respVar.pendingPricing?.unitPrice) || 0,
+                  priceExpress: parseFloat(respVar.pendingPricing?.expressPrice) || 0,
+                  weight: 0,
+                  cbm: 0,
+                  express: 0,
+                };
+              }) || [],
+          };
+        });
 
-                    return {
-                        id: respProduct.productId,
-                        name: quotProduct?.name || "",
-                        url: quotProduct?.url || "",
-                        comment: quotProduct?.comment || "",
-                        quantityTotal: quotProduct?.quantityTotal || 0,
-                        boxes: respProduct.packingList?.nroBoxes || 0,
-                        priceXiaoYi: 0,
-                        cbmTotal: respProduct.packingList?.cbm || 0,
-                        express: 0,
-                        total: 0,
-                        cbm: respProduct.packingList?.cbm || 0,
-                        weight: respProduct.packingList?.pesoKg || 0,
-                        price: 0,
-                        adminComment: respProduct.adminComment || "",
-                        ghostUrl: respProduct.ghostUrl || "",
-                        packingList: {
-                            boxes: respProduct.packingList?.nroBoxes || 0,
-                            cbm: respProduct.packingList?.cbm || 0,
-                            weightKg: respProduct.packingList?.pesoKg || 0,
-                            weightTon: respProduct.packingList?.pesoTn || 0,
-                        },
-                        cargoHandling: {
-                            fragileProduct: respProduct.cargoHandling?.fragileProduct || false,
-                            stackProduct: respProduct.cargoHandling?.stackProduct || false,
-                        },
-                        variants:
-                            respProduct.variants?.map((respVar: any) => {
-                                const quotVar = quotProduct?.variants?.find(
-                                    (v) => v.variantId === respVar.variantId
-                                );
-                                return {
-                                    id: respVar.variantId,
-                                    size: quotVar?.size || "",
-                                    presentation: quotVar?.presentation || "",
-                                    model: quotVar?.model || "",
-                                    color: quotVar?.color || "",
-                                    name: quotVar
-                                        ? `Nombre: ${quotVar.size} - Presentacion: ${quotVar.presentation} - Modelo: ${quotVar.model} - Color: ${quotVar.color}`
-                                        : "",
-                                    attachments: quotVar?.attachments || [],
-                                    quantity: respVar.quantity || 0,
-                                    price: parseFloat(respVar.pendingPricing?.unitPrice) || 0,
-                                    priceExpress: parseFloat(respVar.pendingPricing?.expressPrice) || 0,
-                                    weight: 0,
-                                    cbm: 0,
-                                    express: 0,
-                                };
-                            }) || [],
-                    };
-                });
-
-                setPendingProducts(productsWithOriginData);
-            }
-        }
-    }, [quotationDetail, hasOriginQuotation, originResponseDetails]);
+        setPendingProducts(productsWithOriginData);
+      }
+    }
+  }, [quotationDetail, hasOriginQuotation, originResponseDetails]);
 
   // Mapear productos de la API al formato esperado por los cálculos
   const mappedProducts = isPendingView
     ? pendingProducts
     : (quotationDetail?.products || []).map((product) => ({
-        id: product.productId,
-        name: product.name,
-        boxes: product.number_of_boxes,
-        cbmTotal: parseFloat(product.volume) || 0,
-        cbm: parseFloat(product.volume) || 0,
-        weight: parseFloat(product.weight) || 0,
-       
-        variants:
-          product.variants?.map((variant) => ({
-            attachments: variant.attachments || [],
-            id: variant.variantId,
-            size: variant.size,
-            presentation: variant.presentation,
-            model: variant.model,
-            color: variant.color,
-            quantity: variant.quantity || 1,
-            price: 0, // Se ingresará en el formulario
-            priceExpress: 0, // Se ingresará en el formulario
-            weight: 0, // Se calculará si es necesario
-            cbm: 0, // Se calculará si es necesario
-          })) || [],
-      }));
+      id: product.productId,
+      name: product.name,
+      boxes: product.number_of_boxes,
+      cbmTotal: parseFloat(product.volume) || 0,
+      cbm: parseFloat(product.volume) || 0,
+      weight: parseFloat(product.weight) || 0,
+
+      variants:
+        product.variants?.map((variant) => ({
+          attachments: variant.attachments || [],
+          id: variant.variantId,
+          size: variant.size,
+          presentation: variant.presentation,
+          model: variant.model,
+          color: variant.color,
+          quantity: variant.quantity || 1,
+          price: 0, // Se ingresará en el formulario
+          priceExpress: 0, // Se ingresará en el formulario
+          weight: 0, // Se calculará si es necesario
+          cbm: 0, // Se calculará si es necesario
+        })) || [],
+    }));
 
   // Mapear productos para EditableUnitCostTable (servicios no pendientes)
-    function isPendingVariant(variant: any): variant is PendingVariantInterface {
-        return 'pendingPricing' in variant;
+  function isPendingVariant(variant: any): variant is PendingVariantInterface {
+    return 'pendingPricing' in variant;
+  }
+  const editableUnitCostTableProducts = useMemo(() => {
+    if (!quotationDetail?.products) {
+      return [];
     }
-    const editableUnitCostTableProducts = useMemo(() => {
-        if (!quotationDetail?.products) {
-            return [];
-        }
 
-        if (!hasOriginQuotation) {
-            return [];
-        }
+    if (!hasOriginQuotation) {
+      return [];
+    }
 
-        if (!originResponseDetails?.products) {
-            console.log("⏳ Esperando originResponseDetails...");
-            return [];
-        }
+    if (!originResponseDetails?.products) {
+      console.log("⏳ Esperando originResponseDetails...");
+      return [];
+    }
 
-        console.log("✅ Mapeando productos DIRECTAMENTE desde originResponseDetails");
-        return quotationDetail.products.map((product) => {
-            const respProduct = originResponseDetails.products.find(
-                (p: any) => p.productId === product.productId
+    console.log("✅ Mapeando productos DIRECTAMENTE desde originResponseDetails");
+    return quotationDetail.products.map((product) => {
+      const respProduct = originResponseDetails.products.find(
+        (p: any) => p.productId === product.productId
+      );
+
+      return {
+        id: product.productId,
+        name: product.name,
+        price: 0,
+        quantity:
+          product.variants?.reduce(
+            (sum, variant) => sum + (variant.quantity || 0),
+            0
+          ) ||
+          product.number_of_boxes ||
+          1,
+        total: 0,
+        equivalence: 0,
+        importCosts: 0,
+        totalCost: 0,
+        unitCost: 0,
+        seCotiza: true,
+
+        variants:
+          product.variants?.map((variant) => {
+            const respVariant = respProduct?.variants?.find(
+              (v: any) => v.variantId === variant.variantId
             );
 
+            let price = 0;
+            if (respVariant && isPendingVariant(respVariant)) {
+              price = parseFloat(String(respVariant.pendingPricing.unitPrice)) || 0;
+            }
+
+            const quantity = variant.quantity || 1;
+            const total = price * quantity;
+
+            console.log(`  📋 Variante ${variant.variantId}:`, {
+              size: variant.size,
+              foundInResponse: !!respVariant,
+              isPending: respVariant ? isPendingVariant(respVariant) : false,
+              price: price,
+              quantity: quantity,
+              total: total,
+            });
+
             return {
-                id: product.productId,
-                name: product.name,
-                price: 0,
-                quantity:
-                    product.variants?.reduce(
-                        (sum, variant) => sum + (variant.quantity || 0),
-                        0
-                    ) ||
-                    product.number_of_boxes ||
-                    1,
-                total: 0,
-                equivalence: 0,
-                importCosts: 0,
-                totalCost: 0,
-                unitCost: 0,
-                seCotiza: true,
-
-                variants:
-                    product.variants?.map((variant) => {
-                        const respVariant = respProduct?.variants?.find(
-                            (v: any) => v.variantId === variant.variantId
-                        );
-
-                        let price = 0;
-                        if (respVariant && isPendingVariant(respVariant)) {
-                            price = parseFloat(String(respVariant.pendingPricing.unitPrice)) || 0;
-                        }
-
-                        const quantity = variant.quantity || 1;
-                        const total = price * quantity;
-
-                        console.log(`  📋 Variante ${variant.variantId}:`, {
-                            size: variant.size,
-                            foundInResponse: !!respVariant,
-                            isPending: respVariant ? isPendingVariant(respVariant) : false,
-                            price: price,
-                            quantity: quantity,
-                            total: total,
-                        });
-
-                        return {
-                            originalVariantId: variant.variantId,
-                            id: variant.variantId,
-                            name: `${variant.size} - ${variant.presentation} - ${variant.model} - ${variant.color}`,
-                            price: price,
-                            size: variant.size,
-                            presentation: variant.presentation,
-                            model: variant.model,
-                            color: variant.color,
-                            quantity: quantity,
-                            attachments: variant.attachments || [],
-                            total: total,
-                            equivalence: 0,
-                            importCosts: 0,
-                            totalCost: 0,
-                            unitCost: 0,
-                            seCotiza: true,
-                        };
-                    }) || [],
+              originalVariantId: variant.variantId,
+              id: variant.variantId,
+              name: `${variant.size} - ${variant.presentation} - ${variant.model} - ${variant.color}`,
+              price: price,
+              size: variant.size,
+              presentation: variant.presentation,
+              model: variant.model,
+              color: variant.color,
+              quantity: quantity,
+              attachments: variant.attachments || [],
+              total: total,
+              equivalence: 0,
+              importCosts: 0,
+              totalCost: 0,
+              unitCost: 0,
+              seCotiza: true,
             };
-        });
-    }, [quotationDetail?.products, originResponseDetails, hasOriginQuotation]);
+          }) || [],
+      };
+    });
+  }, [quotationDetail?.products, originResponseDetails, hasOriginQuotation]);
 
   // Inicializar productos en el hook cuando cambien
   useEffect(() => {
@@ -587,43 +587,43 @@ export default function QuotationResponseView({
   );
 
   // Función para actualizar variantes de productos pendientes
-    const handlePendingVariantUpdate = useCallback(
-        (productId: string, variantId: string, updates: any) => {
-            console.log(`🔄 Actualizando variante ${variantId} del producto ${productId}:`, updates);
+  const handlePendingVariantUpdate = useCallback(
+    (productId: string, variantId: string, updates: any) => {
+      console.log(`🔄 Actualizando variante ${variantId} del producto ${productId}:`, updates);
 
-            setPendingProducts((prev) => {
-                const updatedProducts = prev.map((product) =>
-                    product.id === productId
-                        ? {
-                            ...product,
-                            variants: product.variants?.map((variant: any) =>
-                                variant.id === variantId
-                                    ? {
-                                        ...variant,
-                                        ...updates,
-                                        // Asegurar que los números sean parseados correctamente
-                                        price: updates.price !== undefined ? parseFloat(updates.price) : variant.price,
-                                        priceExpress: updates.priceExpress !== undefined ? parseFloat(updates.priceExpress) : variant.priceExpress,
-                                        quantity: updates.quantity !== undefined ? parseFloat(updates.quantity) : variant.quantity,
-                                    }
-                                    : variant
-                            ),
-                        }
-                        : product
-                );
+      setPendingProducts((prev) => {
+        const updatedProducts = prev.map((product) =>
+          product.id === productId
+            ? {
+              ...product,
+              variants: product.variants?.map((variant: any) =>
+                variant.id === variantId
+                  ? {
+                    ...variant,
+                    ...updates,
+                    // Asegurar que los números sean parseados correctamente
+                    price: updates.price !== undefined ? parseFloat(updates.price) : variant.price,
+                    priceExpress: updates.priceExpress !== undefined ? parseFloat(updates.priceExpress) : variant.priceExpress,
+                    quantity: updates.quantity !== undefined ? parseFloat(updates.quantity) : variant.quantity,
+                  }
+                  : variant
+              ),
+            }
+            : product
+        );
 
-                const updatedProduct = updatedProducts.find((p) => p.id === productId);
-                if (updatedProduct) {
-                    const aggregatedData = calculateProductAggregatedData(updatedProduct);
-                    console.log(`📊 Nuevos datos agregados para producto ${productId}:`, aggregatedData);
-                    handleAggregatedDataChange(productId, aggregatedData);
-                }
+        const updatedProduct = updatedProducts.find((p) => p.id === productId);
+        if (updatedProduct) {
+          const aggregatedData = calculateProductAggregatedData(updatedProduct);
+          console.log(`📊 Nuevos datos agregados para producto ${productId}:`, aggregatedData);
+          handleAggregatedDataChange(productId, aggregatedData);
+        }
 
-                return updatedProducts;
-            });
-        },
-        [calculateProductAggregatedData, handleAggregatedDataChange]
-    );
+        return updatedProducts;
+      });
+    },
+    [calculateProductAggregatedData, handleAggregatedDataChange]
+  );
 
   // Calcular totales generales para vista pendiente
   const pendingViewTotals = useMemo(() => {
@@ -686,6 +686,8 @@ export default function QuotationResponseView({
           false,
         unitPrice: variant.price || 0,
         expressPrice: variant.priceExpress || variant.express || 0,
+        id_profit_percentage: variant.id_profit_percentage || null,
+        value_profit_porcentage: variant.value_profit_porcentage || null,
       })),
     }));
 
@@ -751,8 +753,8 @@ export default function QuotationResponseView({
     (quotationForm.dynamicValues.comercialValue || 0) < 200;
 
   // Detectar tipo de servicio Express Consolidado Grupal
-  const isExpressConsolidatedGrupal= quotationForm.selectedServiceLogistic === "Consolidado Grupal Express"
-  
+  const isExpressConsolidatedGrupal = quotationForm.selectedServiceLogistic === "Consolidado Grupal Express"
+
 
   // Calcular totalImportCosts correctamente - debe coincidir con ImportExpensesCard
   const totalImportCosts = useMemo(() => {
@@ -813,9 +815,9 @@ export default function QuotationResponseView({
       const inspeccionProductos = isExpressConsolidatedGrupal
         ? 0
         : applyExemption(
-            (serviceFields.inspeccionProductos || 0) * 1.18,
-            quotationForm.exemptionState.inspeccionProductos
-          );
+          (serviceFields.inspeccionProductos || 0) * 1.18,
+          quotationForm.exemptionState.inspeccionProductos
+        );
       const servicioTransporte =
         quotationForm.dynamicValues.transporteLocalChinaEnvio +
         quotationForm.dynamicValues.transporteLocalClienteEnvio;
@@ -840,8 +842,8 @@ export default function QuotationResponseView({
           ) +
           applyExemption(
             quotationForm.dynamicValues.desaduanaje +
-              quotationForm.dynamicValues.flete +
-              quotationForm.dynamicValues.seguro,
+            quotationForm.dynamicValues.flete +
+            quotationForm.dynamicValues.seguro,
             quotationForm.exemptionState.desaduanajeFleteSaguro || false
           );
       } else if (isExpressConsolidatedGrupal) {
@@ -878,14 +880,14 @@ export default function QuotationResponseView({
     calculations.totalTaxes,
   ]);
 
-    const availableServiciosLogisticos = useMemo(() => {
-        if (hasOriginQuotation) {
-            // Si ya hay cotización de origen, excluirla de las opciones
-            return serviciosLogisticos.filter(s => s.value !== "Cotizacion de Origen");
-        }
-        // Si NO hay, solo permitir "Cotizacion de Origen"
-        return serviciosLogisticos.filter(s => s.value === "Cotizacion de Origen");
-    }, [hasOriginQuotation]);
+  const availableServiciosLogisticos = useMemo(() => {
+    if (hasOriginQuotation) {
+      // Si ya hay cotización de origen, excluirla de las opciones
+      return serviciosLogisticos.filter(s => s.value !== "Cotizacion de Origen");
+    }
+    // Si NO hay, solo permitir "Cotizacion de Origen"
+    return serviciosLogisticos.filter(s => s.value === "Cotizacion de Origen");
+  }, [hasOriginQuotation]);
 
   //! Función de envio de la cotizacion
   const handleSubmitQuotation = async () => {
@@ -893,7 +895,6 @@ export default function QuotationResponseView({
     try {
       let dto;
 
-      // ✅ IMPLEMENTACIÓN CON DIRECTOR PATTERN
       // Se utiliza QuotationResponseDirector para orquestar la construcción
       // de las respuestas de cotización de manera más organizada y mantenible
 
@@ -1060,8 +1061,8 @@ export default function QuotationResponseView({
 
             desadunajefleteseguro: isExpressConsolidatedSimplificada
               ? (quotationForm.dynamicValues.desaduanaje || 0) +
-                (quotationForm.dynamicValues.flete || 0) +
-                (quotationForm.dynamicValues.seguro || 0)
+              (quotationForm.dynamicValues.flete || 0) +
+              (quotationForm.dynamicValues.seguro || 0)
               : 0,
 
             addvaloremigvipm50: isExpressConsolidatedGrupal
@@ -1141,7 +1142,7 @@ export default function QuotationResponseView({
           // Usar Director para servicio express
           dto = QuotationResponseDirector.buildCompleteExpressService({
             quotationId: selectedQuotationId,
-            advisorId: administrador, //nOMBRE PAULO
+            advisorId: administrador,
             logisticConfig,
             products: directorProducts,
             calculations: calculationsData,
@@ -1172,8 +1173,7 @@ export default function QuotationResponseView({
       quotationForm.setIsSendingModalOpen(true);
     } catch (error) {
       console.error(
-        `Error al enviar cotización ${
-          isPendingView ? "pendiente" : "completa"
+        `Error al enviar cotización ${isPendingView ? "pendiente" : "completa"
         }:`,
         error
       );
@@ -1182,21 +1182,21 @@ export default function QuotationResponseView({
     }
   };
 
-    if (isLoading || isLoadingOriginCheck) {
-        return (
-            <div className="min-h-screen bg-gray-50">
-                <SectionHeader
-                    icon={<FileText className="h-6 w-6 text-white" />}
-                    title="Cargando Cotización"
-                    description="Obteniendo detalles de la cotización..."
-                />
-                <LoadingState
-                    message="Cargando detalles de la cotización..."
-                    variant="card"
-                />
-            </div>
-        );
-    }
+  if (isLoading || isLoadingOriginCheck) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <SectionHeader
+          icon={<FileText className="h-6 w-6 text-white" />}
+          title="Cargando Cotización"
+          description="Obteniendo detalles de la cotización..."
+        />
+        <LoadingState
+          message="Cargando detalles de la cotización..."
+          variant="card"
+        />
+      </div>
+    );
+  }
 
   if (isError || !quotationDetail) {
     return (
@@ -1249,70 +1249,70 @@ export default function QuotationResponseView({
 
       <div className=" min-w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
-{isPendingView &&
+        {isPendingView &&
 
-(   <QuotationSummaryCard
-          productCount={
-            isPendingView
-              ? pendingViewTotals.totalProducts
-              : nonPendingViewTotals.totalProducts
-          }
-          totalCBM={
-            isPendingView
-              ? pendingViewTotals.totalCBM
-              : isMaritimeConsolidated
-                ? quotationForm.dynamicValues.volumenCBM
-                : calculations.totalCBM
-          }
-          totalWeight={
-            isPendingView
-              ? pendingViewTotals.totalWeight
-              : isMaritimeConsolidated
-                ? quotationForm.dynamicValues.kg
-                : calculations.totalWeight
-          }
-          totalPrice={
-            isPendingView
-              ? pendingViewTotals.totalPrice
-              : isMaritimeConsolidated
-                ? quotationForm.dynamicValues.comercialValue
-                : calculations.totalPrice
-          }
-          totalExpress={
-            isPendingView
-              ? pendingViewTotals.totalExpress
-              : isMaritimeConsolidated
-                ? quotationForm.dynamicValues.transporteLocalChinaEnvio
-                : calculations.totalExpress
-          }
-          totalGeneral={
-            isPendingView
-              ? pendingViewTotals.grandTotal
-              : calculations.totalGeneral
-          }
-          itemCount={
-            isPendingView
-              ? pendingViewTotals.totalItems
-              : nonPendingViewTotals.totalItems
-          }
-        />)
+          (<QuotationSummaryCard
+            productCount={
+              isPendingView
+                ? pendingViewTotals.totalProducts
+                : nonPendingViewTotals.totalProducts
+            }
+            totalCBM={
+              isPendingView
+                ? pendingViewTotals.totalCBM
+                : isMaritimeConsolidated
+                  ? quotationForm.dynamicValues.volumenCBM
+                  : calculations.totalCBM
+            }
+            totalWeight={
+              isPendingView
+                ? pendingViewTotals.totalWeight
+                : isMaritimeConsolidated
+                  ? quotationForm.dynamicValues.kg
+                  : calculations.totalWeight
+            }
+            totalPrice={
+              isPendingView
+                ? pendingViewTotals.totalPrice
+                : isMaritimeConsolidated
+                  ? quotationForm.dynamicValues.comercialValue
+                  : calculations.totalPrice
+            }
+            totalExpress={
+              isPendingView
+                ? pendingViewTotals.totalExpress
+                : isMaritimeConsolidated
+                  ? quotationForm.dynamicValues.transporteLocalChinaEnvio
+                  : calculations.totalExpress
+            }
+            totalGeneral={
+              isPendingView
+                ? pendingViewTotals.grandTotal
+                : calculations.totalGeneral
+            }
+            itemCount={
+              isPendingView
+                ? pendingViewTotals.totalItems
+                : nonPendingViewTotals.totalItems
+            }
+          />)
 
 
-}
-          <QuotationConfigurationForm
-              selectedServiceLogistic={quotationForm.selectedServiceLogistic}
-              onServiceLogisticChange={quotationForm.setSelectedServiceLogistic}
-              selectedIncoterm={quotationForm.selectedIncoterm}
-              onIncotermChange={quotationForm.setSelectedIncoterm}
-              selectedTypeLoad={quotationForm.selectedTypeLoad}
-              onTypeLoadChange={quotationForm.setSelectedTypeLoad}
-              selectedCourier={quotationForm.selectedCourier}
-              onCourierChange={quotationForm.setSelectedCourier}
-              serviciosLogisticos={availableServiciosLogisticos}
-              incotermsOptions={incotermsOptions}
-              typeLoad={typeLoad}
-              courier={courier}
-          />
+        }
+        <QuotationConfigurationForm
+          selectedServiceLogistic={quotationForm.selectedServiceLogistic}
+          onServiceLogisticChange={quotationForm.setSelectedServiceLogistic}
+          selectedIncoterm={quotationForm.selectedIncoterm}
+          onIncotermChange={quotationForm.setSelectedIncoterm}
+          selectedTypeLoad={quotationForm.selectedTypeLoad}
+          onTypeLoadChange={quotationForm.setSelectedTypeLoad}
+          selectedCourier={quotationForm.selectedCourier}
+          onCourierChange={quotationForm.setSelectedCourier}
+          serviciosLogisticos={availableServiciosLogisticos}
+          incotermsOptions={incotermsOptions}
+          typeLoad={typeLoad}
+          courier={courier}
+        />
 
         {/* Configuración marítima (solo si es servicio marítimo) */}
         {quotationForm.isMaritimeService() && (

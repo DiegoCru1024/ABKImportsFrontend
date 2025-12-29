@@ -1,7 +1,8 @@
 import { apiFetch } from "./apiFetch";
 import type {
     QuotationResponseBase,
-    CreateUpdateQuotationResponseDTO, SubQuotationSelect, CheckOriginQuotationResponse
+    CreateUpdateQuotationResponseDTO, SubQuotationSelect, CheckOriginQuotationResponse,
+    IProfitPercentage
 } from "./interface/quotation-response/quotation-response-base";
 import type {
   QuotationGetResponsesForUsersDTO,
@@ -223,3 +224,21 @@ export const getSubQuotationsList = async (quotationId: string): Promise<SubQuot
     }
 };
 
+
+
+export const listAllProfitPercentages = async () : Promise <IProfitPercentage[]>=>{
+
+    try{
+        const response: IProfitPercentage[] = await apiFetch(
+            `/quotation-responses/list-profit-percentages`,
+            {
+                method: "GET",
+            }
+        );
+        return response;
+    }catch (error){
+      console.error("Error al obtener la lista de porcentajes de ganancia:", error);
+      throw error;
+    }
+
+}

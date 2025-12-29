@@ -8,4 +8,8 @@ export interface PendingVariantInterface {
   isQuoted: boolean;
 
   pendingPricing: PendingPriceInterface;
+
+  id_profit_percentage:string|null;
+
+  value_profit_porcentage:number|null;
 }

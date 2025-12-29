@@ -1373,15 +1373,15 @@ export default function QuotationResponseView({
         {/* Vista específica según el tipo de servicio */}
         {isPendingView ? (
           /* Vista administrativa simplificada */
-          <div className="space-y-6">
+          <div className="space-y-3">
             {/* Sección de productos con QuotationProductRow para vista pendiente */}
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-              <div className="bg-gradient-to-r from-blue-400/50 to-blue-400/50 p-4 sm:p-6">
-                <h3 className="text-lg sm:text-xl font-bold ">
+            <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-200 px-4 py-3">
+                <h3 className="text-base font-semibold text-slate-800">
                   Productos de la Cotización - Vista Administrativa
                 </h3>
               </div>
-              <div className="p-4 sm:p-6 space-y-4">
+              <div className="p-3">
                 {pendingProducts.map((product, index) => (
                   <QuotationProductRow
                     key={product.id}
@@ -1438,8 +1438,8 @@ export default function QuotationResponseView({
                   />
                 ))}
                 {pendingProducts.length === 0 && (
-                  <div className="text-center py-8 text-gray-500">
-                    <p>No hay productos disponibles para cotizar</p>
+                  <div className="text-center py-6 text-gray-500">
+                    <p className="text-sm">No hay productos disponibles para cotizar</p>
                   </div>
                 )}
               </div>

@@ -47,6 +47,8 @@ import QuotationProductRow from "../components/views/tables/quotation-product-ro
 import type {
   PendingVariantInterface
 } from "@/api/interface/quotation-response/dto/pending/variants/pending-variants.ts";
+import { listAllProfitPercentages } from "@/api/quotation-responses";
+import type { IProfitPercentage } from "@/api/interface/quotation-response/quotation-response-base";
 
 export default function QuotationResponseView({
   selectedQuotationId,
@@ -86,6 +88,23 @@ export default function QuotationResponseView({
 
   // Estado local para productos pendientes con precios actualizables
   const [pendingProducts, setPendingProducts] = useState<any[]>([]);
+
+  // Estado para los porcentajes de ganancia (cargar una sola vez)
+  const [profitPercentages, setProfitPercentages] = useState<IProfitPercentage[]>([]);
+
+  // Cargar porcentajes de ganancia una sola vez al montar el componente
+  useEffect(() => {
+    const loadProfitPercentages = async () => {
+      try {
+        const percentages = await listAllProfitPercentages();
+        setProfitPercentages(percentages);
+      } catch (error) {
+        console.error("Error al cargar porcentajes de ganancia:", error);
+      }
+    };
+
+    loadProfitPercentages();
+  }, []);
 
   // Detectar si es vista "Pendiente" (administrativa) vs vista completa
   const isPendingView = quotationForm.selectedServiceLogistic === "Cotizacion de Origen";
@@ -596,18 +615,21 @@ export default function QuotationResponseView({
           product.id === productId
             ? {
               ...product,
-              variants: product.variants?.map((variant: any) =>
-                variant.id === variantId
-                  ? {
+              variants: product.variants?.map((variant: any) => {
+                if (variant.id === variantId) {
+                  return {
                     ...variant,
                     ...updates,
                     // Asegurar que los números sean parseados correctamente
                     price: updates.price !== undefined ? parseFloat(updates.price) : variant.price,
                     priceExpress: updates.priceExpress !== undefined ? parseFloat(updates.priceExpress) : variant.priceExpress,
                     quantity: updates.quantity !== undefined ? parseFloat(updates.quantity) : variant.quantity,
-                  }
-                  : variant
-              ),
+                    // El value_profit_porcentage ya viene calculado desde el componente hijo
+                    value_profit_porcentage: updates.value_profit_porcentage !== undefined ? updates.value_profit_porcentage : variant.value_profit_porcentage,
+                  };
+                }
+                return variant;
+              }),
             }
             : product
         );
@@ -1392,6 +1414,7 @@ export default function QuotationResponseView({
                     quotationDetail={quotationDetail}
                     productQuotationState={quotationForm.productQuotationState}
                     variantQuotationState={quotationForm.variantQuotationState}
+                    profitPercentages={profitPercentages}
                     onProductQuotationToggle={(productId, checked) => {
                       quotationForm.updateProductQuotationState(
                         productId,

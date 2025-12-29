@@ -30,7 +30,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { listAllProfitPercentages } from "@/api/quotation-responses";
 import type { IProfitPercentage } from "@/api/interface/quotation-response/quotation-response-base";
 import { SupplierProfitSelector } from "@/pages/gestion-de-cotizacion/create-cotizacion-origen/components/ui/SupplierProfitSelector";
 
@@ -83,6 +82,7 @@ interface QuotationProductRowProps {
   product: Product;
   index: number;
   quotationDetail?: unknown;
+  profitPercentages?: IProfitPercentage[];
   onProductChange?: (
     productId: string,
     field: string,
@@ -120,6 +120,7 @@ export default function QuotationProductRow({
   index,
   productQuotationState = {},
   variantQuotationState = {},
+  profitPercentages = [],
   onProductQuotationToggle,
   onVariantQuotationToggle,
   onProductUpdate,
@@ -138,58 +139,57 @@ export default function QuotationProductRow({
   const [variantImageIndices, setVariantImageIndices] = useState<
     Record<string, number>
   >({});
-  const [profitPercentages, setProfitPercentages] = useState<IProfitPercentage[]>([]);
   const [variantProfits, setVariantProfits] = useState<Record<string, { id: string; percentage: number }>>({});
+  const [isInitialized, setIsInitialized] = useState<boolean>(false);
 
-  // Cargar porcentajes de ganancia al montar el componente
+  // Inicializar los profits de las variantes cuando los profitPercentages estén disponibles
   useEffect(() => {
-    const loadProfitPercentages = async () => {
-      try {
-        const percentages = await listAllProfitPercentages();
-        setProfitPercentages(percentages);
+    // Solo ejecutar una vez cuando los porcentajes están disponibles y no se ha inicializado
+    if (profitPercentages.length === 0 || isInitialized) return;
 
-        // Encontrar el porcentaje del 10% como predeterminado
-        const defaultProfit = percentages.find(p => p.percentage === 10);
+    // Encontrar el porcentaje del 10% como predeterminado
+    const defaultProfit = profitPercentages.find(p => p.percentage === 10);
 
-        // Inicializar los profits de las variantes con el valor por defecto (10%)
-        if (defaultProfit && product.variants && onVariantUpdate) {
-          const initialProfits: Record<string, { id: string; percentage: number }> = {};
+    // Inicializar los profits de las variantes con el valor por defecto (10%)
+    if (defaultProfit && product.variants && onVariantUpdate) {
+      const initialProfits: Record<string, { id: string; percentage: number }> = {};
 
-          product.variants.forEach(variant => {
-            let profitToUse: { id: string; percentage: number };
+      product.variants.forEach(variant => {
+        let profitToUse: { id: string; percentage: number };
+        let calculatedValue: number;
 
-            // Si la variante ya tiene un profit definido, usarlo
-            if (variant.id_profit_percentage && variant.value_profit_porcentage !== null && variant.value_profit_porcentage !== undefined) {
-              profitToUse = {
-                id: variant.id_profit_percentage,
-                percentage: variant.value_profit_porcentage
-              };
-            } else {
-              // Caso contrario, usar el valor por defecto (10%)
-              profitToUse = {
-                id: defaultProfit.id_profit_percentage,
-                percentage: defaultProfit.percentage
-              };
+        // Si la variante ya tiene un profit definido, usarlo
+        if (variant.id_profit_percentage && variant.value_profit_porcentage !== null && variant.value_profit_porcentage !== undefined) {
+          profitToUse = {
+            id: variant.id_profit_percentage,
+            percentage: variant.value_profit_porcentage
+          };
+          calculatedValue = variant.value_profit_porcentage;
+        } else {
+          // Caso contrario, usar el valor por defecto (10%)
+          profitToUse = {
+            id: defaultProfit.id_profit_percentage,
+            percentage: defaultProfit.percentage
+          };
 
-              // IMPORTANTE: Notificar al padre con el valor por defecto
-              onVariantUpdate(product.productId, variant.variantId, {
-                id_profit_percentage: defaultProfit.id_profit_percentage,
-                value_profit_porcentage: defaultProfit.percentage
-              });
-            }
+          // Calcular el valor en dólares basado en el precio actual
+          const currentPrice = variant.price || 0;
+          calculatedValue = (currentPrice * defaultProfit.percentage) / 100;
 
-            initialProfits[variant.variantId] = profitToUse;
+          // IMPORTANTE: Notificar al padre con el valor calculado en dólares
+          onVariantUpdate(product.productId, variant.variantId, {
+            id_profit_percentage: defaultProfit.id_profit_percentage,
+            value_profit_porcentage: calculatedValue // Enviar el valor calculado, no el porcentaje
           });
-
-          setVariantProfits(initialProfits);
         }
-      } catch (error) {
-        console.error("Error al cargar porcentajes de ganancia:", error);
-      }
-    };
 
-    loadProfitPercentages();
-  }, [product.variants, product.productId, onVariantUpdate]);
+        initialProfits[variant.variantId] = profitToUse;
+      });
+
+      setVariantProfits(initialProfits);
+      setIsInitialized(true); // Marcar como inicializado
+    }
+  }, [profitPercentages, isInitialized]);
 
   // Sincronizar adminComment cuando cambie desde el padre
   useEffect(() => {
@@ -473,6 +473,22 @@ export default function QuotationProductRow({
     if (onVariantUpdate) {
       onVariantUpdate(product.productId, variantId, { [field]: value });
     }
+
+    // Si el campo que cambió es el precio, recalcular el valor de ganancia
+    if (field === 'price' && variantProfits[variantId]) {
+      const newPrice = typeof value === 'number' ? value : parseFloat(value as string);
+      const profitPercentage = variantProfits[variantId].percentage;
+      const profitId = variantProfits[variantId].id;
+      const calculatedProfit = (newPrice * profitPercentage) / 100;
+
+      // Actualizar el valor de ganancia calculado
+      if (onVariantUpdate) {
+        onVariantUpdate(product.productId, variantId, {
+          id_profit_percentage: profitId,
+          value_profit_porcentage: calculatedProfit
+        });
+      }
+    }
   };
 
   // Handler para cambiar el porcentaje de ganancia del proveedor
@@ -480,7 +496,14 @@ export default function QuotationProductRow({
     const selectedProfit = profitPercentages.find(p => p.percentage === percentage);
 
     if (selectedProfit) {
-      // Actualizar el estado local de profits
+      // Obtener el precio actual de la variante
+      const currentVariant = localProduct.variants?.find(v => v.variantId === variantId);
+      const currentPrice = currentVariant?.price || 0;
+
+      // Calcular el valor de ganancia en dólares
+      const calculatedProfit = (currentPrice * selectedProfit.percentage) / 100;
+
+      // Actualizar el estado local de profits (guardamos el porcentaje para UI)
       setVariantProfits(prev => ({
         ...prev,
         [variantId]: {
@@ -497,17 +520,17 @@ export default function QuotationProductRow({
             ? {
               ...variant,
               id_profit_percentage: selectedProfit.id_profit_percentage,
-              value_profit_porcentage: selectedProfit.percentage
+              value_profit_porcentage: calculatedProfit // Enviar el valor calculado
             }
             : variant
         ),
       }));
 
-      // Notificar al padre
+      // Notificar al padre con el valor calculado
       if (onVariantUpdate) {
         onVariantUpdate(product.productId, variantId, {
           id_profit_percentage: selectedProfit.id_profit_percentage,
-          value_profit_porcentage: selectedProfit.percentage
+          value_profit_porcentage: calculatedProfit // Enviar el valor calculado, no el porcentaje
         });
       }
     }

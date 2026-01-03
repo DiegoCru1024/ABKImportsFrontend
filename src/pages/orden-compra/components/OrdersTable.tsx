@@ -23,6 +23,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import {PurchaseOrderStatus} from "@/api/interface/orden-compra-interface.ts";
 import {useGetAllOrdenesCompra} from "@/hooks/use-orden-compra.ts";
+import {useNavigate} from "react-router-dom";
 
 const getServiceIcon = (type: string) => {
     if (type.includes("Maritimo")) return Ship
@@ -52,6 +53,13 @@ const getIconColor = (type: string) => {
 }
 
 export function OrdersTable() {
+
+    const navigate = useNavigate();
+
+    const handleViewDetails = (ordenCompraId: string) => {
+        navigate(`/dashboard/ordenes-de-compra/detalles/${ordenCompraId}`);
+    };
+
     const { data: orders, isLoading } = useGetAllOrdenesCompra();
 
     if (isLoading) {
@@ -170,7 +178,7 @@ export function OrdersTable() {
                                     {/* Actions */}
                                     <TableCell>
                                         <div className="flex items-center justify-center gap-2">
-                                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                                            <Button variant="ghost" size="icon" className="h-8 w-8"  onClick={() => handleViewDetails(order.id_orden_compra)}>
                                                 <Eye className="w-4 h-4" />
                                             </Button>
                                             <Button variant="ghost" size="icon" className="h-8 w-8">

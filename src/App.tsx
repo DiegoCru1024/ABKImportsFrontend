@@ -31,6 +31,8 @@ import EditQuotationResponseView from "./pages/gestion-de-cotizacion/components/
 import QuotationResponseView from "./pages/gestion-de-cotizacion/quotation-response-view/quotation-response-view";
 import useTawkTo from "@/hooks/useTawkTo";
 import OrdenesDeCompraView from "@/pages/orden-compra/ordenes-de-compra-view";
+import DetallesOrdenCompra from "./pages/orden-compra/detalles-orden-compra-view";
+import ProductosDetallesOrdenCompra from "@/pages/orden-compra/productos-detalles-orden-compra.tsx";
 
 function App() {
     const rutasConChat = [
@@ -63,6 +65,14 @@ function App() {
                 <Route
                     path="/dashboard/ordenes-de-compra"
                     element={< OrdenesDeCompraView/>}
+                />
+                <Route
+                    path="/dashboard/ordenes-de-compra/detalles/:ordenCompraId"
+                    element={< DetallesOrdenCompra/>}
+                />
+                <Route
+                    path="/dashboard/ordenes-de-compra/detalles/:ordenCompraId/:subQuotationId/productos"
+                    element={< ProductosDetallesOrdenCompra/>}
                 />
                 <Route
                     path="/dashboard/gestion-de-cotizacion/respuestas/:quotationId/responder"

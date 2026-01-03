@@ -240,6 +240,8 @@ export function useQuotationResponse({ selectedQuotationId }: UseQuotationRespon
           precio_unitario: Number(variant.pendingPricing?.unitPrice) || 0,
           precio_express: Number(variant.pendingPricing?.expressPrice) || 0,
           seCotizaVariante: variantQuotationState[product.productId]?.[variant.variantId] !== false,
+          id_profit_percentage: variant.id_profit_percentage || null,
+          value_profit_porcentage: variant.value_profit_porcentage || null,
         })),
       })) || [],
     };

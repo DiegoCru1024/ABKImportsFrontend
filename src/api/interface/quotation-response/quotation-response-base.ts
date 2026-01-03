@@ -53,3 +53,9 @@ export interface AvailableSubQuotationResponseDto {
     type: string;
     quotation_correlative: string;
 }
+
+export interface IProfitPercentage {
+    id_profit_percentage: string;
+
+    percentage: number;
+}

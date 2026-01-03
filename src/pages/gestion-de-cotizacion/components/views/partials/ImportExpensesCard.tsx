@@ -1,6 +1,3 @@
-import { useEffect } from "react";
-
-import { Badge } from "@/components/ui/badge";
 import {
   CheckCircle,
   DollarSign,
@@ -11,15 +8,9 @@ import {
   Truck,
 } from "lucide-react";
 
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Separator } from "@/components/ui/separator";
 
 export interface ImportExpensesCardProps {
   comercialValue: number;
@@ -289,146 +280,90 @@ export default function ImportExpensesCard({
   const expenses = isMaritime ? maritimeExpenses : airExpenses;
 
   return (
-    <Accordion type="single" collapsible>
-      <AccordionItem value="import-expenses" className="border-0">
-        <div className="shadow-lg border-1 border-orange-200 bg-white rounded-lg">
-          <div className="bg-gradient-to-br from-orange-50 to-amber-50 p-4 rounded-lg rounded-b-none">
-            <AccordionTrigger className="hover:no-underline py-0">
-              <CardTitle className="flex items-center gap-3 text-xl font-bold">
-                <div className="p-2 bg-orange-200 rounded-lg">
-                  <DollarSign className="h-6 w-6 text-orange-700" />
-                </div>
-                <div>
-                  <div>Gastos de Importación</div>
-                  <div className="text-sm font-normal text-orange-700">
-                    {isMaritime ? "Servicios Marítimos" : "Servicios Aéreos"}
-                  </div>
-                </div>
-              </CardTitle>
-            </AccordionTrigger>
+    <Card className="border border-gray-200 shadow-sm">
+      <CardContent className="p-6">
+        <div className="space-y-6">
+          <div className="flex items-center gap-2 pb-4 border-b border-gray-200">
+            <div className="p-2 bg-orange-100 rounded-lg">
+              {isMaritime ? (
+                <Ship className="h-5 w-5 text-orange-700" />
+              ) : (
+                <Plane className="h-5 w-5 text-orange-700" />
+              )}
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-gray-900">Gastos de Importación</h3>
+              <p className="text-xs text-gray-500">
+                {isMaritime ? "Servicios marítimos y logísticos" : "Servicios aéreos y logísticos"}
+              </p>
+            </div>
           </div>
 
-          <AccordionContent>
-            <div className="space-y-4 p-6">
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 mb-4">
-                  <Badge
-                    variant="secondary"
-                    className="bg-orange-100 text-orange-800 border-orange-200"
-                  >
-                    GASTOS
-                  </Badge>
-                  <span className="text-sm text-gray-600">
-                    {isMaritime
-                      ? "Servicios marítimos y logísticos"
-                      : "Servicios aéreos y logísticos"}
-                  </span>
-                </div>
-
-                <div className="space-y-3">
-                  {expenses.map(({ id, label, value }) => (
-                    <div
-                      key={id}
-                      className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-100 hover:border-orange-200 transition-all duration-200 hover:shadow-sm"
-                    >
-                      <div className="flex items-center gap-3 flex-1">
-                        <div className="p-2 bg-gray-50 rounded-lg">
-                          {getExpenseIcon(id)}
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <Checkbox
-                              id={id}
-                              className="border-orange-500 border-2 data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500"
-                              checked={exemptionState[id]}
-                              onCheckedChange={(checked) =>
-                                handleExemptionChange(id, checked as boolean)
-                              }
-                            />
-                            <div>
-                              <div className="font-medium text-gray-900 text-sm">
-                                {label}
-                              </div>
-                              <div className="text-xs text-gray-500">
-                                {getExpenseCategory(id)}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-3">
-                        {(exemptionState[id] ||
-                          (shouldExemptTaxes && !isMaritime) ||
-                          (id === "inspeccionProductos" && isExpressConsolidatedGrupal)) && (
-                          <Badge
-                            variant="outline"
-                            className="bg-green-50 text-green-700 border-green-200 text-xs"
-                          >
-                            <CheckCircle className="h-3 w-3 mr-1" />
-                            EXONERADO
-                          </Badge>
-                        )}
-                        <div className="text-right min-w-[100px]">
-                          <div className="font-semibold text-gray-900">
-                            USD{" "}
-                            {applyExemption(
-                              value,
-                              exemptionState[id] ||
-                              (id === "inspeccionProductos" && isExpressConsolidatedGrupal)
-                            ).toFixed(2)}
-                          </div>
-                          {(exemptionState[id] ||
-                            (id === "inspeccionProductos" && isExpressConsolidatedGrupal)) && (
-                            <div className="text-xs text-green-600 font-medium">
-                              Original: {value.toFixed(2)}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <Separator className="my-4" />
-
-                <div className="flex justify-between items-center p-4 bg-gradient-to-r from-orange-200 to-amber-200 text-orange-900 rounded-lg shadow-md">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-orange-300 rounded-lg">
-                      <DollarSign className="h-5 w-5 text-orange-800" />
-                    </div>
-                    <div>
-                      <div className="font-bold text-lg">
-                        Total Gastos de Importación
-                      </div>
-                      <div className="text-sm opacity-90">
-                        Incluye todos los servicios
-                      </div>
-                    </div>
+          <div className="space-y-4">
+            {expenses.map(({ id, label, value }) => (
+              <div key={id} className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id={id}
+                    className="border-orange-500 border-2 data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500"
+                    checked={exemptionState[id]}
+                    onCheckedChange={(checked) =>
+                      handleExemptionChange(id, checked as boolean)
+                    }
+                  />
+                  {getExpenseIcon(id)}
+                  <div className="flex-1">
+                    <span className="text-sm text-gray-900 font-medium">{label}</span>
+                    {(exemptionState[id] ||
+                      (shouldExemptTaxes && !isMaritime) ||
+                      (id === "inspeccionProductos" && isExpressConsolidatedGrupal)) && (
+                      <p className="text-xs text-green-600 font-medium">Exonerado</p>
+                    )}
                   </div>
-                  <div className="text-right">
-                    <div className="font-bold text-2xl">
-                      USD{" "}
-                      {expenses
-                        .reduce(
-                          (total, expense) =>
-                            total +
-                            (exemptionState[expense.id] ||
-                            (expense.id === "inspeccionProductos" && isExpressConsolidatedGrupal)
-                              ? 0
-                              : expense.value),
-                          0
-                        )
-                        .toFixed(2)}
-                    </div>
-                    <div className="text-sm opacity-90">Total consolidado</div>
-                  </div>
+                </div>
+                <div className="flex items-center gap-2 ml-10">
+                  <span className="text-sm text-gray-500 font-medium">USD</span>
+                  <p className="text-base font-semibold text-gray-900">
+                    {applyExemption(
+                      value,
+                      exemptionState[id] ||
+                      (id === "inspeccionProductos" && isExpressConsolidatedGrupal)
+                    ).toFixed(2)}
+                  </p>
                 </div>
               </div>
+            ))}
+          </div>
+
+          <div className="pt-4 border-t border-gray-200">
+            <div className="flex items-center justify-between p-4 bg-orange-50 rounded-lg">
+              <div className="flex items-center space-x-2">
+                <DollarSign className="h-5 w-5 text-orange-700" />
+                <div>
+                  <span className="text-sm font-semibold text-orange-900">Total Gastos de Importación</span>
+                  <p className="text-xs text-orange-700">Incluye todos los servicios</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="text-xl font-bold text-orange-700">
+                  USD{" "}
+                  {expenses
+                    .reduce(
+                      (total, expense) =>
+                        total +
+                        (exemptionState[expense.id] ||
+                        (expense.id === "inspeccionProductos" && isExpressConsolidatedGrupal)
+                          ? 0
+                          : expense.value),
+                      0
+                    )
+                    .toFixed(2)}
+                </p>
+              </div>
             </div>
-          </AccordionContent>
+          </div>
         </div>
-      </AccordionItem>
-    </Accordion>
+      </CardContent>
+    </Card>
   );
 }

@@ -84,7 +84,7 @@ class Computadora {
     }
 }
 
-// 2. BUILDER: Define los métodos de construcción
+// 2. BUILDER: Define los métodos de construcción 
 class ComputadoraBuilder {
     constructor() {
         this.computadora = new Computadora();
@@ -93,7 +93,7 @@ class ComputadoraBuilder {
     // Cada método retorna 'this' para permitir method chaining
     setProcesador(procesador) {
         this.computadora.procesador = procesador;
-        return this; // 🔑 Clave para el encadenamiento
+        return this; // 🔑 Clave para el encadenamiento 
     }
 
     setRAM(ram) {

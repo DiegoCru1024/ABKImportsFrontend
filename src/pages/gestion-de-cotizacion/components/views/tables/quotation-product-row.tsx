@@ -30,6 +30,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import type { IProfitPercentage } from "@/api/interface/quotation-response/quotation-response-base";
+import { SupplierProfitSelector } from "@/pages/gestion-de-cotizacion/create-cotizacion-origen/components/ui/SupplierProfitSelector";
 
 interface ProductVariant {
   variantId: string;
@@ -43,6 +45,8 @@ interface ProductVariant {
   weight?: number;
   cbm?: number;
   attachments?: string[];
+  id_profit_percentage?: string | null;
+  value_profit_porcentage?: number | null;
 }
 
 interface PackingList {
@@ -78,6 +82,7 @@ interface QuotationProductRowProps {
   product: Product;
   index: number;
   quotationDetail?: unknown;
+  profitPercentages?: IProfitPercentage[];
   onProductChange?: (
     productId: string,
     field: string,
@@ -115,6 +120,7 @@ export default function QuotationProductRow({
   index,
   productQuotationState = {},
   variantQuotationState = {},
+  profitPercentages = [],
   onProductQuotationToggle,
   onVariantQuotationToggle,
   onProductUpdate,
@@ -133,8 +139,51 @@ export default function QuotationProductRow({
   const [variantImageIndices, setVariantImageIndices] = useState<
     Record<string, number>
   >({});
+  const [variantProfits, setVariantProfits] = useState<Record<string, { id: string; percentage: number }>>({});
+  const [isInitialized, setIsInitialized] = useState<boolean>(false);
 
-  // Sincronizar adminComment cuando cambie desde el padre
+  // Inicializar los profits de las variantes cuando los profitPercentages estén disponibles
+  useEffect(() => {
+    if (profitPercentages.length === 0 || isInitialized) return;
+
+    const defaultProfit = profitPercentages.find(p => p.percentage === 10);
+
+    if (defaultProfit && product.variants && onVariantUpdate) {
+      const initialProfits: Record<string, { id: string; percentage: number }> = {};
+
+      product.variants.forEach(variant => {
+        let profitToUse: { id: string; percentage: number };
+        let calculatedValue: number;
+
+        if (variant.id_profit_percentage && variant.value_profit_porcentage !== null && variant.value_profit_porcentage !== undefined) {
+          profitToUse = {
+            id: variant.id_profit_percentage,
+            percentage: variant.value_profit_porcentage
+          };
+          calculatedValue = variant.value_profit_porcentage;
+        } else {
+          profitToUse = {
+            id: defaultProfit.id_profit_percentage,
+            percentage: defaultProfit.percentage
+          };
+
+          const currentPrice = variant.price || 0;
+          calculatedValue = (currentPrice * defaultProfit.percentage) / 100;
+
+          onVariantUpdate(product.productId, variant.variantId, {
+            id_profit_percentage: defaultProfit.id_profit_percentage,
+            value_profit_porcentage: calculatedValue
+          });
+        }
+
+        initialProfits[variant.variantId] = profitToUse;
+      });
+
+      setVariantProfits(initialProfits);
+      setIsInitialized(true);
+    }
+  }, [profitPercentages, isInitialized]);
+
   useEffect(() => {
     if (
       product.adminComment !== undefined &&
@@ -144,7 +193,6 @@ export default function QuotationProductRow({
     }
   }, [product.adminComment]);
 
-  // Estado local para los valores del producto con valores extendidos para vista pendiente
   const [localProduct, setLocalProduct] = useState<
     Product & {
       packingList?: PackingList;
@@ -167,8 +215,6 @@ export default function QuotationProductRow({
     ghostUrl: product.ghostUrl || product.url || "",
   });
 
-  // Solo actualizar el estado local si hay cambios significativos desde el padre
-  // Removemos las dependencias de valores que pueden cambiar sin ser "significativos"
   useEffect(() => {
     const hasSignificantChange =
       product.productId !== localProduct.productId ||
@@ -180,30 +226,26 @@ export default function QuotationProductRow({
     if (hasSignificantChange) {
       setLocalProduct((prev) => ({
         ...product,
-        // SIEMPRE preservar packingList existente si ya fue editado
         packingList:
           prev.packingList?.boxes !== product.number_of_boxes ||
-          prev.packingList?.cbm !== parseFloat(product.volume) ||
-          prev.packingList?.weightKg !== parseFloat(product.weight)
-            ? prev.packingList // Si ya fue editado, mantener los valores editados
+            prev.packingList?.cbm !== parseFloat(product.volume) ||
+            prev.packingList?.weightKg !== parseFloat(product.weight)
+            ? prev.packingList
             : product.packingList || {
-                boxes: product.number_of_boxes || 0,
-                cbm: parseFloat(product.volume) || 0,
-                weightKg: parseFloat(product.weight) || 0,
-                weightTon: (parseFloat(product.weight) || 0) / 1000,
-              },
-        // Preservar cargoHandling - priorizar el del producto si existe
+              boxes: product.number_of_boxes || 0,
+              cbm: parseFloat(product.volume) || 0,
+              weightKg: parseFloat(product.weight) || 0,
+              weightTon: (parseFloat(product.weight) || 0) / 1000,
+            },
         cargoHandling: product.cargoHandling ||
           prev.cargoHandling || {
-            fragileProduct: false,
-            stackProduct: false,
-            bulkyProduct: false,
-          },
-        // Preservar ghostUrl existente si ya fue editado
+          fragileProduct: false,
+          stackProduct: false,
+          bulkyProduct: false,
+        },
         ghostUrl: product.ghostUrl || prev.ghostUrl || product.url || "",
       }));
     }
-    //console.log("Este es el valor de localProduct", localProduct);
   }, [
     product.productId,
     product.name,
@@ -213,14 +255,12 @@ export default function QuotationProductRow({
     localProduct.variants,
   ]);
 
-  // Definir productVariants antes de usarlo en useMemo
   const isProductSelected =
     productQuotationState[product.productId] !== undefined
       ? productQuotationState[product.productId]
       : true;
   const productVariants = variantQuotationState[product.productId] || {};
 
-  // Cálculos dinámicos agregados de las variantes
   const aggregatedData = useMemo(() => {
     if (!localProduct.variants || localProduct.variants.length === 0) {
       return {
@@ -240,9 +280,6 @@ export default function QuotationProductRow({
       return isSelected;
     });
 
-    // IMPORTANTE: En la vista Pendiente, los totales de CBM y Peso vienen del packingList del producto
-    // Solo los precios (price y priceExpress) deben sumarse desde las variantes
-    // NOTA: priceExpress es un valor total por variante, NO se multiplica por cantidad
     const priceData = selectedVariants.reduce(
       (acc, variant) => ({
         totalPrice:
@@ -258,7 +295,6 @@ export default function QuotationProductRow({
       }
     );
 
-    // Retornar con los valores del packingList para CBM y Weight (no se calculan desde variantes)
     return {
       totalPrice: Number(priceData.totalPrice),
       totalWeight: localProduct.packingList?.weightKg || 0,
@@ -274,7 +310,6 @@ export default function QuotationProductRow({
     localProduct.quantityTotal,
   ]);
 
-  // Usar ref para evitar llamadas innecesarias
   const previousAggregatedDataRef = useRef<{
     totalPrice: number;
     totalWeight: number;
@@ -283,7 +318,6 @@ export default function QuotationProductRow({
     totalExpress: number;
   } | null>(null);
 
-  // Notificar al padre cuando cambien los datos agregados
   useEffect(() => {
     if (onAggregatedDataChange) {
       const current = JSON.stringify(aggregatedData);
@@ -325,7 +359,6 @@ export default function QuotationProductRow({
 
   const handleSaveComment = () => {
     if (onProductUpdate) {
-      // Enviar todos los datos actuales del producto local para evitar que se pierdan
       onProductUpdate(product.productId, {
         adminComment,
         packingList: localProduct.packingList,
@@ -336,19 +369,16 @@ export default function QuotationProductRow({
     setIsCommentModalOpen(false);
   };
 
-  // Función específica para manejar cambios en packing list
   const handlePackingListChange = (field: keyof PackingList, value: number) => {
     setLocalProduct((prev) => ({
       ...prev,
       packingList: {
         ...prev.packingList!,
         [field]: value,
-        // Auto-calcular peso en toneladas cuando cambie el peso en kg
         ...(field === "weightKg" ? { weightTon: value / 1000 } : {}),
       },
     }));
 
-    // Notificar al padre
     if (onProductUpdate) {
       onProductUpdate(product.productId, {
         packingList: {
@@ -360,7 +390,6 @@ export default function QuotationProductRow({
     }
   };
 
-  // Función para manejar cambios en manipulación de carga
   const handleCargoHandlingChange = (
     field: keyof CargoHandling,
     value: boolean
@@ -373,7 +402,6 @@ export default function QuotationProductRow({
       },
     }));
 
-    // Notificar al padre
     if (onProductUpdate) {
       onProductUpdate(product.productId, {
         cargoHandling: {
@@ -384,14 +412,12 @@ export default function QuotationProductRow({
     }
   };
 
-  // Función para manejar cambios en URL fantasma
   const handleGhostUrlChange = (value: string) => {
     setLocalProduct((prev) => ({
       ...prev,
       ghostUrl: value,
     }));
 
-    // Notificar al padre
     if (onProductUpdate) {
       onProductUpdate(product.productId, { ghostUrl: value });
     }
@@ -402,7 +428,6 @@ export default function QuotationProductRow({
     field: string,
     value: number | string
   ) => {
-    // Actualizar estado local inmediatamente
     setLocalProduct((prev) => ({
       ...prev,
       variants: prev.variants?.map((variant) =>
@@ -412,13 +437,63 @@ export default function QuotationProductRow({
       ),
     }));
 
-    // Notificar al padre
     if (onVariantUpdate) {
       onVariantUpdate(product.productId, variantId, { [field]: value });
     }
+
+    if (field === 'price' && variantProfits[variantId]) {
+      const newPrice = typeof value === 'number' ? value : parseFloat(value as string);
+      const profitPercentage = variantProfits[variantId].percentage;
+      const profitId = variantProfits[variantId].id;
+      const calculatedProfit = (newPrice * profitPercentage) / 100;
+
+      if (onVariantUpdate) {
+        onVariantUpdate(product.productId, variantId, {
+          id_profit_percentage: profitId,
+          value_profit_porcentage: calculatedProfit
+        });
+      }
+    }
   };
 
-  // Funciones para navegar en el mini carrusel de variantes
+  const handleProfitChange = (variantId: string, percentage: number) => {
+    const selectedProfit = profitPercentages.find(p => p.percentage === percentage);
+
+    if (selectedProfit) {
+      const currentVariant = localProduct.variants?.find(v => v.variantId === variantId);
+      const currentPrice = currentVariant?.price || 0;
+      const calculatedProfit = (currentPrice * selectedProfit.percentage) / 100;
+
+      setVariantProfits(prev => ({
+        ...prev,
+        [variantId]: {
+          id: selectedProfit.id_profit_percentage,
+          percentage: selectedProfit.percentage
+        }
+      }));
+
+      setLocalProduct((prev) => ({
+        ...prev,
+        variants: prev.variants?.map((variant) =>
+          variant.variantId === variantId
+            ? {
+              ...variant,
+              id_profit_percentage: selectedProfit.id_profit_percentage,
+              value_profit_porcentage: calculatedProfit
+            }
+            : variant
+        ),
+      }));
+
+      if (onVariantUpdate) {
+        onVariantUpdate(product.productId, variantId, {
+          id_profit_percentage: selectedProfit.id_profit_percentage,
+          value_profit_porcentage: calculatedProfit
+        });
+      }
+    }
+  };
+
   const handlePrevImage = (
     variantId: string,
     totalImages: number,
@@ -444,622 +519,564 @@ export default function QuotationProductRow({
   };
 
   return (
-    <div className="bg-gradient-to-br from-white via-slate-50/30 to-blue-50/20 border border-slate-200/60 rounded-lg overflow-hidden">
+    <div className="bg-white border border-slate-200 rounded-lg overflow-hidden mb-3 shadow-sm">
       <div className="w-full overflow-x-auto">
         <table className="w-full min-w-max border-collapse">
-        <thead>
-          <tr className="bg-gradient-to-r from-blue-100/60 to-indigo-100/50 border-b-2 border-blue-200/50">
-            <th className="p-3 text-center text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 min-w-[4rem]">
-              NRO
-            </th>
-            <th className="p-3 text-left text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 min-w-[14rem]">
-              PRODUCTO & VARIANTES
-            </th>
-            <th className="p-3 text-left text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 min-w-[11rem]">
-              PACKING LIST
-            </th>
-            <th className="p-3 text-left text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 min-w-[11rem]">
-              MANIPULACIÓN DE CARGA
-            </th>
-            <th className="p-3 text-left text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 min-w-[10rem]">
-              URL FANSTAMA
-            </th>
-            <th className="p-3 text-center text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 min-w-[7rem]">
-              PRECIO
-            </th>
-            <th className="p-3 text-center text-xs font-semibold text-indigo-800 border-r border-indigo-200/30 min-w-[7rem]">
-              EXPRESS
-            </th>
-            <th className="p-3 text-center text-xs font-semibold text-indigo-800 min-w-[7rem]">
-              P. TOTAL
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr className="border-b border-blue-200/30">
-            {/* Columna 1: NRO. */}
-            <td className="p-3 text-center align-top border-r border-blue-200/30">
-              <div className="flex flex-col items-center space-y-2">
-                <div className="text-lg font-bold text-gray-800">
-                  {index + 1}
+          <thead>
+            <tr className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-200">
+              <th className="p-2 text-center text-xs font-semibold text-indigo-900 border-r border-indigo-100 min-w-[3.5rem]">
+                NRO
+              </th>
+              <th className="p-2 text-left text-xs font-semibold text-indigo-900 border-r border-indigo-100 min-w-[12rem]">
+                PRODUCTO & VARIANTES
+              </th>
+              <th className="p-2 text-left text-xs font-semibold text-indigo-900 border-r border-indigo-100 min-w-[9rem]">
+                PACKING LIST
+              </th>
+              <th className="p-2 text-left text-xs font-semibold text-indigo-900 border-r border-indigo-100 min-w-[9rem]">
+                MANIPULACIÓN DE CARGA
+              </th>
+              <th className="p-2 text-left text-xs font-semibold text-indigo-900 border-r border-indigo-100 min-w-[8rem]">
+                URL FANTASMA
+              </th>
+              <th className="p-2 text-center text-xs font-semibold text-indigo-900 border-r border-indigo-100 min-w-[6rem]">
+                PRECIO
+              </th>
+              <th className="p-2 text-center text-xs font-semibold text-indigo-900 border-r border-indigo-100 min-w-[6rem]">
+                EXPRESS
+              </th>
+              <th className="p-2 text-center text-xs font-semibold text-indigo-900 min-w-[6rem]">
+                P. TOTAL
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr className="border-b border-slate-100">
+              {/* NRO */}
+              <td className="p-2 text-center align-top border-r border-slate-100">
+                <div className="flex flex-col items-center gap-1.5">
+                  <div className="text-base font-bold text-gray-800">
+                    {index + 1}
+                  </div>
+                 { /*<Checkbox
+                    checked={isProductSelected}
+                    onCheckedChange={handleProductQuotationToggle}
+                  />*/}
                 </div>
-                <Checkbox
-                  checked={isProductSelected}
-                  onCheckedChange={handleProductQuotationToggle}
-                />
-              </div>
-            </td>
+              </td>
 
-            {/* Columna 3: PRODUCTO & VARIANTES */}
-            <td className="p-3 align-top border-r border-blue-200/30">
-              <div className="space-y-2">
-                <div>
-                  <h3
-                    className="font-semibold text-gray-800 uppercase text-xs break-words line-clamp-3"
-                    title={localProduct.name}
-                  >
+              {/* PRODUCTO & VARIANTES */}
+              <td className="p-2 align-top border-r border-slate-100">
+                <div className="space-y-1.5">
+                  <h3 className="font-semibold text-gray-800 uppercase text-xs break-words line-clamp-2">
                     {localProduct.name}
                   </h3>
                   <Badge variant="secondary" className="text-xs">
                     {localProduct.variants?.length} variantes
                   </Badge>
-                </div>
 
-                {/* Botón para expandir variantes */}
-                {localProduct.variants && localProduct.variants.length > 0 && (
-                  <div className="flex gap-4 align-middle items-center">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleToggleExpanded}
-                      className="text-xs bg-green-100 hover:bg-green-200 "
-                    >
-                      {isExpanded ? (
-                        <ChevronDown className="h-3 w-3 mr-1" />
-                      ) : (
-                        <ChevronRight className="h-3 w-3 mr-1" />
-                      )}
-                      Variantes ({localProduct.variants.length})
-                    </Button>
+                  {localProduct.variants && localProduct.variants.length > 0 && (
+                    <div className="flex gap-2 items-center flex-wrap">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleToggleExpanded}
+                        className="text-xs h-7 bg-green-50 hover:bg-green-100"
+                      >
+                        {isExpanded ? (
+                          <ChevronDown className="h-3 w-3 mr-1" />
+                        ) : (
+                          <ChevronRight className="h-3 w-3 mr-1" />
+                        )}
+                        Variantes ({localProduct.variants.length})
+                      </Button>
 
-                    <a
-                      href={localProduct.url}
-                      className="text-blue-600 text-sm flex gap-2 items-center"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      title="URL del producto"
-                    >
-                      <Link2Icon className="w-4 h-4" />{" "}
-                      {/* Corregí el 'w- h-4' */}
-                      URL
-                    </a>
-                  </div>
-                )}
-              </div>
-            </td>
+                      <a
+                        href={localProduct.url}
+                        className="text-blue-600 text-xs flex gap-1 items-center hover:underline"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <Link2Icon className="w-3 h-3" />
+                        URL
+                      </a>
 
-            {/* Columna 4: PACKING LIST */}
-            <td className="p-3 align-top border-r border-blue-200/30">
-              <div className="grid grid-cols-2  text-xs gap-4">
-                <div>
-                  <Badge className="bg-red-100 text-red-600 border-1 border-red-200 mb-2">
-                    Nro. Cajas
-                  </Badge>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 text-xs cursor-pointer">
+                            <MessageSquare className="h-3 w-3 mr-1" />
+                            Cliente
+                          </Badge>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p className="text-sm">{localProduct.comment || "Sin comentarios"}</p>
+                        </TooltipContent>
+                      </Tooltip>
 
-                  <Input
-                    type="number"
-                    value={localProduct.packingList?.boxes || 0}
-                    onChange={(e) =>
-                      handlePackingListChange(
-                        "boxes",
-                        parseInt(e.target.value) || 0
-                      )
-                    }
-                    className="h-7 text-xs"
-                    min={0}
-                  />
-                </div>
-                <div>
-                  <Badge className="bg-blue-100 text-blue-600 border-1 border-blue-200 mb-2">
-                    CBM
-                  </Badge>
-
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={localProduct.packingList?.cbm || 0}
-                    onChange={(e) =>
-                      handlePackingListChange(
-                        "cbm",
-                        parseFloat(e.target.value) || 0
-                      )
-                    }
-                    className="h-7 text-xs"
-                    min={0}
-                  />
-                </div>
-                <div>
-                  <Badge className="bg-green-100 text-green-600 border-1 border-green-200 mb-2">
-                    PESO KG
-                  </Badge>
-
-                  <Input
-                    type="number"
-                    step="0.1"
-                    value={localProduct.packingList?.weightKg || 0}
-                    onChange={(e) =>
-                      handlePackingListChange(
-                        "weightKg",
-                        parseFloat(e.target.value) || 0
-                      )
-                    }
-                    className="h-7 text-xs"
-                    min={0}
-                  />
-                </div>
-                <div>
-                  <Badge className="bg-purple-100 text-purple-600 border-1 border-purple-200 mb-2">
-                    PESO TON
-                  </Badge>
-
-                  <Input
-                    value={(localProduct.packingList?.weightTon || 0).toFixed(
-                      3
-                    )}
-                    readOnly
-                    className="h-7 text-xs bg-gray-50"
-                  />
-                </div>
-              </div>
-            </td>
-
-            {/* Columna 5: MANIPULACIÓN DE CARGA */}
-            <td className="p-3 align-top border-r border-blue-200/30">
-              <div className="space-y-4 ">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`fragile-${product.productId}`}
-                    checked={
-                      localProduct.cargoHandling?.fragileProduct || false
-                    }
-                    onCheckedChange={(checked) =>
-                      handleCargoHandlingChange(
-                        "fragileProduct",
-                        checked as boolean
-                      )
-                    }
-                  />
-                  <label
-                    htmlFor={`fragile-${product.productId}`}
-                    className="text-sm  text-gray-600"
-                  >
-                    Producto Frágil
-                  </label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`stackable-${product.productId}`}
-                    checked={localProduct.cargoHandling?.stackProduct || false}
-                    onCheckedChange={(checked) =>
-                      handleCargoHandlingChange(
-                        "stackProduct",
-                        checked as boolean
-                      )
-                    }
-                  />
-                  <label
-                    htmlFor={`stackable-${product.productId}`}
-                    className="text-sm text-gray-600"
-                  >
-                    Producto Apilable
-                  </label>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`bulky-${product.productId}`}
-                    checked={localProduct.cargoHandling?.bulkyProduct || false}
-                    onCheckedChange={(checked) =>
-                      handleCargoHandlingChange(
-                        "bulkyProduct",
-                        checked as boolean
-                      )
-                    }
-                  />
-                  <label
-                    htmlFor={`bulky-${product.productId}`}
-                    className="text-sm text-gray-600"
-                  >
-                    Producto Voluminoso
-                  </label>
-                </div>
-              </div>
-            </td>
-
-            {/* Columna 6: URL */}
-            <td className="space-y-4 align-top border-r border-blue-200/30">
-              <div className=" flex flex-col justify-center items-center gap-3 p-2">
-
-                {/* Botón para ver comentarios y URL */}
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Badge
-                      variant="secondary"
-                      className="bg-emerald-100/60 text-emerald-800 border-emerald-300/50"
-                    >
-                      <MessageSquare className="h-3 w-3 " /> Comentario cliente
-                    </Badge>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="text-sm ">
-                      {localProduct.comment || "Sin comentarios"}
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-                {/* Comentario del administrador */}
-
-                <Dialog
-                  open={isCommentModalOpen}
-                  onOpenChange={setIsCommentModalOpen}
-                >
-                  <DialogTrigger asChild>
-                    <Badge
-                      variant="secondary"
-                      className="bg-emerald-100/60 text-emerald-800 border-emerald-300/50"
-                    >
-                      <MessageSquare className="h-3 w-3 " /> Comentario Admi
-                    </Badge>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Comentario Administrador</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <p className="text-sm text-gray-600">
-                        Agregar comentario para: {localProduct.name}
-                      </p>
-                      <Textarea
-                        placeholder="Escriba un comentario sobre este producto..."
-                        value={adminComment}
-                        onChange={(e) => setAdminComment(e.target.value)}
-                      />
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="outline"
-                          onClick={() => setIsCommentModalOpen(false)}
-                        >
-                          Cancelar
-                        </Button>
-                        <Button onClick={handleSaveComment}>
-                          Guardar Comentario
-                        </Button>
-                      </div>
+                      <Dialog open={isCommentModalOpen} onOpenChange={setIsCommentModalOpen}>
+                        <DialogTrigger asChild>
+                          <Badge variant="secondary" className="bg-amber-50 text-amber-700 text-xs cursor-pointer">
+                            <MessageSquare className="h-3 w-3 mr-1" />
+                            Admin
+                          </Badge>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Comentario Administrador</DialogTitle>
+                          </DialogHeader>
+                          <div className="space-y-4">
+                            <p className="text-sm text-gray-600">
+                              Agregar comentario para: {localProduct.name}
+                            </p>
+                            <Textarea
+                              placeholder="Escriba un comentario sobre este producto..."
+                              value={adminComment}
+                              onChange={(e) => setAdminComment(e.target.value)}
+                            />
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                variant="outline"
+                                onClick={() => setIsCommentModalOpen(false)}
+                              >
+                                Cancelar
+                              </Button>
+                              <Button onClick={handleSaveComment}>
+                                Guardar Comentario
+                              </Button>
+                            </div>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
                     </div>
-                  </DialogContent>
-                </Dialog>
+                  )}
+                </div>
+              </td>
 
+              {/* PACKING LIST */}
+              <td className="p-2 align-top border-r border-slate-100">
+                <div className="grid grid-cols-2 text-xs gap-2">
+                  <div>
+                    <Badge className="bg-red-50 text-red-600 border border-red-200 mb-1 text-xs">
+                      Cajas
+                    </Badge>
+                    <Input
+                      type="number"
+                      value={localProduct.packingList?.boxes || 0}
+                      onChange={(e) =>
+                        handlePackingListChange("boxes", parseInt(e.target.value) || 0)
+                      }
+                      className="h-7 text-xs"
+                      min={0}
+                    />
+                  </div>
+                  <div>
+                    <Badge className="bg-blue-50 text-blue-600 border border-blue-200 mb-1 text-xs">
+                      CBM
+                    </Badge>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={localProduct.packingList?.cbm || 0}
+                      onChange={(e) =>
+                        handlePackingListChange("cbm", parseFloat(e.target.value) || 0)
+                      }
+                      className="h-7 text-xs"
+                      min={0}
+                    />
+                  </div>
+                  <div>
+                    <Badge className="bg-green-50 text-green-600 border border-green-200 mb-1 text-xs">
+                      Peso KG
+                    </Badge>
+                    <Input
+                      type="number"
+                      step="0.1"
+                      value={localProduct.packingList?.weightKg || 0}
+                      onChange={(e) =>
+                        handlePackingListChange("weightKg", parseFloat(e.target.value) || 0)
+                      }
+                      className="h-7 text-xs"
+                      min={0}
+                    />
+                  </div>
+                  <div>
+                    <Badge className="bg-purple-50 text-purple-600 border border-purple-200 mb-1 text-xs">
+                      Peso TON
+                    </Badge>
+                    <Input
+                      value={(localProduct.packingList?.weightTon || 0).toFixed(3)}
+                      readOnly
+                      className="h-7 text-xs bg-gray-50"
+                    />
+                  </div>
+                </div>
+              </td>
+
+              {/* MANIPULACIÓN DE CARGA */}
+              <td className="p-2 align-top border-r border-slate-100">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id={`fragile-${product.productId}`}
+                      checked={localProduct.cargoHandling?.fragileProduct || false}
+                      onCheckedChange={(checked) =>
+                        handleCargoHandlingChange("fragileProduct", checked as boolean)
+                      }
+                    />
+                    <label
+                      htmlFor={`fragile-${product.productId}`}
+                      className="text-xs text-gray-600"
+                    >
+                      Producto Frágil
+                    </label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id={`stackable-${product.productId}`}
+                      checked={localProduct.cargoHandling?.stackProduct || false}
+                      onCheckedChange={(checked) =>
+                        handleCargoHandlingChange("stackProduct", checked as boolean)
+                      }
+                    />
+                    <label
+                      htmlFor={`stackable-${product.productId}`}
+                      className="text-xs text-gray-600"
+                    >
+                      Producto Apilable
+                    </label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id={`bulky-${product.productId}`}
+                      checked={localProduct.cargoHandling?.bulkyProduct || false}
+                      onCheckedChange={(checked) =>
+                        handleCargoHandlingChange("bulkyProduct", checked as boolean)
+                      }
+                    />
+                    <label
+                      htmlFor={`bulky-${product.productId}`}
+                      className="text-xs text-gray-600"
+                    >
+                      Producto Voluminoso
+                    </label>
+                  </div>
+                </div>
+              </td>
+
+              {/* URL FANTASMA */}
+              <td className="p-2 align-top border-r border-slate-100">
                 <Input
                   placeholder="URL fantasma..."
+                  value={localProduct.ghostUrl || ""}
                   onChange={(e) => handleGhostUrlChange(e.target.value)}
-                  className="h-8 text-xs"
+                  className="h-7 text-xs"
                 />
-              </div>
-            </td>
+              </td>
 
-            {/* Columna 7: PRECIO */}
-            <td className="p-3 text-center align-top border-r border-blue-200/30">
-              <div className="text-xs text-slate-600 mb-1">USD</div>
-              <div className="text-lg font-semibold text-emerald-700 border border-emerald-300/50 rounded-lg px-2 py-1 bg-emerald-100/50">
-                ${aggregatedData.totalPrice.toFixed(2)}
-              </div>
-            </td>
+              {/* PRECIO */}
+              <td className="p-2 text-center align-top border-r border-slate-100">
+                <div className="text-xs text-slate-600 mb-1">USD</div>
+                <div className="text-base font-semibold text-emerald-700 border border-emerald-200 rounded px-2 py-1 bg-emerald-50">
+                  ${aggregatedData.totalPrice.toFixed(2)}
+                </div>
+              </td>
 
-            {/* Columna 8: EXPRESS */}
-            <td className="p-3 text-center align-top border-r border-blue-200/30">
-              <div className="text-xs text-slate-600 mb-1">USD</div>
-              <div className="text-lg font-semibold text-blue-700 border border-blue-300/50 rounded-lg px-2 py-1 bg-blue-100/50">
-                ${(aggregatedData.totalExpress || 0).toFixed(2)}
-              </div>
-            </td>
+              {/* EXPRESS */}
+              <td className="p-2 text-center align-top border-r border-slate-100">
+                <div className="text-xs text-slate-600 mb-1">USD</div>
+                <div className="text-base font-semibold text-blue-700 border border-blue-200 rounded px-2 py-1 bg-blue-50">
+                  ${(aggregatedData.totalExpress || 0).toFixed(2)}
+                </div>
+              </td>
 
-            {/* Columna 9: P. TOTAL */}
-            <td className="p-3 text-center align-top">
-              <div className="text-xs text-slate-600 mb-1">USD</div>
-              <div className="text-lg font-semibold text-indigo-700 border border-indigo-300/50 rounded-lg px-2 py-1 bg-indigo-100/50">
-                $
-                {(
-                  (aggregatedData.totalPrice || 0) +
-                  (aggregatedData.totalExpress || 0)
-                ).toFixed(2)}
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+              {/* P. TOTAL */}
+              <td className="p-2 text-center align-top">
+                <div className="text-xs text-slate-600 mb-1">USD</div>
+                <div className="text-base font-semibold text-indigo-700 border border-indigo-200 rounded px-2 py-1 bg-indigo-50">
+                  $
+                  {(
+                    (aggregatedData.totalPrice || 0) +
+                    (aggregatedData.totalExpress || 0)
+                  ).toFixed(2)}
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
       {/* Expanded Variants */}
       {isExpanded &&
         localProduct.variants &&
         localProduct.variants.length > 0 && (
-          <div className="bg-gradient-to-r from-slate-50/50 to-blue-50/40 border-t-2 border-blue-200/50">
-            <div className="p-4">
-              <h4 className="text-sm font-bold text-slate-800 mb-3">
+          <div className="bg-slate-50 border-t border-slate-200">
+            <div className="p-3">
+              <h4 className="text-sm font-bold text-slate-800 mb-2">
                 Variantes del Producto
               </h4>
 
-              {/* Tabla de variantes con HTML nativo */}
-              <div className="bg-white rounded-lg border border-slate-200/60 overflow-hidden">
+              <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
                 <div className="w-full overflow-x-auto">
                   <table className="w-full min-w-max border-collapse">
-                  <thead>
-                    <tr className="bg-gradient-to-r from-purple-100/60 to-pink-100/50 border-b-2 border-purple-200/50">
-                      <th className="p-3 text-center text-xs font-semibold text-purple-800 border-r border-purple-200/30 min-w-[4rem]">
-                        Cotizar
-                      </th>
-                      <th className="p-3 text-center text-xs font-semibold text-purple-800 border-r border-purple-200/30 min-w-[6rem]">
-                        Imagen
-                      </th>
-                      <th className="p-3 text-left text-xs font-semibold text-purple-800 border-r border-purple-200/30 min-w-[8rem]">
-                        Presentación
-                      </th>
-                      <th className="p-3 text-left text-xs font-semibold text-purple-800 border-r border-purple-200/30 min-w-[8rem]">
-                        Modelo
-                      </th>
-                      <th className="p-3 text-left text-xs font-semibold text-purple-800 border-r border-purple-200/30 min-w-[8rem]">
-                        Color
-                      </th>
-                      <th className="p-3 text-left text-xs font-semibold text-purple-800 border-r border-purple-200/30 min-w-[8rem]">
-                        Tamaño
-                      </th>
-                      <th className="p-3 text-center text-xs font-semibold text-orange-700 border-r border-purple-200/30 min-w-[7rem]">
-                        Cantidad
-                      </th>
-                      <th className="p-3 text-center text-xs font-semibold text-emerald-700 border-r border-purple-200/30 min-w-[9rem]">
-                        Precio unitario
-                      </th>
-                      <th className="p-3 text-center text-xs font-semibold text-blue-700 min-w-[8rem]">
-                        Express
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-200/60">
-                    {localProduct.variants.map((variant) => {
-                      const isVariantSelected =
-                        productVariants[variant.variantId] !== undefined
-                          ? productVariants[variant.variantId]
-                          : true;
+                    <thead>
+                      <tr className="bg-gradient-to-r from-purple-50 to-pink-50 border-b border-purple-200">
+                        {/*{<th className="p-2 text-center text-xs font-semibold text-purple-900 border-r border-purple-100 min-w-[3rem]">
+                          Cotizar
+                        </th>/*/}
+                        <th className="p-2 text-center text-xs font-semibold text-purple-900 border-r border-purple-100 min-w-[5rem]">
+                          Imagen
+                        </th>
+                        <th className="p-2 text-left text-xs font-semibold text-purple-900 border-r border-purple-100 min-w-[7rem]">
+                          Presentación
+                        </th>
+                        <th className="p-2 text-left text-xs font-semibold text-purple-900 border-r border-purple-100 min-w-[7rem]">
+                          Modelo
+                        </th>
+                        <th className="p-2 text-left text-xs font-semibold text-purple-900 border-r border-purple-100 min-w-[7rem]">
+                          Color
+                        </th>
+                        <th className="p-2 text-left text-xs font-semibold text-purple-900 border-r border-purple-100 min-w-[7rem]">
+                          Tamaño
+                        </th>
+                        <th className="p-2 text-center text-xs font-semibold text-orange-700 border-r border-purple-100 min-w-[6rem]">
+                          Cantidad
+                        </th>
+                        <th className="p-2 text-center text-xs font-semibold text-emerald-700 border-r border-purple-100 min-w-[7rem]">
+                          Precio unitario
+                        </th>
+                        <th className="p-2 text-center text-xs font-semibold text-amber-700 min-w-[8rem]">
+                          Ganancia Proveedor
+                        </th>
+                        <th className="p-2 text-center text-xs font-semibold text-blue-700 border-r border-purple-100 min-w-[7rem]">
+                          Express
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {localProduct.variants.map((variant) => {
+                        const isVariantSelected =
+                          productVariants[variant.variantId] !== undefined
+                            ? productVariants[variant.variantId]
+                            : true;
 
-                      return (
-                        <tr key={variant.variantId} className="text-sm">
-                          {/* Checkbox para seleccionar */}
-                          <td className="p-3 text-center border-r border-purple-200/30">
-                            <Checkbox
-                              checked={isVariantSelected}
-                              onCheckedChange={(checked) =>
-                                handleVariantQuotationToggle(
-                                  variant.variantId,
-                                  checked as boolean
-                                )
-                              }
-                            />
-                          </td>
-                          {/* Imagen con mini carrusel */}
-                          <td className="p-3 border-r border-purple-200/30">
-                            {variant.attachments &&
-                            variant.attachments.length > 0 ? (
-                              <div className="relative w-20 h-20">
-                                {/* Imagen principal */}
-                                <div
-                                  className="relative cursor-pointer w-full h-full"
-                                  onClick={() =>
-                                    handleOpenImages(
-                                      variant.attachments?.map(
-                                        (url, index) => ({
-                                          id: index.toString(),
-                                          url,
-                                          name: `${localProduct.name} - ${
-                                            variant.color
-                                          } - Imagen ${index + 1}`,
-                                        })
-                                      ) || [],
-                                      variantImageIndices[variant.variantId] ||
+                        return (
+                          <tr key={variant.variantId} className="text-sm hover:bg-slate-50">
+                           {/* <td className="p-2 text-center border-r border-slate-100">
+                              <Checkbox
+                                checked={isVariantSelected}
+                                onCheckedChange={(checked) =>
+                                  handleVariantQuotationToggle(
+                                    variant.variantId,
+                                    checked as boolean
+                                  )
+                                }
+                              />
+                            </td>*/}
+                            <td className="p-2 border-r border-slate-100">
+                              {variant.attachments &&
+                                variant.attachments.length > 0 ? (
+                                <div className="relative w-16 h-16">
+                                  <div
+                                    className="relative cursor-pointer w-full h-full"
+                                    onClick={() =>
+                                      handleOpenImages(
+                                        variant.attachments?.map(
+                                          (url, index) => ({
+                                            id: index.toString(),
+                                            url,
+                                            name: `${localProduct.name} - ${variant.color
+                                              } - Imagen ${index + 1}`,
+                                          })
+                                        ) || [],
+                                        variantImageIndices[variant.variantId] ||
                                         0
-                                    )
-                                  }
-                                >
-                                  <img
-                                    src={
-                                      variant.attachments[
-                                        variantImageIndices[
-                                          variant.variantId
-                                        ] || 0
-                                      ] || "/placeholder.svg"
+                                      )
                                     }
-                                    alt={`${localProduct.name} - ${variant.color}`}
-                                    className="w-full h-full object-cover rounded-lg border border-gray-200 hover:opacity-80 transition-opacity"
-                                    onError={(e) => {
-                                      e.currentTarget.src = "/placeholder.svg";
-                                    }}
-                                  />
-                                  <Button
-                                    size="sm"
-                                    variant="secondary"
-                                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-6 w-6 rounded-full p-0 opacity-0 hover:opacity-100 transition-opacity bg-white/90"
                                   >
-                                    <Eye className="h-3 w-3" />
-                                  </Button>
-
-                                  {/* Indicador de cantidad de imágenes */}
-                                  {variant.attachments.length > 1 && (
-                                    <div className="absolute top-1 right-1 px-1.5 py-0.5 bg-gray-900 bg-opacity-80 rounded-full text-white text-xs font-medium">
-                                      {(variantImageIndices[
+                                    <img
+                                      src={
+                                        variant.attachments[
+                                        variantImageIndices[
                                         variant.variantId
-                                      ] || 0) + 1}
-                                      /{variant.attachments.length}
-                                    </div>
+                                        ] || 0
+                                        ] || "/placeholder.svg"
+                                      }
+                                      alt={`${localProduct.name} - ${variant.color}`}
+                                      className="w-full h-full object-cover rounded border border-gray-200 hover:opacity-80 transition-opacity"
+                                      onError={(e) => {
+                                        e.currentTarget.src = "/placeholder.svg";
+                                      }}
+                                    />
+                                    <Button
+                                      size="sm"
+                                      variant="secondary"
+                                      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-5 w-5 rounded-full p-0 opacity-0 hover:opacity-100 transition-opacity bg-white/90"
+                                    >
+                                      <Eye className="h-3 w-3" />
+                                    </Button>
+
+                                    {variant.attachments.length > 1 && (
+                                      <div className="absolute top-0.5 right-0.5 px-1 py-0.5 bg-gray-900 bg-opacity-80 rounded-full text-white text-xs font-medium">
+                                        {(variantImageIndices[
+                                          variant.variantId
+                                        ] || 0) + 1}
+                                        /{variant.attachments.length}
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  {variant.attachments.length > 1 && (
+                                    <>
+                                      <Button
+                                        size="sm"
+                                        variant="secondary"
+                                        className="absolute left-0 top-1/2 -translate-y-1/2 h-4 w-4 rounded-full p-0 bg-white/90 hover:bg-white shadow-md z-10"
+                                        onClick={(e) =>
+                                          handlePrevImage(
+                                            variant.variantId,
+                                            variant.attachments!.length,
+                                            e
+                                          )
+                                        }
+                                      >
+                                        <ChevronLeft className="h-3 w-3" />
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        variant="secondary"
+                                        className="absolute right-0 top-1/2 -translate-y-1/2 h-4 w-4 rounded-full p-0 bg-white/90 hover:bg-white shadow-md z-10"
+                                        onClick={(e) =>
+                                          handleNextImage(
+                                            variant.variantId,
+                                            variant.attachments!.length,
+                                            e
+                                          )
+                                        }
+                                      >
+                                        <ChevronRight className="h-3 w-3" />
+                                      </Button>
+                                    </>
                                   )}
                                 </div>
+                              ) : (
+                                <div className="w-16 h-16 bg-gray-100 rounded flex items-center justify-center">
+                                  <Package className="h-5 w-5 text-gray-400" />
+                                </div>
+                              )}
+                            </td>
 
-                                {/* Controles de navegación del mini carrusel */}
-                                {variant.attachments.length > 1 && (
-                                  <>
-                                    <Button
-                                      size="sm"
-                                      variant="secondary"
-                                      className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-5 rounded-full p-0 bg-white/90 hover:bg-white shadow-md z-10"
-                                      onClick={(e) =>
-                                        handlePrevImage(
-                                          variant.variantId,
-                                          variant.attachments!.length,
-                                          e
-                                        )
-                                      }
-                                    >
-                                      <ChevronLeft className="h-3 w-3" />
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      variant="secondary"
-                                      className="absolute right-0 top-1/2 -translate-y-1/2 h-5 w-5 rounded-full p-0 bg-white/90 hover:bg-white shadow-md z-10"
-                                      onClick={(e) =>
-                                        handleNextImage(
-                                          variant.variantId,
-                                          variant.attachments!.length,
-                                          e
-                                        )
-                                      }
-                                    >
-                                      <ChevronRight className="h-3 w-3" />
-                                    </Button>
-                                  </>
-                                )}
-                              </div>
-                            ) : (
-                              <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center">
-                                <Package className="h-6 w-6 text-gray-400" />
-                              </div>
-                            )}
-                          </td>
+                            <td className="p-2 border-r border-slate-100">
+                              <Badge variant="secondary" className="bg-emerald-50 text-emerald-700">
+                                {variant.presentation || "Sin datos"}
+                              </Badge>
+                            </td>
 
-                          {/* Presentación */}
-                          <td className="p-3 border-r border-purple-200/30">
-                            <Badge
-                              variant="secondary"
-                              className="bg-emerald-100/60 text-emerald-800 border-emerald-300/50"
-                            >
-                              {variant.presentation || "Sin datos"}
-                            </Badge>
-                          </td>
+                            <td className="p-2 border-r border-slate-100">
+                              <Badge variant="secondary" className="bg-blue-50 text-blue-700">
+                                {variant.model || "Sin datos"}
+                              </Badge>
+                            </td>
 
-                          {/* Modelo */}
-                          <td className="p-3 border-r border-purple-200/30">
-                            <Badge
-                              variant="secondary"
-                              className="bg-blue-100/60 text-blue-800 border-blue-300/50"
-                            >
-                              {variant.model || "Sin datos"}
-                            </Badge>
-                          </td>
+                            <td className="p-2 border-r border-slate-100">
+                              <Badge variant="secondary" className="bg-pink-50 text-pink-700">
+                                {variant.color || "Sin Datos"}
+                              </Badge>
+                            </td>
 
-                          {/* Color */}
-                          <td className="p-3 border-r border-purple-200/30">
-                            <Badge
-                              variant="secondary"
-                              className="bg-pink-100/60 text-pink-800 border-pink-300/50"
-                            >
-                              {variant.color || "Sin Datos"}
-                            </Badge>
-                          </td>
+                            <td className="p-2 border-r border-slate-100">
+                              <Badge variant="secondary" className="bg-purple-50 text-purple-700">
+                                {variant.size || "Sin Datos"}
+                              </Badge>
+                            </td>
 
-                          {/* Tamaño */}
-                          <td className="p-3 border-r border-purple-200/30">
-                            <Badge
-                              variant="secondary"
-                              className="bg-purple-100/60 text-purple-800 border-purple-300/50"
-                            >
-                              {variant.size || "Sin Datos"}
-                            </Badge>
-                          </td>
+                            <td className="p-2 text-center border-r border-slate-100">
+                              {isVariantSelected ? (
+                                <EditableNumericField
+                                  value={Number(variant.quantity) || 0}
+                                  onChange={(value) =>
+                                    handleVariantFieldChange(
+                                      variant.variantId,
+                                      "quantity",
+                                      value
+                                    )
+                                  }
+                                  decimalPlaces={0}
+                                  min={0}
+                                />
+                              ) : (
+                                <span className="text-gray-500">
+                                  {variant.quantity || 0}
+                                </span>
+                              )}
+                            </td>
 
-                          {/* Cantidad */}
-                          <td className="p-3 text-center border-r border-purple-200/30">
-                            {isVariantSelected ? (
-                              <EditableNumericField
-                                value={Number(variant.quantity) || 0}
-                                onChange={(value) =>
-                                  handleVariantFieldChange(
-                                    variant.variantId,
-                                    "quantity",
-                                    value
-                                  )
-                                }
-                                decimalPlaces={0}
-                                min={0}
-                              />
-                            ) : (
-                              <span className="text-gray-500">
-                                {variant.quantity || 0}
-                              </span>
-                            )}
-                          </td>
+                            <td className="p-2 text-center border-r border-slate-100">
+                              {isVariantSelected ? (
+                                <EditableNumericField
+                                  value={Number(variant.price) || 0}
+                                  onChange={(value) =>
+                                    handleVariantFieldChange(
+                                      variant.variantId,
+                                      "price",
+                                      value
+                                    )
+                                  }
+                                  prefix="$"
+                                  decimalPlaces={2}
+                                />
+                              ) : (
+                                <span className="text-gray-500">
+                                  ${Number(variant.price || 0).toFixed(2)}
+                                </span>
+                              )}
+                            </td>
 
-                          {/* Precio unitario */}
-                          <td className="p-3 text-center border-r border-purple-200/30">
-                            {isVariantSelected ? (
-                              <EditableNumericField
-                                value={Number(variant.price) || 0}
-                                onChange={(value) =>
-                                  handleVariantFieldChange(
-                                    variant.variantId,
-                                    "price",
-                                    value
-                                  )
-                                }
-                                prefix="$"
-                                decimalPlaces={2}
-                              />
-                            ) : (
-                              <span className="text-gray-500">
-                                ${Number(variant.price || 0).toFixed(2)}
-                              </span>
-                            )}
-                          </td>
+                            <td className="p-2 text-center">
+                              {isVariantSelected ? (
+                                <SupplierProfitSelector
+                                  selectedPercentage={variantProfits[variant.variantId]?.percentage}
+                                  onSelect={(percentage) => handleProfitChange(variant.variantId, percentage)}
+                                  price={variant.price || 0}
+                                  variantName={`${variant.color} - ${variant.size}`}
+                                  compact={true}
+                                  profitPercentages={profitPercentages}
+                                />
+                              ) : (
+                                <span className="text-gray-500">-</span>
+                              )}
+                            </td>
 
-                          {/* Express */}
-                          <td className="p-3 text-center">
-                            {isVariantSelected ? (
-                              <EditableNumericField
-                                value={Number(variant.priceExpress) || 0}
-                                onChange={(value) =>
-                                  handleVariantFieldChange(
-                                    variant.variantId,
-                                    "priceExpress",
-                                    value
-                                  )
-                                }
-                                prefix="$"
-                                decimalPlaces={2}
-                              />
-                            ) : (
-                              <span className="text-gray-500">
-                                ${Number(variant.priceExpress || 0).toFixed(2)}
-                              </span>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                            <td className="p-2 text-center border-r border-slate-100">
+                              {isVariantSelected ? (
+                                <EditableNumericField
+                                  value={Number(variant.priceExpress) || 0}
+                                  onChange={(value) =>
+                                    handleVariantFieldChange(
+                                      variant.variantId,
+                                      "priceExpress",
+                                      value
+                                    )
+                                  }
+                                  prefix="$"
+                                  decimalPlaces={2}
+                                />
+                              ) : (
+                                <span className="text-gray-500">
+                                  ${Number(variant.priceExpress || 0).toFixed(2)}
+                                </span>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
           </div>
         )}
 
-      {/* Modal de imágenes */}
       <ImageCarouselModal
         isOpen={isImageModalOpen}
         onClose={() => setIsImageModalOpen(false)}

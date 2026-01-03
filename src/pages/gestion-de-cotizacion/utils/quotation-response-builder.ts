@@ -168,6 +168,8 @@ export class QuotationResponseBuilder {
           unitPrice: (variant.price as number) || 0,
           expressPrice: (variant.priceExpress as number) || (variant.express as number) || 0,
         },
+        id_profit_percentage: (variant.id_profit_percentage as string) || null,
+        value_profit_porcentage: (variant.value_profit_porcentage as number) || null,
       };
     });
   }

@@ -1,14 +1,7 @@
 import { AlertTriangle, ChartBar, DollarSign, FileText } from "lucide-react";
 
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import { Card, CardContent } from "@/components/ui/card";
 
 export interface ImportSummaryCardProps {
   exemptionState: {
@@ -54,82 +47,44 @@ export default function ImportSummaryCard({
   ];
 
   return (
-    <Accordion type="single" collapsible>
-      <AccordionItem value="import-summary" className="border-0">
-        <div className="shadow-lg border-1 border-purple-200 bg-white rounded-lg">
-          <div className="bg-gradient-to-br from-purple-50 to-indigo-50 p-4 rounded-lg rounded-b-none">
-            <AccordionTrigger className="hover:no-underline py-0">
-              <CardTitle className="flex items-center gap-3 text-xl font-bold">
-                <div className="p-2 bg-purple-200 rounded-lg">
-                  <ChartBar className="h-6 w-6 text-purple-700" />
-                </div>
-                <div>
-                  <div>Resumen de Gastos de Importación</div>
-                  <div className="text-sm font-normal text-purple-700">Resumen consolidado</div>
-                </div>
-              </CardTitle>
-            </AccordionTrigger>
+    <Card className="border border-gray-200 shadow-sm">
+      <CardContent className="p-6">
+        <div className="space-y-6">
+          <div className="flex items-center gap-2 pb-4 border-b border-gray-200">
+            <div className="p-2 bg-purple-100 rounded-lg">
+              <ChartBar className="h-5 w-5 text-purple-700" />
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-gray-900">Resumen de Gastos de Importación</h3>
+              <p className="text-xs text-gray-500">Detalles consolidados de la importación</p>
+            </div>
           </div>
 
-          <AccordionContent>
-            <div className="space-y-4 p-6">
-        <div className="space-y-4">
-          <div className="flex items-center gap-2 mb-4">
-            <Badge variant="secondary" className="bg-purple-100 text-purple-800 border-purple-200">
-              RESUMEN
-            </Badge>
-            <span className="text-sm text-gray-600">Detalles de la importación</span>
-          </div>
-          
-          <div className="space-y-3">
+          <div className="space-y-4">
             {summaryItems.map((item) => (
-              <div
-                key={item.key}
-                className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-100 hover:border-purple-200 transition-all duration-200 hover:shadow-sm"
-              >
-                <div className="flex items-center gap-3">
-                  <div className={`p-2 bg-${item.color}-50 rounded-lg`}>
-                    {item.icon}
-                  </div>
-                  <div>
-                    <div className="font-medium text-gray-900 text-sm">
-                      {item.label}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {item.category}
-                    </div>
-                  </div>
+              <div key={item.key} className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  {item.icon}
+                  <span className="text-sm text-gray-900 font-medium">{item.label}</span>
                 </div>
-                <div className="text-right">
-                  <div className="font-semibold text-gray-900">
-                    {item.value}
-                  </div>
-                </div>
+                <p className="text-base font-semibold text-gray-900 ml-6">{item.value}</p>
               </div>
             ))}
           </div>
-          
-          <Separator className="my-4" />
-          
-          <div className="space-y-3">
-            <div className="flex justify-between items-center p-4 bg-gradient-to-r from-purple-200 to-indigo-200 text-purple-900 rounded-lg shadow-md">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-purple-300 rounded-lg">
-                  <DollarSign className="h-5 w-5 text-purple-800" />
-                </div>
-                <div>
-                  <div className="font-bold text-lg">
-                    INVERSION TOTAL DE IMPORTACION
-                  </div>
-                </div>
+
+          <div className="pt-4 border-t border-gray-200 space-y-3">
+            <div className="flex items-center justify-between p-4 bg-purple-50 rounded-lg">
+              <div className="flex items-center space-x-2">
+                <DollarSign className="h-5 w-5 text-purple-700" />
+                <span className="text-sm font-semibold text-purple-900">Inversión Total de Importación</span>
               </div>
               <div className="text-right">
-                <div className="font-bold text-2xl">
+                <p className="text-xl font-bold text-purple-700">
                   USD {(comercialValue + totalImportCosts).toFixed(2)}
-                </div>
+                </p>
               </div>
             </div>
-            
+
             {showExemptionMessage && (
               <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-300 rounded-lg p-4">
                 <div className="flex items-start gap-3">
@@ -141,9 +96,7 @@ export default function ImportSummaryCard({
                       <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300 text-xs">
                         {isExpressConsolidatedPersonal ? "EXONERACIÓN TRIBUTARIA ACTIVA" : "EXONERACIÓN AUTOMÁTICA"}
                       </Badge>
-                      <span className="text-sm font-medium text-green-800">
-                        ✓ Activa
-                      </span>
+                      <span className="text-sm font-medium text-green-800">✓ Activa</span>
                     </div>
                     <p className="text-sm text-green-700 leading-relaxed">
                       {isExpressConsolidatedPersonal ? (
@@ -193,9 +146,7 @@ export default function ImportSummaryCard({
                       <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 text-xs">
                         DESCUENTO GRUPAL EXPRESS ACTIVO
                       </Badge>
-                      <span className="text-sm font-medium text-amber-800">
-                        ✓ Aplicado
-                      </span>
+                      <span className="text-sm font-medium text-amber-800">✓ Aplicado</span>
                     </div>
                     <p className="text-sm text-amber-700 leading-relaxed">
                       <strong>¡Beneficios del Consolidado Grupal Express!</strong> Esta modalidad incluye:
@@ -220,11 +171,8 @@ export default function ImportSummaryCard({
             )}
           </div>
         </div>
-            </div>
-          </AccordionContent>
-        </div>
-      </AccordionItem>
-    </Accordion>
+      </CardContent>
+    </Card>
   );
 }
 

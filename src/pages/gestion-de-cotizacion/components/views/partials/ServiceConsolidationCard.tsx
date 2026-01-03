@@ -1,15 +1,7 @@
 import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { EditableNumericField } from "@/components/ui/editableNumberFieldProps";
-import { Separator } from "@/components/ui/separator";
 import { Plane, DollarSign, Calculator, TrendingUp, Ship } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 
 export interface ServiceConsolidationCardProps {
   title: string;
@@ -124,152 +116,93 @@ export default function ServiceConsolidationCard({
     }
   };
 
+  const isMaritime = title === "Servicio de Carga Consolidada (CARGA- ADUANA)";
+
   return (
-    <Accordion type="single" collapsible >
-      <AccordionItem value="service-consolidation" className="border-0">
-        <div className="shadow-lg border-1 border-blue-200 bg-white rounded-lg ">
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-4  rounded-lg rounded-b-none">
-            <AccordionTrigger className="hover:no-underline py-0">
-              <CardTitle className="flex items-center gap-3 text-xl font-bold">
-                <div className="p-2 bg-blue-200 rounded-lg">
-                  { title==="Servicio de Carga Consolidada (CARGA- ADUANA)" ? 
-                   <Ship className="h-6 w-6 text-blue-700" /> :
-                    <Plane className="h-6 w-6 text-blue-700" />}
-                 
-                </div>
-                <div>
-                  <div>{title}</div>
-                  <div className="text-sm font-normal text-blue-700">
-                    Servicios de Consolidación
-                  </div>
-                </div>
-              </CardTitle>
-            </AccordionTrigger>
+    <Card className="border border-gray-200 shadow-sm">
+      <CardContent className="p-6">
+        <div className="space-y-6">
+          <div className="flex items-center gap-2 pb-4 border-b border-gray-200">
+            <div className="p-2 bg-blue-100 rounded-lg">
+              {isMaritime ? (
+                <Ship className="h-5 w-5 text-blue-700" />
+              ) : (
+                <Plane className="h-5 w-5 text-blue-700" />
+              )}
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
+              <p className="text-xs text-gray-500">Afecto a IGV (18%)</p>
+            </div>
           </div>
 
-          <AccordionContent>
-            <div className="space-y-4 p-6">
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 mb-4">
-                  <Badge
-                    variant="secondary"
-                    className="bg-blue-100 text-blue-800 border-blue-200"
-                  >
-                    AFECTO A IGV
-                  </Badge>
-                  <span className="text-sm text-gray-600">(18%)</span>
+          <div className="space-y-4">
+            {Object.entries(filteredServiceFields).map(([key, value]) => (
+              <div key={key} className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  {getFieldIcon(key)}
+                  <span className="text-sm text-gray-900 font-medium">{fieldNames[key] ?? key}</span>
                 </div>
-
-                <div className="space-y-3">
-                  {Object.entries(filteredServiceFields).map(([key, value]) => (
-                    <div
-                      key={key}
-                      className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-100 hover:border-blue-200 transition-all duration-200 hover:shadow-sm"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-gray-50 rounded-lg">
-                          {getFieldIcon(key)}
-                        </div>
-                        <div>
-                          <div className="font-medium text-gray-900 text-sm">
-                            {fieldNames[key] ?? key}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            Servicio de consolidación
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="relative">
-                          <EditableNumericField
-                            value={value ?? 0}
-                            onChange={(newValue) =>
-                              updateDynamicValue(key, newValue)
-                            }
-                          />
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400 font-medium">
-                            USD
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                  {Object.entries(additionalFields).map(([key, value]) => (
-                    <div
-                      key={key}
-                      className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-100 hover:border-blue-200 transition-all duration-200 hover:shadow-sm"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-gray-50 rounded-lg">
-                          {getFieldIcon(key)}
-                        </div>
-                        <div>
-                          <div className="font-medium text-gray-900 text-sm">
-                            {fieldNames[key] ?? key}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            {key === "transporteLocalChina" ? "Se excluye de IGV" : "Transporte"}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="relative">
-                          <EditableNumericField
-                            value={value ?? 0}
-                            onChange={() => {}}
-                            readOnly
-                          />
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400 font-medium">
-                            USD
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <Separator className="my-4" />
-
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <Calculator className="h-4 w-4 text-gray-600" />
-                      <span className="text-sm font-medium text-gray-700">
-                        IGV (18%)
-                      </span>
-                    </div>
-                    <span className="font-semibold text-gray-900">
-                      USD {totals.igv.toFixed(2)}
-                    </span>
-                  </div>
-
-                  <div className="flex justify-between items-center p-4 bg-gradient-to-r from-blue-200 to-indigo-200 text-blue-900 rounded-lg shadow-md">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-blue-300 rounded-lg">
-                        <DollarSign className="h-5 w-5 text-blue-800" />
-                      </div>
-                      <div>
-                        <div className="font-bold text-lg">
-                          Total del Servicio
-                        </div>
-                        <div className="text-sm opacity-90">
-                          Consolidación + IGV
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-bold text-2xl">
-                        USD {totals.total.toFixed(2)}
-                      </div>
-                      <div className="text-sm opacity-90">Total incluido</div>
-                    </div>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-500 font-medium">USD</span>
+                  <EditableNumericField
+                    value={value ?? 0}
+                    onChange={(newValue) => updateDynamicValue(key, newValue)}
+                  />
                 </div>
               </div>
+            ))}
+            {Object.entries(additionalFields).map(([key, value]) => (
+              <div key={key} className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  {getFieldIcon(key)}
+                  <div>
+                    <span className="text-sm text-gray-900 font-medium">{fieldNames[key] ?? key}</span>
+                    {key === "transporteLocalChina" && isMaritimeConsolidated && (
+                      <p className="text-xs text-gray-400 ml-6">Excluido de IGV</p>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-500 font-medium">USD</span>
+                  <EditableNumericField
+                    value={value ?? 0}
+                    onChange={() => {}}
+                    readOnly
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="pt-4 border-t border-gray-200 space-y-3">
+            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              <div className="flex items-center space-x-2">
+                <Calculator className="h-5 w-5 text-gray-600" />
+                <span className="text-sm font-medium text-gray-900">IGV (18%)</span>
+              </div>
+              <p className="text-base font-semibold text-gray-900">
+                USD {totals.igv.toFixed(2)}
+              </p>
             </div>
-          </AccordionContent>
+
+            <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
+              <div className="flex items-center space-x-2">
+                <DollarSign className="h-5 w-5 text-blue-700" />
+                <div>
+                  <span className="text-sm font-semibold text-blue-900">Total del Servicio</span>
+                  <p className="text-xs text-blue-700">Consolidación + IGV</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="text-xl font-bold text-blue-700">
+                  USD {totals.total.toFixed(2)}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
-      </AccordionItem>
-    </Accordion>
+      </CardContent>
+    </Card>
   );
 }

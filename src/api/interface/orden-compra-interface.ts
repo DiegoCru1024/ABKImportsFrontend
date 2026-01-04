@@ -5,6 +5,7 @@ export enum PurchaseOrderType {
     CONSOLIDADO_GRUPAL_EXPRESS = 'Consolidado Grupal Express',
     CONSOLIDADO_MARITIMO = 'Consolidado Maritimo',
     CONSOLIDADO_GRUPAL_MARITIMO = 'Consolidado Grupal Maritimo',
+    ALMACENAJE_DE_MERCANCIAS ='Almacenaje de mercancias'
 }
 
 export enum PurchaseOrderStatus {
@@ -70,6 +71,13 @@ export interface SubQuotationResumenDto {
 // INTERFACES PARA PRODUCTOS Y VARIANTES
 // ============================================
 
+
+export enum OrdenCompraProductoStatus {
+    PENDIENTE = 'Pendiente',
+    COMPLETADO_PARCIAL = 'Completado Parcial',
+    COMPLETADO = 'Completado',
+}
+
 /**
  * Detalle de una variante específica
  */
@@ -86,7 +94,8 @@ export interface VarianteDetalleDto {
     cantidad_comprada: number;
     saldo: number;
     precio_unitario: number;
-    status: string; // 'Sin Compras' | 'Completado Parcial' | 'Completado'
+    status:OrdenCompraProductoStatus;
+    monto_agente: number;
 }
 
 /**

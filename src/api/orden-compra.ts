@@ -138,3 +138,55 @@ export const actualizarVariantes = async (
         throw error;
     }
 };
+
+/**
+ * Agrega una sub-quotation a una orden de compra existente
+ * @param {string} ordenId - ID de la orden de compra
+ * @param {string} subQuotationId - ID de la sub-quotation a agregar
+ * @returns {Promise<OrdenDeCompra>} - Orden de compra actualizada
+ */
+export const agregarSubQuotationAOrden = async (
+    ordenId: string,
+    subQuotationId: string
+): Promise<OrdenDeCompra> => {
+    try {
+        const response: OrdenDeCompra = await apiFetch(
+            `/orden-compra/${ordenId}/agregar-sub-quotation/${subQuotationId}`,
+            {
+                method: "POST",
+            }
+        );
+        return response;
+    } catch (error) {
+        console.error("Error al agregar sub-quotation a la orden:", error);
+        throw error;
+    }
+};
+
+// ============================================
+// ELIMINAR SUB-QUOTATION DE ORDEN
+// ============================================
+
+/**
+ * Elimina una sub-quotation y sus productos de una orden de compra
+ * @param {string} ordenId - ID de la orden de compra
+ * @param {string} subQuotationId - ID de la sub-quotation a eliminar
+ * @returns {Promise<OrdenDeCompra>} - Orden de compra actualizada
+ */
+export const eliminarSubQuotationDeOrden = async (
+    ordenId: string,
+    subQuotationId: string
+): Promise<OrdenDeCompra> => {
+    try {
+        const response: OrdenDeCompra = await apiFetch(
+            `/orden-compra/${ordenId}/eliminar-sub-quotation/${subQuotationId}`,
+            {
+                method: "DELETE",
+            }
+        );
+        return response;
+    } catch (error) {
+        console.error("Error al eliminar sub-quotation de la orden:", error);
+        throw error;
+    }
+};

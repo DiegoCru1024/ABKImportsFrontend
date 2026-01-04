@@ -40,7 +40,7 @@ const getStatusColor = (status: PurchaseOrderStatus) => {
         case PurchaseOrderStatus.COMPLETADO_PARCIALMENTE:
             return "bg-purple-500/10 text-purple-700 border-purple-500/20 dark:text-purple-400"
         case PurchaseOrderStatus.PENDIENTE_DE_COMPRA:
-            return "bg-primary/10 text-primary border-primary/20"
+            return "bg-orange-500/10 text-orange-900 border-orange-500/20"
         default:
             return "bg-muted text-muted-foreground border-border"
     }
@@ -88,25 +88,25 @@ export function OrdersTable() {
     return (
         <Card>
             {/* Desktop View */}
-            <div className="hidden md:block overflow-x-auto">
+            <div className="md:block overflow-x-auto">
                 <Table>
                     <TableHeader>
                         <TableRow >
-                            <TableHead className=" font-bold">N°</TableHead>
-                            <TableHead className=" font-bold">
+                            <TableHead className=" font-bold text-orange-500 pl-5">N°</TableHead>
+                            <TableHead className=" font-bold text-orange-500">
                                 TIPO DE SERVICIO
                             </TableHead>
-                            <TableHead className=" font-bold">
+                            <TableHead className=" font-bold text-orange-500">
                                 FECHA - HORA
                             </TableHead>
-                            <TableHead className="font-bold text-center">
+                            <TableHead className="font-bold text-center text-orange-500">
                                 PART.
                             </TableHead>
-                            <TableHead className=" font-bold text-center">
+                            <TableHead className=" font-bold text-center text-orange-500">
                                 ITEMS
                             </TableHead>
-                            <TableHead className="font-bold">ESTADO</TableHead>
-                            <TableHead className=" font-bold text-center">
+                            <TableHead className="font-bold text-orange-500">ESTADO</TableHead>
+                            <TableHead className=" font-bold text-center text-orange-500">
                                 ACCIONES
                             </TableHead>
                         </TableRow>
@@ -178,10 +178,10 @@ export function OrdersTable() {
                                     {/* Actions */}
                                     <TableCell>
                                         <div className="flex items-center justify-center gap-2">
-                                            <Button variant="ghost" size="icon" className="h-8 w-8"  onClick={() => handleViewDetails(order.id_orden_compra)}>
+                                            <Button variant="ghost" size="icon" className="h-8 w-8 hover:text-orange-500"  onClick={() => handleViewDetails(order.id_orden_compra)}>
                                                 <Eye className="w-4 h-4" />
                                             </Button>
-                                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                                            <Button variant="ghost" size="icon" className="h-8 w-8 hover:text-orange-500">
                                                 <Edit className="w-4 h-4" />
                                             </Button>
                                         </div>
@@ -191,77 +191,6 @@ export function OrdersTable() {
                         })}
                     </TableBody>
                 </Table>
-            </div>
-
-            {/* Mobile View */}
-            <div className="md:hidden divide-y">
-                {orders.map((order, index) => {
-                    const ServiceIcon = getServiceIcon(order.type);
-                    const iconColor = getIconColor(order.type);
-
-                    return (
-                        <div key={order.id_orden_compra} className="p-4 space-y-3">
-                            {/* Header */}
-                            <div className="flex items-start justify-between">
-                                <div className="flex items-center gap-3">
-                                    <div className={`p-2 rounded-full ${iconColor}`}>
-                                        <ServiceIcon className="w-5 h-5" />
-                                    </div>
-                                    <div>
-                                        <div className="font-semibold">Orden #{index + 1}</div>
-                                        <div className="text-xs text-muted-foreground">
-                                            {order.correlative}
-                                        </div>
-                                    </div>
-                                </div>
-                                <Badge
-                                    variant="outline"
-                                    className={getStatusColor(order.status)}
-                                >
-                                    {order.status}
-                                </Badge>
-                            </div>
-
-                            {/* Details */}
-                            <div className="space-y-2 text-sm">
-                                <div>
-                                    <span className="text-muted-foreground">Servicio: </span>
-                                    <span className="font-medium">{order.type}</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Calendar className="w-4 h-4 text-muted-foreground" />
-                                    <span>
-                    {format(new Date(order.created_at), "dd/MM/yyyy - hh:mm a", {
-                        locale: es,
-                    })}
-                  </span>
-                                </div>
-                                <div className="flex items-center gap-4">
-                                    <div className="flex items-center gap-1">
-                                        <Users className="w-4 h-4 text-muted-foreground" />
-                                        <span>{order.numero_participantes} participantes</span>
-                                    </div>
-                                    <div>
-                                        <span className="font-semibold">{order.numero_items}</span>{" "}
-                                        items
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Actions */}
-                            <div className="flex gap-2">
-                                <Button variant="outline" size="sm" className="flex-1">
-                                    <Eye className="w-4 h-4 mr-2" />
-                                    Ver
-                                </Button>
-                                <Button variant="outline" size="sm" className="flex-1">
-                                    <Edit className="w-4 h-4 mr-2" />
-                                    Editar
-                                </Button>
-                            </div>
-                        </div>
-                    );
-                })}
             </div>
         </Card>
     );

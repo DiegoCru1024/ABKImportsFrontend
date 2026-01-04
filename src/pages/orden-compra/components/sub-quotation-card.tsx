@@ -1,6 +1,6 @@
 import { ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import type {SubQuotationResumenDto} from "@/api/interface/orden-compra-interface.ts";
+import type { SubQuotationResumenDto } from "@/api/interface/orden-compra-interface.ts"
 
 interface SubQuotationCardProps {
     quotation: SubQuotationResumenDto
@@ -14,65 +14,69 @@ export function SubQuotationCard({ quotation, onViewDetails }: SubQuotationCardP
             : 0
 
     return (
-        <div className="group relative overflow-hidden rounded-lg border border-orange-200 bg-gradient-to-r from-white to-orange-50 shadow-sm transition-all duration-300 hover:shadow-lg hover:border-orange-400">
-            <div className="absolute right-0 top-0 h-full w-1 bg-gradient-to-b from-orange-500 to-orange-600"></div>
-
+        <div className="group overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all duration-200 hover:shadow-md hover:border-orange-400">
             {/* Contenido principal */}
-            <div className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
-                {/* Información izquierda */}
-                <div className="flex-1 space-y-3">
-                    {/* Header con correlativo y versión */}
-                    <div className="flex items-center gap-3">
-                        <div className="rounded-full bg-orange-500 px-3 py-1 text-sm font-bold text-white">
-                            {quotation.quotation_correlative}
+            <div className="p-6">
+                <div className="flex items-center justify-between gap-6">
+                    {/* Información izquierda */}
+                    <div className="flex-1 space-y-4">
+                        {/* Header con correlativo y versión */}
+                        <div className="flex items-center gap-3">
+                            <div className="text-lg font-semibold text-gray-900">
+                                {quotation.quotation_correlative}
+                            </div>
+                            <div className="px-2 py-0.5 rounded bg-gray-100 text-xs font-medium text-gray-600">
+                                v{quotation.version}
+                            </div>
                         </div>
-                        <div className="rounded-full bg-neutral-900 px-3 py-1 text-xs font-medium text-white">
-                            v{quotation.version}
+
+                        {/* Cliente */}
+                        <div>
+                            <p className="text-sm text-gray-500 mb-1">Cliente</p>
+                            <p className="text-base font-medium text-gray-900">{quotation.client_name}</p>
+                        </div>
+
+                        {/* Tipo de orden */}
+                        <div>
+                            <p className="text-sm text-gray-500 mb-1">Tipo de orden</p>
+                            <p className="text-base font-medium text-gray-900">{quotation.type}</p>
                         </div>
                     </div>
 
-                    {/* Cliente y tipo */}
-                    <div>
-                        <p className="text-sm font-medium text-neutral-600">Cliente</p>
-                        <p className="text-lg font-bold text-neutral-900">{quotation.client_name}</p>
+                    {/* Estadísticas */}
+                    <div className="flex items-center gap-8">
+                        <div className="text-center">
+                            <p className="text-sm text-gray-500 mb-1">Solicitados</p>
+                            <p className="text-2xl font-semibold text-gray-900">
+                                {quotation.total_items_solicitados}
+                            </p>
+                        </div>
+
+                        <div className="text-center">
+                            <p className="text-sm text-gray-500 mb-1">Comprados</p>
+                            <p className="text-2xl font-semibold text-orange-600">
+                                {quotation.total_items_comprados}
+                            </p>
+                        </div>
+
+                        <div className="text-center">
+                            <p className="text-sm text-gray-500 mb-1">Progreso</p>
+                            <p className="text-2xl font-semibold text-orange-600">
+                                {porcentajeCompra}%
+                            </p>
+                        </div>
                     </div>
 
-                    {/* Tipo de orden */}
-                    <div>
-                        <p className="text-xs font-semibold uppercase text-neutral-500">Tipo de orden</p>
-                        <p className="text-sm font-medium text-neutral-700">{quotation.type}</p>
-                    </div>
+                    {/* Botón */}
+                    <Button
+                        onClick={() => onViewDetails(quotation.id_sub_quotation)}
+                        variant="ghost"
+                        className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                    >
+                        Ver detalles
+                        <ChevronRight className="ml-1 h-4 w-4" />
+                    </Button>
                 </div>
-
-                {/* Estadísticas de items */}
-                <div className="flex gap-6 sm:gap-8">
-                    {/* Items Solicitados */}
-                    <div className="flex flex-col items-center rounded-lg bg-white p-4 text-center">
-                        <p className="text-xs font-semibold uppercase text-neutral-500">Solicitados</p>
-                        <p className="text-3xl font-bold text-orange-500">{quotation.total_items_solicitados}</p>
-                    </div>
-
-                    {/* Items Comprados */}
-                    <div className="flex flex-col items-center rounded-lg bg-white p-4 text-center">
-                        <p className="text-xs font-semibold uppercase text-neutral-500">Comprados</p>
-                        <p className="text-3xl font-bold text-neutral-900">{quotation.total_items_comprados}</p>
-                    </div>
-
-                    {/* Porcentaje */}
-                    <div className="flex flex-col items-center rounded-lg bg-orange-500 p-4 text-center">
-                        <p className="text-xs font-semibold uppercase text-orange-100">Completado</p>
-                        <p className="text-3xl font-bold text-white">{porcentajeCompra}%</p>
-                    </div>
-                </div>
-
-                {/* Botón */}
-                <Button
-                    onClick={() => onViewDetails(quotation.id_sub_quotation)}
-                    className="group/btn bg-orange-500 hover:bg-orange-600 text-white font-semibold shadow-md transition-all duration-300 hover:shadow-lg sm:ml-4"
-                >
-                    Ver detalles
-                    <ChevronRight className="ml-2 h-4 w-4 transition-transform group-hover/btn:translate-x-1" />
-                </Button>
             </div>
         </div>
     )

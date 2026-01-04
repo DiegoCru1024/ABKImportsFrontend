@@ -9,7 +9,7 @@ import {
     getAllOrdenesCompra,
     getSubQuotationsDeOrden,
     getProductosConVariantes,
-    actualizarVariantes,
+    actualizarVariantes, eliminarSubQuotationDeOrden, agregarSubQuotationAOrden,
 } from "@/api/orden-compra.ts";
 import { toast } from "sonner";
 
@@ -133,6 +133,82 @@ export function useActualizarVariantes() {
                 "Error al actualizar cantidades";
             toast.error(errorMessage);
             console.error("Error al actualizar variantes:", error);
+        },
+    });
+}
+
+/**
+ * Hook para agregar una sub-quotation a una orden existente
+ * @returns {useMutation} - Mutación para agregar sub-quotation
+ */
+export function useAgregarSubQuotationAOrden() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: ({
+                         ordenId,
+                         subQuotationId,
+                     }: {
+            ordenId: string;
+            subQuotationId: string;
+        }) => agregarSubQuotationAOrden(ordenId, subQuotationId),
+        onSuccess: (_, variables) => {
+            // Invalidar queries relacionadas
+            queryClient.invalidateQueries({ queryKey: ["ordenesCompra"] });
+            queryClient.invalidateQueries({
+                queryKey: ["subQuotationsOrden", variables.ordenId],
+            });
+            queryClient.invalidateQueries({ queryKey: ["availableSubQuotations"] });
+
+            toast.success("Sub-quotation agregada exitosamente");
+        },
+        onError: (error: any) => {
+            const errorMessage =
+                error?.response?.data?.message ||
+                error?.message ||
+                "Error al agregar sub-quotation";
+            toast.error(errorMessage);
+            console.error("Error al agregar sub-quotation:", error);
+        },
+    });
+}
+
+// ============================================
+// HOOK: ELIMINAR SUB-QUOTATION DE ORDEN
+// ============================================
+
+/**
+ * Hook para eliminar una sub-quotation de una orden
+ * @returns {useMutation} - Mutación para eliminar sub-quotation
+ */
+export function useEliminarSubQuotationDeOrden() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: ({
+                         ordenId,
+                         subQuotationId,
+                     }: {
+            ordenId: string;
+            subQuotationId: string;
+        }) => eliminarSubQuotationDeOrden(ordenId, subQuotationId),
+        onSuccess: (_, variables) => {
+            // Invalidar queries relacionadas
+            queryClient.invalidateQueries({ queryKey: ["ordenesCompra"] });
+            queryClient.invalidateQueries({
+                queryKey: ["subQuotationsOrden", variables.ordenId],
+            });
+            queryClient.invalidateQueries({ queryKey: ["availableSubQuotations"] });
+
+            toast.success("Sub-quotation eliminada exitosamente");
+        },
+        onError: (error: any) => {
+            const errorMessage =
+                error?.response?.data?.message ||
+                error?.message ||
+                "Error al eliminar sub-quotation";
+            toast.error(errorMessage);
+            console.error("Error al eliminar sub-quotation:", error);
         },
     });
 }

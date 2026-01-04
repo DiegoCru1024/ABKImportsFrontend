@@ -1,5 +1,5 @@
 import {PurchaseOrderType} from "@/api/interface/orden-compra-interface.ts";
-import { Card } from "@/components/ui/card";
+import {Card} from "@/components/ui/card";
 import {Layers, Plane, Plus, Ship, Users, Warehouse} from "lucide-react";
 import {cn} from "@/lib/utils.ts";
 
@@ -37,7 +37,7 @@ const serviceTypes = [
         hoverGradient: "hover:from-amber-600 hover:to-amber-700",
     },
     {
-        type: null,
+        type: PurchaseOrderType.ALMACENAJE_DE_MERCANCIAS,
         label: "ALMACÉN",
         icon: Warehouse,
         gradient: "from-gray-400 to-gray-500",

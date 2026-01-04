@@ -42,7 +42,7 @@ const serviceTypes = [
         icon: Warehouse,
         gradient: "from-gray-400 to-gray-500",
         hoverGradient: "hover:from-gray-500 hover:to-gray-600",
-        disabled: true,
+        disabled:false,
     },
 ];
 

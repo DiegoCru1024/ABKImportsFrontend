@@ -15,9 +15,9 @@ import {
     Plane,
     Users,
     Eye,
-    Edit,
     Calendar,
     Package,
+    Warehouse
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -28,6 +28,7 @@ import {useNavigate} from "react-router-dom";
 const getServiceIcon = (type: string) => {
     if (type.includes("Maritimo")) return Ship
     if (type.includes("Express")) return Plane
+    if (type.includes("mercancias")) return Warehouse
     return Users
 }
 
@@ -49,6 +50,7 @@ const getStatusColor = (status: PurchaseOrderStatus) => {
 const getIconColor = (type: string) => {
     if (type.includes("Maritimo")) return "text-secondary bg-secondary/10"
     if (type.includes("Express")) return "text-primary bg-primary/10"
+    if (type.includes("mercancias")) return "text-primary bg-primary/10"
     return "text-secondary bg-secondary/10"
 }
 
@@ -180,9 +182,6 @@ export function OrdersTable() {
                                         <div className="flex items-center justify-center gap-2">
                                             <Button variant="ghost" size="icon" className="h-8 w-8 hover:text-orange-500"  onClick={() => handleViewDetails(order.id_orden_compra)}>
                                                 <Eye className="w-4 h-4" />
-                                            </Button>
-                                            <Button variant="ghost" size="icon" className="h-8 w-8 hover:text-orange-500">
-                                                <Edit className="w-4 h-4" />
                                             </Button>
                                         </div>
                                     </TableCell>

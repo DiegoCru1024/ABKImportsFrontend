@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useGetInspectionById } from "@/hooks/use-inspections";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
@@ -18,7 +18,7 @@ import {
   Clock,
   Edit,
   Eye,
-  Image as ImageIcon
+  Image as ImageIcon,
 } from "lucide-react";
 import { formatDateLong } from "@/lib/format-time";
 
@@ -85,7 +85,6 @@ export default function InspectionDetailView() {
     }
   };
 
-
   const handleEditProduct = (product: any) => {
     setSelectedProduct(product);
     setEditProductModalOpen(true);
@@ -108,15 +107,15 @@ export default function InspectionDetailView() {
     setSelectedProduct(null);
   };
 
-
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-500/5 via-background to-blue-400/10">
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-            <p className="text-lg text-muted-foreground">Cargando detalles de la inspección...</p>
+            <p className="text-lg text-muted-foreground">
+              Cargando detalles de la inspección...
+            </p>
           </div>
         </div>
       </div>
@@ -138,9 +137,12 @@ export default function InspectionDetailView() {
             </Button>
           </div>
           <div className="p-6 bg-red-50 border border-red-200 rounded-lg">
-            <h2 className="text-xl font-semibold text-red-800 mb-2">Error al cargar la inspección</h2>
+            <h2 className="text-xl font-semibold text-red-800 mb-2">
+              Error al cargar la inspección
+            </h2>
             <p className="text-red-700">
-              {error.message || "No se pudo cargar los detalles de la inspección"}
+              {error.message ||
+                "No se pudo cargar los detalles de la inspección"}
             </p>
           </div>
         </div>
@@ -163,7 +165,9 @@ export default function InspectionDetailView() {
             </Button>
           </div>
           <div className="p-6 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <h2 className="text-xl font-semibold text-yellow-800 mb-2">Inspección no encontrada</h2>
+            <h2 className="text-xl font-semibold text-yellow-800 mb-2">
+              Inspección no encontrada
+            </h2>
             <p className="text-yellow-700">
               No se encontró la inspección con el ID proporcionado
             </p>
@@ -192,7 +196,7 @@ export default function InspectionDetailView() {
             </div>
             <div>
               <h1 className="text-xl font-bold text-gray-900">
-                Detalles de Inspección
+                Detalles de Mercancias
               </h1>
               <p className="text-sm text-muted-foreground">
                 ID: {inspection.id}
@@ -206,189 +210,217 @@ export default function InspectionDetailView() {
       <div className="p-6 space-y-6">
         {/* Grid de información general - 4 columnas */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Card: Tipo de Servicio */}
-            <Card className="border border-slate-200 bg-white hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
-                <div className="space-y-3">
-                  <p className="text-sm font-medium text-muted-foreground">Tipo de Servicio</p>
-                  <p className="text-2xl font-bold text-gray-900 capitalize">
-                    {inspection.shipping_service_type}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+          {/* Card: Tipo de Servicio */}
+          <Card className="border border-slate-200 bg-white hover:shadow-md transition-shadow">
+            <CardContent className="p-6">
+              <div className="space-y-3">
+                <p className="text-sm font-medium text-muted-foreground">
+                  Tipo de Servicio
+                </p>
+                <p className="text-2xl font-bold text-gray-900 capitalize">
+                  {inspection.shipping_service_type}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
 
-            {/* Card: Servicio de Logística */}
-            <Card className="border border-slate-200 bg-white hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
-                <div className="space-y-3">
-                  <p className="text-sm font-medium text-muted-foreground">Servicio de Logística</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {inspection.logistics_service}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+          {/* Card: Servicio de Logística */}
+          <Card className="border border-slate-200 bg-white hover:shadow-md transition-shadow">
+            <CardContent className="p-6">
+              <div className="space-y-3">
+                <p className="text-sm font-medium text-muted-foreground">
+                  Servicio de Logística
+                </p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {inspection.logistics_service}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
 
-            {/* Card: Última Actualización */}
-            <Card className="border border-slate-200 bg-white hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
-                <div className="space-y-3">
-                  <p className="text-sm font-medium text-muted-foreground">Última Actualización</p>
-                  <p className="text-lg font-semibold text-gray-900">
-                    {formatDateLong(inspection.updated_at)}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+          {/* Card: Última Actualización */}
+          <Card className="border border-slate-200 bg-white hover:shadow-md transition-shadow">
+            <CardContent className="p-6">
+              <div className="space-y-3">
+                <p className="text-sm font-medium text-muted-foreground">
+                  Última Actualización
+                </p>
+                <p className="text-lg font-semibold text-gray-900">
+                  {formatDateLong(inspection.updated_at)}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
 
-            {/* Card: Precio Total */}
-            <Card className="border border-emerald-200 bg-emerald-50/50 hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
-                <div className="space-y-3">
-                  <p className="text-sm font-medium text-emerald-700">Precio Total</p>
-                  <p className="text-3xl font-bold text-emerald-600">
-                    ${inspection.total_price}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+          {/* Card: Precio Total */}
+          <Card className="border border-emerald-200 bg-emerald-50/50 hover:shadow-md transition-shadow">
+            <CardContent className="p-6">
+              <div className="space-y-3">
+                <p className="text-sm font-medium text-emerald-700">
+                  Precio Total
+                </p>
+                <p className="text-3xl font-bold text-emerald-600">
+                  ${inspection.total_price}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Layout principal: Productos (izquierda) y Mapa (abajo) */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Sección izquierda: Lista de productos */}
-            <div className="lg:col-span-1 space-y-4">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                  <Package className="h-5 w-5 text-blue-500" />
-                  Productos ({inspection.content.length})
-                </h2>
-                <p className="text-sm text-muted-foreground">
-                  {inspection.content.filter((p: any) => p.status === 'in_transit').length}/{inspection.content.length} en estado actual
-                </p>
-              </div>
+          {/* Sección izquierda: Lista de productos */}
+          <div className="lg:col-span-2 space-y-4">
+            {/* Card de información de ubicación */}
+            <Card className="border border-slate-200 bg-white shadow-sm">
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100">
+                        <Package className="h-5 w-5 text-blue-600" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-medium text-muted-foreground">
+                          Ubicación del Envío
+                        </h3>
+                        <p className="text-lg font-bold text-gray-900">
+                          {inspection.origin || "Shenzhen, China"}
+                        </p>
+                      </div>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Provincia de Cantón, China
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-              {/* Lista de productos como cards */}
-              <div className="space-y-3">
-                {inspection.content.map((product: any, index: number) => (
-                  <Card
-                    key={product.product_id}
-                    className={`border transition-all hover:shadow-md cursor-pointer ${
-                      index === 0 ? 'border-blue-300 bg-blue-50/30' : 'border-slate-200 bg-white'
-                    }`}
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex gap-3">
-                        {/* Imagen del producto */}
-                        <div className="w-16 h-16 bg-gradient-to-br from-slate-100 to-slate-200 rounded-lg flex items-center justify-center flex-shrink-0">
-                          <ImageIcon className="h-8 w-8 text-slate-400" />
-                        </div>
+            {/* Card del mapa */}
+            <Card className="border border-slate-200 bg-white shadow-sm overflow-hidden">
+              <CardContent className="p-0">
+                <div className="relative h-[450px] w-full">
+                  <InspectionTrackingMap inspectionData={inspection} />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 
-                        {/* Información del producto */}
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-gray-900 text-sm truncate">
-                            {product.name}
-                          </h3>
-                          <p className="text-xs text-muted-foreground truncate">
-                            ID: {product.product_id.slice(0, 20)}...
-                          </p>
+          {/* Sección derecha e inferior: Mapa y ubicación */}
+          <div className="lg:col-span-1 space-y-4">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <Package className="h-5 w-5 text-blue-500" />
+                Productos ({inspection.content.length})
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                {
+                  inspection.content.filter(
+                    (p: any) => p.status === "in_transit"
+                  ).length
+                }
+                /{inspection.content.length} en estado actual
+              </p>
+            </div>
 
-                          <div className="mt-2 flex items-center justify-between">
-                            <div className="flex items-baseline gap-1">
-                              <span className="text-xs text-muted-foreground">Cant:</span>
-                              <span className="font-semibold text-sm">{product.quantity}</span>
-                            </div>
-                            <div className="flex flex-col items-end">
-                              <span className="text-xs line-through text-muted-foreground">
-                                ${(product.quantity * Number(product.regular_price || product.express_price)).toFixed(2)}
-                              </span>
-                              <span className="text-sm font-bold text-emerald-600">
-                                ${product.express_price}
-                              </span>
-                            </div>
-                          </div>
+            {/* Lista de productos como cards */}
+            <div className="space-y-3">
+              {inspection.content.map((product: any, index: number) => (
+                <Card
+                  key={product.product_id}
+                  className={`border transition-all hover:shadow-md cursor-pointer ${
+                    index === 0
+                      ? "border-blue-300 bg-blue-50/30"
+                      : "border-slate-200 bg-white"
+                  }`}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex gap-3">
+                      {/* Imagen del producto */}
+                      <div className="w-16 h-16 bg-gradient-to-br from-slate-100 to-slate-200 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <ImageIcon className="h-8 w-8 text-slate-400" />
+                      </div>
 
-                          {/* Estado y archivos */}
-                          <div className="mt-3 flex items-center justify-between gap-2">
-                            <Badge
-                              className={`flex items-center gap-1 text-xs px-2 py-0.5 ${getStatusColor(product.status)}`}
-                            >
-                              {getStatusIcon(product.status)}
-                              {getStatusText(product.status)}
-                            </Badge>
+                      {/* Información del producto */}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-gray-900 text-sm truncate">
+                          {product.name}
+                        </h3>
+                        <p className="text-xs text-muted-foreground truncate">
+                          ID: {product.product_id.slice(0, 20)}...
+                        </p>
+
+                        <div className="mt-2 flex items-center justify-between">
+                          <div className="flex items-baseline gap-1">
                             <span className="text-xs text-muted-foreground">
-                              {product.files.length} archivo{product.files.length !== 1 ? 's' : ''}
+                              Cant:
+                            </span>
+                            <span className="font-semibold text-sm">
+                              {product.quantity}
                             </span>
                           </div>
-
-                          {/* Botones de acción */}
-                          <div className="mt-3 flex gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleEditProduct(product)}
-                              className="flex-1 text-xs h-8"
-                            >
-                              <Edit className="h-3 w-3 mr-1" />
-                              Editar
-                            </Button>
-                            {product.files.length > 0 && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleViewFiles(product)}
-                                className="h-8 px-2"
-                              >
-                                <Eye className="h-3 w-3" />
-                              </Button>
-                            )}
+                          <div className="flex flex-col items-end">
+                            <span className="text-xs line-through text-muted-foreground">
+                              $
+                              {(
+                                product.quantity *
+                                Number(
+                                  product.regular_price || product.express_price
+                                )
+                              ).toFixed(2)}
+                            </span>
+                            <span className="text-sm font-bold text-emerald-600">
+                              ${product.express_price}
+                            </span>
                           </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
 
-            {/* Sección derecha e inferior: Mapa y ubicación */}
-            <div className="lg:col-span-2 space-y-4">
-              {/* Card de información de ubicación */}
-              <Card className="border border-slate-200 bg-white shadow-sm">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100">
-                          <Package className="h-5 w-5 text-blue-600" />
+                        {/* Estado y archivos */}
+                        <div className="mt-3 flex items-center justify-between gap-2">
+                          <Badge
+                            className={`flex items-center gap-1 text-xs px-2 py-0.5 ${getStatusColor(
+                              product.status
+                            )}`}
+                          >
+                            {getStatusIcon(product.status)}
+                            {getStatusText(product.status)}
+                          </Badge>
+                          <span className="text-xs text-muted-foreground">
+                            {product.files.length} archivo
+                            {product.files.length !== 1 ? "s" : ""}
+                          </span>
                         </div>
-                        <div>
-                          <h3 className="text-sm font-medium text-muted-foreground">
-                            Ubicación del Envío
-                          </h3>
-                          <p className="text-lg font-bold text-gray-900">
-                            {inspection.origin || 'Shenzhen, China'}
-                          </p>
+
+                        {/* Botones de acción */}
+                        <div className="mt-3 flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEditProduct(product)}
+                            className="flex-1 text-xs h-8"
+                          >
+                            <Edit className="h-3 w-3 mr-1" />
+                            Editar
+                          </Button>
+                          {product.files.length > 0 && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleViewFiles(product)}
+                              className="h-8 px-2"
+                            >
+                              <Eye className="h-3 w-3" />
+                            </Button>
+                          )}
                         </div>
                       </div>
-                      <p className="text-sm text-muted-foreground">
-                        Provincia de Cantón, China
-                      </p>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Card del mapa */}
-              <Card className="border border-slate-200 bg-white shadow-sm overflow-hidden">
-                <CardContent className="p-0">
-                  <div className="relative h-[450px] w-full">
-                    <InspectionTrackingMap inspectionData={inspection} />
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
+          </div>
         </div>
       </div>
 
@@ -420,4 +452,4 @@ export default function InspectionDetailView() {
       />
     </div>
   );
-} 
+}

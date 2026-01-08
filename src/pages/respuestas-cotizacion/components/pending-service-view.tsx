@@ -2,7 +2,6 @@ import type { ResponseInformationDTO } from "@/api/interface/quotationResponseIn
 import type { ResponseDataPending } from "@/api/interface/quotation-response/dto/pending/response-data-pending";
 import type { PendingProductInterface } from "@/api/interface/quotation-response/dto/pending/products/pending-products";
 
-import QuotationSummaryCardView from "./view-cards/QuotationSummaryCardView";
 import QuotationProductRowView from "./view-cards/QuotationProductRowView";
 
 interface PendingServiceViewProps {
@@ -62,11 +61,6 @@ export function PendingServiceView({
 
   return (
     <div className="w-full space-y-8 pt-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-        <QuotationSummaryCardView resumenInfo={responseData.resumenInfo} />
-      </div>
-
       {mappedProducts && mappedProducts.length > 0 && (
         <div className="space-y-4 grid grid-cols-1">
           <h3 className="text-xl font-bold text-gray-800">

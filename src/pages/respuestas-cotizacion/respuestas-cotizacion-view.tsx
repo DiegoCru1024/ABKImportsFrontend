@@ -1,11 +1,10 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Calendar, User, FileText, Loader2 } from "lucide-react";
+import { ArrowLeft,  User, FileText, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent} from "@/components/ui/card";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 
 import { useGetQuatitationResponse } from "@/hooks/use-quatitation-response";
 import { useGetQuotationById } from "@/hooks/use-quation";
@@ -100,36 +99,69 @@ export default function RespuestasCotizacionView() {
               onValueChange={(value) => setSelectedResponseIndex(parseInt(value))}
               className="w-full"
             >
-              <div className="flex items-center justify-center gap-8 bg-white border-b border-gray-300 pb-2">
-                {responseData.responses.map((response: any, index: number) => (
-                  <button
-                    key={response.responseId}
-                    onClick={() => setSelectedResponseIndex(index)}
-                    className={`relative px-6 py-3 text-sm font-medium transition-all ${
-                      index === selectedResponseIndex
-                        ? "text-gray-900 border-b-[3px] border-gray-900"
-                        : "text-gray-500 border-b-[3px] border-transparent hover:text-gray-700"
-                    }`}
-                  >
-                    {getTabLabel(response, index)}
-                    {index === selectedResponseIndex && (
-                      <span className="absolute -top-1 -right-3 flex h-5 w-5 items-center justify-center rounded-full bg-green-500 text-white">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                          className="h-3 w-3"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                      </span>
-                    )}
-                  </button>
-                ))}
+              <div className="flex items-center justify-center gap-4 bg-slate-50/30 px-6 py-5 border-b border-slate-200">
+                {responseData.responses.map((response: any, index: number) => {
+                  const isSelected = index === selectedResponseIndex;
+                  const serviceLabel = response.responseData?.generalInformation?.serviceLogistic || response.serviceType;
+
+                  return (
+                    <button
+                      key={response.responseId}
+                      onClick={() => setSelectedResponseIndex(index)}
+                      className={`group relative flex items-center gap-3 px-5 py-3.5 rounded-lg border transition-all duration-200 ${
+                        isSelected
+                          ? "bg-white border-blue-500 shadow-lg shadow-blue-500/15"
+                          : "bg-white/60 border-slate-200 hover:border-slate-300 hover:shadow-md hover:bg-white"
+                      }`}
+                    >
+                      {/* Barra lateral minimalista */}
+                      <div className={`absolute left-0 top-0 bottom-0 w-[3px] rounded-l-lg transition-colors duration-200 ${
+                        isSelected ? "bg-blue-500" : "bg-transparent"
+                      }`} />
+
+                      {/* Número compacto */}
+                      <div className={`flex-shrink-0 flex items-center justify-center w-9 h-9 rounded-full font-bold text-sm transition-all duration-200 ${
+                        isSelected
+                          ? "bg-blue-500 text-white shadow-md shadow-blue-500/30"
+                          : "bg-slate-100 text-slate-600 group-hover:bg-slate-200"
+                      }`}>
+                        {index + 1}
+                      </div>
+
+                      {/* Texto minimalista */}
+                      <div className="flex flex-col text-left">
+                        <span className={`text-[10px] font-semibold uppercase tracking-wider ${
+                          isSelected ? "text-blue-600" : "text-slate-400"
+                        }`}>
+                          Opción {index + 1}
+                        </span>
+                        <span className={`text-sm font-semibold leading-tight mt-0.5 ${
+                          isSelected ? "text-slate-900" : "text-slate-600 group-hover:text-slate-800"
+                        }`}>
+                          {serviceLabel}
+                        </span>
+                      </div>
+
+                      {/* Checkmark minimalista */}
+                      {isSelected && (
+                        <div className="absolute -top-1.5 -right-1.5 flex items-center justify-center w-5 h-5 rounded-full bg-green-500 shadow-md ring-2 ring-white">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                            className="h-3 w-3 text-white"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
 
               <div className="mt-6">
@@ -322,37 +354,103 @@ export default function RespuestasCotizacionView() {
                               </div>
                             )}
 
-                            {response.serviceType === "COTIZACION DE ORIGEN" && (
-                              <div className="pt-4 border-t border-gray-200">
-                                <div className="flex items-center justify-start gap-16">
-                                  <div className="flex items-center space-x-2">
-                                    <svg className="h-4 w-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                                    </svg>
-                                    <span className="text-sm text-gray-600">Productos:</span>
-                                    <span className="text-sm font-bold text-gray-900">{response.products?.length || 0}</span>
+                            {response.serviceType === "COTIZACION DE ORIGEN" && (() => {
+                              const resumenInfo = response.responseData?.resumenInfo;
+                              const totalQuantity = resumenInfo?.totalQuantity ?? 0;
+                              const totalWeight = resumenInfo?.totalWeight ?? 0;
+                              const totalCBM = resumenInfo?.totalCBM ?? 0;
+                              const totalPrice = resumenInfo?.totalPrice ?? 0;
+                              const totalExpress = resumenInfo?.totalExpress ?? 0;
+                              const grandTotal = totalPrice + totalExpress;
+
+                              return (
+                                <div className="pt-5 border-t border-slate-200 space-y-5">
+                                  {/* Métricas de productos */}
+                                  <div className="grid grid-cols-3 gap-4">
+                                    <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                                      <div className="flex items-center gap-2 mb-2">
+                                        <svg className="h-4 w-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                                        </svg>
+                                        <span className="text-xs font-medium text-slate-500">Cantidad Total</span>
+                                      </div>
+                                      <p className="text-xl font-bold text-slate-900">{totalQuantity}</p>
+                                      <p className="text-[10px] text-slate-400 mt-0.5">unidades</p>
+                                    </div>
+
+                                    <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                                      <div className="flex items-center gap-2 mb-2">
+                                        <svg className="h-4 w-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
+                                        </svg>
+                                        <span className="text-xs font-medium text-slate-500">Peso Total</span>
+                                      </div>
+                                      <p className="text-xl font-bold text-slate-900">{totalWeight.toFixed(2)}</p>
+                                      <p className="text-[10px] text-slate-400 mt-0.5">kg</p>
+                                    </div>
+
+                                    <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                                      <div className="flex items-center gap-2 mb-2">
+                                        <svg className="h-4 w-4 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                                        </svg>
+                                        <span className="text-xs font-medium text-slate-500">Volumen Total</span>
+                                      </div>
+                                      <p className="text-xl font-bold text-slate-900">{totalCBM.toFixed(2)}</p>
+                                      <p className="text-[10px] text-slate-400 mt-0.5">m³</p>
+                                    </div>
                                   </div>
-                                  <div className="flex items-center space-x-2">
-                                    <svg className="h-4 w-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
-                                    </svg>
-                                    <span className="text-sm text-gray-600">Peso:</span>
-                                    <span className="text-sm font-bold text-gray-900">
-                                      {quotationDetail?.products?.reduce((sum: number, p: any) => sum + parseFloat(p.weight || 0), 0).toFixed(2)} kg
-                                    </span>
-                                  </div>
-                                  <div className="flex items-center space-x-2">
-                                    <svg className="h-4 w-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                                    </svg>
-                                    <span className="text-sm text-gray-600">Volumen:</span>
-                                    <span className="text-sm font-bold text-gray-900">
-                                      {quotationDetail?.products?.reduce((sum: number, p: any) => sum + parseFloat(p.volume || 0), 0).toFixed(2)} m³
-                                    </span>
+
+                                  {/* Resumen financiero */}
+                                  <div className="space-y-2.5">
+                                    <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Resumen Financiero</h4>
+
+                                    <div className="grid grid-cols-2 gap-3">
+                                      <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3">
+                                        <div className="flex items-center gap-2">
+                                          <svg className="h-4 w-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                          </svg>
+                                          <div>
+                                            <p className="text-[10px] text-emerald-700 font-medium">Precio Total</p>
+                                            <p className="text-xs text-emerald-600">Productos</p>
+                                          </div>
+                                        </div>
+                                        <p className="text-base font-bold text-emerald-700">USD {totalPrice.toFixed(2)}</p>
+                                      </div>
+
+                                      <div className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg px-4 py-3">
+                                        <div className="flex items-center gap-2">
+                                          <svg className="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                                          </svg>
+                                          <div>
+                                            <p className="text-[10px] text-blue-700 font-medium">Total Express</p>
+                                            <p className="text-xs text-blue-600">Servicio</p>
+                                          </div>
+                                        </div>
+                                        <p className="text-base font-bold text-blue-700">USD {totalExpress.toFixed(2)}</p>
+                                      </div>
+                                    </div>
+
+                                    <div className="flex items-center justify-between bg-gradient-to-r from-orange-50 to-amber-50 border-2 border-orange-300 rounded-lg px-5 py-4 shadow-sm">
+                                      <div className="flex items-center gap-3">
+                                        <div className="bg-orange-500 p-2 rounded-lg">
+                                          <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                          </svg>
+                                        </div>
+                                        <div>
+                                          <p className="text-xs font-bold text-slate-900">Costo Total</p>
+                                          <p className="text-[10px] text-orange-700">Productos + Express</p>
+                                        </div>
+                                      </div>
+                                      <p className="text-2xl font-black text-orange-600">USD {grandTotal.toFixed(2)}</p>
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
-                            )}
+                              );
+                            })()}
                           </div>
                         </TabsContent>
                       ))}

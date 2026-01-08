@@ -1,7 +1,4 @@
 import {
-  AlertTriangle,
-  CheckCircle,
-  FileText,
   PackageSearch,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -10,8 +7,6 @@ import { DataTable } from "@/components/table/data-table";
 
 import type { Inspection } from "@/api/interface/inspectionInterface";
 import { columnasInspeccion } from "./components/table/columns";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 
 function gestionDeMercancias() {
@@ -86,7 +81,7 @@ function gestionDeMercancias() {
       {/* Contenido principal */}
       <div className="p-6">
         {/* Tarjetas de estadísticas */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
@@ -131,7 +126,7 @@ function gestionDeMercancias() {
               </p>
             </CardContent>
           </Card>
-        </div>
+        </div>*/}
 
         {/* Contenido principal */}
         <div className="p-6">

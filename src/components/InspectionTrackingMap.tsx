@@ -207,7 +207,7 @@ export default function InspectionTrackingMap({ className, inspectionData }: Ins
       </div>
     );
   }
-
+ 
   if (error) {
     return (
       <div className={`bg-white rounded-lg border ${className}`}>

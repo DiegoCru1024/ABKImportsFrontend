@@ -13,6 +13,7 @@ interface SupplierProfitSelectorProps {
   selectedPercentage?: number
   onSelect?: (percentage: number) => void
   price?: number
+  quantity?: number
   variantName?: string
   compact?: boolean
   profitPercentages?: IProfitPercentage[] // Recibir porcentajes como prop opcional
@@ -22,6 +23,7 @@ export function SupplierProfitSelector({
   selectedPercentage,
   onSelect,
   price = 0,
+  quantity = 1,
   variantName = "Variante",
   compact = false,
   profitPercentages,
@@ -82,7 +84,7 @@ export function SupplierProfitSelector({
   }
 
   if (compact) {
-    const profitAmount = selected && price > 0 ? (price * selected) / 100 : 0
+    const profitAmount = selected && price > 0 ? (price * quantity * selected) / 100 : 0
 
     // Mostrar un placeholder mientras carga
     if (loading) {
@@ -130,7 +132,7 @@ export function SupplierProfitSelector({
       <div className="grid grid-cols-3 gap-2">
         {profitOptions.map((option) => {
           const isSelected = selected === option.percentage
-          const profitAmount = (price * option.percentage) / 100
+          const profitAmount = (price * quantity * option.percentage) / 100
 
           return (
             <button
@@ -167,7 +169,7 @@ export function SupplierProfitSelector({
         <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
           <p className="text-xs text-gray-600">
             <span className="font-semibold text-gray-900">{variantName}</span> generará{" "}
-            <span className="font-bold text-green-600">${((price * selected) / 100).toFixed(2)}</span> de ganancia al
+            <span className="font-bold text-green-600">${((price * quantity * selected) / 100).toFixed(2)}</span> de ganancia al
             proveedor
           </p>
         </div>

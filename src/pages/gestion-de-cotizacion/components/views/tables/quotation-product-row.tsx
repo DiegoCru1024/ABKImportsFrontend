@@ -168,7 +168,8 @@ export default function QuotationProductRow({
           };
 
           const currentPrice = variant.price || 0;
-          calculatedValue = (currentPrice * defaultProfit.percentage) / 100;
+          const currentQuantity = variant.quantity || 0;
+          calculatedValue = (currentPrice * currentQuantity * defaultProfit.percentage) / 100;
 
           onVariantUpdate(product.productId, variant.variantId, {
             id_profit_percentage: defaultProfit.id_profit_percentage,
@@ -442,10 +443,28 @@ export default function QuotationProductRow({
     }
 
     if (field === 'price' && variantProfits[variantId]) {
+      const currentVariant = localProduct.variants?.find(v => v.variantId === variantId);
+      const quantity = currentVariant?.quantity || 0;
       const newPrice = typeof value === 'number' ? value : parseFloat(value as string);
       const profitPercentage = variantProfits[variantId].percentage;
       const profitId = variantProfits[variantId].id;
-      const calculatedProfit = (newPrice * profitPercentage) / 100;
+      const calculatedProfit = (newPrice * quantity * profitPercentage) / 100;
+
+      if (onVariantUpdate) {
+        onVariantUpdate(product.productId, variantId, {
+          id_profit_percentage: profitId,
+          value_profit_porcentage: calculatedProfit
+        });
+      }
+    }
+
+    if (field === 'quantity' && variantProfits[variantId]) {
+      const currentVariant = localProduct.variants?.find(v => v.variantId === variantId);
+      const price = currentVariant?.price || 0;
+      const newQuantity = typeof value === 'number' ? value : parseFloat(value as string);
+      const profitPercentage = variantProfits[variantId].percentage;
+      const profitId = variantProfits[variantId].id;
+      const calculatedProfit = (price * newQuantity * profitPercentage) / 100;
 
       if (onVariantUpdate) {
         onVariantUpdate(product.productId, variantId, {
@@ -462,7 +481,8 @@ export default function QuotationProductRow({
     if (selectedProfit) {
       const currentVariant = localProduct.variants?.find(v => v.variantId === variantId);
       const currentPrice = currentVariant?.price || 0;
-      const calculatedProfit = (currentPrice * selectedProfit.percentage) / 100;
+      const currentQuantity = currentVariant?.quantity || 0;
+      const calculatedProfit = (currentPrice * currentQuantity * selectedProfit.percentage) / 100;
 
       setVariantProfits(prev => ({
         ...prev,
@@ -1037,6 +1057,7 @@ export default function QuotationProductRow({
                                   selectedPercentage={variantProfits[variant.variantId]?.percentage}
                                   onSelect={(percentage) => handleProfitChange(variant.variantId, percentage)}
                                   price={variant.price || 0}
+                                  quantity={variant.quantity || 0}
                                   variantName={`${variant.color} - ${variant.size}`}
                                   compact={true}
                                   profitPercentages={profitPercentages}

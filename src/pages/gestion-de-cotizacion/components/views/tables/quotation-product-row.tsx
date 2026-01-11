@@ -146,9 +146,9 @@ export default function QuotationProductRow({
   useEffect(() => {
     if (profitPercentages.length === 0 || isInitialized) return;
 
-    const defaultProfit = profitPercentages.find(p => p.percentage === 10);
+    const defaultProfit = profitPercentages.find(p => Number(p.percentage) === 10) || profitPercentages[0];
 
-    if (defaultProfit && product.variants && onVariantUpdate) {
+    if (defaultProfit && product.variants) {
       const initialProfits: Record<string, { id: string; percentage: number }> = {};
 
       product.variants.forEach(variant => {
@@ -156,20 +156,23 @@ export default function QuotationProductRow({
         let calculatedValue: number;
 
         if (variant.id_profit_percentage && variant.value_profit_porcentage !== null && variant.value_profit_porcentage !== undefined) {
+          // Encontrar el porcentaje real basado en el id_profit_percentage
+          const existingProfit = profitPercentages.find(p => p.id_profit_percentage === variant.id_profit_percentage);
+
           profitToUse = {
             id: variant.id_profit_percentage,
-            percentage: variant.value_profit_porcentage
+            percentage: Number(existingProfit?.percentage) || 10
           };
           calculatedValue = variant.value_profit_porcentage;
         } else {
           profitToUse = {
             id: defaultProfit.id_profit_percentage,
-            percentage: defaultProfit.percentage
+            percentage: Number(defaultProfit.percentage)
           };
 
           const currentPrice = variant.price || 0;
           const currentQuantity = variant.quantity || 0;
-          calculatedValue = (currentPrice * currentQuantity * defaultProfit.percentage) / 100;
+          calculatedValue = (currentPrice * currentQuantity * Number(defaultProfit.percentage)) / 100;
 
           onVariantUpdate(product.productId, variant.variantId, {
             id_profit_percentage: defaultProfit.id_profit_percentage,
@@ -476,19 +479,19 @@ export default function QuotationProductRow({
   };
 
   const handleProfitChange = (variantId: string, percentage: number) => {
-    const selectedProfit = profitPercentages.find(p => p.percentage === percentage);
+    const selectedProfit = profitPercentages.find(p => Number(p.percentage) === percentage);
 
     if (selectedProfit) {
       const currentVariant = localProduct.variants?.find(v => v.variantId === variantId);
       const currentPrice = currentVariant?.price || 0;
       const currentQuantity = currentVariant?.quantity || 0;
-      const calculatedProfit = (currentPrice * currentQuantity * selectedProfit.percentage) / 100;
+      const calculatedProfit = (currentPrice * currentQuantity * Number(selectedProfit.percentage)) / 100;
 
       setVariantProfits(prev => ({
         ...prev,
         [variantId]: {
           id: selectedProfit.id_profit_percentage,
-          percentage: selectedProfit.percentage
+          percentage: Number(selectedProfit.percentage)
         }
       }));
 

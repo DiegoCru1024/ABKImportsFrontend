@@ -35,10 +35,10 @@ export function SupplierProfitSelector({
   // Cargar los porcentajes desde el backend solo si no se proporcionan como prop
   useEffect(() => {
     if (profitPercentages) {
-      // Si vienen porcentajes como prop, usarlos directamente
+      // Si vienen porcentajes como prop, usarlos directamente y convertir a número
       const options = profitPercentages.map((p: IProfitPercentage) => ({
-        percentage: p.percentage,
-        label: `${p.percentage}%`
+        percentage: Number(p.percentage),
+        label: `${Number(p.percentage)}%`
       }))
       setProfitOptions(options)
       setLoading(false)
@@ -49,10 +49,10 @@ export function SupplierProfitSelector({
           setLoading(true)
           const percentages = await listAllProfitPercentages()
 
-          // Convertir IProfitPercentage[] a SupplierProfitOption[]
+          // Convertir IProfitPercentage[] a SupplierProfitOption[] y asegurar que sean números
           const options = percentages.map((p: IProfitPercentage) => ({
-            percentage: p.percentage,
-            label: `${p.percentage}%`
+            percentage: Number(p.percentage),
+            label: `${Number(p.percentage)}%`
           }))
 
           setProfitOptions(options)

@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { ChevronDown, Edit2, Eye } from "lucide-react"
+import { ChevronDown, Edit2, Eye, CheckCircle2 } from "lucide-react"
 import type { ProductoConVariantesDto, VarianteDetalleDto } from "@/api/interface/orden-compra-interface.ts"
 import ImageCarouselModal from "@/components/ImageCarouselModal"
 
@@ -21,9 +21,34 @@ export function ProductoRow({ producto, onEditVariante }: ProductoRowProps) {
 
     const completionPercentage = Math.round((producto.total_comprado / producto.total_solicitado) * 100)
 
-    // Obtener imagen del producto o de la primera variante con imagen
-    const productImage = producto.product_image ||
-        producto.variantes.find(v => v.variant_images && v.variant_images.length > 0)?.variant_images[0]
+    const getProductImage = () => {
+        const isValidUrl = (string: string) => {
+            if (!string || string.trim() === '') return false
+            try {
+                const url = new URL(string)
+                return url.protocol === 'http:' || url.protocol === 'https:'
+            } catch {
+                return false
+            }
+        }
+
+        if (producto.product_image && isValidUrl(producto.product_image)) {
+            return producto.product_image
+        }
+
+        for (const variante of producto.variantes) {
+            if (variante.variant_images && Array.isArray(variante.variant_images) && variante.variant_images.length > 0) {
+                // Validar que la primera imagen de la variante sea una URL válida
+                if (isValidUrl(variante.variant_images[0])) {
+                    return variante.variant_images[0]
+                }
+            }
+        }
+
+        return null
+    }
+
+    const productImage = getProductImage()
 
     const handleOpenImages = (images: string[], variantName: string) => {
         if (images && images.length > 0) {
@@ -221,9 +246,14 @@ export function ProductoRow({ producto, onEditVariante }: ProductoRowProps) {
                                                     </span>
                                             </td>
                                             <td className="px-6 py-6 text-center">
+                                                <div className="flex items-center justify-center gap-2">
                                                     <span className="text-sm font-medium text-orange-600">
                                                         {variante.cantidad_comprada}
                                                     </span>
+                                                    {variante.cantidad_comprada > 0 && (
+                                                        <CheckCircle2 className="w-4 h-4 text-green-500" />
+                                                    )}
+                                                </div>
                                             </td>
                                             <td className="px-6 py-6 text-center">
                                                     <span className={`text-sm font-medium ${variante.saldo > 0 ? 'text-red-600' : 'text-green-600'}`}>

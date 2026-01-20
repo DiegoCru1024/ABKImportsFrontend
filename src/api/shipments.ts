@@ -4,7 +4,9 @@ import type {
   CreateShipmentRequest,
   UpdateShipmentStatusRequest,
   ShipmentInfo,
-  ShipmentsResponse
+  ShipmentsResponse,
+  TrackingRouteResponse,
+  InspectionTrackingRouteResponse
 } from "./interface/shipmentInterface";
 
 /**
@@ -122,6 +124,7 @@ export interface TrackingStatus {
 /**
  * Obtiene los estados de tracking para Shenzhen
  * @returns {Promise<TrackingStatus[]>} - Lista de estados de tracking
+ * @deprecated Usar getShipmentTrackingRoute en su lugar para tracking dinámico
  */
 export const getTrackingStatuses = async (): Promise<TrackingStatus[]> => {
   try {
@@ -130,6 +133,44 @@ export const getTrackingStatuses = async (): Promise<TrackingStatus[]> => {
     });
   } catch (error) {
     console.error("Error al obtener los estados de tracking:", error);
+    throw error;
+  }
+};
+
+/**
+ * Obtiene la ruta de tracking dinámica para un shipment específico
+ * @param {string} shipmentId - ID del envío
+ * @returns {Promise<TrackingRouteResponse>} - Ruta con puntos segmentados por estado
+ */
+export const getShipmentTrackingRoute = async (
+  shipmentId: string
+): Promise<TrackingRouteResponse> => {
+  try {
+    return await apiFetch<TrackingRouteResponse>(
+      `/shipments/${shipmentId}/tracking/route`,
+      { method: "GET" }
+    );
+  } catch (error) {
+    console.error("Error al obtener la ruta de tracking:", error);
+    throw error;
+  }
+};
+
+/**
+ * Obtiene la ruta de tracking dinámica para una inspección (puntos 1-13)
+ * @param {string} inspectionId - ID de la inspección
+ * @returns {Promise<InspectionTrackingRouteResponse>} - Ruta con puntos segmentados por estado
+ */
+export const getInspectionTrackingRoute = async (
+  inspectionId: string
+): Promise<InspectionTrackingRouteResponse> => {
+  try {
+    return await apiFetch<InspectionTrackingRouteResponse>(
+      `/inspections/${inspectionId}/tracking/route`,
+      { method: "GET" }
+    );
+  } catch (error) {
+    console.error("Error al obtener la ruta de tracking de inspección:", error);
     throw error;
   }
 }; 

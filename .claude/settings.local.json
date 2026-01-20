@@ -14,7 +14,9 @@
       "Bash(npm ls:*)",
       "Bash(node --help:*)",
       "Bash(cat:*)",
-      "Skill(frontend-design:frontend-design)"
+      "Skill(frontend-design:frontend-design)",
+      "Bash(npx tsc --noEmit)",
+      "Bash(npx tsc:*)"
     ],
     "deny": [],
     "ask": []

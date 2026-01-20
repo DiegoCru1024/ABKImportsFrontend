@@ -1,6 +1,6 @@
 import "./App.css";
 import {Routes, Route, Navigate, useParams, useSearchParams} from "react-router-dom";
-import Tracking from "@/pages/Tracking";
+import Tracking from "@/pages/gestion-de-tracking/components/tracking-details.view";
 
 
 import GestionDeCotizacionesView from "@/pages/gestion-de-cotizacion/gestion-de-cotizacion-view";
@@ -12,14 +12,14 @@ import DashboardPage from "@/pages/dashboard";
 import BasicLayout from "@/layouts/basic-layout";
 import DashboardLayout from "@/layouts/dashboard-layout";
 import GestionDeUsuarios from "@/pages/gestion-de-usuarios/gestion-de-usuarios-view";
-import GestionDeTracking from "@/pages/gestion-de-tracking";
+import GestionDeTracking from "@/pages/gestion-de-tracking/gestion-de-tracking";
 import GestionDeMercanciasView from "@/pages/gestion-de-mercancia/gestion-de-mercancias-view";
 import InspectionDetailView from "@/pages/gestion-de-mercancia/inspection-detail-view";
 import CreateCotizacionView from "@/pages/cotizacion-page/create-cotizacion-view";
 import EditCotizacionView from "@/pages/cotizacion-page/edit-cotizacion-view";
 import MisCotizacionesView from "@/pages/mis-cotizaciones/mis-cotizacion-view";
 
-import ShipmentDetailView from "@/pages/shipment-detail-view";
+import ShipmentDetailView from "@/pages/gestion-de-tracking/components/shipment-detail-view";
 import Calculador from "./pages/calculator";
 import Tarifas from "./pages/Tarifas";
 import Educacion from "./pages/Educacion";

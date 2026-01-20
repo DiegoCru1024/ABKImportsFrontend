@@ -114,4 +114,73 @@ export interface ShipmentsResponse {
   pageSize: number;
   totalElements: number;
   totalPages: number;
+}
+
+// ============================================
+// INTERFACES PARA TRACKING ROUTE DINÁMICO
+// ============================================
+
+export interface RouteCoords {
+  lat: number;
+  lng: number;
+}
+
+export type RoutePhase = 'first_mile' | 'transit' | 'customs' | 'last_mile';
+
+export interface RoutePoint {
+  order: number;
+  place: string;
+  status: string;
+  coords: RouteCoords;
+  phase: RoutePhase;
+  isOptional?: boolean;
+}
+
+export interface RouteInfo {
+  id: string;
+  shippingType: ShippingType;
+  origin: string;
+  destination: string;
+  totalPoints: number;
+}
+
+export interface TrackingRouteResponse {
+  route: RouteInfo;
+  currentPosition: number;
+  progress: number;
+  completedPoints: RoutePoint[];
+  currentPoint: RoutePoint | null;
+  pendingPoints: RoutePoint[];
+}
+
+// ============================================
+// INTERFACES PARA TRACKING DE INSPECCIONES
+// ============================================
+
+export interface InspectionRouteInfo {
+  id: string;
+  shippingType: ShippingType;
+  origin: string;
+  destination: string;
+  totalPoints: number;
+}
+
+export type InspectionRoutePhase = 'first_mile' | 'customs';
+
+export interface InspectionRoutePoint {
+  order: number;
+  place: string;
+  status: string;
+  coords: RouteCoords;
+  phase: InspectionRoutePhase;
+  isOptional?: boolean;
+}
+
+export interface InspectionTrackingRouteResponse {
+  route: InspectionRouteInfo;
+  currentPosition: number;
+  progress: number;
+  completedPoints: InspectionRoutePoint[];
+  currentPoint: InspectionRoutePoint | null;
+  pendingPoints: InspectionRoutePoint[];
 } 

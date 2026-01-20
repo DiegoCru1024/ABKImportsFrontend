@@ -1,51 +1,18 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
-import { Marker as LeafletMarker, DivIcon } from 'leaflet';
+import { DivIcon } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import type { TrackingStatus } from '@/api/shipments';
-import { useQuery } from '@tanstack/react-query';
-import { getTrackingStatuses } from '@/api/shipments';
+import { useGetInspectionTrackingRoute } from '@/hooks/use-shipments';
+import type { InspectionRoutePoint } from '@/api/interface/shipmentInterface';
 
-// Función para convertir coordenadas DMS a decimal
-const parseCoordinates = (coordString: string): [number, number] | null => {
-  try {
-    // Ejemplo: "22°49'30.2\"N 108°17'36.4\"E"
-    const parts = coordString.trim().split(' ');
-    if (parts.length !== 2) return null;
-
-    const parseDMS = (dmsStr: string): number => {
-      const matches = dmsStr.match(/(\d+)°(\d+)'([\d.]+)"([NSEW])/);
-      if (!matches) return 0;
-
-      const [, degrees, minutes, seconds, direction] = matches;
-      let decimal = parseInt(degrees) + parseInt(minutes) / 60 + parseFloat(seconds) / 3600;
-
-      if (direction === 'S' || direction === 'W') {
-        decimal = -decimal;
-      }
-
-      return decimal;
-    };
-
-    const lat = parseDMS(parts[0]);
-    const lng = parseDMS(parts[1]);
-
-    return [lat, lng];
-  } catch (error) {
-    console.error('Error parsing coordinates:', coordString, error);
-    return null;
-  }
-};
-
-// Crear iconos personalizados basados en el dashboard
-const createCustomIcon = (type: string, color: string, order: number) => {
+const createCustomIcon = (color: string, order: number) => {
   return new DivIcon({
     className: 'custom-marker',
     html: `
       <div style="
         background-color: ${color};
-        width: 20px;
-        height: 20px;
+        width: 24px;
+        height: 24px;
         border-radius: 50%;
         border: 3px solid white;
         box-shadow: 0 2px 4px rgba(0,0,0,0.3);
@@ -59,55 +26,69 @@ const createCustomIcon = (type: string, color: string, order: number) => {
         ${order}
       </div>
     `,
-    iconSize: [20, 20],
-    iconAnchor: [10, 10],
-    popupAnchor: [0, -10]
+    iconSize: [24, 24],
+    iconAnchor: [12, 12],
+    popupAnchor: [0, -12]
   });
 };
 
-// Función para mapear estado de producto a orden de tracking
-const getTrackingOrderFromProductStatus = (productStatus: string): number => {
-  switch (productStatus.toLowerCase()) {
-    case 'pending': return 1;
-    case 'in_inspection': return 2;
-    case 'awaiting_pickup': return 3;
-    case 'in_transit': return 4; // Los estados 4, 5, 6 son todos in_transit
-    case 'dispatched': return 7;
-    default: return 1;
-  }
+const getIconColor = (
+  point: InspectionRoutePoint,
+  currentPosition: number
+): string => {
+  if (point.order < currentPosition) return '#22c55e';
+  if (point.order === currentPosition) return '#f59e0b';
+  return '#6b7280';
 };
 
-// Función para obtener el color del icono según el progreso actual
-const getIconColor = (trackingOrder: number, currentProgress: number) => {
-  if (trackingOrder <= currentProgress) return '#22c55e'; // Verde - completado
-  if (trackingOrder === currentProgress + 1) return '#f59e0b'; // Naranja - actual/siguiente
-  return '#6b7280'; // Gris - pendiente
-};
-
-// Función para obtener el estado del punto basado en el progreso actual
-const getPointStatus = (trackingOrder: number, currentProgress: number) => {
-  if (trackingOrder <= currentProgress) return 'Completado';
-  if (trackingOrder === currentProgress + 1) return 'En progreso';
+const getPointStatusText = (
+  point: InspectionRoutePoint,
+  currentPosition: number
+): string => {
+  if (point.order < currentPosition) return 'Completado';
+  if (point.order === currentPosition) return 'En progreso';
   return 'Pendiente';
 };
 
-// Componente para ajustar la vista del mapa
+const getPhaseLabel = (phase: string): string => {
+  switch (phase) {
+    case 'first_mile':
+      return 'Primera Milla';
+    case 'customs':
+      return 'Aduana';
+    default:
+      return phase;
+  }
+};
+
 function MapBounds({ positions }: { positions: [number, number][] }) {
   const map = useMap();
 
   React.useEffect(() => {
-    if (positions.length > 0) {
-      // Si todas las coordenadas son las mismas (Shenzhen), hacer zoom a esa ubicación
-      const allSame = positions.every(pos =>
-        pos[0] === positions[0][0] && pos[1] === positions[0][1]
-      );
+    if (positions.length === 0) return;
 
-      if (allSame) {
-        map.setView(positions[0], 12);
-      } else {
-        const bounds = positions.reduce((acc, pos) => acc.extend(pos), map.getBounds());
-        map.fitBounds(bounds, { padding: [20, 20] });
-      }
+    const uniquePositions = positions.filter(
+      (pos, index, self) =>
+        index === self.findIndex(p => p[0] === pos[0] && p[1] === pos[1])
+    );
+
+    if (uniquePositions.length === 1) {
+      map.setView(uniquePositions[0], 10);
+    } else if (uniquePositions.length > 1) {
+      const latLngs = uniquePositions.map(pos => ({ lat: pos[0], lng: pos[1] }));
+      const bounds = latLngs.reduce(
+        (acc, pos) => ({
+          minLat: Math.min(acc.minLat, pos.lat),
+          maxLat: Math.max(acc.maxLat, pos.lat),
+          minLng: Math.min(acc.minLng, pos.lng),
+          maxLng: Math.max(acc.maxLng, pos.lng),
+        }),
+        { minLat: Infinity, maxLat: -Infinity, minLng: Infinity, maxLng: -Infinity }
+      );
+      map.fitBounds([
+        [bounds.minLat, bounds.minLng],
+        [bounds.maxLat, bounds.maxLng],
+      ], { padding: [50, 50] });
     }
   }, [map, positions]);
 
@@ -116,85 +97,54 @@ function MapBounds({ positions }: { positions: [number, number][] }) {
 
 interface InspectionTrackingMapProps {
   className?: string;
-  inspectionData?: any; // Los datos de la inspección con productos
+  inspectionId: string;
 }
 
-export default function InspectionTrackingMap({ className, inspectionData }: InspectionTrackingMapProps) {
-  const { data: trackingStatuses, isLoading, error } = useQuery({
-    queryKey: ['trackingStatuses'],
-    queryFn: getTrackingStatuses,
-  });
+export default function InspectionTrackingMap({
+  className,
+  inspectionId,
+}: InspectionTrackingMapProps) {
+  const {
+    data: trackingData,
+    isLoading,
+    error,
+  } = useGetInspectionTrackingRoute(inspectionId);
 
-  // Calcular el progreso actual basado en el producto más avanzado
-  const currentProgress = useMemo(() => {
-    if (!inspectionData?.content || !Array.isArray(inspectionData.content)) {
-      return 1; // Default a pending si no hay datos
-    }
+  const allPoints = useMemo(() => {
+    if (!trackingData) return [];
+    return [
+      ...trackingData.completedPoints,
+      ...(trackingData.currentPoint ? [trackingData.currentPoint] : []),
+      ...trackingData.pendingPoints,
+    ].sort((a, b) => a.order - b.order);
+  }, [trackingData]);
 
-    // Encontrar el producto con el estado más avanzado
-    const maxTrackingOrder = inspectionData.content.reduce((max: number, product: any) => {
-      const trackingOrder = getTrackingOrderFromProductStatus(product.status);
-      return Math.max(max, trackingOrder);
-    }, 1);
+  const completedPositions = useMemo((): [number, number][] => {
+    if (!trackingData) return [];
+    const completed = trackingData.completedPoints;
+    const current = trackingData.currentPoint;
+    const points = current ? [...completed, current] : completed;
+    return points.map(p => [p.coords.lat, p.coords.lng]);
+  }, [trackingData]);
 
-    return maxTrackingOrder;
-  }, [inspectionData]);
+  const pendingPositions = useMemo((): [number, number][] => {
+    if (!trackingData) return [];
+    const current = trackingData.currentPoint;
+    const pending = trackingData.pendingPoints;
+    if (!current) return pending.map(p => [p.coords.lat, p.coords.lng]);
+    return [current, ...pending].map(p => [p.coords.lat, p.coords.lng]);
+  }, [trackingData]);
 
-  // Obtener información del estado actual
-  const currentStatusInfo = useMemo(() => {
-    if (!inspectionData?.content || !Array.isArray(inspectionData.content)) {
-      return { status: 'Pendiente', count: 0, total: 0 };
-    }
+  const allPositions = useMemo((): [number, number][] => {
+    return allPoints.map(p => [p.coords.lat, p.coords.lng]);
+  }, [allPoints]);
 
-    const products = inspectionData.content;
-    const total = products.length;
-
-    // Contar productos por estado
-    const statusCounts = products.reduce((acc: any, product: any) => {
-      const status = product.status;
-      acc[status] = (acc[status] || 0) + 1;
-      return acc;
-    }, {});
-
-    // Encontrar el estado más avanzado y su información
-    const statusPriority = ['dispatched', 'in_transit', 'awaiting_pickup', 'in_inspection', 'pending'];
-    const currentStatus = statusPriority.find(status => statusCounts[status] > 0) || 'pending';
-
-    return {
-      status: currentStatus,
-      count: statusCounts[currentStatus] || 0,
-      total,
-      statusCounts
-    };
-  }, [inspectionData]);
-
-  // Procesar solo los primeros 7 estados como se solicita
-  const processedData = useMemo(() => {
-    if (!trackingStatuses) return { positions: [], trackingPoints: [] };
-
-    const first7Statuses = trackingStatuses.slice(0, 7);
-    const trackingPoints = first7Statuses.map(status => {
-      const coordinates = parseCoordinates(status.coords);
-      return {
-        ...status,
-        coordinates,
-        lat: coordinates?.[0] || 0,
-        lng: coordinates?.[1] || 0,
-      };
-    }).filter(point => point.coordinates !== null);
-
-    const positions = trackingPoints.map(point => point.coordinates!) as [number, number][];
-
-    return { positions, trackingPoints };
-  }, [trackingStatuses]);
-
-  // Centro del mapa predeterminado (Shenzhen)
-  const defaultCenter: [number, number] = [22.8231, 108.2956];
-  const center = processedData.positions.length > 0 ? processedData.positions[0] : defaultCenter;
+  const defaultCenter: [number, number] = [22.825, 108.293];
+  const center = allPositions.length > 0 ? allPositions[0] : defaultCenter;
 
   if (isLoading) {
     return (
-      <div className={`bg-white rounded-lg border ${className}`}>
+      <div className={`bg-white rounded-lg border h-full ${className}`}>
         <div className="p-4 border-b">
           <h4 className="font-medium text-gray-900">Tracking de Inspección</h4>
         </div>
@@ -210,67 +160,72 @@ export default function InspectionTrackingMap({ className, inspectionData }: Ins
 
   if (error) {
     return (
-      <div className={`bg-white rounded-lg border ${className}`}>
+      <div className={`bg-white rounded-lg border h-full ${className}`}>
         <div className="p-4 border-b">
           <h4 className="font-medium text-gray-900">Tracking de Inspección</h4>
         </div>
         <div className="h-96 flex items-center justify-center">
           <div className="text-center text-red-500">
             <p>Error al cargar el tracking</p>
+            <p className="text-sm text-gray-500 mt-1">
+              {error instanceof Error ? error.message : 'Error desconocido'}
+            </p>
           </div>
         </div>
       </div>
     );
   }
 
+  if (!trackingData) {
+    return (
+      <div className={`bg-white rounded-lg border h-full ${className}`}>
+        <div className="p-4 border-b">
+          <h4 className="font-medium text-gray-900">Tracking de Inspección</h4>
+        </div>
+        <div className="h-96 flex items-center justify-center">
+          <p className="text-sm text-gray-500">No hay datos de tracking disponibles</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className={`bg-white rounded-lg border ${className}`} style={{ position: 'relative', zIndex: 0 }}>
+    <div
+      className={`bg-white rounded-lg border h-full ${className}`}
+      style={{ position: 'relative', zIndex: 0 }}
+    >
       <div className="p-4 border-b">
         <h4 className="font-medium text-gray-900">Tracking de Inspección</h4>
         <p className="text-sm text-gray-600">
-          Estados del proceso de inspección en Shenzhen
+          {trackingData.route.origin} → {trackingData.route.destination}
         </p>
       </div>
 
-      {/* Información del tracking */}
       <div className="p-4 bg-blue-50 border-b">
         <h5 className="text-sm font-semibold mb-2">Información del Estado</h5>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
           <div>
             <span className="font-medium">Estado Actual:</span>
-            <span className={`ml-2 px-2 py-1 rounded ${
-              currentStatusInfo.status === 'dispatched' ? 'bg-green-100 text-green-800' :
-              currentStatusInfo.status === 'in_transit' ? 'bg-blue-100 text-blue-800' :
-              currentStatusInfo.status === 'awaiting_pickup' ? 'bg-orange-100 text-orange-800' :
-              currentStatusInfo.status === 'in_inspection' ? 'bg-yellow-100 text-yellow-800' :
-              'bg-gray-100 text-gray-800'
-            }`}>
-              {currentStatusInfo.status === 'pending' ? 'Pendiente' :
-               currentStatusInfo.status === 'in_inspection' ? 'En Inspección' :
-               currentStatusInfo.status === 'awaiting_pickup' ? 'Esperando Recogida' :
-               currentStatusInfo.status === 'in_transit' ? 'En Tránsito' :
-               currentStatusInfo.status === 'dispatched' ? 'Despachado' :
-               currentStatusInfo.status}
+            <span className="ml-2 px-2 py-1 rounded bg-orange-100 text-orange-800">
+              {trackingData.currentPoint?.status || 'N/A'}
             </span>
           </div>
           <div>
-            <span className="font-medium">Ubicación:</span> Shenzhen, China
+            <span className="font-medium">Ubicación:</span>{' '}
+            {trackingData.currentPoint?.place || trackingData.route.origin}
           </div>
           <div>
-            <span className="font-medium">Progreso:</span> {currentProgress}/7 estados completados
-            {inspectionData?.content && (
-              <div className="text-xs text-gray-600 mt-1">
-                {currentStatusInfo.count}/{currentStatusInfo.total} productos en estado actual
-              </div>
-            )}
+            <span className="font-medium">Progreso:</span>{' '}
+            {trackingData.currentPosition}/{trackingData.route.totalPoints} puntos
+            <span className="ml-2 text-blue-600">({trackingData.progress}%)</span>
           </div>
         </div>
       </div>
 
-      <div className="h-96 relative" style={{ zIndex: 0 }}>
+      <div className="h-80 relative" style={{ zIndex: 0 }}>
         <MapContainer
           center={center}
-          zoom={12}
+          zoom={8}
           style={{ height: '100%', width: '100%', zIndex: 0 }}
           zoomControl={true}
           scrollWheelZoom={true}
@@ -283,73 +238,86 @@ export default function InspectionTrackingMap({ className, inspectionData }: Ins
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
 
-          {/* Línea azul que conecta todos los puntos (si hay múltiples ubicaciones) */}
-          {processedData.positions.length > 1 && (
+          {completedPositions.length > 1 && (
             <Polyline
-              positions={processedData.positions}
-              color="#3b82f6"
+              positions={completedPositions}
+              color="#22c55e"
               weight={4}
-              opacity={0.8}
+              opacity={0.9}
+            />
+          )}
+
+          {pendingPositions.length > 1 && (
+            <Polyline
+              positions={pendingPositions}
+              color="#3b82f6"
+              weight={3}
+              opacity={0.6}
               dashArray="10, 5"
             />
           )}
 
-          {/* Marcadores para cada estado de tracking */}
-          {processedData.trackingPoints.map((point, index) => {
-            const pointStatus = getPointStatus(point.order, currentProgress);
-            return (
-              <Marker
-                key={index}
-                position={[point.lat, point.lng]}
-                icon={createCustomIcon(
-                  point.shipmentStatus,
-                  getIconColor(point.order, currentProgress),
-                  point.order
-                )}
-              >
-                <Popup>
-                  <div className="text-sm">
-                    <div className="font-semibold text-blue-600">{point.place}</div>
-                    <div className="text-gray-600 mt-1">
-                      <div className="font-medium">{point.status}</div>
-                      <div className="mt-1">Estado:
-                        <span className={`ml-1 px-2 py-1 rounded text-xs ${
-                          pointStatus === 'Completado' ? 'bg-green-100 text-green-800' :
-                          pointStatus === 'En progreso' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-gray-100 text-gray-800'
-                        }`}>
-                          {pointStatus}
-                        </span>
-                      </div>
-                      <div className="mt-1">Orden: {point.order}</div>
-                      <div>Ubicación: {point.currentLocation}</div>
-                      <div className="text-xs">Coordenadas: {point.lat.toFixed(4)}, {point.lng.toFixed(4)}</div>
+          {allPoints.map((point) => (
+            <Marker
+              key={point.order}
+              position={[point.coords.lat, point.coords.lng]}
+              icon={createCustomIcon(
+                getIconColor(point, trackingData.currentPosition),
+                point.order
+              )}
+            >
+              <Popup>
+                <div className="text-sm min-w-[200px]">
+                  <div className="font-semibold text-blue-600">{point.place}</div>
+                  <div className="text-gray-600 mt-1">
+                    <div className="font-medium">{point.status}</div>
+                    <div className="mt-1">
+                      Estado:
+                      <span
+                        className={`ml-1 px-2 py-1 rounded text-xs ${
+                          point.order < trackingData.currentPosition
+                            ? 'bg-green-100 text-green-800'
+                            : point.order === trackingData.currentPosition
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : 'bg-gray-100 text-gray-800'
+                        }`}
+                      >
+                        {getPointStatusText(point, trackingData.currentPosition)}
+                      </span>
                     </div>
+                    <div className="mt-1">Fase: {getPhaseLabel(point.phase)}</div>
+                    <div>Punto: {point.order} de {trackingData.route.totalPoints}</div>
+                    {point.isOptional && (
+                      <div className="text-orange-600 text-xs mt-1">(Opcional)</div>
+                    )}
                   </div>
-                </Popup>
-              </Marker>
-            );
-          })}
+                </div>
+              </Popup>
+            </Marker>
+          ))}
 
-          <MapBounds positions={processedData.positions} />
+          <MapBounds positions={allPositions} />
         </MapContainer>
       </div>
 
-      {/* Leyenda */}
       <div className="p-4 border-t bg-gray-50">
         <h5 className="font-semibold mb-2 text-sm">Leyenda:</h5>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
           <div className="flex items-center">
             <div className="w-4 h-4 bg-green-500 rounded-full mr-2"></div>
-            <span>Estado Completado</span>
+            <span>Completado</span>
           </div>
           <div className="flex items-center">
             <div className="w-4 h-4 bg-orange-500 rounded-full mr-2"></div>
-            <span>Estado Actual</span>
+            <span>En Progreso</span>
           </div>
           <div className="flex items-center">
             <div className="w-4 h-4 bg-gray-500 rounded-full mr-2"></div>
-            <span>Estado Pendiente</span>
+            <span>Pendiente</span>
+          </div>
+          <div className="flex items-center">
+            <div className="w-4 h-0.5 bg-blue-500 mr-2" style={{ borderStyle: 'dashed' }}></div>
+            <span>Ruta Pendiente</span>
           </div>
         </div>
       </div>

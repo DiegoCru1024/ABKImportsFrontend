@@ -1,7 +1,6 @@
 import {
   AlertTriangle,
   CheckCircle,
-  FileText,
   PackageSearch,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -10,7 +9,6 @@ import { DataTable } from "@/components/table/data-table";
 
 import type { Inspection } from "@/api/interface/inspectionInterface";
 import { columnasInspeccion } from "./components/table/columns";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 

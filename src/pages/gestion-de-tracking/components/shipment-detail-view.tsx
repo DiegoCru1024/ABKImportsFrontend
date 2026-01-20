@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import DynamicMap from "@/components/DynamicMap";
 import ShipmentTrackingMap from "@/components/ShipmentTrackingMap";
 import {
   Dialog,
@@ -27,16 +26,12 @@ import { toast } from "sonner";
 import {
   Package,
   MapPin,
-  Calendar,
   Weight,
   ArrowLeft,
   Edit,
   Plane,
   Ship,
   Clock,
-  CheckCircle,
-  AlertTriangle,
-  ExternalLink,
   Navigation,
 } from "lucide-react";
 import type { UpdateShipmentStatusRequest, ShipmentStatus, CurrentLocation, StatusHistoryEntry } from "@/api/interface/shipmentInterface";
@@ -352,7 +347,7 @@ export default function ShipmentDetailView() {
               </div>
 
               {/* Mapa de tracking de envío */}
-              <ShipmentTrackingMap shipmentData={shipment} />
+              <ShipmentTrackingMap shipmentId={id!} />
             </div>
           </CardContent>
         </Card>

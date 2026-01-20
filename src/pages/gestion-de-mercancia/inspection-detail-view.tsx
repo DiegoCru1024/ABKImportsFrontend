@@ -384,7 +384,7 @@ export default function InspectionDetailView() {
               <Card className="border border-slate-200 bg-white shadow-sm overflow-hidden">
                 <CardContent className="p-0">
                   <div className="relative h-[450px] w-full">
-                    <InspectionTrackingMap inspectionData={inspection} />
+                    <InspectionTrackingMap inspectionId={id!} />
                   </div>
                 </CardContent>
               </Card>

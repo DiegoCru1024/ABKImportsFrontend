@@ -5,6 +5,8 @@ import {
   getShipmentById,
   updateShipmentStatus,
   getShipmentInfo,
+  getShipmentTrackingRoute,
+  getInspectionTrackingRoute,
 } from "@/api/shipments";
 import type {
   CreateShipmentRequest,
@@ -83,6 +85,36 @@ export function useUpdateShipmentStatus() {
       // Invalidar queries relacionadas con el envío específico
       queryClient.invalidateQueries({ queryKey: ["Shipments", variables.id] });
       queryClient.invalidateQueries({ queryKey: ["Shipments"] });
+      // Invalidar también la ruta de tracking
+      queryClient.invalidateQueries({ queryKey: ["ShipmentTrackingRoute", variables.id] });
     },
+  });
+}
+
+/**
+ * Hook para obtener la ruta de tracking dinámica de un shipment
+ * @param {string} shipmentId - ID del envío
+ * @returns {useQuery} - Query con la ruta de tracking segmentada
+ */
+export function useGetShipmentTrackingRoute(shipmentId: string) {
+  return useQuery({
+    queryKey: ["ShipmentTrackingRoute", shipmentId],
+    queryFn: () => getShipmentTrackingRoute(shipmentId),
+    enabled: !!shipmentId,
+    staleTime: 30000,
+  });
+}
+
+/**
+ * Hook para obtener la ruta de tracking dinámica de una inspección (puntos 1-13)
+ * @param {string} inspectionId - ID de la inspección
+ * @returns {useQuery} - Query con la ruta de tracking segmentada
+ */
+export function useGetInspectionTrackingRoute(inspectionId: string) {
+  return useQuery({
+    queryKey: ["InspectionTrackingRoute", inspectionId],
+    queryFn: () => getInspectionTrackingRoute(inspectionId),
+    enabled: !!inspectionId,
+    staleTime: 30000,
   });
 } 

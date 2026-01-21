@@ -2,18 +2,20 @@ import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { useUpdateInspectionProduct } from "@/hooks/use-inspections";
+import { useUpdateInspectionProduct, useGetInspectionTrackingStatuses } from "@/hooks/use-inspections";
 import { uploadMultipleFiles } from "@/api/fileUpload";
 import FileUploadComponent from "@/components/comp-552";
-import { 
-  X, 
-  Plus, 
+import { useQueryClient } from "@tanstack/react-query";
+import type { InspectionTrackingStatus } from "@/api/interface/inspectionInterface";
+import {
+  X,
+  Plus,
   Image as ImageIcon,
   Trash2,
   ExternalLink,
-  Upload
+  Upload,
+  Loader2
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -38,7 +40,11 @@ export function EditProductModal({ isOpen, onClose, product, inspectionId }: Edi
   const [resetCounter, setResetCounter] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
 
+  const queryClient = useQueryClient();
   const updateProductMutation = useUpdateInspectionProduct(inspectionId, product.product_id);
+  const { data: statusesData, isLoading: isLoadingStatuses } = useGetInspectionTrackingStatuses();
+
+  const trackingStatuses = statusesData?.statuses || [];
 
   // Resetear archivos cuando se abre el modal con un producto diferente
   useEffect(() => {
@@ -70,6 +76,9 @@ export function EditProductModal({ isOpen, onClose, product, inspectionId }: Edi
         status,
         files: allFiles
       });
+
+      // Invalidar el mapa para que se actualice con el nuevo estado
+      queryClient.invalidateQueries({ queryKey: ["InspectionTrackingRoute", inspectionId] });
 
       setIsUploading(false);
       onClose();
@@ -157,18 +166,34 @@ export function EditProductModal({ isOpen, onClose, product, inspectionId }: Edi
             <Label htmlFor="status" className="text-sm font-semibold text-gray-900">
               Estado del Producto
             </Label>
-            <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger className="w-full h-11">
-                <SelectValue placeholder="Seleccionar estado" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="pending">Pendiente</SelectItem>
-                <SelectItem value="in_inspection">En Inspección</SelectItem>
-                <SelectItem value="awaiting_pickup">Esperando Recogida</SelectItem>
-                <SelectItem value="in_transit">En Tránsito</SelectItem>
-                <SelectItem value="dispatched">Despachado</SelectItem>
-              </SelectContent>
-            </Select>
+            {isLoadingStatuses ? (
+              <div className="flex items-center justify-center py-4 border rounded-lg bg-slate-50">
+                <Loader2 className="h-5 w-5 animate-spin text-blue-500" />
+                <span className="ml-2 text-sm text-muted-foreground">Cargando estados...</span>
+              </div>
+            ) : (
+              <Select value={status} onValueChange={setStatus}>
+                <SelectTrigger className="w-full h-11">
+                  <SelectValue placeholder="Seleccionar estado" />
+                </SelectTrigger>
+                <SelectContent>
+                  {trackingStatuses.map((trackingStatus: InspectionTrackingStatus) => (
+                    <SelectItem key={trackingStatus.id} value={trackingStatus.value}>
+                      <span className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground font-mono">#{trackingStatus.order}</span>
+                        <span>{trackingStatus.label}</span>
+                        {trackingStatus.isOptional && (
+                          <span className="text-xs text-orange-500">(opcional)</span>
+                        )}
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+            <p className="text-xs text-muted-foreground">
+              Selecciona el estado actual del producto (puntos 1-{trackingStatuses.length || 13})
+            </p>
           </div>
 
           {/* Archivos existentes */}

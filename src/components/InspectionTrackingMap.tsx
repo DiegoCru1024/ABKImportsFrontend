@@ -110,37 +110,23 @@ export default function InspectionTrackingMap({
     error,
   } = useGetInspectionTrackingRoute(inspectionId);
 
-  const allPoints = useMemo(() => {
+  // Solo mostrar puntos completados + punto actual (sin pendientes)
+  const visiblePoints = useMemo(() => {
     if (!trackingData) return [];
-    return [
+    const points = [
       ...trackingData.completedPoints,
       ...(trackingData.currentPoint ? [trackingData.currentPoint] : []),
-      ...trackingData.pendingPoints,
-    ].sort((a, b) => a.order - b.order);
+    ];
+    return points.sort((a, b) => a.order - b.order);
   }, [trackingData]);
 
-  const completedPositions = useMemo((): [number, number][] => {
-    if (!trackingData) return [];
-    const completed = trackingData.completedPoints;
-    const current = trackingData.currentPoint;
-    const points = current ? [...completed, current] : completed;
-    return points.map(p => [p.coords.lat, p.coords.lng]);
-  }, [trackingData]);
-
-  const pendingPositions = useMemo((): [number, number][] => {
-    if (!trackingData) return [];
-    const current = trackingData.currentPoint;
-    const pending = trackingData.pendingPoints;
-    if (!current) return pending.map(p => [p.coords.lat, p.coords.lng]);
-    return [current, ...pending].map(p => [p.coords.lat, p.coords.lng]);
-  }, [trackingData]);
-
-  const allPositions = useMemo((): [number, number][] => {
-    return allPoints.map(p => [p.coords.lat, p.coords.lng]);
-  }, [allPoints]);
+  // Posiciones para la polyline de trazabilidad (solo puntos visitados)
+  const tracePositions = useMemo((): [number, number][] => {
+    return visiblePoints.map(p => [p.coords.lat, p.coords.lng]);
+  }, [visiblePoints]);
 
   const defaultCenter: [number, number] = [22.825, 108.293];
-  const center = allPositions.length > 0 ? allPositions[0] : defaultCenter;
+  const center = tracePositions.length > 0 ? tracePositions[0] : defaultCenter;
 
   if (isLoading) {
     return (
@@ -238,26 +224,18 @@ export default function InspectionTrackingMap({
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
 
-          {completedPositions.length > 1 && (
+          {/* Polyline de trazabilidad - solo puntos visitados */}
+          {tracePositions.length > 1 && (
             <Polyline
-              positions={completedPositions}
+              positions={tracePositions}
               color="#22c55e"
               weight={4}
               opacity={0.9}
             />
           )}
 
-          {pendingPositions.length > 1 && (
-            <Polyline
-              positions={pendingPositions}
-              color="#3b82f6"
-              weight={3}
-              opacity={0.6}
-              dashArray="10, 5"
-            />
-          )}
-
-          {allPoints.map((point) => (
+          {/* Marcadores solo para puntos completados y actual */}
+          {visiblePoints.map((point) => (
             <Marker
               key={point.order}
               position={[point.coords.lat, point.coords.lng]}
@@ -277,9 +255,7 @@ export default function InspectionTrackingMap({
                         className={`ml-1 px-2 py-1 rounded text-xs ${
                           point.order < trackingData.currentPosition
                             ? 'bg-green-100 text-green-800'
-                            : point.order === trackingData.currentPosition
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : 'bg-gray-100 text-gray-800'
+                            : 'bg-yellow-100 text-yellow-800'
                         }`}
                       >
                         {getPointStatusText(point, trackingData.currentPosition)}
@@ -296,13 +272,13 @@ export default function InspectionTrackingMap({
             </Marker>
           ))}
 
-          <MapBounds positions={allPositions} />
+          <MapBounds positions={tracePositions} />
         </MapContainer>
       </div>
 
       <div className="p-4 border-t bg-gray-50">
         <h5 className="font-semibold mb-2 text-sm">Leyenda:</h5>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs">
           <div className="flex items-center">
             <div className="w-4 h-4 bg-green-500 rounded-full mr-2"></div>
             <span>Completado</span>
@@ -312,12 +288,8 @@ export default function InspectionTrackingMap({
             <span>En Progreso</span>
           </div>
           <div className="flex items-center">
-            <div className="w-4 h-4 bg-gray-500 rounded-full mr-2"></div>
-            <span>Pendiente</span>
-          </div>
-          <div className="flex items-center">
-            <div className="w-4 h-0.5 bg-blue-500 mr-2" style={{ borderStyle: 'dashed' }}></div>
-            <span>Ruta Pendiente</span>
+            <div className="w-4 h-1 bg-green-500 mr-2"></div>
+            <span>Trazabilidad</span>
           </div>
         </div>
       </div>

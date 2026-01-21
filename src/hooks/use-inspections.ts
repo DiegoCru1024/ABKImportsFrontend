@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { deleteInspection, generateInspectionId, getInspectionById, getInspectionsByUser, updateInspection, updateInspectionProduct } from "@/api/inspection";
+import { deleteInspection, generateInspectionId, getInspectionById, getInspectionsByUser, updateInspection, updateInspectionProduct, getInspectionTrackingStatuses, updateInspectionTrackingStatus } from "@/api/inspection";
 
 /**
  * Hook para generar un ID de inspección
@@ -115,7 +115,7 @@ export function useGenerateInspectionId() {
 export function useUpdateInspectionProduct(inspectionId: string, productId: string) {
     const queryClient = useQueryClient();
     return useMutation({
-      mutationFn: (data: { status: string; files: string[] }) => 
+      mutationFn: (data: { status: string; files: string[] }) =>
         updateInspectionProduct(inspectionId, productId, data),
       onSuccess: () => {
         queryClient.invalidateQueries({
@@ -123,7 +123,7 @@ export function useUpdateInspectionProduct(inspectionId: string, productId: stri
         });
         toast.success("Producto actualizado exitosamente");
       },
-      onError: (error: any) => {
+      onError: (error: unknown) => {
         console.error("Error al actualizar el producto:", error);
         if (error instanceof Error) {
           toast.error(`Error: ${error.message}`);
@@ -133,3 +133,36 @@ export function useUpdateInspectionProduct(inspectionId: string, productId: stri
       },
     });
   }
+
+/**
+ * Hook para obtener todos los estados de tracking de inspección
+ * @returns {useQuery} - Query con la lista de estados ordenados (1-13)
+ */
+export function useGetInspectionTrackingStatuses() {
+  return useQuery({
+    queryKey: ["InspectionTrackingStatuses"],
+    queryFn: () => getInspectionTrackingStatuses(),
+    staleTime: 1000 * 60 * 60, // 1 hora - los estados no cambian frecuentemente
+  });
+}
+
+/**
+ * Hook para actualizar el estado de tracking de una inspección
+ * @param {string} inspectionId - ID de la inspección
+ * @returns {useMutation} - Mutación para actualizar el estado
+ */
+export function useUpdateInspectionTrackingStatus(inspectionId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (status: string) => updateInspectionTrackingStatus(inspectionId, status),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["Inspections", inspectionId] });
+      queryClient.invalidateQueries({ queryKey: ["InspectionTrackingRoute", inspectionId] });
+      toast.success("Estado de tracking actualizado exitosamente");
+    },
+    onError: (error: Error) => {
+      console.error("Error al actualizar el estado de tracking:", error);
+      toast.error(error.message || "Error al actualizar el estado de tracking");
+    },
+  });
+}

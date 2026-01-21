@@ -45,9 +45,10 @@ export function PendingServiceView({
           quantity: variant.quantity || 0,
           price: Number(variant.pendingPricing?.unitPrice) || 0,
           priceExpress: Number(variant.pendingPricing?.expressPrice) || 0,
+           attachments: quotVariant?.attachments || [],
+
         };
       }) || [],
-      attachments: quotProduct?.attachments || [],
       adminComment: product.adminComment || "",
       packingList: product.packingList ? {
         boxes: product.packingList.nroBoxes || 0,

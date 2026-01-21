@@ -1,6 +1,6 @@
 import { API_URL } from "../../config";
 import { apiFetch } from "./apiFetch";
-import type { InspectionResponse, InspectionDetail } from "./interface/inspectionInterface";
+import type { InspectionResponse, InspectionDetail, InspectionTrackingStatusesResponse } from "./interface/inspectionInterface";
 
 /**
  * Obtiene todas las inspecciones que ha realizado el usuario
@@ -131,6 +131,42 @@ export const updateInspectionProduct = async (
         });
     } catch (error) {
         console.error("Error al actualizar el producto de la inspección:", error);
+        throw error;
+    }
+}
+
+/**
+ * Obtiene todos los estados disponibles para el tracking de inspección
+ * @returns {Promise<InspectionTrackingStatusesResponse>} - Lista de estados ordenados (1-13)
+ */
+export const getInspectionTrackingStatuses = async (): Promise<InspectionTrackingStatusesResponse> => {
+    try {
+        return await apiFetch<InspectionTrackingStatusesResponse>("/inspections/tracking/statuses", {
+            method: "GET",
+        });
+    } catch (error) {
+        console.error("Error al obtener los estados de tracking:", error);
+        throw error;
+    }
+}
+
+/**
+ * Actualiza el estado de tracking de una inspección
+ * @param {string} inspectionId - ID de la inspección
+ * @param {string} status - Nuevo estado (value del InspectionTrackingStatus)
+ * @returns {Promise<{ success: boolean; message?: string }>}
+ */
+export const updateInspectionTrackingStatus = async (
+    inspectionId: string,
+    status: string
+): Promise<{ success: boolean; message?: string }> => {
+    try {
+        return await apiFetch(`/inspections/${inspectionId}/tracking/status`, {
+            method: "PUT",
+            body: JSON.stringify({ status }),
+        });
+    } catch (error) {
+        console.error("Error al actualizar el estado de tracking:", error);
         throw error;
     }
 }

@@ -35,5 +35,27 @@ export interface InspectionDetail {
   updated_at: string;
   content: InspectionProduct[];
   total_price: string;
+  origin?: string;
+}
+
+// ============================================
+// INTERFACES PARA ESTADOS DE TRACKING DE INSPECCIÓN
+// ============================================
+
+export type InspectionTrackingPhase = 'first_mile' | 'customs';
+
+export interface InspectionTrackingStatus {
+  id: string;
+  order: number;
+  value: string;
+  label: string;
+  description?: string;
+  phase: InspectionTrackingPhase;
+  isOptional: boolean;
+  isActive: boolean;
+}
+
+export interface InspectionTrackingStatusesResponse {
+  statuses: InspectionTrackingStatus[];
 }
 

@@ -1,7 +1,8 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { useGetInspectionById } from "@/hooks/use-inspections";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useGetInspectionById, useGetInspectionTrackingStatuses, useUpdateInspectionTrackingStatus } from "@/hooks/use-inspections";
+import type { InspectionProduct, InspectionTrackingStatus } from "@/api/interface/inspectionInterface";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
@@ -9,6 +10,22 @@ import { ViewFilesModal } from "./components/ViewFilesModal";
 import { EditProductModal } from "./components/EditProductModal";
 import CreateShipmentModal from "@/components/CreateShipmentModal";
 import InspectionTrackingMap from "@/components/InspectionTrackingMap";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
 import {
   Package,
   ArrowLeft,
@@ -18,57 +35,78 @@ import {
   Clock,
   Edit,
   Eye,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Navigation,
+  Loader2
 } from "lucide-react";
 import { formatDateLong } from "@/lib/format-time";
+import { toast } from "sonner";
 
 export default function InspectionDetailView() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data: inspection, isLoading, error } = useGetInspectionById(id || "");
+  const { data: statusesData, isLoading: isLoadingStatuses } = useGetInspectionTrackingStatuses();
+  const updateStatusMutation = useUpdateInspectionTrackingStatus(id || "");
 
   // Estados para los modales
   const [viewFilesModalOpen, setViewFilesModalOpen] = useState(false);
   const [editProductModalOpen, setEditProductModalOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [selectedProduct, setSelectedProduct] = useState<InspectionProduct | null>(null);
   const [createShipmentModalOpen, setCreateShipmentModalOpen] = useState(false);
+  const [updateStatusModalOpen, setUpdateStatusModalOpen] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState<string>("");
+
+  // Obtener lista de estados del endpoint
+  const trackingStatuses = statusesData?.statuses || [];
 
   const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "pending":
-        return "bg-yellow-100 text-yellow-800 border-yellow-200";
-      case "in_inspection":
-        return "bg-blue-100 text-blue-800 border-blue-200";
-      case "awaiting_pickup":
-        return "bg-orange-100 text-orange-800 border-orange-200";
-      case "in_transit":
-        return "bg-purple-100 text-purple-800 border-purple-200";
-      case "dispatched":
-        return "bg-green-100 text-green-800 border-green-200";
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
+    const statusLower = status.toLowerCase();
+    if (statusLower.includes("pending") || statusLower === "awaiting_pickup") {
+      return "bg-yellow-100 text-yellow-800 border-yellow-200";
     }
+    if (statusLower.includes("inspection")) {
+      return "bg-blue-100 text-blue-800 border-blue-200";
+    }
+    if (statusLower.includes("transit") || statusLower.includes("arrived")) {
+      return "bg-purple-100 text-purple-800 border-purple-200";
+    }
+    if (statusLower.includes("customs")) {
+      return "bg-orange-100 text-orange-800 border-orange-200";
+    }
+    if (statusLower.includes("dispatched") || statusLower.includes("confirmed") || statusLower.includes("approved")) {
+      return "bg-green-100 text-green-800 border-green-200";
+    }
+    return "bg-gray-100 text-gray-800 border-gray-200";
   };
 
   const getStatusIcon = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "pending":
-        return <Clock className="h-4 w-4" />;
-      case "in_inspection":
-        return <AlertTriangle className="h-4 w-4" />;
-      case "awaiting_pickup":
-        return <Package className="h-4 w-4" />;
-      case "in_transit":
-        return <ExternalLink className="h-4 w-4" />;
-      case "dispatched":
-        return <CheckCircle className="h-4 w-4" />;
-      default:
-        return <Clock className="h-4 w-4" />;
+    const statusLower = status.toLowerCase();
+    if (statusLower.includes("pending")) {
+      return <Clock className="h-4 w-4" />;
     }
+    if (statusLower.includes("inspection")) {
+      return <AlertTriangle className="h-4 w-4" />;
+    }
+    if (statusLower.includes("pickup") || statusLower.includes("waiting")) {
+      return <Package className="h-4 w-4" />;
+    }
+    if (statusLower.includes("transit") || statusLower.includes("arrived")) {
+      return <ExternalLink className="h-4 w-4" />;
+    }
+    if (statusLower.includes("confirmed") || statusLower.includes("approved")) {
+      return <CheckCircle className="h-4 w-4" />;
+    }
+    return <Clock className="h-4 w-4" />;
   };
 
   const getStatusText = (status: string) => {
+    // Buscar en los estados del endpoint
+    const found = trackingStatuses.find((s: InspectionTrackingStatus) => s.value === status);
+    if (found) return found.label;
+
+    // Fallback para estados básicos de producto
     switch (status.toLowerCase()) {
       case "pending":
         return "Pendiente";
@@ -85,8 +123,7 @@ export default function InspectionDetailView() {
     }
   };
 
-
-  const handleEditProduct = (product: any) => {
+  const handleEditProduct = (product: InspectionProduct) => {
     setSelectedProduct(product);
     setEditProductModalOpen(true);
   };
@@ -94,11 +131,10 @@ export default function InspectionDetailView() {
   const handleCloseEditModal = () => {
     setEditProductModalOpen(false);
     setSelectedProduct(null);
-    // Invalidar la query para refrescar los datos
     queryClient.invalidateQueries({ queryKey: ["Inspections", id] });
   };
 
-  const handleViewFiles = (product: any) => {
+  const handleViewFiles = (product: InspectionProduct) => {
     setSelectedProduct(product);
     setViewFilesModalOpen(true);
   };
@@ -108,7 +144,51 @@ export default function InspectionDetailView() {
     setSelectedProduct(null);
   };
 
+  const handleUpdateStatus = () => {
+    if (!selectedStatus) {
+      toast.error("Selecciona un estado");
+      return;
+    }
+    updateStatusMutation.mutate(selectedStatus, {
+      onSuccess: () => {
+        setUpdateStatusModalOpen(false);
+        setSelectedStatus("");
+      },
+    });
+  };
 
+  // Calcular progreso basado en el estado actual de tracking
+  const calculateProgress = () => {
+    if (!inspection?.content?.length || trackingStatuses.length === 0) return 0;
+
+    // Crear mapa de status value -> order
+    const statusOrderMap: Record<string, number> = {};
+    trackingStatuses.forEach((s: InspectionTrackingStatus) => {
+      statusOrderMap[s.value] = s.order;
+    });
+
+    // Mapeo de estados simplificados de producto a estados de tracking
+    const productStatusMapping: Record<string, number> = {
+      pending: 1,
+      in_inspection: 2,
+      awaiting_pickup: 3,
+      in_transit: 7,
+      dispatched: 13,
+    };
+
+    const maxOrder = inspection.content.reduce((max: number, product: InspectionProduct) => {
+      // Primero buscar en el mapeo de tracking
+      let order = statusOrderMap[product.status];
+      // Si no está, usar el mapeo simplificado
+      if (!order) {
+        order = productStatusMapping[product.status] || 1;
+      }
+      return Math.max(max, order);
+    }, 1);
+
+    const totalPoints = trackingStatuses.length || 13;
+    return Math.round((maxOrder / totalPoints) * 100);
+  };
 
   if (isLoading) {
     return (
@@ -173,31 +253,42 @@ export default function InspectionDetailView() {
     );
   }
 
+  const progress = calculateProgress();
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
       {/* Header con navegación */}
       <div className="border-b border-border/60 bg-white/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="w-full px-6 py-4">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                onClick={() => navigate("/dashboard/gestion-de-mercancias")}
+                className="flex items-center gap-2 hover:bg-slate-100"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Volver
+              </Button>
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500">
+                <Package className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">
+                  Detalles de Inspección
+                </h1>
+                <p className="text-sm text-muted-foreground">
+                  ID: {inspection.id}
+                </p>
+              </div>
+            </div>
             <Button
-              variant="ghost"
-              onClick={() => navigate("/dashboard/gestion-de-mercancias")}
-              className="flex items-center gap-2 hover:bg-slate-100"
+              onClick={() => setUpdateStatusModalOpen(true)}
+              className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-full shadow-md flex items-center gap-2"
             >
-              <ArrowLeft className="h-4 w-4" />
-              Volver
+              <Edit className="h-4 w-4" />
+              Actualizar Estado
             </Button>
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500">
-              <Package className="h-5 w-5 text-white" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">
-                Detalles de Inspección
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                ID: {inspection.id}
-              </p>
-            </div>
           </div>
         </div>
       </div>
@@ -255,6 +346,26 @@ export default function InspectionDetailView() {
             </Card>
         </div>
 
+        {/* Card de Progreso de Inspección */}
+        <Card className="border border-slate-200 bg-white">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <Navigation className="h-5 w-5 text-blue-500" />
+              <h3 className="font-semibold text-gray-900">Progreso de Inspección</h3>
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Progreso General</span>
+                <span className="text-sm font-bold text-blue-600">{progress}%</span>
+              </div>
+              <Progress value={progress} className="h-3" />
+              <p className="text-xs text-muted-foreground">
+                Fase de inspección en China (Puntos 1-{trackingStatuses.length || 13})
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Layout principal: Productos (izquierda) y Mapa (abajo) */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Sección izquierda: Lista de productos */}
@@ -265,13 +376,13 @@ export default function InspectionDetailView() {
                   Productos ({inspection.content.length})
                 </h2>
                 <p className="text-sm text-muted-foreground">
-                  {inspection.content.filter((p: any) => p.status === 'in_transit').length}/{inspection.content.length} en estado actual
+                  {inspection.content.filter((p: InspectionProduct) => p.status === 'in_transit').length}/{inspection.content.length} en tránsito
                 </p>
               </div>
 
               {/* Lista de productos como cards */}
               <div className="space-y-3">
-                {inspection.content.map((product: any, index: number) => (
+                {inspection.content.map((product: InspectionProduct, index: number) => (
                   <Card
                     key={product.product_id}
                     className={`border transition-all hover:shadow-md cursor-pointer ${
@@ -300,9 +411,6 @@ export default function InspectionDetailView() {
                               <span className="font-semibold text-sm">{product.quantity}</span>
                             </div>
                             <div className="flex flex-col items-end">
-                              <span className="text-xs line-through text-muted-foreground">
-                                ${(product.quantity * Number(product.regular_price || product.express_price)).toFixed(2)}
-                              </span>
                               <span className="text-sm font-bold text-emerald-600">
                                 ${product.express_price}
                               </span>
@@ -418,6 +526,69 @@ export default function InspectionDetailView() {
         inspectionId={id || ""}
         inspectionData={inspection}
       />
+
+      {/* Modal de actualización de estado de tracking */}
+      <Dialog open={updateStatusModalOpen} onOpenChange={setUpdateStatusModalOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Actualizar Estado de Tracking</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Nuevo Estado de Inspección</Label>
+              {isLoadingStatuses ? (
+                <div className="flex items-center justify-center py-4">
+                  <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
+                  <span className="ml-2 text-sm text-muted-foreground">Cargando estados...</span>
+                </div>
+              ) : (
+                <Select
+                  value={selectedStatus}
+                  onValueChange={setSelectedStatus}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar estado" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {trackingStatuses.map((status: InspectionTrackingStatus) => (
+                      <SelectItem key={status.id} value={status.value}>
+                        <span className="flex items-center gap-2">
+                          <span className="text-xs text-muted-foreground font-mono">#{status.order}</span>
+                          <span>{status.label}</span>
+                          {status.isOptional && (
+                            <span className="text-xs text-orange-500">(opcional)</span>
+                          )}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              <p className="text-xs text-muted-foreground">
+                Selecciona el estado actual de la inspección (puntos 1-{trackingStatuses.length || 13})
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setUpdateStatusModalOpen(false)}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleUpdateStatus}
+              disabled={updateStatusMutation.isPending || !selectedStatus || isLoadingStatuses}
+            >
+              {updateStatusMutation.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Actualizando...
+                </>
+              ) : (
+                "Actualizar Estado"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
-} 
+}

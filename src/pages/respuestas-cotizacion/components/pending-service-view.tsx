@@ -45,8 +45,11 @@ export function PendingServiceView({
           quantity: variant.quantity || 0,
           price: Number(variant.pendingPricing?.unitPrice) || 0,
           priceExpress: Number(variant.pendingPricing?.expressPrice) || 0,
-           attachments: quotVariant?.attachments || [],
-
+          images: (quotVariant?.attachments || []).map((url: string, index: number) => ({
+            id: `img-${variant.variantId}-${index}`,
+            url: url,
+            name: `attachment-${index}`
+          })),
         };
       }) || [],
       adminComment: product.adminComment || "",

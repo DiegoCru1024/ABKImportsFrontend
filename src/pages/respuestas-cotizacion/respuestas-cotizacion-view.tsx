@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Calendar, User, FileText, Loader2 } from "lucide-react";
+import { ArrowLeft, User, FileText, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent
+} from "@/components/ui/card";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 
 import { useGetQuatitationResponse } from "@/hooks/use-quatitation-response";
 import { useGetQuotationById } from "@/hooks/use-quation";

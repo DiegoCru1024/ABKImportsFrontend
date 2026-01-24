@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useGetInspectionById, useGetInspectionTrackingStatuses, useUpdateInspectionTrackingStatus } from "@/hooks/use-inspections";
-import type { InspectionProduct, InspectionTrackingStatus } from "@/api/interface/inspectionInterface";
+import type { InspectionProduct, InspectionTrackingStatus, CargoType } from "@/api/interface/inspectionInterface";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ViewFilesModal } from "./components/ViewFilesModal";
 import { EditProductModal } from "./components/EditProductModal";
 import CreateShipmentModal from "@/components/CreateShipmentModal";
-import InspectionTrackingMap from "@/components/InspectionTrackingMap";
+import { ShipmentRouteTrackingMap } from "@/components/shipment-route-tracking";
 import {
   Dialog,
   DialogContent,
@@ -58,8 +58,11 @@ export default function InspectionDetailView() {
   const [updateStatusModalOpen, setUpdateStatusModalOpen] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<string>("");
 
-  // Obtener lista de estados del endpoint
-  const trackingStatuses = statusesData?.statuses || [];
+  // Obtener lista de estados del endpoint (memoizado para evitar re-renders)
+  const trackingStatuses = useMemo(
+    () => statusesData?.statuses || [],
+    [statusesData?.statuses]
+  );
 
   const getStatusColor = (status: string) => {
     const statusLower = status.toLowerCase();
@@ -144,17 +147,38 @@ export default function InspectionDetailView() {
     setSelectedProduct(null);
   };
 
+  /**
+   * Obtiene el tracking_point correspondiente a un estado
+   * Si el backend no lo proporciona, usa el order como fallback
+   */
+  const getTrackingPointForStatus = (statusValue: string): number => {
+    const status = trackingStatuses.find(
+      (s: InspectionTrackingStatus) => s.value === statusValue
+    );
+    // Usar tracking_point si existe, sino usar order como fallback
+    return status?.tracking_point ?? status?.order ?? 1;
+  };
+
   const handleUpdateStatus = () => {
     if (!selectedStatus) {
       toast.error("Selecciona un estado");
       return;
     }
-    updateStatusMutation.mutate(selectedStatus, {
-      onSuccess: () => {
-        setUpdateStatusModalOpen(false);
-        setSelectedStatus("");
+
+    const trackingPoint = getTrackingPointForStatus(selectedStatus);
+
+    updateStatusMutation.mutate(
+      {
+        status: selectedStatus,
+        tracking_point: trackingPoint,
       },
-    });
+      {
+        onSuccess: () => {
+          setUpdateStatusModalOpen(false);
+          setSelectedStatus("");
+        },
+      }
+    );
   };
 
   // Calcular progreso basado en el estado actual de tracking
@@ -189,6 +213,80 @@ export default function InspectionDetailView() {
     const totalPoints = trackingStatuses.length || 13;
     return Math.round((maxOrder / totalPoints) * 100);
   };
+
+  /**
+   * Calcula el punto actual del mapa basado en el MÁXIMO entre:
+   * 1. inspection.tracking_point (del backend)
+   * 2. El estado más avanzado de los productos
+   * Esto permite que el mapa se actualice cuando cambia cualquiera de los dos
+   */
+  const currentTrackingPoint = useMemo((): number => {
+    // Mapeo completo de estados de producto/tracking a puntos de ruta
+    const productStatusMapping: Record<string, number> = {
+      // Estados básicos de producto
+      pending: 1,
+      in_inspection: 2,
+      awaiting_pickup: 3,
+      in_transit: 7,
+      dispatched: 13,
+      // Estados de tracking de inspección (valores del endpoint)
+      pending_arrival: 1,
+      inspection_process: 2,
+      vehicle_0_percent: 4,
+      vehicle_50_percent: 5,
+      vehicle_75_percent: 6,
+      arrived_airport: 7,
+      customs_inspection: 8,
+      customs_waiting: 9,
+      customs_delay: 10,
+      customs_approved: 11,
+      boarding_waiting: 12,
+      boarding_confirmed: 13,
+    };
+
+    // Obtener tracking_point del backend (o 1 por defecto)
+    let backendPoint = inspection?.tracking_point || 1;
+
+    // Si hay tracking_status, buscar su punto correspondiente
+    if (inspection?.tracking_status && trackingStatuses.length > 0) {
+      const status = trackingStatuses.find(
+        (s: InspectionTrackingStatus) => s.value === inspection.tracking_status
+      );
+      if (status) {
+        const statusPoint = status.tracking_point ?? status.order ?? 1;
+        backendPoint = Math.max(backendPoint, statusPoint);
+      }
+    }
+
+    // Calcular el punto más avanzado de los productos
+    let productPoint = 1;
+    if (inspection?.content?.length) {
+      const statusOrderMap: Record<string, number> = {};
+      trackingStatuses.forEach((s: InspectionTrackingStatus) => {
+        statusOrderMap[s.value] = s.tracking_point ?? s.order ?? 1;
+      });
+
+      productPoint = inspection.content.reduce(
+        (max: number, product: InspectionProduct) => {
+          let order = statusOrderMap[product.status];
+          if (!order) {
+            order = productStatusMapping[product.status] || 1;
+          }
+          return Math.max(max, order);
+        },
+        1
+      );
+    }
+
+    // Retornar el máximo entre el punto del backend y el de los productos
+    return Math.max(backendPoint, productPoint);
+  }, [inspection, trackingStatuses]);
+
+  /**
+   * Determina el tipo de carga basado en inspection.cargo_type
+   * Default: 'general' (ruta Shenzhen)
+   */
+  const cargoType: CargoType = inspection?.cargo_type || "general";
 
   if (isLoading) {
     return (
@@ -256,38 +354,41 @@ export default function InspectionDetailView() {
   const progress = calculateProgress();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
-      {/* Header con navegación */}
-      <div className="border-b border-border/60 bg-white/80 backdrop-blur-sm sticky top-0 z-10">
+    <div className="min-h-screen bg-gray-50/30">
+      {/* Header con navegación - Diseño minimalista */}
+      <div className="border-b bg-white sticky top-0 z-10 shadow-sm">
         <div className="w-full px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Button
                 variant="ghost"
                 onClick={() => navigate("/dashboard/gestion-de-mercancias")}
-                className="flex items-center gap-2 hover:bg-slate-100"
+                className="flex items-center gap-2 hover:bg-gray-50 -ml-2"
               >
                 <ArrowLeft className="h-4 w-4" />
-                Volver
+                <span className="text-sm">Volver</span>
               </Button>
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500">
-                <Package className="h-5 w-5 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">
-                  Detalles de Inspección
-                </h1>
-                <p className="text-sm text-muted-foreground">
-                  ID: {inspection.id}
-                </p>
+              <div className="h-8 w-px bg-gray-200"></div>
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-blue-600">
+                  <Package className="h-4 w-4 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-base font-semibold text-gray-900">
+                    Detalles de Inspección
+                  </h1>
+                  <p className="text-xs text-gray-500">
+                    ID: {inspection.id}
+                  </p>
+                </div>
               </div>
             </div>
             <Button
               onClick={() => setUpdateStatusModalOpen(true)}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-full shadow-md flex items-center gap-2"
+              className="bg-blue-500 hover:bg-blue-600 text-white px-5 py-2 rounded-lg shadow-sm flex items-center gap-2 transition-all hover:shadow-md"
             >
               <Edit className="h-4 w-4" />
-              Actualizar Estado
+              <span className="text-sm">Actualizar Estado</span>
             </Button>
           </div>
         </div>
@@ -295,105 +396,104 @@ export default function InspectionDetailView() {
 
       {/* Contenido principal con bentogrid */}
       <div className="p-6 space-y-6">
-        {/* Grid de información general - 4 columnas */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Información general y progreso en una sola fila */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          {/* Información general - 8 columnas */}
+          <div className="lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Card: Tipo de Servicio */}
-            <Card className="border border-slate-200 bg-white hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
-                <div className="space-y-3">
-                  <p className="text-sm font-medium text-muted-foreground">Tipo de Servicio</p>
-                  <p className="text-2xl font-bold text-gray-900 capitalize">
-                    {inspection.shipping_service_type}
-                  </p>
-                </div>
+            <Card className="border-0 shadow-sm bg-gradient-to-br from-blue-50/50 to-white">
+              <CardContent className="p-5">
+                <p className="text-xs font-medium text-gray-500 mb-2">Tipo de Servicio</p>
+                <p className="text-xl font-bold text-gray-900 capitalize">
+                  {inspection.shipping_service_type}
+                </p>
               </CardContent>
             </Card>
 
             {/* Card: Servicio de Logística */}
-            <Card className="border border-slate-200 bg-white hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
-                <div className="space-y-3">
-                  <p className="text-sm font-medium text-muted-foreground">Servicio de Logística</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {inspection.logistics_service}
-                  </p>
-                </div>
+            <Card className="border-0 shadow-sm bg-gradient-to-br from-purple-50/50 to-white">
+              <CardContent className="p-5">
+                <p className="text-xs font-medium text-gray-500 mb-2">Servicio de Logística</p>
+                <p className="text-xl font-bold text-gray-900">
+                  {inspection.logistics_service}
+                </p>
               </CardContent>
             </Card>
 
             {/* Card: Última Actualización */}
-            <Card className="border border-slate-200 bg-white hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
-                <div className="space-y-3">
-                  <p className="text-sm font-medium text-muted-foreground">Última Actualización</p>
-                  <p className="text-lg font-semibold text-gray-900">
-                    {formatDateLong(inspection.updated_at)}
-                  </p>
-                </div>
+            <Card className="border-0 shadow-sm bg-gradient-to-br from-amber-50/50 to-white">
+              <CardContent className="p-5">
+                <p className="text-xs font-medium text-gray-500 mb-2">Última Actualización</p>
+                <p className="text-base font-semibold text-gray-900">
+                  {formatDateLong(inspection.updated_at)}
+                </p>
               </CardContent>
             </Card>
 
             {/* Card: Precio Total */}
-            <Card className="border border-emerald-200 bg-emerald-50/50 hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
-                <div className="space-y-3">
-                  <p className="text-sm font-medium text-emerald-700">Precio Total</p>
-                  <p className="text-3xl font-bold text-emerald-600">
-                    ${inspection.total_price}
-                  </p>
-                </div>
+            <Card className="border-0 shadow-sm bg-gradient-to-br from-emerald-50/50 to-white">
+              <CardContent className="p-5">
+                <p className="text-xs font-medium text-emerald-600 mb-2">Precio Total</p>
+                <p className="text-2xl font-bold text-emerald-600">
+                  ${inspection.total_price}
+                </p>
               </CardContent>
             </Card>
+          </div>
+
+          {/* Card de Progreso de Inspección - 4 columnas */}
+          <Card className="lg:col-span-4 border-0 shadow-sm bg-gradient-to-br from-slate-50/50 to-white">
+            <CardContent className="p-5 h-full flex flex-col justify-center">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="p-2 rounded-lg bg-blue-100">
+                  <Navigation className="h-4 w-4 text-blue-600" />
+                </div>
+                <h3 className="font-semibold text-gray-900 text-sm">Progreso de Inspección</h3>
+              </div>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-gray-600">Progreso General</span>
+                  <span className="text-lg font-bold text-blue-600">{progress}%</span>
+                </div>
+                <Progress value={progress} className="h-2.5" />
+                <p className="text-xs text-gray-500">
+                  Puntos 1-{trackingStatuses.length || 13}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
-        {/* Card de Progreso de Inspección */}
-        <Card className="border border-slate-200 bg-white">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <Navigation className="h-5 w-5 text-blue-500" />
-              <h3 className="font-semibold text-gray-900">Progreso de Inspección</h3>
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Progreso General</span>
-                <span className="text-sm font-bold text-blue-600">{progress}%</span>
-              </div>
-              <Progress value={progress} className="h-3" />
-              <p className="text-xs text-muted-foreground">
-                Fase de inspección en China (Puntos 1-{trackingStatuses.length || 13})
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
         {/* Layout principal: Productos (izquierda) y Mapa (abajo) */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
             {/* Sección izquierda: Lista de productos */}
             <div className="lg:col-span-1 space-y-4">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                  <Package className="h-5 w-5 text-blue-500" />
+              <div className="flex items-center justify-between">
+                <h2 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                  <div className="p-1.5 rounded-md bg-blue-100">
+                    <Package className="h-3.5 w-3.5 text-blue-600" />
+                  </div>
                   Productos ({inspection.content.length})
                 </h2>
-                <p className="text-sm text-muted-foreground">
+                <span className="text-xs text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full">
                   {inspection.content.filter((p: InspectionProduct) => p.status === 'in_transit').length}/{inspection.content.length} en tránsito
-                </p>
+                </span>
               </div>
 
               {/* Lista de productos como cards */}
-              <div className="space-y-3">
+              <div className="space-y-2.5">
                 {inspection.content.map((product: InspectionProduct, index: number) => (
                   <Card
                     key={product.product_id}
-                    className={`border transition-all hover:shadow-md cursor-pointer ${
-                      index === 0 ? 'border-blue-300 bg-blue-50/30' : 'border-slate-200 bg-white'
+                    className={`border-0 transition-all hover:shadow-md cursor-pointer ${
+                      index === 0 ? 'shadow-sm bg-gradient-to-br from-blue-50/50 to-white' : 'shadow-sm bg-white'
                     }`}
                   >
                     <CardContent className="p-4">
                       <div className="flex gap-3">
                         {/* Imagen del producto */}
-                        <div className="w-16 h-16 bg-gradient-to-br from-slate-100 to-slate-200 rounded-lg flex items-center justify-center flex-shrink-0">
-                          <ImageIcon className="h-8 w-8 text-slate-400" />
+                        <div className="w-14 h-14 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <ImageIcon className="h-6 w-6 text-gray-400" />
                         </div>
 
                         {/* Información del producto */}
@@ -401,33 +501,34 @@ export default function InspectionDetailView() {
                           <h3 className="font-semibold text-gray-900 text-sm truncate">
                             {product.name}
                           </h3>
-                          <p className="text-xs text-muted-foreground truncate">
-                            ID: {product.product_id.slice(0, 20)}...
+                          <p className="text-xs text-gray-500 truncate mt-0.5">
+                            {product.product_id.slice(0, 20)}...
                           </p>
 
-                          <div className="mt-2 flex items-center justify-between">
-                            <div className="flex items-baseline gap-1">
-                              <span className="text-xs text-muted-foreground">Cant:</span>
-                              <span className="font-semibold text-sm">{product.quantity}</span>
-                            </div>
-                            <div className="flex flex-col items-end">
-                              <span className="text-sm font-bold text-emerald-600">
-                                ${product.express_price}
+                          <div className="mt-2.5 flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className="flex items-baseline gap-1">
+                                <span className="text-xs text-gray-500">Cant:</span>
+                                <span className="font-semibold text-sm text-gray-900">{product.quantity}</span>
+                              </div>
+                              <div className="h-3 w-px bg-gray-200"></div>
+                              <span className="text-xs text-gray-500">
+                                {product.files.length} archivo{product.files.length !== 1 ? 's' : ''}
                               </span>
                             </div>
+                            <span className="text-sm font-bold text-emerald-600">
+                              ${product.express_price}
+                            </span>
                           </div>
 
-                          {/* Estado y archivos */}
-                          <div className="mt-3 flex items-center justify-between gap-2">
+                          {/* Estado */}
+                          <div className="mt-2.5">
                             <Badge
-                              className={`flex items-center gap-1 text-xs px-2 py-0.5 ${getStatusColor(product.status)}`}
+                              className={`flex items-center gap-1 text-xs px-2.5 py-0.5 w-fit ${getStatusColor(product.status)}`}
                             >
                               {getStatusIcon(product.status)}
                               {getStatusText(product.status)}
                             </Badge>
-                            <span className="text-xs text-muted-foreground">
-                              {product.files.length} archivo{product.files.length !== 1 ? 's' : ''}
-                            </span>
                           </div>
 
                           {/* Botones de acción */}
@@ -436,9 +537,9 @@ export default function InspectionDetailView() {
                               variant="outline"
                               size="sm"
                               onClick={() => handleEditProduct(product)}
-                              className="flex-1 text-xs h-8"
+                              className="flex-1 text-xs h-7 border-gray-200 hover:bg-gray-50"
                             >
-                              <Edit className="h-3 w-3 mr-1" />
+                              <Edit className="h-3 w-3 mr-1.5" />
                               Editar
                             </Button>
                             {product.files.length > 0 && (
@@ -446,7 +547,7 @@ export default function InspectionDetailView() {
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleViewFiles(product)}
-                                className="h-8 px-2"
+                                className="h-7 px-2.5 hover:bg-gray-50"
                               >
                                 <Eye className="h-3 w-3" />
                               </Button>
@@ -461,38 +562,20 @@ export default function InspectionDetailView() {
             </div>
 
             {/* Sección derecha e inferior: Mapa y ubicación */}
-            <div className="lg:col-span-2 space-y-4">
-              {/* Card de información de ubicación */}
-              <Card className="border border-slate-200 bg-white shadow-sm">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100">
-                          <Package className="h-5 w-5 text-blue-600" />
-                        </div>
-                        <div>
-                          <h3 className="text-sm font-medium text-muted-foreground">
-                            Ubicación del Envío
-                          </h3>
-                          <p className="text-lg font-bold text-gray-900">
-                            {inspection.origin || 'Shenzhen, China'}
-                          </p>
-                        </div>
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        Provincia de Cantón, China
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Card del mapa */}
-              <Card className="border border-slate-200 bg-white shadow-sm overflow-hidden">
+            <div className="lg:col-span-2">
+              {/* Card del mapa de tracking dinámico */}
+              <Card className="border-0 shadow-sm bg-white overflow-hidden">
                 <CardContent className="p-0">
-                  <div className="relative h-[450px] w-full">
-                    <InspectionTrackingMap inspectionId={id!} />
+                  <div className="relative h-[500px] w-full">
+                    <ShipmentRouteTrackingMap
+                      serviceType={
+                        inspection.shipping_service_type === "maritime"
+                          ? "maritime"
+                          : "aerial"
+                      }
+                      cargoType={cargoType}
+                      currentPointNumber={currentTrackingPoint}
+                    />
                   </div>
                 </CardContent>
               </Card>

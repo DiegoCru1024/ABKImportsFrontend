@@ -150,20 +150,26 @@ export const getInspectionTrackingStatuses = async (): Promise<InspectionTrackin
     }
 }
 
+/** Datos para actualizar el estado de tracking */
+export interface UpdateTrackingStatusData {
+    status: string;
+    tracking_point: number;
+}
+
 /**
  * Actualiza el estado de tracking de una inspección
  * @param {string} inspectionId - ID de la inspección
- * @param {string} status - Nuevo estado (value del InspectionTrackingStatus)
+ * @param {UpdateTrackingStatusData} data - Nuevo estado y punto de tracking
  * @returns {Promise<{ success: boolean; message?: string }>}
  */
 export const updateInspectionTrackingStatus = async (
     inspectionId: string,
-    status: string
+    data: UpdateTrackingStatusData
 ): Promise<{ success: boolean; message?: string }> => {
     try {
         return await apiFetch(`/inspections/${inspectionId}/tracking/status`, {
             method: "PUT",
-            body: JSON.stringify({ status }),
+            body: JSON.stringify(data),
         });
     } catch (error) {
         console.error("Error al actualizar el estado de tracking:", error);

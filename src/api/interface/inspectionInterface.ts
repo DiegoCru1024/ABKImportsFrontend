@@ -28,6 +28,9 @@ export interface InspectionProduct {
   files: string[];
 }
 
+/** Tipos de carga para el tracking */
+export type CargoType = 'general' | 'imo_mixta';
+
 export interface InspectionDetail {
   id: string;
   shipping_service_type: string;
@@ -36,6 +39,12 @@ export interface InspectionDetail {
   content: InspectionProduct[];
   total_price: string;
   origin?: string;
+  /** Estado actual del tracking */
+  tracking_status?: string;
+  /** Punto actual en la ruta de tracking (1-13 para inspecciones) */
+  tracking_point?: number;
+  /** Tipo de carga: general (Shenzhen) o imo_mixta (Hong Kong) */
+  cargo_type?: CargoType;
 }
 
 // ============================================
@@ -53,6 +62,8 @@ export interface InspectionTrackingStatus {
   phase: InspectionTrackingPhase;
   isOptional: boolean;
   isActive: boolean;
+  /** Punto correspondiente en la ruta de tracking (1-13) */
+  tracking_point?: number;
 }
 
 export interface InspectionTrackingStatusesResponse {

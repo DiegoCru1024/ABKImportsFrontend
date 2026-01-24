@@ -1,6 +1,16 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { deleteInspection, generateInspectionId, getInspectionById, getInspectionsByUser, updateInspection, updateInspectionProduct, getInspectionTrackingStatuses, updateInspectionTrackingStatus } from "@/api/inspection";
+import {
+  deleteInspection,
+  generateInspectionId,
+  getInspectionById,
+  getInspectionsByUser,
+  updateInspection,
+  updateInspectionProduct,
+  getInspectionTrackingStatuses,
+  updateInspectionTrackingStatus,
+  type UpdateTrackingStatusData,
+} from "@/api/inspection";
 
 /**
  * Hook para generar un ID de inspección
@@ -149,12 +159,13 @@ export function useGetInspectionTrackingStatuses() {
 /**
  * Hook para actualizar el estado de tracking de una inspección
  * @param {string} inspectionId - ID de la inspección
- * @returns {useMutation} - Mutación para actualizar el estado
+ * @returns {useMutation} - Mutación para actualizar el estado y punto de tracking
  */
 export function useUpdateInspectionTrackingStatus(inspectionId: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (status: string) => updateInspectionTrackingStatus(inspectionId, status),
+    mutationFn: (data: UpdateTrackingStatusData) =>
+      updateInspectionTrackingStatus(inspectionId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["Inspections", inspectionId] });
       queryClient.invalidateQueries({ queryKey: ["InspectionTrackingRoute", inspectionId] });
@@ -166,3 +177,5 @@ export function useUpdateInspectionTrackingStatus(inspectionId: string) {
     },
   });
 }
+
+export type { UpdateTrackingStatusData };

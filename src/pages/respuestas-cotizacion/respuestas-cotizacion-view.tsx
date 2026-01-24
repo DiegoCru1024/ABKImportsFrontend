@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, User, FileText, Loader2 } from "lucide-react";
+import { ArrowLeft, User, FileText, Loader2, Flag, Plane, Ship } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent
@@ -44,7 +44,32 @@ export default function RespuestasCotizacionView() {
     const serviceLabel =
       response.responseData?.generalInformation?.serviceLogistic ||
       response.serviceType;
-    return `Opción ${index + 1}: ${serviceLabel}`;
+    return `Opc ${index + 1}: ${serviceLabel}`;
+  };
+
+  const getServiceIcon = (response: any) => {
+    const serviceType = response.serviceType?.toUpperCase() || "";
+    const serviceLogistic = response.responseData?.generalInformation?.serviceLogistic?.toUpperCase() || "";
+
+    // Consolidado Origen
+    if (serviceType.includes("ORIGEN") || serviceLogistic.includes("ORIGEN")) {
+      return <Flag className="h-4 w-4" />;
+    }
+
+    // Consolidado Express / Aéreo
+    if (serviceType.includes("EXPRESS") || serviceType.includes("AEREO") ||
+        serviceLogistic.includes("EXPRESS") || serviceLogistic.includes("AEREO")) {
+      return <Plane className="h-4 w-4" />;
+    }
+
+    // Consolidado Marítimo
+    if (serviceType.includes("MARITIME") || serviceType.includes("MARITIMO") ||
+        serviceLogistic.includes("MARITIME") || serviceLogistic.includes("MARITIMO")) {
+      return <Ship className="h-4 w-4" />;
+    }
+
+    // Por defecto
+    return <FileText className="h-4 w-4" />;
   };
 
   if (isLoading || isLoadingQuotation) {
@@ -100,20 +125,23 @@ export default function RespuestasCotizacionView() {
               onValueChange={(value) => setSelectedResponseIndex(parseInt(value))}
               className="w-full"
             >
-              <div className="flex items-center justify-center gap-8 bg-white border-b border-gray-300 pb-2">
+              <div className="flex items-center justify-center gap-3 bg-gray-50 p-3 rounded-lg">
                 {responseData.responses.map((response: any, index: number) => (
                   <button
                     key={response.responseId}
                     onClick={() => setSelectedResponseIndex(index)}
-                    className={`relative px-6 py-3 text-sm font-medium transition-all ${
+                    className={`relative px-5 py-3 text-sm font-medium transition-all rounded-lg flex items-center gap-2 ${
                       index === selectedResponseIndex
-                        ? "text-gray-900 border-b-[3px] border-gray-900"
-                        : "text-gray-500 border-b-[3px] border-transparent hover:text-gray-700"
+                        ? "bg-gradient-to-r from-blue-100 to-purple-100 text-gray-900 shadow-sm border-2 border-blue-200"
+                        : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 hover:text-gray-900"
                     }`}
                   >
+                    <span className={index === selectedResponseIndex ? "text-blue-600" : "text-gray-400"}>
+                      {getServiceIcon(response)}
+                    </span>
                     {getTabLabel(response, index)}
                     {index === selectedResponseIndex && (
-                      <span className="absolute -top-1 -right-3 flex h-5 w-5 items-center justify-center rounded-full bg-green-500 text-white">
+                      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-green-500 text-white ml-1">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           viewBox="0 0 20 20"

@@ -396,177 +396,67 @@ export default function InspectionDetailView() {
 
       {/* Contenido principal con bentogrid */}
       <div className="p-6 space-y-6">
-        {/* Información general y progreso en una sola fila */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-          {/* Información general - 8 columnas */}
-          <div className="lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Card: Tipo de Servicio */}
-            <Card className="border-0 shadow-sm bg-gradient-to-br from-blue-50/50 to-white">
-              <CardContent className="p-5">
-                <p className="text-xs font-medium text-gray-500 mb-2">Tipo de Servicio</p>
-                <p className="text-xl font-bold text-gray-900 capitalize">
-                  {inspection.shipping_service_type}
-                </p>
-              </CardContent>
-            </Card>
+        {/* Información general y progreso - diseño compacto */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+          {/* Card: Tipo de Servicio */}
+          <Card className="border-0 shadow-sm bg-gradient-to-br from-blue-50/50 to-white">
+            <CardContent className="p-3">
+              <p className="text-[10px] font-medium text-gray-500 mb-1">Tipo de Servicio</p>
+              <p className="text-sm font-bold text-gray-900 capitalize truncate">
+                {inspection.shipping_service_type}
+              </p>
+            </CardContent>
+          </Card>
 
-            {/* Card: Servicio de Logística */}
-            <Card className="border-0 shadow-sm bg-gradient-to-br from-purple-50/50 to-white">
-              <CardContent className="p-5">
-                <p className="text-xs font-medium text-gray-500 mb-2">Servicio de Logística</p>
-                <p className="text-xl font-bold text-gray-900">
-                  {inspection.logistics_service}
-                </p>
-              </CardContent>
-            </Card>
+          {/* Card: Servicio de Logística */}
+          <Card className="border-0 shadow-sm bg-gradient-to-br from-purple-50/50 to-white">
+            <CardContent className="p-3">
+              <p className="text-[10px] font-medium text-gray-500 mb-1">Logística</p>
+              <p className="text-sm font-bold text-gray-900 truncate">
+                {inspection.logistics_service}
+              </p>
+            </CardContent>
+          </Card>
 
-            {/* Card: Última Actualización */}
-            <Card className="border-0 shadow-sm bg-gradient-to-br from-amber-50/50 to-white">
-              <CardContent className="p-5">
-                <p className="text-xs font-medium text-gray-500 mb-2">Última Actualización</p>
-                <p className="text-base font-semibold text-gray-900">
-                  {formatDateLong(inspection.updated_at)}
-                </p>
-              </CardContent>
-            </Card>
+          {/* Card: Última Actualización */}
+          <Card className="border-0 shadow-sm bg-gradient-to-br from-amber-50/50 to-white">
+            <CardContent className="p-3">
+              <p className="text-[10px] font-medium text-gray-500 mb-1">Actualización</p>
+              <p className="text-xs font-semibold text-gray-900 truncate">
+                {formatDateLong(inspection.updated_at)}
+              </p>
+            </CardContent>
+          </Card>
 
-            {/* Card: Precio Total */}
-            <Card className="border-0 shadow-sm bg-gradient-to-br from-emerald-50/50 to-white">
-              <CardContent className="p-5">
-                <p className="text-xs font-medium text-emerald-600 mb-2">Precio Total</p>
-                <p className="text-2xl font-bold text-emerald-600">
-                  ${inspection.total_price}
-                </p>
-              </CardContent>
-            </Card>
-          </div>
+          {/* Card: Precio Total */}
+          <Card className="border-0 shadow-sm bg-gradient-to-br from-emerald-50/50 to-white">
+            <CardContent className="p-3">
+              <p className="text-[10px] font-medium text-emerald-600 mb-1">Precio Total</p>
+              <p className="text-lg font-bold text-emerald-600">
+                ${inspection.total_price}
+              </p>
+            </CardContent>
+          </Card>
 
-          {/* Card de Progreso de Inspección - 4 columnas */}
-          <Card className="lg:col-span-4 border-0 shadow-sm bg-gradient-to-br from-slate-50/50 to-white">
-            <CardContent className="p-5 h-full flex flex-col justify-center">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="p-2 rounded-lg bg-blue-100">
-                  <Navigation className="h-4 w-4 text-blue-600" />
-                </div>
-                <h3 className="font-semibold text-gray-900 text-sm">Progreso de Inspección</h3>
+          {/* Card de Progreso de Inspección - compacto */}
+          <Card className="border-0 shadow-sm bg-gradient-to-br from-slate-50/50 to-white">
+            <CardContent className="p-3">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-[10px] font-medium text-gray-500">Progreso</p>
+                <span className="text-sm font-bold text-blue-600">{progress}%</span>
               </div>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-gray-600">Progreso General</span>
-                  <span className="text-lg font-bold text-blue-600">{progress}%</span>
-                </div>
-                <Progress value={progress} className="h-2.5" />
-                <p className="text-xs text-gray-500">
-                  Puntos 1-{trackingStatuses.length || 13}
-                </p>
-              </div>
+              <Progress value={progress} className="h-1.5" />
             </CardContent>
           </Card>
         </div>
 
-        {/* Layout principal: Productos (izquierda) y Mapa (abajo) */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-            {/* Sección izquierda: Lista de productos */}
-            <div className="lg:col-span-1 space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-                  <div className="p-1.5 rounded-md bg-blue-100">
-                    <Package className="h-3.5 w-3.5 text-blue-600" />
-                  </div>
-                  Productos ({inspection.content.length})
-                </h2>
-                <span className="text-xs text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full">
-                  {inspection.content.filter((p: InspectionProduct) => p.status === 'in_transit').length}/{inspection.content.length} en tránsito
-                </span>
-              </div>
-
-              {/* Lista de productos como cards */}
-              <div className="space-y-2.5">
-                {inspection.content.map((product: InspectionProduct, index: number) => (
-                  <Card
-                    key={product.product_id}
-                    className={`border-0 transition-all hover:shadow-md cursor-pointer ${
-                      index === 0 ? 'shadow-sm bg-gradient-to-br from-blue-50/50 to-white' : 'shadow-sm bg-white'
-                    }`}
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex gap-3">
-                        {/* Imagen del producto */}
-                        <div className="w-14 h-14 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center flex-shrink-0">
-                          <ImageIcon className="h-6 w-6 text-gray-400" />
-                        </div>
-
-                        {/* Información del producto */}
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-gray-900 text-sm truncate">
-                            {product.name}
-                          </h3>
-                          <p className="text-xs text-gray-500 truncate mt-0.5">
-                            {product.product_id.slice(0, 20)}...
-                          </p>
-
-                          <div className="mt-2.5 flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <div className="flex items-baseline gap-1">
-                                <span className="text-xs text-gray-500">Cant:</span>
-                                <span className="font-semibold text-sm text-gray-900">{product.quantity}</span>
-                              </div>
-                              <div className="h-3 w-px bg-gray-200"></div>
-                              <span className="text-xs text-gray-500">
-                                {product.files.length} archivo{product.files.length !== 1 ? 's' : ''}
-                              </span>
-                            </div>
-                            <span className="text-sm font-bold text-emerald-600">
-                              ${product.express_price}
-                            </span>
-                          </div>
-
-                          {/* Estado */}
-                          <div className="mt-2.5">
-                            <Badge
-                              className={`flex items-center gap-1 text-xs px-2.5 py-0.5 w-fit ${getStatusColor(product.status)}`}
-                            >
-                              {getStatusIcon(product.status)}
-                              {getStatusText(product.status)}
-                            </Badge>
-                          </div>
-
-                          {/* Botones de acción */}
-                          <div className="mt-3 flex gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleEditProduct(product)}
-                              className="flex-1 text-xs h-7 border-gray-200 hover:bg-gray-50"
-                            >
-                              <Edit className="h-3 w-3 mr-1.5" />
-                              Editar
-                            </Button>
-                            {product.files.length > 0 && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleViewFiles(product)}
-                                className="h-7 px-2.5 hover:bg-gray-50"
-                              >
-                                <Eye className="h-3 w-3" />
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
-
-            {/* Sección derecha e inferior: Mapa y ubicación */}
+        {/* Layout principal: Mapa (izquierda) y Productos (derecha) */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {/* Sección izquierda: Mapa de tracking */}
             <div className="lg:col-span-2">
-              {/* Card del mapa de tracking dinámico */}
-              <Card className="border-0 shadow-sm bg-white overflow-hidden">
+              <Card className="border-0 shadow-sm bg-white overflow-hidden h-full">
                 <CardContent className="p-0">
-                  <div className="relative h-[500px] w-full">
+                  <div className="relative h-[420px] w-full">
                     <ShipmentRouteTrackingMap
                       serviceType={
                         inspection.shipping_service_type === "maritime"
@@ -579,6 +469,99 @@ export default function InspectionDetailView() {
                   </div>
                 </CardContent>
               </Card>
+            </div>
+
+            {/* Sección derecha: Lista de productos */}
+            <div className="lg:col-span-1 space-y-3">
+              <div className="flex items-center justify-between">
+                <h2 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                  <div className="p-1.5 rounded-md bg-blue-100">
+                    <Package className="h-3.5 w-3.5 text-blue-600" />
+                  </div>
+                  Productos ({inspection.content.length})
+                </h2>
+                <span className="text-[10px] text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                  {inspection.content.filter((p: InspectionProduct) => p.status === 'in_transit').length}/{inspection.content.length} en tránsito
+                </span>
+              </div>
+
+              {/* Lista de productos como cards - scroll si hay muchos */}
+              <div className="space-y-2 max-h-[380px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-gray-200">
+                {inspection.content.map((product: InspectionProduct, index: number) => (
+                  <Card
+                    key={product.product_id}
+                    className={`border-0 transition-all hover:shadow-md cursor-pointer ${
+                      index === 0 ? 'shadow-sm bg-gradient-to-br from-blue-50/50 to-white' : 'shadow-sm bg-white'
+                    }`}
+                  >
+                    <CardContent className="p-3">
+                      <div className="flex gap-2.5">
+                        {/* Imagen del producto - más pequeña */}
+                        <div className="w-11 h-11 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <ImageIcon className="h-5 w-5 text-gray-400" />
+                        </div>
+
+                        {/* Información del producto */}
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-gray-900 text-xs truncate">
+                            {product.name}
+                          </h3>
+                          <p className="text-[10px] text-gray-500 truncate">
+                            {product.product_id.slice(0, 16)}...
+                          </p>
+
+                          <div className="mt-1.5 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] text-gray-500">
+                                <span className="font-medium text-gray-700">{product.quantity}</span> uds
+                              </span>
+                              <span className="text-[10px] text-gray-400">•</span>
+                              <span className="text-[10px] text-gray-500">
+                                {product.files.length} arch.
+                              </span>
+                            </div>
+                            <span className="text-xs font-bold text-emerald-600">
+                              ${product.express_price}
+                            </span>
+                          </div>
+
+                          {/* Estado y acciones en una fila */}
+                          <div className="mt-2 flex items-center justify-between">
+                            <Badge
+                              className={`flex items-center gap-1 text-[10px] px-2 py-0 h-5 w-fit ${getStatusColor(product.status)}`}
+                            >
+                              {getStatusIcon(product.status)}
+                              {getStatusText(product.status)}
+                            </Badge>
+
+                            <div className="flex gap-1">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleEditProduct(product)}
+                                className="text-[10px] h-5 px-2 border-gray-200 hover:bg-gray-50"
+                              >
+                                <Edit className="h-2.5 w-2.5 mr-1" />
+                                Editar
+                              </Button>
+                              {product.files.length > 0 && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleViewFiles(product)}
+                                  className="h-5 px-1.5 hover:bg-gray-50"
+                                >
+                                  <Eye className="h-2.5 w-2.5" />
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             </div>
         </div>
       </div>

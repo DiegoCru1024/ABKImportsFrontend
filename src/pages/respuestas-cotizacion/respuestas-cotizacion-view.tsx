@@ -162,8 +162,8 @@ export default function RespuestasCotizacionView() {
 
               <div className="mt-6">
                 <Card className="border border-gray-200 shadow-sm">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between pb-4 border-b border-gray-200">
+                  <CardContent >
+                    <div className="flex items-center justify-between pb-4">
                       <div className="flex items-center space-x-6">
                         <div className="flex items-center space-x-2">
                           <FileText className="h-4 w-4 text-blue-600" />
@@ -191,14 +191,16 @@ export default function RespuestasCotizacionView() {
                       </div>
                     </div>
 
-                    <div className="pt-6 space-y-4">
-                      <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                    <div >
+                      {/**<h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
                         Configuración del Servicio
-                      </h3>
+                      </h3> */}
                       {responseData.responses.map((response: any, index: number) => (
-                        <TabsContent key={response.responseId} value={index.toString()} className="mt-0">
-                          <div className="space-y-4">
-                            <div className="grid grid-cols-2 gap-x-32 gap-y-4">
+                        <TabsContent key={response.responseId} value={index.toString()}>
+                          
+                           
+                          <div >
+                            {/**<div className="grid grid-cols-2 gap-x-32 gap-y-4">
                               <div key="service" className="flex items-center justify-between">
                                 <div className="flex items-center space-x-2">
                                   <svg className="h-4 w-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -243,7 +245,7 @@ export default function RespuestasCotizacionView() {
                                   {response.responseData?.generalInformation?.courier || "N/A"}
                                 </p>
                               </div>
-                            </div>
+                            </div>*/}
 
                             {response.serviceType === "MARITIME" && response.responseData?.maritimeConfig && (
                               <div className="pt-4 border-t border-gray-200 space-y-4">
@@ -350,7 +352,7 @@ export default function RespuestasCotizacionView() {
                               </div>
                             )}
 
-                            {response.serviceType === "COTIZACION DE ORIGEN" && (
+                           {/**{response.serviceType === "COTIZACION DE ORIGEN" && (
                               <div className="pt-4 border-t border-gray-200">
                                 <div className="flex items-center justify-start gap-16">
                                   <div className="flex items-center space-x-2">
@@ -380,7 +382,7 @@ export default function RespuestasCotizacionView() {
                                   </div>
                                 </div>
                               </div>
-                            )}
+                            )}*/}
                           </div>
                         </TabsContent>
                       ))}

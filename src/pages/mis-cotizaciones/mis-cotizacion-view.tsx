@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FileText, Package, Plus, ArrowLeft, Undo2 } from "lucide-react";
+import { FileText, Package, Plus, Undo2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/table/data-table";

@@ -134,7 +134,7 @@ export default function GestionDeCotizacionesView() {
         }
       />
 
-      <div className="flex-1 flex flex-col container mx-auto px-4 py-6 max-w-full">
+      <div className="grid grid-cols-1 mx-auto px-4 py-6 max-w-full">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2 bg-white rounded-lg p-1 shadow-sm border border-slate-200">
             <Button
@@ -161,33 +161,31 @@ export default function GestionDeCotizacionesView() {
         </div>
 
         {viewMode === "grid" && (
-          <SearchFilters
-            searchValue={quotationList.searchTerm}
-            onSearchChange={quotationList.handleSearchChange}
-            filterValue={quotationList.filter}
-            onFilterChange={quotationList.handleFilterChange}
-            filterOptions={filterOptions}
-            searchPlaceholder="Buscar por cliente o ID de cotización..."
-            filterPlaceholder="Filtrar por estado"
-            onClearFilter={quotationList.clearFilter}
-          />
-        )}
-
-        {quotationList.isLoading && (
-          <LoadingState message="Cargando cotizaciones..." variant="card" />
-        )}
-
-        {quotationList.isError && (
-          <ErrorState
-            title="Error al cargar las cotizaciones"
-            message="Por favor, intente recargar la página o contacte al administrador."
-            variant="card"
-          />
-        )}
-
-        {!quotationList.isLoading && !quotationList.isError && (
           <>
-            {viewMode === "grid" ? (
+            <SearchFilters
+              searchValue={quotationList.searchTerm}
+              onSearchChange={quotationList.handleSearchChange}
+              filterValue={quotationList.filter}
+              onFilterChange={quotationList.handleFilterChange}
+              filterOptions={filterOptions}
+              searchPlaceholder="Buscar por cliente o ID de cotización..."
+              filterPlaceholder="Filtrar por estado"
+              onClearFilter={quotationList.clearFilter}
+            />
+
+            {quotationList.isLoading && (
+              <LoadingState message="Cargando cotizaciones..." variant="card" />
+            )}
+
+            {quotationList.isError && (
+              <ErrorState
+                title="Error al cargar las cotizaciones"
+                message="Por favor, intente recargar la página o contacte al administrador."
+                variant="card"
+              />
+            )}
+
+            {!quotationList.isLoading && !quotationList.isError && (
               <>
                 <div className="grid gap-6 grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3">
                   {quotationList.data.map((quotation) => (
@@ -220,16 +218,17 @@ export default function GestionDeCotizacionesView() {
                   </div>
                 )}
               </>
-            ) : (
-              <div className="flex-1 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                <QuotationsKanbanView
-                  quotations={quotationList.data}
-                  onViewDetails={handleViewDetails}
-                  onViewResponses={handleViewListResponses}
-                />
-              </div>
             )}
           </>
+        )}
+
+        {viewMode === "kanban" && (
+          <div className="flex-1 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <QuotationsKanbanView
+              onViewDetails={handleViewDetails}
+              onViewResponses={handleViewListResponses}
+            />
+          </div>
         )}
       </div>
 

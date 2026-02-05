@@ -14,7 +14,7 @@ export const useUsersPagination = () => {
 
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
-    setPage(0); // Reset a la primera página cuando se busca
+    setPage(1); // Reset a la primera página cuando se busca
   };
 
   const handlePageChange = (newPage: number) => {
@@ -23,7 +23,7 @@ export const useUsersPagination = () => {
 
   const clearSearch = () => {
     setSearchTerm("");
-    setPage(0);
+    setPage(1);
   };
 
   return {

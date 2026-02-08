@@ -168,14 +168,14 @@ export default function ShipmentTrackingMap({
 
   if (isLoading) {
     return (
-      <div className={`bg-white rounded-lg border ${className}`}>
-        <div className="p-4 border-b">
-          <h4 className="font-medium text-gray-900">Tracking de Envío</h4>
+      <div className={`bg-white rounded-lg border overflow-hidden ${className}`}>
+        <div className="px-4 py-2.5 border-b">
+          <span className="text-xs font-semibold text-gray-900">Tracking de Envío</span>
         </div>
         <div className="h-96 flex items-center justify-center">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500 mx-auto mb-2"></div>
-            <p className="text-sm text-gray-500">Cargando tracking...</p>
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-500 mx-auto mb-2"></div>
+            <p className="text-xs text-gray-400">Cargando tracking...</p>
           </div>
         </div>
       </div>
@@ -184,14 +184,14 @@ export default function ShipmentTrackingMap({
 
   if (error || !processedData) {
     return (
-      <div className={`bg-white rounded-lg border ${className}`}>
-        <div className="p-4 border-b">
-          <h4 className="font-medium text-gray-900">Tracking de Envío</h4>
+      <div className={`bg-white rounded-lg border overflow-hidden ${className}`}>
+        <div className="px-4 py-2.5 border-b">
+          <span className="text-xs font-semibold text-gray-900">Tracking de Envío</span>
         </div>
         <div className="h-96 flex items-center justify-center">
-          <div className="text-center text-red-500">
-            <p>Error al cargar el tracking</p>
-            <p className="text-sm text-gray-500 mt-2">
+          <div className="text-center">
+            <p className="text-xs text-red-500">Error al cargar el tracking</p>
+            <p className="text-[10px] text-gray-400 mt-1">
               Verifica que el endpoint del backend esté disponible
             </p>
           </div>
@@ -201,36 +201,30 @@ export default function ShipmentTrackingMap({
   }
 
   return (
-    <div className={`bg-white rounded-lg border ${className}`}>
-      <div className="p-4 border-b">
-        <h4 className="font-medium text-gray-900">Tracking de Envío</h4>
-        <p className="text-sm text-gray-600">
-          Ruta {processedData.route.shippingType === 'aerial' ? 'Aérea' : 'Marítima'}:{' '}
-          {processedData.route.origin} → {processedData.route.destination}
-        </p>
-      </div>
-
-      {/* Panel de información del estado */}
-      <div className="p-4 bg-green-50 border-b">
-        <h5 className="text-sm font-semibold mb-2">Estado del Envío</h5>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-          <div>
-            <span className="font-medium">Posición Actual:</span>
-            <span className="ml-2 px-2 py-1 bg-green-100 text-green-800 rounded">
-              {processedData.currentPoint?.place || 'N/A'}
-            </span>
+    <div className={`bg-white rounded-lg border overflow-hidden ${className}`}>
+      {/* Header compacto: ruta + estado en una sola fila */}
+      <div className="px-4 py-2.5 border-b flex items-center justify-between flex-wrap gap-2">
+        <div className="flex items-center gap-3">
+          <h4 className="text-xs font-semibold text-gray-900">
+            {processedData.route.shippingType === 'aerial' ? 'Aérea' : 'Marítima'}
+          </h4>
+          <span className="text-[11px] text-gray-400">
+            {processedData.route.origin} → {processedData.route.destination}
+          </span>
+        </div>
+        <div className="flex items-center gap-4 text-[11px]">
+          <div className="flex items-center gap-1.5">
+            <div className="w-1.5 h-1.5 rounded-full bg-amber-400"></div>
+            <span className="text-gray-500">{processedData.currentPoint?.place || 'N/A'}</span>
           </div>
-          <div>
-            <span className="font-medium">Estado:</span>
-            <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 rounded">
-              {processedData.currentPoint?.status || 'N/A'}
-            </span>
-          </div>
-          <div>
-            <span className="font-medium">Progreso:</span> {processedData.progress}%
-            <div className="text-xs text-gray-600 mt-1">
-              Punto {processedData.currentPosition} de {processedData.route.totalPoints}
+          <div className="h-3 w-px bg-gray-200"></div>
+          <span className="text-gray-400">{processedData.currentPoint?.status || 'N/A'}</span>
+          <div className="h-3 w-px bg-gray-200"></div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-12 h-1 bg-gray-100 rounded-full overflow-hidden">
+              <div className="h-full bg-green-500 rounded-full" style={{ width: `${processedData.progress}%` }}></div>
             </div>
+            <span className="text-gray-500 font-medium">{processedData.progress}%</span>
           </div>
         </div>
       </div>
@@ -321,26 +315,23 @@ export default function ShipmentTrackingMap({
         </MapContainer>
       </div>
 
-      {/* Leyenda */}
-      <div className="p-4 border-t bg-gray-50">
-        <h5 className="font-semibold mb-2 text-sm">Leyenda:</h5>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
-          <div className="flex items-center">
-            <div className="w-4 h-4 bg-green-500 rounded-full mr-2"></div>
-            <span>Completado</span>
-          </div>
-          <div className="flex items-center">
-            <div className="w-4 h-4 bg-orange-500 rounded-full mr-2"></div>
-            <span>Actual</span>
-          </div>
-          <div className="flex items-center">
-            <div className="w-4 h-4 bg-gray-500 rounded-full mr-2"></div>
-            <span>Pendiente</span>
-          </div>
-          <div className="flex items-center">
-            <div className="w-8 h-1 bg-green-500 mr-2"></div>
-            <span>Recorrido</span>
-          </div>
+      {/* Leyenda compacta */}
+      <div className="px-4 py-1.5 border-t bg-gray-50/80 flex items-center gap-4 text-[10px] text-gray-500">
+        <div className="flex items-center gap-1">
+          <div className="w-2 h-2 rounded-full bg-green-500"></div>
+          <span>Completado</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-2 h-2 rounded-full bg-amber-500"></div>
+          <span>Actual</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-2 h-2 rounded-full bg-gray-400"></div>
+          <span>Pendiente</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-4 h-0.5 bg-green-500 rounded"></div>
+          <span>Recorrido</span>
         </div>
       </div>
     </div>

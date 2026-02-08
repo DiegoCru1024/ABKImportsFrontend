@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useGetInspectionById, useGetInspectionTrackingStatuses, useUpdateInspectionTrackingStatus } from "@/hooks/use-inspections";
 import type { InspectionProduct, InspectionTrackingStatus, CargoType } from "@/api/interface/inspectionInterface";
 import { Card, CardContent } from "@/components/ui/card";
@@ -57,6 +57,20 @@ export default function InspectionDetailView() {
   const [createShipmentModalOpen, setCreateShipmentModalOpen] = useState(false);
   const [updateStatusModalOpen, setUpdateStatusModalOpen] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<string>("");
+  const [selectedProductId, setSelectedProductId] = useState<string>("");
+
+  // Seleccionar el primer producto por defecto cuando carga la inspección
+  useEffect(() => {
+    if (inspection?.content?.length && !selectedProductId) {
+      setSelectedProductId(inspection.content[0].product_id);
+    }
+  }, [inspection?.content, selectedProductId]);
+
+  // Producto actualmente seleccionado
+  const activeProduct = useMemo(
+    () => inspection?.content?.find((p: InspectionProduct) => p.product_id === selectedProductId) || null,
+    [inspection?.content, selectedProductId]
+  );
 
   // Obtener lista de estados del endpoint (memoizado para evitar re-renders)
   const trackingStatuses = useMemo(
@@ -215,21 +229,18 @@ export default function InspectionDetailView() {
   };
 
   /**
-   * Calcula el punto actual del mapa basado en el MÁXIMO entre:
-   * 1. inspection.tracking_point (del backend)
-   * 2. El estado más avanzado de los productos
-   * Esto permite que el mapa se actualice cuando cambia cualquiera de los dos
+   * Calcula el punto del mapa basado en el producto seleccionado.
+   * Busca el tracking_point del estado del producto activo.
    */
   const currentTrackingPoint = useMemo((): number => {
-    // Mapeo completo de estados de producto/tracking a puntos de ruta
+    if (!activeProduct) return 1;
+
     const productStatusMapping: Record<string, number> = {
-      // Estados básicos de producto
       pending: 1,
       in_inspection: 2,
       awaiting_pickup: 3,
       in_transit: 7,
       dispatched: 13,
-      // Estados de tracking de inspección (valores del endpoint)
       pending_arrival: 1,
       inspection_process: 2,
       vehicle_0_percent: 4,
@@ -244,43 +255,17 @@ export default function InspectionDetailView() {
       boarding_confirmed: 13,
     };
 
-    // Obtener tracking_point del backend (o 1 por defecto)
-    let backendPoint = inspection?.tracking_point || 1;
-
-    // Si hay tracking_status, buscar su punto correspondiente
-    if (inspection?.tracking_status && trackingStatuses.length > 0) {
-      const status = trackingStatuses.find(
-        (s: InspectionTrackingStatus) => s.value === inspection.tracking_status
-      );
-      if (status) {
-        const statusPoint = status.tracking_point ?? status.order ?? 1;
-        backendPoint = Math.max(backendPoint, statusPoint);
-      }
+    // Buscar en los estados del endpoint
+    const statusFromEndpoint = trackingStatuses.find(
+      (s: InspectionTrackingStatus) => s.value === activeProduct.status
+    );
+    if (statusFromEndpoint) {
+      return statusFromEndpoint.tracking_point ?? statusFromEndpoint.order ?? 1;
     }
 
-    // Calcular el punto más avanzado de los productos
-    let productPoint = 1;
-    if (inspection?.content?.length) {
-      const statusOrderMap: Record<string, number> = {};
-      trackingStatuses.forEach((s: InspectionTrackingStatus) => {
-        statusOrderMap[s.value] = s.tracking_point ?? s.order ?? 1;
-      });
-
-      productPoint = inspection.content.reduce(
-        (max: number, product: InspectionProduct) => {
-          let order = statusOrderMap[product.status];
-          if (!order) {
-            order = productStatusMapping[product.status] || 1;
-          }
-          return Math.max(max, order);
-        },
-        1
-      );
-    }
-
-    // Retornar el máximo entre el punto del backend y el de los productos
-    return Math.max(backendPoint, productPoint);
-  }, [inspection, trackingStatuses]);
+    // Fallback al mapeo estático
+    return productStatusMapping[activeProduct.status] || 1;
+  }, [activeProduct, trackingStatuses]);
 
   /**
    * Determina el tipo de carga basado en inspection.cargo_type
@@ -456,7 +441,7 @@ export default function InspectionDetailView() {
             <div className="lg:col-span-2">
               <Card className="border-0 shadow-sm bg-white overflow-hidden h-full">
                 <CardContent className="p-0">
-                  <div className="relative h-[420px] w-full">
+                  <div className="relative h-[560px] w-full">
                     <ShipmentRouteTrackingMap
                       serviceType={
                         inspection.shipping_service_type === "maritime"
@@ -486,19 +471,23 @@ export default function InspectionDetailView() {
               </div>
 
               {/* Lista de productos como cards - scroll si hay muchos */}
-              <div className="space-y-2 max-h-[380px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-gray-200">
-                {inspection.content.map((product: InspectionProduct, index: number) => (
+              <div className="space-y-2 max-h-[520px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-gray-200">
+                {inspection.content.map((product: InspectionProduct) => (
                   <Card
                     key={product.product_id}
-                    className={`border-0 transition-all hover:shadow-md cursor-pointer ${
-                      index === 0 ? 'shadow-sm bg-gradient-to-br from-blue-50/50 to-white' : 'shadow-sm bg-white'
+                    onClick={() => setSelectedProductId(product.product_id)}
+                    className={`transition-all cursor-pointer ${
+                      selectedProductId === product.product_id
+                        ? 'border-2 border-blue-500 shadow-md bg-gradient-to-br from-blue-50/50 to-white'
+                        : 'border-0 shadow-sm bg-white hover:shadow-md'
                     }`}
                   >
                     <CardContent className="p-3">
                       <div className="flex gap-2.5">
                         {/* Imagen del producto - más pequeña */}
                         <div className="w-11 h-11 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center flex-shrink-0">
-                          <ImageIcon className="h-5 w-5 text-gray-400" />
+                          {/*<ImageIcon className="h-5 w-5 text-gray-400" />*/}
+                          <img className="h-5 w-5 text-gray-400" src={product.files?.[0] || "https://placehold.co/20x20"} alt="Producto" />
                         </div>
 
                         {/* Información del producto */}
@@ -538,7 +527,7 @@ export default function InspectionDetailView() {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => handleEditProduct(product)}
+                                onClick={(e) => { e.stopPropagation(); handleEditProduct(product); }}
                                 className="text-[10px] h-5 px-2 border-gray-200 hover:bg-gray-50"
                               >
                                 <Edit className="h-2.5 w-2.5 mr-1" />
@@ -548,7 +537,7 @@ export default function InspectionDetailView() {
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  onClick={() => handleViewFiles(product)}
+                                  onClick={(e) => { e.stopPropagation(); handleViewFiles(product); }}
                                   className="h-5 px-1.5 hover:bg-gray-50"
                                 >
                                   <Eye className="h-2.5 w-2.5" />

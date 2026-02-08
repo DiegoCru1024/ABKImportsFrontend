@@ -289,60 +289,39 @@ export default function ShipmentRouteTrackingMap({
 
   return (
     <div
-      className={`bg-white h-full ${className}`}
+      className={`bg-white h-full flex flex-col ${className}`}
       style={{ position: 'relative', zIndex: 0 }}
     >
-      {/* Header minimalista */}
-      <div className="px-5 py-4 border-b bg-gradient-to-r from-blue-50/30 to-purple-50/30">
-        <div className="flex items-center justify-between">
-          <div>
-            <h4 className="font-semibold text-gray-900 text-sm">Tracking de Envío</h4>
-            <p className="text-xs text-gray-600 mt-0.5">
-              {processedData.route.origin} → {processedData.route.destination}
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="text-right">
-              <p className="text-xs text-gray-500">Progreso</p>
-              <p className="text-lg font-bold text-blue-600">{processedData.progress}%</p>
+      {/* Info bar compacta */}
+      <div className="px-4 py-2 border-b flex items-center justify-between flex-wrap gap-2 text-[11px]">
+        <div className="flex items-center gap-3">
+          <span className="font-semibold text-gray-800">
+            {processedData.route.origin} → {processedData.route.destination}
+          </span>
+          <span className="text-gray-400">|</span>
+          <span className="text-gray-500">
+            {serviceType === 'aerial' ? 'Aérea' : 'Marítima'}
+          </span>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="text-gray-500">
+            {processedData.currentPoint?.place || '—'}
+          </span>
+          <span className="text-gray-300">·</span>
+          <span className="text-gray-500">
+            {processedData.currentPosition}/{processedData.route.totalPoints}
+          </span>
+          <div className="flex items-center gap-1.5">
+            <div className="w-14 h-1 bg-gray-100 rounded-full overflow-hidden">
+              <div className="h-full bg-green-500 rounded-full transition-all" style={{ width: `${processedData.progress}%` }}></div>
             </div>
-            <div className="h-10 w-px bg-gray-200"></div>
-            <div className="text-right">
-              <p className="text-xs text-gray-500">Tipo</p>
-              <p className="text-xs font-semibold text-gray-900">
-                {serviceType === 'aerial' ? 'Aérea' : 'Marítima'}
-              </p>
-            </div>
+            <span className="font-semibold text-gray-700">{processedData.progress}%</span>
           </div>
         </div>
       </div>
 
-      {/* Panel de información minimalista */}
-      <div className="border-b bg-gradient-to-r from-amber-50/30 to-orange-50/30 px-5 py-3">
-        <div className="flex items-center justify-between text-xs">
-          <div className="flex items-center gap-2">
-            <span className="text-gray-600">Estado:</span>
-            <span className="rounded-full bg-orange-100 px-3 py-1 text-orange-700 font-medium">
-              {processedData.currentPoint?.status || 'N/A'}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-gray-600">Ubicación:</span>
-            <span className="font-medium text-gray-900">
-              {processedData.currentPoint?.place || processedData.route.origin}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-gray-600">Puntos:</span>
-            <span className="font-semibold text-gray-900">
-              {processedData.currentPosition}/{processedData.route.totalPoints}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Mapa */}
-      <div className="relative h-80" style={{ zIndex: 0 }}>
+      {/* Mapa - ocupa todo el espacio disponible */}
+      <div className="relative flex-1 min-h-[480px]" style={{ zIndex: 0 }}>
         <MapContainer
           center={center}
           zoom={3}
@@ -455,27 +434,25 @@ export default function ShipmentRouteTrackingMap({
         </MapContainer>
       </div>
 
-      {/* Leyenda minimalista */}
-      <div className="border-t bg-gradient-to-r from-gray-50/50 to-slate-50/50 px-5 py-3">
-        <div className="flex items-center justify-center gap-6 text-xs">
-          <div className="flex items-center gap-1.5">
-            <div className="h-2.5 w-2.5 rounded-full bg-green-500"></div>
-            <span className="text-gray-700">Completado</span>
+      {/* Leyenda compacta */}
+      <div className="px-4 py-1.5 border-t flex items-center gap-4 text-[10px] text-gray-400">
+        <div className="flex items-center gap-1">
+          <div className="w-2 h-2 rounded-full bg-green-500"></div>
+          <span>Completado</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-2 h-2 rounded-full bg-amber-500"></div>
+          <span>Actual</span>
+        </div>
+        {showPendingPoints && (
+          <div className="flex items-center gap-1">
+            <div className="w-2 h-2 rounded-full bg-slate-300"></div>
+            <span>Pendiente</span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <div className="h-2.5 w-2.5 rounded-full bg-orange-500"></div>
-            <span className="text-gray-700">En Progreso</span>
-          </div>
-          {showPendingPoints && (
-            <div className="flex items-center gap-1.5">
-              <div className="h-2.5 w-2.5 rounded-full bg-slate-400"></div>
-              <span className="text-gray-700">Pendiente</span>
-            </div>
-          )}
-          <div className="flex items-center gap-1.5">
-            <div className="h-0.5 w-6 bg-green-500 rounded-full"></div>
-            <span className="text-gray-700">Ruta</span>
-          </div>
+        )}
+        <div className="flex items-center gap-1">
+          <div className="w-4 h-0.5 bg-green-500 rounded"></div>
+          <span>Ruta</span>
         </div>
       </div>
     </div>

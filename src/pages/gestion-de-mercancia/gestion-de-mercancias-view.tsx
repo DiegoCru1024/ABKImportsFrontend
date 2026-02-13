@@ -10,7 +10,7 @@ import { DataTable } from "@/components/table/data-table";
 import type { Inspection } from "@/api/interface/inspectionInterface";
 import { columnasInspeccion } from "./components/table/columns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 function gestionDeMercancias() {
   const [inspections, setInspections] = useState<Inspection[]>([]);
@@ -23,6 +23,7 @@ function gestionDeMercancias() {
 
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handlePageChange = (page: number, size: number) => {
     setPageInfo({
@@ -38,7 +39,11 @@ function gestionDeMercancias() {
   };
 
   const handleInspectionClick = (inspectionId: string) => {
-    navigate(`/dashboard/gestion-de-mercancias/${inspectionId}`);
+    if (location.pathname.includes("inspeccion-de-mercancias")) {
+      navigate(`/dashboard/inspeccion-de-mercancias/${inspectionId}`);
+    } else {
+      navigate(`/dashboard/gestion-de-mercancias/${inspectionId}`);
+    }
   };
 
   const {

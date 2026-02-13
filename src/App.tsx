@@ -33,6 +33,7 @@ import useTawkTo from "@/hooks/useTawkTo";
 import OrdenesDeCompraView from "@/pages/orden-compra/ordenes-de-compra-view";
 import DetallesOrdenCompra from "./pages/orden-compra/detalles-orden-compra-view";
 import ProductosDetallesOrdenCompra from "@/pages/orden-compra/productos-detalles-orden-compra.tsx";
+import InspeccionDeMercanciasDetail from "@/pages/inspeccion-de-mercancias/inspeccion-de-mercancias-detail";
 
 function App() {
     const rutasConChat = [
@@ -81,6 +82,10 @@ function App() {
                 <Route
                     path="/dashboard/inspeccion-de-mercancias"
                     element={<GestionDeMercanciasView/>}
+                />
+                <Route
+                    path="/dashboard/inspeccion-de-mercancias/:id"
+                    element={<InspeccionDeMercanciasDetail />}
                 />
                 <Route
                     path="/dashboard/tracking-de-mercancias"

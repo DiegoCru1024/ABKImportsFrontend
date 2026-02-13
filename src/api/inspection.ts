@@ -1,6 +1,6 @@
 import { API_URL } from "../../config";
 import { apiFetch } from "./apiFetch";
-import type { InspectionResponse, InspectionDetail, InspectionTrackingStatusesResponse } from "./interface/inspectionInterface";
+import type { InspectionResponse, InspectionDetail, InspectionTrackingStatusesResponse, InspectionOrderSummary, InspectionShipmentsResponse } from "./interface/inspectionInterface";
 
 /**
  * Obtiene todas las inspecciones que ha realizado el usuario
@@ -177,6 +177,30 @@ export const updateInspectionTrackingStatus = async (
     }
 }
 
+/**
+ * Obtiene el resumen financiero y canal aduanero de una inspeccion
+ */
+export const getInspectionOrderSummary = async (id: string): Promise<InspectionOrderSummary> => {
+  try {
+    return await apiFetch<InspectionOrderSummary>(`/inspections/${id}/order-summary`, {
+      method: "GET",
+    });
+  } catch (error) {
+    console.error("Error al obtener el resumen del pedido:", error);
+    throw error;
+  }
+};
 
-
-
+/**
+ * Obtiene los shipments vinculados a una inspeccion
+ */
+export const getInspectionShipments = async (id: string): Promise<InspectionShipmentsResponse> => {
+  try {
+    return await apiFetch<InspectionShipmentsResponse>(`/inspections/${id}/shipments`, {
+      method: "GET",
+    });
+  } catch (error) {
+    console.error("Error al obtener los shipments de la inspeccion:", error);
+    throw error;
+  }
+};

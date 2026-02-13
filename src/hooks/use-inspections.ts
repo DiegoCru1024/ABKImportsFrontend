@@ -9,6 +9,8 @@ import {
   updateInspectionProduct,
   getInspectionTrackingStatuses,
   updateInspectionTrackingStatus,
+  getInspectionOrderSummary,
+  getInspectionShipments,
   type UpdateTrackingStatusData,
 } from "@/api/inspection";
 
@@ -175,6 +177,28 @@ export function useUpdateInspectionTrackingStatus(inspectionId: string) {
       console.error("Error al actualizar el estado de tracking:", error);
       toast.error(error.message || "Error al actualizar el estado de tracking");
     },
+  });
+}
+
+/**
+ * Hook para obtener el resumen financiero de una inspeccion
+ */
+export function useGetInspectionOrderSummary(inspectionId: string) {
+  return useQuery({
+    queryKey: ["InspectionOrderSummary", inspectionId],
+    queryFn: () => getInspectionOrderSummary(inspectionId),
+    enabled: !!inspectionId,
+  });
+}
+
+/**
+ * Hook para obtener los shipments vinculados a una inspeccion
+ */
+export function useGetInspectionShipments(inspectionId: string) {
+  return useQuery({
+    queryKey: ["InspectionShipments", inspectionId],
+    queryFn: () => getInspectionShipments(inspectionId),
+    enabled: !!inspectionId,
   });
 }
 

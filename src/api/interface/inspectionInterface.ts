@@ -70,3 +70,23 @@ export interface InspectionTrackingStatusesResponse {
   statuses: InspectionTrackingStatus[];
 }
 
+// ============================================
+// INTERFACES PARA VISTA DE INSPECCION DE MERCANCIAS (USUARIO)
+// ============================================
+
+export type CustomsChannel = 'red' | 'yellow' | 'green';
+
+export interface InspectionOrderSummary {
+  cargo_type: string;
+  cargo_type_label: string;
+  total_product_cost: number;
+  customs_taxes: number;
+  logistics_services: number;
+  pending_payment: number;
+  customs_channel: CustomsChannel;
+}
+
+export interface InspectionShipmentsResponse {
+  shipments: import('./shipmentInterface').Shipment[];
+}
+

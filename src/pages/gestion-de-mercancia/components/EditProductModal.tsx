@@ -1,13 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { useUpdateInspectionProduct, useGetInspectionTrackingStatuses } from "@/hooks/use-inspections";
+import { useUpdateInspectionProduct, useGetInspectionTrackingStatuses, useGetInspectionShipments } from "@/hooks/use-inspections";
+import { useGetShipmentTrackingStatuses, useUpdateShipmentStatus } from "@/hooks/use-shipments";
 import { uploadMultipleFiles } from "@/api/fileUpload";
 import FileUploadComponent from "@/components/comp-552";
 import { useQueryClient } from "@tanstack/react-query";
 import type { InspectionTrackingStatus } from "@/api/interface/inspectionInterface";
+import type { ShipmentTrackingStatus } from "@/api/interface/shipmentInterface";
 import {
   X,
   Plus,
@@ -43,8 +45,27 @@ export function EditProductModal({ isOpen, onClose, product, inspectionId }: Edi
   const queryClient = useQueryClient();
   const updateProductMutation = useUpdateInspectionProduct(inspectionId, product.product_id);
   const { data: statusesData, isLoading: isLoadingStatuses } = useGetInspectionTrackingStatuses();
+  const { data: shipmentStatusesData, isLoading: isLoadingShipmentStatuses } = useGetShipmentTrackingStatuses();
+  const { data: shipmentsData } = useGetInspectionShipments(inspectionId);
+  const updateShipmentStatusMutation = useUpdateShipmentStatus();
 
   const trackingStatuses = statusesData?.statuses || [];
+  const shipmentTrackingStatuses = useMemo(
+    () => shipmentStatusesData?.statuses || [],
+    [shipmentStatusesData?.statuses]
+  );
+
+  // Shipment vinculado (tomar el primero)
+  const linkedShipment = useMemo(
+    () => shipmentsData?.shipments?.[0] || null,
+    [shipmentsData]
+  );
+
+  // Detectar si el estado seleccionado es de shipment (14-45)
+  const isShipmentStatus = useMemo(
+    () => shipmentTrackingStatuses.some((s: ShipmentTrackingStatus) => s.value === status),
+    [shipmentTrackingStatuses, status]
+  );
 
   // Resetear archivos cuando se abre el modal con un producto diferente
   useEffect(() => {
@@ -71,14 +92,43 @@ export function EditProductModal({ isOpen, onClose, product, inspectionId }: Edi
       // Combinar archivos existentes con los nuevos
       const allFiles = [...existingFiles, ...uploadedUrls];
 
-      // Actualizar el producto
-      await updateProductMutation.mutateAsync({
-        status,
-        files: allFiles
-      });
+      if (isShipmentStatus && linkedShipment) {
+        // Estado de shipment (14-45): actualizar archivos del producto sin cambiar status,
+        // y actualizar el estado del shipment
+        const shipmentStatus = shipmentTrackingStatuses.find(
+          (s: ShipmentTrackingStatus) => s.value === status
+        );
+        const trackingPoint = shipmentStatus?.tracking_point ?? 14;
+
+        // Actualizar archivos del producto (mantener status actual del producto)
+        await updateProductMutation.mutateAsync({
+          status: product.status,
+          files: allFiles,
+        });
+
+        // Actualizar estado del shipment
+        await updateShipmentStatusMutation.mutateAsync({
+          id: linkedShipment.id,
+          data: {
+            status: status as any,
+            current_location: shipmentStatus?.label as any || "En transito",
+            tracking_point: trackingPoint,
+          },
+        });
+
+        queryClient.invalidateQueries({ queryKey: ["InspectionShipments", inspectionId] });
+        toast.success("Estado de shipment actualizado");
+      } else {
+        // Estado de inspeccion (1-13): actualizar producto normalmente
+        await updateProductMutation.mutateAsync({
+          status,
+          files: allFiles,
+        });
+      }
 
       // Invalidar el mapa para que se actualice con el nuevo estado
       queryClient.invalidateQueries({ queryKey: ["InspectionTrackingRoute", inspectionId] });
+      queryClient.invalidateQueries({ queryKey: ["Inspections", inspectionId] });
 
       setIsUploading(false);
       onClose();
@@ -164,9 +214,9 @@ export function EditProductModal({ isOpen, onClose, product, inspectionId }: Edi
           {/* Estado */}
           <div className="space-y-3">
             <Label htmlFor="status" className="text-sm font-semibold text-gray-900">
-              Estado del Producto
+              Estado de Tracking
             </Label>
-            {isLoadingStatuses ? (
+            {(isLoadingStatuses || isLoadingShipmentStatuses) ? (
               <div className="flex items-center justify-center py-4 border rounded-lg bg-slate-50">
                 <Loader2 className="h-5 w-5 animate-spin text-blue-500" />
                 <span className="ml-2 text-sm text-muted-foreground">Cargando estados...</span>
@@ -177,6 +227,12 @@ export function EditProductModal({ isOpen, onClose, product, inspectionId }: Edi
                   <SelectValue placeholder="Seleccionar estado" />
                 </SelectTrigger>
                 <SelectContent>
+                  {/* Inspection statuses (1-13) */}
+                  {trackingStatuses.length > 0 && (
+                    <div className="px-2 py-1.5 text-xs font-semibold text-gray-500 bg-gray-50">
+                      Inspección (1-13)
+                    </div>
+                  )}
                   {trackingStatuses.map((trackingStatus: InspectionTrackingStatus) => (
                     <SelectItem key={trackingStatus.id} value={trackingStatus.value}>
                       <span className="flex items-center gap-2">
@@ -188,11 +244,31 @@ export function EditProductModal({ isOpen, onClose, product, inspectionId }: Edi
                       </span>
                     </SelectItem>
                   ))}
+                  {/* Shipment statuses (14-45) */}
+                  {shipmentTrackingStatuses.length > 0 && (
+                    <div className="px-2 py-1.5 text-xs font-semibold text-gray-500 bg-blue-50 mt-1">
+                      Envío (14-45)
+                    </div>
+                  )}
+                  {shipmentTrackingStatuses.map((shipmentStatus: ShipmentTrackingStatus) => (
+                    <SelectItem key={shipmentStatus.id} value={shipmentStatus.value}>
+                      <span className="flex items-center gap-2">
+                        <span className="text-xs text-blue-600 font-mono">#{shipmentStatus.tracking_point}</span>
+                        <span>{shipmentStatus.label}</span>
+                        {shipmentStatus.isOptional && (
+                          <span className="text-xs text-orange-500">(opcional)</span>
+                        )}
+                      </span>
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             )}
             <p className="text-xs text-muted-foreground">
-              Selecciona el estado actual del producto (puntos 1-{trackingStatuses.length || 13})
+              {isShipmentStatus
+                ? "Estado de envío seleccionado — se actualizará el shipment vinculado"
+                : "Selecciona el estado actual (1-13 inspección, 14-45 envío)"
+              }
             </p>
           </div>
 
@@ -267,7 +343,7 @@ export function EditProductModal({ isOpen, onClose, product, inspectionId }: Edi
           </Button>
           <Button
             onClick={handleSave}
-            disabled={isUploading || updateProductMutation.isPending}
+            disabled={isUploading || updateProductMutation.isPending || updateShipmentStatusMutation.isPending}
             className="px-6 bg-blue-600 hover:bg-blue-700"
           >
             {isUploading ? (
@@ -275,9 +351,9 @@ export function EditProductModal({ isOpen, onClose, product, inspectionId }: Edi
                 <Upload className="h-4 w-4 mr-2 animate-spin" />
                 Subiendo archivos...
               </>
-            ) : updateProductMutation.isPending ? (
+            ) : (updateProductMutation.isPending || updateShipmentStatusMutation.isPending) ? (
               <>
-                <Upload className="h-4 w-4 mr-2 animate-spin" />
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                 Guardando...
               </>
             ) : (

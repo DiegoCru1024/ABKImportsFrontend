@@ -1,7 +1,10 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useMemo, useEffect } from "react";
-import { useGetInspectionById, useGetInspectionTrackingStatuses, useUpdateInspectionTrackingStatus } from "@/hooks/use-inspections";
+import { useGetInspectionById, useGetInspectionTrackingStatuses } from "@/hooks/use-inspections";
 import type { InspectionProduct, InspectionTrackingStatus, CargoType } from "@/api/interface/inspectionInterface";
+import type { ShipmentTrackingStatus } from "@/api/interface/shipmentInterface";
+import { useGetShipmentTrackingStatuses } from "@/hooks/use-shipments";
+import { useGetInspectionShipments } from "@/hooks/use-inspections";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,21 +13,6 @@ import { ViewFilesModal } from "./components/ViewFilesModal";
 import { EditProductModal } from "./components/EditProductModal";
 import CreateShipmentModal from "@/components/CreateShipmentModal";
 import { ShipmentRouteTrackingMap } from "@/components/shipment-route-tracking";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import {
   Package,
@@ -36,27 +24,23 @@ import {
   Edit,
   Eye,
   Image as ImageIcon,
-  Navigation,
-  Loader2
 } from "lucide-react";
 import { formatDateLong } from "@/lib/format-time";
-import { toast } from "sonner";
 
 export default function InspectionDetailView() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data: inspection, isLoading, error } = useGetInspectionById(id || "");
-  const { data: statusesData, isLoading: isLoadingStatuses } = useGetInspectionTrackingStatuses();
-  const updateStatusMutation = useUpdateInspectionTrackingStatus(id || "");
+  const { data: statusesData } = useGetInspectionTrackingStatuses();
+  const { data: shipmentStatusesData } = useGetShipmentTrackingStatuses();
+  const { data: shipmentsData } = useGetInspectionShipments(id || "");
 
   // Estados para los modales
   const [viewFilesModalOpen, setViewFilesModalOpen] = useState(false);
   const [editProductModalOpen, setEditProductModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<InspectionProduct | null>(null);
   const [createShipmentModalOpen, setCreateShipmentModalOpen] = useState(false);
-  const [updateStatusModalOpen, setUpdateStatusModalOpen] = useState(false);
-  const [selectedStatus, setSelectedStatus] = useState<string>("");
   const [selectedProductId, setSelectedProductId] = useState<string>("");
 
   // Seleccionar el primer producto por defecto cuando carga la inspección
@@ -76,6 +60,18 @@ export default function InspectionDetailView() {
   const trackingStatuses = useMemo(
     () => statusesData?.statuses || [],
     [statusesData?.statuses]
+  );
+
+  // Estados de tracking de shipments (14-45)
+  const shipmentTrackingStatuses = useMemo(
+    () => shipmentStatusesData?.statuses || [],
+    [shipmentStatusesData?.statuses]
+  );
+
+  // Shipment vinculado (tomar el primero)
+  const linkedShipment = useMemo(
+    () => shipmentsData?.shipments?.[0] || null,
+    [shipmentsData]
   );
 
   const getStatusColor = (status: string) => {
@@ -119,9 +115,13 @@ export default function InspectionDetailView() {
   };
 
   const getStatusText = (status: string) => {
-    // Buscar en los estados del endpoint
-    const found = trackingStatuses.find((s: InspectionTrackingStatus) => s.value === status);
-    if (found) return found.label;
+    // Buscar en estados de inspección (1-13)
+    const inspectionFound = trackingStatuses.find((s: InspectionTrackingStatus) => s.value === status);
+    if (inspectionFound) return inspectionFound.label;
+
+    // Buscar en estados de shipment (14-45)
+    const shipmentFound = shipmentTrackingStatuses.find((s: ShipmentTrackingStatus) => s.value === status);
+    if (shipmentFound) return shipmentFound.label;
 
     // Fallback para estados básicos de producto
     switch (status.toLowerCase()) {
@@ -149,6 +149,7 @@ export default function InspectionDetailView() {
     setEditProductModalOpen(false);
     setSelectedProduct(null);
     queryClient.invalidateQueries({ queryKey: ["Inspections", id] });
+    queryClient.invalidateQueries({ queryKey: ["InspectionShipments", id] });
   };
 
   const handleViewFiles = (product: InspectionProduct) => {
@@ -159,40 +160,6 @@ export default function InspectionDetailView() {
   const handleCloseViewFilesModal = () => {
     setViewFilesModalOpen(false);
     setSelectedProduct(null);
-  };
-
-  /**
-   * Obtiene el tracking_point correspondiente a un estado
-   * Si el backend no lo proporciona, usa el order como fallback
-   */
-  const getTrackingPointForStatus = (statusValue: string): number => {
-    const status = trackingStatuses.find(
-      (s: InspectionTrackingStatus) => s.value === statusValue
-    );
-    // Usar tracking_point si existe, sino usar order como fallback
-    return status?.tracking_point ?? status?.order ?? 1;
-  };
-
-  const handleUpdateStatus = () => {
-    if (!selectedStatus) {
-      toast.error("Selecciona un estado");
-      return;
-    }
-
-    const trackingPoint = getTrackingPointForStatus(selectedStatus);
-
-    updateStatusMutation.mutate(
-      {
-        status: selectedStatus,
-        tracking_point: trackingPoint,
-      },
-      {
-        onSuccess: () => {
-          setUpdateStatusModalOpen(false);
-          setSelectedStatus("");
-        },
-      }
-    );
   };
 
   // Calcular progreso basado en el estado actual de tracking
@@ -230,11 +197,33 @@ export default function InspectionDetailView() {
 
   /**
    * Calcula el punto del mapa basado en el producto seleccionado.
-   * Busca el tracking_point del estado del producto activo.
+   * Busca el tracking_point en estados de inspección (1-13) y shipment (14-45).
    */
   const currentTrackingPoint = useMemo((): number => {
+    // If there's a linked shipment with tracking_point >= 14, use that
+    if (linkedShipment?.tracking_point && linkedShipment.tracking_point >= 14) {
+      return linkedShipment.tracking_point;
+    }
+
     if (!activeProduct) return 1;
 
+    // 1. Buscar en estados de inspección (1-13)
+    const inspectionStatus = trackingStatuses.find(
+      (s: InspectionTrackingStatus) => s.value === activeProduct.status
+    );
+    if (inspectionStatus) {
+      return inspectionStatus.tracking_point ?? inspectionStatus.order ?? 1;
+    }
+
+    // 2. Buscar en estados de shipment (14-45)
+    const shipmentStatus = shipmentTrackingStatuses.find(
+      (s: ShipmentTrackingStatus) => s.value === activeProduct.status
+    );
+    if (shipmentStatus) {
+      return shipmentStatus.tracking_point;
+    }
+
+    // 3. Fallback hardcodeado para estados básicos
     const productStatusMapping: Record<string, number> = {
       pending: 1,
       in_inspection: 2,
@@ -255,17 +244,8 @@ export default function InspectionDetailView() {
       boarding_confirmed: 13,
     };
 
-    // Buscar en los estados del endpoint
-    const statusFromEndpoint = trackingStatuses.find(
-      (s: InspectionTrackingStatus) => s.value === activeProduct.status
-    );
-    if (statusFromEndpoint) {
-      return statusFromEndpoint.tracking_point ?? statusFromEndpoint.order ?? 1;
-    }
-
-    // Fallback al mapeo estático
     return productStatusMapping[activeProduct.status] || 1;
-  }, [activeProduct, trackingStatuses]);
+  }, [activeProduct, trackingStatuses, shipmentTrackingStatuses, linkedShipment]);
 
   /**
    * Determina el tipo de carga basado en inspection.cargo_type
@@ -368,13 +348,6 @@ export default function InspectionDetailView() {
                 </div>
               </div>
             </div>
-            <Button
-              onClick={() => setUpdateStatusModalOpen(true)}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-5 py-2 rounded-lg shadow-sm flex items-center gap-2 transition-all hover:shadow-md"
-            >
-              <Edit className="h-4 w-4" />
-              <span className="text-sm">Actualizar Estado</span>
-            </Button>
           </div>
         </div>
       </div>
@@ -443,6 +416,7 @@ export default function InspectionDetailView() {
                 <CardContent className="p-0">
                   <div className="relative h-[560px] w-full">
                     <ShipmentRouteTrackingMap
+                      key={`map-${currentTrackingPoint}`}
                       serviceType={
                         inspection.shipping_service_type === "maritime"
                           ? "maritime"
@@ -582,68 +556,6 @@ export default function InspectionDetailView() {
         inspectionData={inspection}
       />
 
-      {/* Modal de actualización de estado de tracking */}
-      <Dialog open={updateStatusModalOpen} onOpenChange={setUpdateStatusModalOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Actualizar Estado de Tracking</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>Nuevo Estado de Inspección</Label>
-              {isLoadingStatuses ? (
-                <div className="flex items-center justify-center py-4">
-                  <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
-                  <span className="ml-2 text-sm text-muted-foreground">Cargando estados...</span>
-                </div>
-              ) : (
-                <Select
-                  value={selectedStatus}
-                  onValueChange={setSelectedStatus}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar estado" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {trackingStatuses.map((status: InspectionTrackingStatus) => (
-                      <SelectItem key={status.id} value={status.value}>
-                        <span className="flex items-center gap-2">
-                          <span className="text-xs text-muted-foreground font-mono">#{status.order}</span>
-                          <span>{status.label}</span>
-                          {status.isOptional && (
-                            <span className="text-xs text-orange-500">(opcional)</span>
-                          )}
-                        </span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-              <p className="text-xs text-muted-foreground">
-                Selecciona el estado actual de la inspección (puntos 1-{trackingStatuses.length || 13})
-              </p>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setUpdateStatusModalOpen(false)}>
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleUpdateStatus}
-              disabled={updateStatusMutation.isPending || !selectedStatus || isLoadingStatuses}
-            >
-              {updateStatusMutation.isPending ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Actualizando...
-                </>
-              ) : (
-                "Actualizar Estado"
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

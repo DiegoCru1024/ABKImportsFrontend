@@ -1,22 +1,22 @@
-# Especificacion Backend: Vista de Inspeccion de Mercancias (Usuario)
+# Solicitud al Backend (NestJS): Endpoints para Vista "Inspeccion de Mercancias"
 
-## Contexto
+## Urgente - El frontend ya esta listo esperando estos endpoints
 
-La vista "Inspeccion de Mercancias" es una pagina orientada al usuario final (no admin) donde puede ver el resumen financiero de su inspeccion, el canal aduanero asignado, y el estado de los shipments vinculados a esa inspeccion.
-
-Se necesitan 2 nuevos endpoints que devuelven informacion agregada para esta vista.
+El frontend tiene una nueva vista para usuarios finales en `/dashboard/inspeccion-de-mercancias/:id` que necesita **2 endpoints nuevos** y **1 verificacion** de endpoint existente.
 
 ---
 
-## 1. Endpoint: Resumen del Pedido
+## ENDPOINT 1 (NUEVO): Resumen Financiero del Pedido
 
 ```
 GET /inspections/:id/order-summary
 ```
 
-Devuelve el resumen financiero y el canal aduanero de una inspeccion. Este endpoint es consumido por la vista de usuario para mostrar costos y el semaforo aduanero.
+**Estado:** NO EXISTE - NECESITA CREARSE
 
-### Response
+### Que debe devolver
+
+El frontend espera EXACTAMENTE esta estructura JSON:
 
 ```json
 {
@@ -30,52 +30,88 @@ Devuelve el resumen financiero y el canal aduanero de una inspeccion. Este endpo
 }
 ```
 
-### Descripcion de Campos
+### Campos requeridos
 
-| Campo | Tipo | Descripcion |
-|-------|------|-------------|
-| `cargo_type` | `string` | Tipo de carga: `"general"` o `"imo_mixta"` (coincide con `CargoType` existente) |
-| `cargo_type_label` | `string` | Etiqueta legible del tipo de carga (e.g., `"Carga General"`, `"IMO / Mixta"`) |
-| `total_product_cost` | `number` | Costo total de los productos en la inspeccion |
-| `customs_taxes` | `number` | Impuestos aduaneros aplicados |
-| `logistics_services` | `number` | Costo de servicios logisticos |
-| `pending_payment` | `number` | Monto pendiente de pago |
-| `customs_channel` | `string` | Canal aduanero asignado: `"red"` \| `"yellow"` \| `"green"` |
+| Campo | Tipo | Requerido | Descripcion |
+|-------|------|-----------|-------------|
+| `cargo_type` | `string` | SI | `"general"` o `"imo_mixta"` (el CargoType que ya existe en la entidad Inspection) |
+| `cargo_type_label` | `string` | SI | Texto legible: `"Carga General"` o `"IMO / Mixta"` |
+| `total_product_cost` | `number` | SI | Costo total de todos los productos. Numero, NO string. Ejemplo: `125000` |
+| `customs_taxes` | `number` | SI | Impuestos aduaneros. Numero. Ejemplo: `15000` |
+| `logistics_services` | `number` | SI | Costo de servicios logisticos. Numero. Ejemplo: `25000` |
+| `pending_payment` | `number` | SI | Monto pendiente de pago. Numero. Ejemplo: `40000` |
+| `customs_channel` | `string` | SI | Canal aduanero: solo `"red"`, `"yellow"` o `"green"`. Este valor lo asigna el admin manualmente |
 
-### Interface TypeScript
+### Que necesita la entidad Inspection
+
+Para que este endpoint funcione, la entidad `Inspection` necesita estos campos (si no existen, agregarlos):
 
 ```typescript
-export type CustomsChannel = 'red' | 'yellow' | 'green';
+// inspection.entity.ts
+@Entity()
+export class Inspection {
+  // ... campos existentes ...
 
-export interface InspectionOrderSummary {
-  cargo_type: string;
-  cargo_type_label: string;
+  @Column({ type: 'decimal', default: 0 })
   total_product_cost: number;
+
+  @Column({ type: 'decimal', default: 0 })
   customs_taxes: number;
+
+  @Column({ type: 'decimal', default: 0 })
   logistics_services: number;
+
+  @Column({ type: 'decimal', default: 0 })
   pending_payment: number;
-  customs_channel: CustomsChannel;
+
+  @Column({ type: 'varchar', nullable: true })
+  customs_channel: string; // 'red' | 'yellow' | 'green'
 }
 ```
 
-### Notas de Implementacion
+### Ejemplo de implementacion NestJS
 
-- El campo `customs_channel` es establecido manualmente por el administrador desde el panel de gestion.
-- Los valores monetarios son numeros (no strings). El frontend se encarga del formateo.
-- El `cargo_type` debe coincidir con el tipo `CargoType` ya definido en la entidad de inspeccion: `'general' | 'imo_mixta'`.
-- Si la inspeccion no tiene canal aduanero asignado aun, se puede devolver `null` o un valor por defecto.
+```typescript
+// inspections.controller.ts
+@Get(':id/order-summary')
+@UseGuards(JwtAuthGuard)
+async getOrderSummary(@Param('id') id: string) {
+  return this.inspectionsService.getOrderSummary(id);
+}
+
+// inspections.service.ts
+async getOrderSummary(id: string) {
+  const inspection = await this.inspectionRepository.findOne({ where: { id } });
+  if (!inspection) throw new NotFoundException('Inspeccion no encontrada');
+
+  const cargoTypeLabels: Record<string, string> = {
+    general: 'Carga General',
+    imo_mixta: 'IMO / Mixta',
+  };
+
+  return {
+    cargo_type: inspection.cargo_type || 'general',
+    cargo_type_label: cargoTypeLabels[inspection.cargo_type] || 'Carga General',
+    total_product_cost: Number(inspection.total_product_cost) || 0,
+    customs_taxes: Number(inspection.customs_taxes) || 0,
+    logistics_services: Number(inspection.logistics_services) || 0,
+    pending_payment: Number(inspection.pending_payment) || 0,
+    customs_channel: inspection.customs_channel || null,
+  };
+}
+```
 
 ---
 
-## 2. Endpoint: Shipments de una Inspeccion
+## ENDPOINT 2 (NUEVO o VERIFICAR): Shipments vinculados a una Inspeccion
 
 ```
 GET /inspections/:id/shipments
 ```
 
-Devuelve todos los shipments vinculados a una inspeccion especifica. El frontend usa esta informacion para mostrar el estado de los envios y la posicion en el mapa.
+**Estado:** VERIFICAR - El frontend necesita que devuelva esta estructura exacta
 
-### Response
+### Que debe devolver
 
 ```json
 {
@@ -107,7 +143,7 @@ Devuelve todos los shipments vinculados a una inspeccion especifica. El frontend
           "notes": "Llego a Los Angeles"
         }
       ],
-      "inspection_id": "uuid-inspection",
+      "inspection_id": "uuid-de-la-inspeccion",
       "estimated_date": "2026-03-01",
       "created_at": "2026-02-01T08:00:00Z",
       "updated_at": "2026-02-12T10:30:00Z"
@@ -116,107 +152,213 @@ Devuelve todos los shipments vinculados a una inspeccion especifica. El frontend
 }
 ```
 
-### Descripcion de Campos
+### IMPORTANTE - Estructura de respuesta
 
-Cada shipment en el array sigue la interface `Shipment` existente:
+El frontend espera el wrapper `{ "shipments": [...] }`, NO un array directo.
+
+**CORRECTO:**
+```json
+{ "shipments": [ { ... }, { ... } ] }
+```
+
+**INCORRECTO (el frontend NO parsea esto):**
+```json
+[ { ... }, { ... } ]
+```
+
+### Cada shipment DEBE incluir
 
 | Campo | Tipo | Descripcion |
 |-------|------|-------------|
 | `id` | `string` | UUID del shipment |
-| `correlative` | `string` | Correlativo legible (e.g., `SHP-001`) |
-| `origin` | `string` | Ciudad de origen |
-| `destination` | `string` | Ciudad de destino |
-| `weight` | `number` | Peso del envio |
-| `container_type` | `string?` | Tipo de contenedor (opcional, solo maritimo) |
-| `status` | `ShipmentStatus` | Estado general del shipment |
+| `correlative` | `string` | Ej: `"SHP-001"` |
+| `tracking_point` | `number` | **CRITICO** - Punto actual 14-45. El frontend usa esto para el mapa |
+| `status` | `string` | Estado general del shipment |
 | `current_location` | `string` | Ubicacion actual |
-| `tracking_point` | `number` | Punto actual en la ruta (14-45, segun BACKEND_SHIPMENT_TRACKING_SPEC.md) |
-| `progress` | `number` | Progreso 0-100 |
-| `shipping_type` | `string` | Tipo de envio: `"aerial"` o `"maritime"` |
-| `status_history` | `array` | Historial de estados |
-| `inspection_id` | `string` | UUID de la inspeccion vinculada |
-| `estimated_date` | `string?` | Fecha estimada de llegada |
-| `created_at` | `string` | Fecha de creacion |
-| `updated_at` | `string` | Fecha de ultima actualizacion |
+| `progress` | `number` | 0-100 |
+| `shipping_type` | `string` | `"aerial"` o `"maritime"` |
+| `status_history` | `array` | Array de objetos StatusHistoryEntry (ver arriba) |
+| `inspection_id` | `string` | UUID de la inspeccion padre |
 
-### Interface TypeScript
+### Ejemplo de implementacion NestJS
 
 ```typescript
-import { Shipment } from './shipmentInterface';
+// inspections.controller.ts
+@Get(':id/shipments')
+@UseGuards(JwtAuthGuard)
+async getInspectionShipments(@Param('id') id: string) {
+  return this.inspectionsService.getInspectionShipments(id);
+}
 
-export interface InspectionShipmentsResponse {
-  shipments: Shipment[];
+// inspections.service.ts
+async getInspectionShipments(id: string) {
+  const inspection = await this.inspectionRepository.findOne({ where: { id } });
+  if (!inspection) throw new NotFoundException('Inspeccion no encontrada');
+
+  const shipments = await this.shipmentRepository.find({
+    where: { inspection_id: id },
+    order: { created_at: 'DESC' },
+  });
+
+  return { shipments };
 }
 ```
 
-### Notas de Implementacion
-
-- El endpoint filtra shipments por `inspection_id` que coincida con el `:id` del path.
-- El `tracking_point` de cada shipment esta en el rango 14-45 (ver BACKEND_SHIPMENT_TRACKING_SPEC.md).
-- El frontend usa el **maximo `tracking_point`** entre todos los shipments para determinar la posicion a mostrar en el mapa.
-- Si la inspeccion no tiene shipments vinculados, devolver un array vacio: `{ "shipments": [] }`.
-- Los shipments deben venir ordenados por `created_at` (mas reciente primero) o por `correlative`.
-
 ---
 
-## 3. Autenticacion y Autorizacion
-
-- Ambos endpoints requieren autenticacion via Bearer token (JWT).
-- El usuario solo puede acceder a inspecciones que le pertenecen.
-- Los administradores pueden acceder a cualquier inspeccion.
-
----
-
-## 4. Codigos de Error
-
-| Codigo | Descripcion |
-|--------|-------------|
-| `401` | Token no proporcionado o invalido |
-| `403` | El usuario no tiene permiso para ver esta inspeccion |
-| `404` | Inspeccion no encontrada |
-
----
-
-## 5. Resumen de Cambios Requeridos
-
-| Componente | Accion | Prioridad |
-|------------|--------|-----------|
-| `GET /inspections/:id/order-summary` | CREAR - Devuelve resumen financiero y canal aduanero | ALTA |
-| `GET /inspections/:id/shipments` | CREAR - Devuelve shipments vinculados a la inspeccion | ALTA |
-| Entidad `Inspection` | VERIFICAR - Que tenga campo `customs_channel` (si no existe, agregar) | ALTA |
-| Entidad `Inspection` | VERIFICAR - Que tenga campos de costos o relacion con tabla de costos | MEDIA |
-
----
-
-## 6. Flujo de Uso en el Frontend
+## ENDPOINT 3 (VERIFICAR): Estados de Tracking de Shipments
 
 ```
-+---------------------------------------------------------------+
-|  1. Usuario navega a /inspeccion-de-mercancias/:id             |
-+---------------------------------------------------------------+
-                          |
-                          v
-+---------------------------------------------------------------+
-|  2. Frontend hace 2 requests en paralelo:                      |
-|     - GET /inspections/:id/order-summary                       |
-|     - GET /inspections/:id/shipments                           |
-+---------------------------------------------------------------+
-                          |
-                          v
-+---------------------------------------------------------------+
-|  3. Se muestra:                                                |
-|     - Semaforo aduanero (rojo/amarillo/verde)                  |
-|     - Tarjetas con costos y pagos pendientes                   |
-|     - Mapa con tracking del shipment mas avanzado              |
-|     - Historial de estados de cada shipment                    |
-+---------------------------------------------------------------+
+GET /shipments/tracking/statuses
+```
+
+**Estado:** SEGUN INDICADO YA EXISTE - VERIFICAR FORMATO
+
+### Que espera el frontend
+
+```json
+{
+  "statuses": [
+    {
+      "id": "14",
+      "order": 14,
+      "value": "transit_point_1",
+      "label": "Punto 1 / En el Mar",
+      "description": "En transito - Mar de China Meridional",
+      "phase": "transit",
+      "isOptional": false,
+      "isActive": true,
+      "tracking_point": 14
+    },
+    {
+      "id": "15",
+      "order": 15,
+      "value": "transit_point_2_taiwan",
+      "label": "Punto 2 / Taiwan Port",
+      "phase": "transit",
+      "isOptional": false,
+      "isActive": true,
+      "tracking_point": 15
+    }
+  ]
+}
+```
+
+### Campos requeridos por cada status
+
+| Campo | Tipo | Descripcion |
+|-------|------|-------------|
+| `id` | `string` | Identificador unico (puede ser el numero como string) |
+| `order` | `number` | Numero de orden (14-45) |
+| `value` | `string` | Identificador programatico (ej: `"transit_point_1"`) |
+| `label` | `string` | Texto legible (ej: `"Punto 1 / En el Mar"`) |
+| `description` | `string?` | Descripcion opcional |
+| `phase` | `string` | `"transit"` \| `"customs_destination"` \| `"last_mile"` |
+| `isOptional` | `boolean` | Solo `true` para punto 37 (retraso aduana) |
+| `isActive` | `boolean` | Si el estado esta activo |
+| `tracking_point` | `number` | Numero del punto en la ruta (14-45) |
+
+### IMPORTANTE - Wrapper
+
+El frontend espera `{ "statuses": [...] }` como wrapper (igual que el endpoint de inspecciones `GET /inspections/tracking/statuses`).
+
+### Los 32 estados completos (puntos 14-45)
+
+Referencia completa en el archivo `BACKEND_SHIPMENT_TRACKING_SPEC.md` seccion 3.
+
+---
+
+## ENDPOINT 4 (VERIFICAR): Actualizacion de Estado de Shipment
+
+```
+PUT /shipments/:id/status
+```
+
+**Estado:** YA EXISTE - VERIFICAR QUE ACEPTE tracking_point
+
+### Request Body que envia el frontend
+
+```json
+{
+  "status": "in_transit",
+  "current_location": "Los Angeles",
+  "tracking_point": 21,
+  "notes": "Llego a Los Angeles"
+}
+```
+
+El campo `tracking_point` es nuevo. Si el endpoint actual no lo acepta, agregarlo al DTO:
+
+```typescript
+// update-shipment-status.dto.ts
+export class UpdateShipmentStatusDto {
+  @IsString()
+  status: string;
+
+  @IsString()
+  current_location: string;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(14)
+  @Max(45)
+  tracking_point?: number;
+
+  @IsOptional()
+  @IsString()
+  notes?: string;
+}
 ```
 
 ---
 
-## Archivos Frontend Relevantes
+## Resumen de Prioridades
 
-- `src/api/interface/inspectionInterface.ts` - Interfaces del order summary
-- `src/api/interface/shipmentInterface.ts` - Interface Shipment existente
-- `src/api/inspection.ts` - Funciones API
-- `src/hooks/use-inspections.ts` - Hooks de React Query
+| # | Endpoint | Accion | Prioridad |
+|---|----------|--------|-----------|
+| 1 | `GET /inspections/:id/order-summary` | **CREAR** - No existe | **CRITICA** |
+| 2 | `GET /inspections/:id/shipments` | **CREAR o VERIFICAR** formato `{ shipments: [...] }` | **CRITICA** |
+| 3 | `GET /shipments/tracking/statuses` | **VERIFICAR** formato `{ statuses: [...] }` con todos los campos | **ALTA** |
+| 4 | `PUT /shipments/:id/status` | **VERIFICAR** que acepte `tracking_point` en el body | **ALTA** |
+| 5 | Entidad `Inspection` | **AGREGAR** campos financieros + `customs_channel` si no existen | **CRITICA** |
+
+---
+
+## Campos nuevos en Entidad Inspection (si no existen)
+
+```typescript
+@Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+total_product_cost: number;
+
+@Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+customs_taxes: number;
+
+@Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+logistics_services: number;
+
+@Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+pending_payment: number;
+
+@Column({ type: 'varchar', length: 10, nullable: true })
+customs_channel: string; // 'red' | 'yellow' | 'green' - asignado manualmente por admin
+```
+
+Migracion necesaria:
+```sql
+ALTER TABLE inspection ADD COLUMN total_product_cost DECIMAL(10,2) DEFAULT 0;
+ALTER TABLE inspection ADD COLUMN customs_taxes DECIMAL(10,2) DEFAULT 0;
+ALTER TABLE inspection ADD COLUMN logistics_services DECIMAL(10,2) DEFAULT 0;
+ALTER TABLE inspection ADD COLUMN pending_payment DECIMAL(10,2) DEFAULT 0;
+ALTER TABLE inspection ADD COLUMN customs_channel VARCHAR(10) NULL;
+```
+
+---
+
+## Archivos Frontend que Consumen Estos Endpoints
+
+| Archivo Frontend | Endpoint que usa |
+|-----------------|-----------------|
+| `src/api/inspection.ts` → `getInspectionOrderSummary()` | `GET /inspections/:id/order-summary` |
+| `src/api/inspection.ts` → `getInspectionShipments()` | `GET /inspections/:id/shipments` |
+| `src/api/shipments.ts` → `getShipmentTrackingStatuses()` | `GET /shipments/tracking/statuses` |
+| `src/api/shipments.ts` → `updateShipmentStatus()` | `PUT /shipments/:id/status` |

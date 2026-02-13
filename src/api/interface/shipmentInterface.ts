@@ -78,6 +78,7 @@ export interface Shipment {
   status: ShipmentStatus;
   current_location: CurrentLocation;
   progress: number; // 0-100
+  tracking_point?: number; // 14-45 para shipments
   status_history: StatusHistoryEntry[];
   shipping_type: ShippingType;
   estimated_date?: string;
@@ -98,6 +99,7 @@ export interface CreateShipmentRequest {
 export interface UpdateShipmentStatusRequest {
   status: ShipmentStatus;
   current_location: CurrentLocation;
+  tracking_point?: number;
   notes?: string;
 }
 
@@ -183,4 +185,26 @@ export interface InspectionTrackingRouteResponse {
   completedPoints: InspectionRoutePoint[];
   currentPoint: InspectionRoutePoint | null;
   pendingPoints: InspectionRoutePoint[];
-} 
+}
+
+// ============================================
+// INTERFACES PARA ESTADOS DE TRACKING DE SHIPMENT
+// ============================================
+
+export type ShipmentTrackingPhase = 'transit' | 'customs_destination' | 'last_mile';
+
+export interface ShipmentTrackingStatus {
+  id: string;
+  order: number;
+  value: string;
+  label: string;
+  description?: string;
+  phase: ShipmentTrackingPhase;
+  isOptional: boolean;
+  isActive: boolean;
+  tracking_point: number;
+}
+
+export interface ShipmentTrackingStatusesResponse {
+  statuses: ShipmentTrackingStatus[];
+}

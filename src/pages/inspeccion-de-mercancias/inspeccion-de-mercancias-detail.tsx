@@ -27,9 +27,9 @@ export default function InspeccionDeMercanciasDetail() {
       return inspection?.tracking_point || 1;
     }
     return shipments.reduce((max, s) => {
-      const tp = (s as any).tracking_point ?? 14;
+      const tp = s.tracking_point ?? 1;
       return Math.max(max, tp);
-    }, 14);
+    }, 1);
   }, [shipmentsData, inspection]);
 
   // Aggregate all status_history entries from all shipments
@@ -119,6 +119,7 @@ export default function InspeccionDeMercanciasDetail() {
               <CardContent className="p-0">
                 <div className="relative h-[560px] w-full">
                   <ShipmentRouteTrackingMap
+                    key={`map-${maxTrackingPoint}`}
                     serviceType={
                       inspection.shipping_service_type === "maritime"
                         ? "maritime"

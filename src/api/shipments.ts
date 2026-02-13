@@ -6,7 +6,8 @@ import type {
   ShipmentInfo,
   ShipmentsResponse,
   TrackingRouteResponse,
-  InspectionTrackingRouteResponse
+  InspectionTrackingRouteResponse,
+  ShipmentTrackingStatusesResponse
 } from "./interface/shipmentInterface";
 
 /**
@@ -171,6 +172,20 @@ export const getInspectionTrackingRoute = async (
     );
   } catch (error) {
     console.error("Error al obtener la ruta de tracking de inspección:", error);
+    throw error;
+  }
+};
+
+/**
+ * Obtiene los estados de tracking disponibles para shipments (puntos 14-45)
+ */
+export const getShipmentTrackingStatuses = async (): Promise<ShipmentTrackingStatusesResponse> => {
+  try {
+    return await apiFetch<ShipmentTrackingStatusesResponse>("/shipments/tracking/statuses", {
+      method: "GET",
+    });
+  } catch (error) {
+    console.error("Error al obtener los estados de tracking de shipments:", error);
     throw error;
   }
 }; 

@@ -86,7 +86,9 @@ export interface InspectionOrderSummary {
   customs_channel: CustomsChannel;
 }
 
+export { type Shipment } from './shipmentInterface';
+
 export interface InspectionShipmentsResponse {
-  shipments: import('./shipmentInterface').Shipment[];
+  shipments: Shipment[];
 }
 

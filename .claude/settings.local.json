@@ -16,7 +16,10 @@
       "Bash(cat:*)",
       "Skill(frontend-design:frontend-design)",
       "Bash(npx tsc --noEmit)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(npx:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nfeat: add backend spec, interfaces, API functions and hooks for inspection user view\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>\nEOF\n\\)\")"
     ],
     "deny": [],
     "ask": []

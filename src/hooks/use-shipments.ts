@@ -7,6 +7,7 @@ import {
   getShipmentInfo,
   getShipmentTrackingRoute,
   getInspectionTrackingRoute,
+  getShipmentTrackingStatuses,
 } from "@/api/shipments";
 import type {
   CreateShipmentRequest,
@@ -116,5 +117,16 @@ export function useGetInspectionTrackingRoute(inspectionId: string) {
     queryFn: () => getInspectionTrackingRoute(inspectionId),
     enabled: !!inspectionId,
     staleTime: 30000,
+  });
+}
+
+/**
+ * Hook para obtener los estados de tracking de shipments (puntos 14-45)
+ */
+export function useGetShipmentTrackingStatuses() {
+  return useQuery({
+    queryKey: ["ShipmentTrackingStatuses"],
+    queryFn: () => getShipmentTrackingStatuses(),
+    staleTime: 1000 * 60 * 60,
   });
 } 

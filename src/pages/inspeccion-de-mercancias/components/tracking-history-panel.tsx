@@ -28,6 +28,14 @@ const getStatusText = (status: string): string => {
     arrived_destination: "Llego a destino",
     customs: "Aduanas",
     delivered: "Entregado",
+    chinese_customs_inspection: "Inspeccion aduanas chinas",
+    chinese_customs_release: "Levante aduanas chinas",
+    on_vessel: "En el buque",
+    in_port: "En puerto",
+    pending_container_unloading: "Pendiente descarga contenedor",
+    container_unloaded_customs: "Contenedor descargado en aduanas",
+    peruvian_customs_release: "Levante aduanas peruanas",
+    local_warehouse_transit: "En transito almacen local",
   };
   return map[status] || status;
 };
@@ -63,7 +71,7 @@ export function TrackingHistoryPanel({ entries, isLoading }: TrackingHistoryPane
     <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-gray-200">
       {sorted.map((entry, index) => (
         <div
-          key={index}
+          key={`${entry.timestamp}-${entry.status}-${entry.location}`}
           className="relative flex gap-3 p-2.5 rounded-lg border border-gray-100 bg-white hover:bg-gray-50/50 transition-colors"
         >
           {/* Timeline dot and line */}

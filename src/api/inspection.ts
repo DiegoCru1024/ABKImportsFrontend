@@ -1,6 +1,6 @@
 import { API_URL } from "../../config";
 import { apiFetch } from "./apiFetch";
-import type { InspectionResponse, InspectionDetail, InspectionTrackingStatusesResponse, InspectionOrderSummary, InspectionShipmentsResponse } from "./interface/inspectionInterface";
+import type { InspectionResponse, InspectionDetail, InspectionTrackingStatusesResponse, InspectionOrderSummary, InspectionShipmentsResponse, InspectionTrackingHistoryResponse } from "./interface/inspectionInterface";
 
 /**
  * Obtiene todas las inspecciones que ha realizado el usuario
@@ -201,6 +201,20 @@ export const getInspectionShipments = async (id: string): Promise<InspectionShip
     });
   } catch (error) {
     console.error("Error al obtener los shipments de la inspeccion:", error);
+    throw error;
+  }
+};
+
+/**
+ * Obtiene el historial de tracking del producto con mayor estado en una inspeccion
+ */
+export const getInspectionTrackingHistory = async (id: string): Promise<InspectionTrackingHistoryResponse> => {
+  try {
+    return await apiFetch<InspectionTrackingHistoryResponse>(`/inspections/${id}/tracking-history`, {
+      method: "GET",
+    });
+  } catch (error) {
+    console.error("Error al obtener el historial de tracking:", error);
     throw error;
   }
 };

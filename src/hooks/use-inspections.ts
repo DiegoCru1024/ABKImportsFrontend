@@ -11,6 +11,7 @@ import {
   updateInspectionTrackingStatus,
   getInspectionOrderSummary,
   getInspectionShipments,
+  getInspectionTrackingHistory,
   type UpdateTrackingStatusData,
 } from "@/api/inspection";
 
@@ -198,6 +199,17 @@ export function useGetInspectionShipments(inspectionId: string) {
   return useQuery({
     queryKey: ["InspectionShipments", inspectionId],
     queryFn: () => getInspectionShipments(inspectionId),
+    enabled: !!inspectionId,
+  });
+}
+
+/**
+ * Hook para obtener el historial de tracking del producto con mayor estado
+ */
+export function useGetInspectionTrackingHistory(inspectionId: string) {
+  return useQuery({
+    queryKey: ["InspectionTrackingHistory", inspectionId],
+    queryFn: () => getInspectionTrackingHistory(inspectionId),
     enabled: !!inspectionId,
   });
 }

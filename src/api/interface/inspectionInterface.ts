@@ -92,3 +92,23 @@ export interface InspectionShipmentsResponse {
   shipments: Shipment[];
 }
 
+// ============================================
+// INTERFACES PARA HISTORIAL DE TRACKING DE PRODUCTO
+// ============================================
+
+export interface TrackingHistoryEntry {
+  status: string;
+  label: string;
+  tracking_point: number;
+  timestamp: string;
+  notes: string | null;
+}
+
+export interface InspectionTrackingHistoryResponse {
+  product_id: string | null;
+  product_name: string | null;
+  current_status: string;
+  current_tracking_point: number;
+  history: TrackingHistoryEntry[];
+}
+

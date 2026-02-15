@@ -1,60 +1,36 @@
-import { Badge } from "@/components/ui/badge";
 import { Clock } from "lucide-react";
-import type { StatusHistoryEntry } from "@/api/interface/shipmentInterface";
-import { formatDateLong } from "@/lib/format-time";
+import type { InspectionTrackingHistoryResponse } from "@/api/interface/inspectionInterface";
+import { formatDateTime } from "@/lib/format-time";
 
 interface TrackingHistoryPanelProps {
-  entries: StatusHistoryEntry[];
+  data: InspectionTrackingHistoryResponse | undefined;
   isLoading: boolean;
 }
 
-const getStatusColor = (status: string) => {
-  const s = status.toLowerCase();
-  if (s.includes("delivered")) return "bg-green-100 text-green-800 border-green-200";
-  if (s.includes("transit") || s.includes("vessel")) return "bg-blue-100 text-blue-800 border-blue-200";
-  if (s.includes("pending") || s.includes("awaiting")) return "bg-yellow-100 text-yellow-800 border-yellow-200";
-  if (s.includes("customs") || s.includes("inspection")) return "bg-orange-100 text-orange-800 border-orange-200";
-  return "bg-gray-100 text-gray-800 border-gray-200";
-};
+const MAX_TRACKING_POINT = 13;
 
-const getStatusText = (status: string): string => {
-  const map: Record<string, string> = {
-    pending_product_arrival: "Pendiente llegada",
-    in_inspection: "En inspeccion",
-    awaiting_pickup: "Esperando recojo",
-    dispatched: "Despachado",
-    airport: "Aeropuerto",
-    in_transit: "En transito",
-    arrived_destination: "Llego a destino",
-    customs: "Aduanas",
-    delivered: "Entregado",
-    chinese_customs_inspection: "Inspeccion aduanas chinas",
-    chinese_customs_release: "Levante aduanas chinas",
-    on_vessel: "En el buque",
-    in_port: "En puerto",
-    pending_container_unloading: "Pendiente descarga contenedor",
-    container_unloaded_customs: "Contenedor descargado en aduanas",
-    peruvian_customs_release: "Levante aduanas peruanas",
-    local_warehouse_transit: "En transito almacen local",
-  };
-  return map[status] || status;
-};
-
-export function TrackingHistoryPanel({ entries, isLoading }: TrackingHistoryPanelProps) {
+export function TrackingHistoryPanel({ data, isLoading }: TrackingHistoryPanelProps) {
   if (isLoading) {
     return (
-      <div className="space-y-3">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="p-3 rounded-lg border bg-white">
-            <div className="h-4 bg-gray-200 rounded animate-pulse mb-2 w-20" />
-            <div className="h-3 bg-gray-200 rounded animate-pulse w-32" />
-          </div>
-        ))}
+      <div className="space-y-4">
+        <div className="h-4 bg-gray-200 rounded animate-pulse w-24" />
+        <div className="h-2.5 bg-gray-200 rounded-full animate-pulse w-full" />
+        <div className="space-y-3 mt-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="flex items-start gap-3">
+              <div className="w-3 h-3 rounded-full bg-gray-200 animate-pulse mt-0.5 flex-shrink-0" />
+              <div className="flex-1 space-y-1.5">
+                <div className="h-3.5 bg-gray-200 rounded animate-pulse w-3/4" />
+                <div className="h-3 bg-gray-200 rounded animate-pulse w-1/2" />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
 
-  if (!entries.length) {
+  if (!data || !data.history.length) {
     return (
       <div className="flex flex-col items-center justify-center py-8 text-gray-400">
         <Clock className="h-8 w-8 mb-2" />
@@ -63,46 +39,68 @@ export function TrackingHistoryPanel({ entries, isLoading }: TrackingHistoryPane
     );
   }
 
-  const sorted = [...entries].sort(
-    (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+  const progressPercent = Math.round(
+    (data.current_tracking_point / MAX_TRACKING_POINT) * 100
   );
 
   return (
-    <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-gray-200">
-      {sorted.map((entry, index) => (
-        <div
-          key={`${entry.timestamp}-${entry.status}-${entry.location}`}
-          className="relative flex gap-3 p-2.5 rounded-lg border border-gray-100 bg-white hover:bg-gray-50/50 transition-colors"
-        >
-          {/* Timeline dot and line */}
-          <div className="flex flex-col items-center">
-            <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1 ${
-              index === 0 ? "bg-blue-500" : "bg-gray-300"
-            }`} />
-            {index < sorted.length - 1 && (
-              <div className="w-px h-full bg-gray-200 mt-1" />
-            )}
-          </div>
-
-          {/* Content */}
-          <div className="flex-1 min-w-0">
-            <Badge className={`text-[10px] px-1.5 py-0 h-4 ${getStatusColor(entry.status)}`}>
-              {getStatusText(entry.status)}
-            </Badge>
-            <div className="mt-1 flex items-center gap-1.5">
-              <span className="text-[10px] font-medium text-gray-700">{entry.location}</span>
-              <span className="text-[10px] text-gray-400">-</span>
-              <span className="text-[10px] text-gray-400">{entry.progress}%</span>
-            </div>
-            <p className="text-[10px] text-gray-400 mt-0.5">
-              {formatDateLong(entry.timestamp)}
-            </p>
-            {entry.notes && (
-              <p className="text-[10px] text-gray-500 mt-1 italic">"{entry.notes}"</p>
-            )}
-          </div>
+    <div className="space-y-5">
+      {/* Progress Section */}
+      <div>
+        <h4 className="text-sm font-semibold text-gray-900 mb-3">
+          Progreso del Envio
+        </h4>
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs text-gray-500">Progreso</span>
+          <span className="text-xs font-semibold text-gray-700">
+            {progressPercent}%
+          </span>
         </div>
-      ))}
+        <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-red-500 rounded-full transition-all duration-500"
+            style={{ width: `${progressPercent}%` }}
+          />
+        </div>
+      </div>
+
+      {/* Divider */}
+      <div className="border-t border-gray-100" />
+
+      {/* Timeline */}
+      <div className="space-y-0 max-h-[340px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-gray-200">
+        {data.history.map((entry, index) => {
+          const isFirst = index === 0;
+
+          return (
+            <div key={`${entry.timestamp}-${entry.status}`} className="relative flex gap-3">
+              {/* Timeline column: dot + line */}
+              <div className="flex flex-col items-center">
+                <div
+                  className={`w-3 h-3 rounded-full flex-shrink-0 mt-0.5 ${
+                    isFirst ? "bg-red-500" : "bg-green-500"
+                  }`}
+                />
+                {index < data.history.length - 1 && (
+                  <div className="w-px flex-1 bg-gray-200 min-h-[24px]" />
+                )}
+              </div>
+
+              {/* Content */}
+              <div className="pb-4 flex-1 min-w-0">
+                <p className={`text-sm font-medium leading-tight ${
+                  isFirst ? "text-gray-900" : "text-gray-700"
+                }`}>
+                  {entry.label}
+                </p>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  {formatDateTime(entry.timestamp, "dd MMMM, yyyy - HH:mm")} UTC
+                </p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

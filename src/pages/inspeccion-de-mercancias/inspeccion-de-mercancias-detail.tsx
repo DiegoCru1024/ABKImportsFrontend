@@ -1,8 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useMemo } from "react";
-import { useGetInspectionById, useGetInspectionOrderSummary, useGetInspectionShipments } from "@/hooks/use-inspections";
+import { useGetInspectionById, useGetInspectionOrderSummary, useGetInspectionTrackingHistory } from "@/hooks/use-inspections";
 import type { CargoType } from "@/api/interface/inspectionInterface";
-import type { StatusHistoryEntry } from "@/api/interface/shipmentInterface";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ShipmentRouteTrackingMap } from "@/components/shipment-route-tracking";
@@ -11,33 +10,42 @@ import { CustomsChannelBadge } from "./components/customs-channel-badge";
 import { OrderInfoCards } from "./components/order-info-cards";
 import { TrackingHistoryPanel } from "./components/tracking-history-panel";
 
+/** Mapeo de status de producto a tracking point (1-13) */
+const STATUS_TO_TRACKING_POINT: Record<string, number> = {
+  pending_arrival: 1,
+  in_inspection: 2,
+  awaiting_pickup: 3,
+  in_transit_0: 4,
+  in_transit_50: 5,
+  in_transit_75: 6,
+  arrived_airport: 7,
+  customs_inspection: 8,
+  customs_waiting: 9,
+  customs_delay: 10,
+  customs_approved: 11,
+  waiting_boarding: 12,
+  boarding_confirmed: 13,
+};
+
 export default function InspeccionDeMercanciasDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
   const { data: inspection, isLoading: loadingInspection, error } = useGetInspectionById(id || "");
   const { data: orderSummary, isLoading: loadingSummary } = useGetInspectionOrderSummary(id || "");
-  const { data: shipmentsData, isLoading: loadingShipments } = useGetInspectionShipments(id || "");
+  const { data: trackingHistory, isLoading: loadingHistory } = useGetInspectionTrackingHistory(id || "");
 
-  // Calculate max tracking_point across all shipments
+  // Calcular el tracking point maximo entre todos los productos del content
   const maxTrackingPoint = useMemo((): number => {
-    const shipments = shipmentsData?.shipments;
-    if (!shipments?.length) {
-      // Fallback to inspection tracking_point (1-13)
+    const products = inspection?.content;
+    if (!products?.length) {
       return inspection?.tracking_point || 1;
     }
-    return shipments.reduce((max, s) => {
-      const tp = s.tracking_point ?? 1;
+    return products.reduce((max, product) => {
+      const tp = STATUS_TO_TRACKING_POINT[product.status] ?? 1;
       return Math.max(max, tp);
     }, 1);
-  }, [shipmentsData, inspection]);
-
-  // Aggregate all status_history entries from all shipments
-  const allStatusHistory = useMemo((): StatusHistoryEntry[] => {
-    const shipments = shipmentsData?.shipments;
-    if (!shipments?.length) return [];
-    return shipments.flatMap((s) => s.status_history || []);
-  }, [shipmentsData]);
+  }, [inspection]);
 
   const cargoType: CargoType = inspection?.cargo_type || "general";
 
@@ -145,12 +153,9 @@ export default function InspeccionDeMercanciasDetail() {
             {/* Historial de Tracking */}
             <Card className="border-0 shadow-sm bg-white">
               <CardContent className="p-4">
-                <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wider mb-3">
-                  Historial de Tracking
-                </h3>
                 <TrackingHistoryPanel
-                  entries={allStatusHistory}
-                  isLoading={loadingShipments}
+                  data={trackingHistory}
+                  isLoading={loadingHistory}
                 />
               </CardContent>
             </Card>

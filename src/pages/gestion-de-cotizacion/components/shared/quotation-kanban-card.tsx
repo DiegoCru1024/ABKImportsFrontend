@@ -18,38 +18,76 @@ export function QuotationKanbanCard({
   onViewDetails,
   onViewResponses,
 }: QuotationKanbanCardProps) {
+  const isDraft = quotation.status === "draft";
   const canRespond =
     quotation.status !== "pending" && quotation.status !== "draft";
 
   return (
-    <Card className="p-4 bg-white hover:shadow-md transition-all duration-200 border border-slate-200 rounded-lg cursor-pointer group">
+    <Card
+      className={`p-4 transition-all duration-200 border rounded-lg group ${
+        isDraft
+          ? "bg-slate-100 border-slate-200 opacity-70"
+          : "bg-white hover:shadow-md border-slate-200 cursor-pointer"
+      }`}
+    >
       <div className="flex flex-col gap-3">
         <div className="flex items-start justify-between gap-2">
-          <h4 className="font-semibold text-sm text-slate-800 line-clamp-1 flex-1">
+          <h4
+            className={`font-semibold text-sm line-clamp-1 flex-1 ${
+              isDraft ? "text-slate-400" : "text-slate-800"
+            }`}
+          >
             {quotation.correlative}
           </h4>
-          <div className="flex items-center gap-1 text-xs text-slate-500 shrink-0">
+          <div
+            className={`flex items-center gap-1 text-xs shrink-0 ${
+              isDraft ? "text-slate-400" : "text-slate-500"
+            }`}
+          >
             <Calendar className="w-3 h-3" />
             <span>{formatDate(quotation.createdAt)}</span>
           </div>
         </div>
 
         <div className="flex flex-col gap-1">
-          <p className="text-xs font-medium text-slate-700 line-clamp-1">
+          <p
+            className={`text-xs font-medium line-clamp-1 ${
+              isDraft ? "text-slate-400" : "text-slate-700"
+            }`}
+          >
             {quotation.user?.name}
           </p>
-          <p className="text-xs text-slate-500 line-clamp-1">
+          <p
+            className={`text-xs line-clamp-1 ${
+              isDraft ? "text-slate-400" : "text-slate-500"
+            }`}
+          >
             {quotation.user?.email}
           </p>
         </div>
 
         <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-          <div className="flex items-center gap-1 text-xs text-slate-600">
-            <Package className="w-3 h-3 text-orange-400" />
+          <div
+            className={`flex items-center gap-1 text-xs ${
+              isDraft ? "text-slate-400" : "text-slate-600"
+            }`}
+          >
+            <Package
+              className={`w-3 h-3 ${isDraft ? "text-slate-400" : "text-orange-400"}`}
+            />
             <span>{quotation?.products?.length || 0} productos</span>
           </div>
 
-          {canRespond ? (
+          {isDraft ? (
+            <Button
+              size="sm"
+              disabled
+              className="h-7 px-2 text-xs bg-slate-200 text-slate-400 cursor-not-allowed"
+            >
+              <Eye className="w-3 h-3 mr-1" />
+              Borrador
+            </Button>
+          ) : canRespond ? (
             <Button
               size="sm"
               onClick={() => onViewResponses(quotation.quotationId)}

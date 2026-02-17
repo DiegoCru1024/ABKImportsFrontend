@@ -1,7 +1,9 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useMemo } from "react";
-import { useGetInspectionById, useGetInspectionOrderSummary, useGetInspectionTrackingHistory } from "@/hooks/use-inspections";
+import { useGetInspectionById, useGetInspectionOrderSummary, useGetInspectionTrackingHistory, useGetInspectionShipments } from "@/hooks/use-inspections";
+import { useGetShipmentTrackingStatuses } from "@/hooks/use-shipments";
 import type { CargoType } from "@/api/interface/inspectionInterface";
+import type { ShipmentTrackingStatus } from "@/api/interface/shipmentInterface";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ShipmentRouteTrackingMap } from "@/components/shipment-route-tracking";
@@ -34,18 +36,53 @@ export default function InspeccionDeMercanciasDetail() {
   const { data: inspection, isLoading: loadingInspection, error } = useGetInspectionById(id || "");
   const { data: orderSummary, isLoading: loadingSummary } = useGetInspectionOrderSummary(id || "");
   const { data: trackingHistory, isLoading: loadingHistory } = useGetInspectionTrackingHistory(id || "");
+  const { data: shipmentStatusesData } = useGetShipmentTrackingStatuses();
+  const { data: shipmentsData } = useGetInspectionShipments(id || "");
+
+  // Estados de tracking de shipments (14-45)
+  const shipmentTrackingStatuses = useMemo(
+    () => shipmentStatusesData?.statuses || [],
+    [shipmentStatusesData?.statuses]
+  );
+
+  // Shipment vinculado (tomar el primero)
+  const linkedShipment = useMemo(
+    () => shipmentsData?.shipments?.[0] || null,
+    [shipmentsData]
+  );
 
   // Calcular el tracking point maximo entre todos los productos del content
   const maxTrackingPoint = useMemo((): number => {
+    // Si hay un shipment vinculado con tracking_point >= 14, considerarlo
+    const shipmentTp = linkedShipment?.tracking_point && linkedShipment.tracking_point >= 14
+      ? linkedShipment.tracking_point
+      : 0;
+
     const products = inspection?.content;
     if (!products?.length) {
-      return inspection?.tracking_point || 1;
+      return Math.max(shipmentTp, inspection?.tracking_point || 1);
     }
-    return products.reduce((max, product) => {
-      const tp = STATUS_TO_TRACKING_POINT[product.status] ?? 1;
-      return Math.max(max, tp);
+
+    const productMax = products.reduce((max, product) => {
+      // 1. Buscar en el mapeo local de inspección (1-13)
+      let tp = STATUS_TO_TRACKING_POINT[product.status];
+
+      // 2. Si no está, buscar en estados de shipment (14-45)
+      if (tp === undefined) {
+        const shipmentStatus = shipmentTrackingStatuses.find(
+          (s: ShipmentTrackingStatus) => s.value === product.status
+        );
+        if (shipmentStatus) {
+          tp = shipmentStatus.tracking_point;
+        }
+      }
+
+      return Math.max(max, tp ?? 1);
     }, 1);
-  }, [inspection]);
+
+    // Retornar el mayor entre productos y shipment vinculado
+    return Math.max(productMax, shipmentTp);
+  }, [inspection, linkedShipment, shipmentTrackingStatuses]);
 
   const cargoType: CargoType = inspection?.cargo_type || "general";
 

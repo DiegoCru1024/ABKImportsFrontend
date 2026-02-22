@@ -12,6 +12,7 @@ import {
   getInspectionOrderSummary,
   getInspectionShipments,
   getInspectionTrackingHistory,
+  getActiveInspection,
   type UpdateTrackingStatusData,
 } from "@/api/inspection";
 
@@ -211,6 +212,16 @@ export function useGetInspectionTrackingHistory(inspectionId: string) {
     queryKey: ["InspectionTrackingHistory", inspectionId],
     queryFn: () => getInspectionTrackingHistory(inspectionId),
     enabled: !!inspectionId,
+  });
+}
+
+/**
+ * Hook para obtener la inspeccion activa mas antigua (no completada) del usuario
+ */
+export function useGetActiveInspection() {
+  return useQuery({
+    queryKey: ["ActiveInspection"],
+    queryFn: () => getActiveInspection(),
   });
 }
 

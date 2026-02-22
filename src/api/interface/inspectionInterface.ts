@@ -80,9 +80,8 @@ export interface InspectionOrderSummary {
   cargo_type: string;
   cargo_type_label: string;
   total_product_cost: number;
-  customs_taxes: number;
-  logistics_services: number;
-  pending_payment: number;
+  total_import_expenses: number;
+  total_import_investment: number;
   customs_channel: CustomsChannel;
 }
 

@@ -218,3 +218,17 @@ export const getInspectionTrackingHistory = async (id: string): Promise<Inspecti
     throw error;
   }
 };
+
+/**
+ * Obtiene la inspeccion activa mas antigua del usuario (no completada)
+ */
+export const getActiveInspection = async (): Promise<InspectionDetail> => {
+  try {
+    return await apiFetch<InspectionDetail>("/inspections/active", {
+      method: "GET",
+    });
+  } catch (error) {
+    console.error("Error al obtener la inspeccion activa:", error);
+    throw error;
+  }
+};

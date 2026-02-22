@@ -8,7 +8,7 @@ import AdminCreateQuotationView from "@/pages/gestion-de-cotizacion/admin-create
 
 import LoginPage from "@/pages/login";
 import SesionPorExpirar from "@/pages/sesion-por-expirar";
-import DashboardPage from "@/pages/dashboard";
+import DashboardPage from "@/pages/dashboard/dashboard-view";
 import BasicLayout from "@/layouts/basic-layout";
 import DashboardLayout from "@/layouts/dashboard-layout";
 import GestionDeUsuarios from "@/pages/gestion-de-usuarios/gestion-de-usuarios-view";

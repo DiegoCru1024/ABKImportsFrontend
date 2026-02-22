@@ -61,10 +61,10 @@ export function OrderInfoCards({ summary, isLoading }: OrderInfoCardsProps) {
         <CardContent className="p-3">
           <div className="flex items-center gap-1.5 mb-1">
             <FileText className="h-3 w-3 text-amber-500" />
-            <p className="text-[10px] font-medium text-gray-500">Impuestos Aduaneros</p>
+            <p className="text-[10px] font-medium text-gray-500">Total de Gastos Importación</p>
           </div>
           <p className="text-lg font-bold text-amber-600">
-            {formatCurrency(summary?.customs_taxes)}
+            {formatCurrency(summary?.total_import_expenses)}
           </p>
         </CardContent>
       </Card>
@@ -74,10 +74,10 @@ export function OrderInfoCards({ summary, isLoading }: OrderInfoCardsProps) {
         <CardContent className="p-3">
           <div className="flex items-center gap-1.5 mb-1">
             <Truck className="h-3 w-3 text-purple-500" />
-            <p className="text-[10px] font-medium text-gray-500">Servicios Logisticos</p>
+            <p className="text-[10px] font-medium text-gray-500">Inversión Total Importación</p>
           </div>
           <p className="text-lg font-bold text-purple-600">
-            {formatCurrency(summary?.logistics_services)}
+            {formatCurrency(summary?.total_import_investment)}
           </p>
         </CardContent>
       </Card>
@@ -90,7 +90,7 @@ export function OrderInfoCards({ summary, isLoading }: OrderInfoCardsProps) {
             <p className="text-[10px] font-medium text-gray-500">Pago Pendiente</p>
           </div>
           <p className="text-lg font-bold text-red-600">
-            {formatCurrency(summary?.pending_payment)}
+           --
           </p>
         </CardContent>
       </Card>

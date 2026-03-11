@@ -7,6 +7,8 @@ import {
     useGetDetailsResponse,
     usePatchQuatitationResponse,
 } from "@/hooks/use-quatitation-response";
+import { listAllProfitPercentages } from "@/api/quotation-responses";
+import type { IProfitPercentage } from "@/api/interface/quotation-response/quotation-response-base";
 
 import type { ResponseDataComplete } from "@/api/interface/quotation-response/dto/complete/response-data-complete";
 import type { ResponseDataPending } from "@/api/interface/quotation-response/dto/pending/response-data-pending";
@@ -90,6 +92,19 @@ export default function EditQuotationResponseView() {
 
     const [pendingProducts, setPendingProducts] = useState<any[]>([]);
     const [isDataInitialized, setIsDataInitialized] = useState<boolean>(false);
+    const [profitPercentages, setProfitPercentages] = useState<IProfitPercentage[]>([]);
+
+    useEffect(() => {
+        const loadProfitPercentages = async () => {
+            try {
+                const percentages = await listAllProfitPercentages();
+                setProfitPercentages(percentages);
+            } catch (error) {
+                console.error("Error al cargar porcentajes de ganancia:", error);
+            }
+        };
+        loadProfitPercentages();
+    }, []);
 
     const isPendingView = quotationForm.selectedServiceLogistic === "Cotizacion de Origen";
 
@@ -265,12 +280,22 @@ export default function EditQuotationResponseView() {
                         );
                     });
 
-                    Object.entries(calc.taxPercentage).forEach(([key, value]) => {
-                        quotationForm.updateDynamicValue(
-                            key as keyof typeof quotationForm.dynamicValues,
-                            value as number
-                        );
-                    });
+                    // Mapeo explícito: TaxPercentageInterface usa "percepcion" pero el form usa "percepcionRate"
+                    quotationForm.updateDynamicValue("adValoremRate", calc.taxPercentage.adValoremRate);
+                    quotationForm.updateDynamicValue("igvRate", calc.taxPercentage.igvRate);
+                    quotationForm.updateDynamicValue("ipmRate", calc.taxPercentage.ipmRate);
+                    quotationForm.updateDynamicValue("percepcionRate", calc.taxPercentage.percepcion);
+
+                    // Inicializar campos de servicio desde serviceCalculations.serviceFields
+                    const serviceFields = resData.serviceCalculations?.serviceFields;
+                    if (serviceFields) {
+                        quotationForm.updateDynamicValue("servicioConsolidado", serviceFields.servicioConsolidado || 0);
+                        quotationForm.updateDynamicValue("separacionCarga", serviceFields.separacionCarga || 0);
+                        quotationForm.updateDynamicValue("inspeccionProductos", serviceFields.inspeccionProductos || 0);
+                        quotationForm.updateDynamicValue("gestionCertificado", serviceFields.gestionCertificado || 0);
+                        quotationForm.updateDynamicValue("inspeccionFabrica", serviceFields.inspeccionFabrica || 0);
+                        quotationForm.updateDynamicValue("otrosServicios", serviceFields.otrosServicios || 0);
+                    }
                 }
 
                 const productsForTable = responseDetails.products.map(
@@ -474,6 +499,12 @@ export default function EditQuotationResponseView() {
         variantQuotationState: quotationForm.variantQuotationState,
     });
 
+    useEffect(() => {
+        if (calculations.totalTaxes !== quotationForm.dynamicValues.totalDerechos) {
+            quotationForm.updateDynamicValue("totalDerechos", calculations.totalTaxes);
+        }
+    }, [calculations.totalTaxes]);
+
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [productsAggregatedData, setProductsAggregatedData] = useState<
         Record<
@@ -656,16 +687,26 @@ export default function EditQuotationResponseView() {
 
     const handlePendingVariantUpdate = useCallback(
         (productId: string, variantId: string, updates: any) => {
+            console.log(`🔄 Actualizando variante ${variantId} del producto ${productId}:`, updates);
+
             setPendingProducts((prev) => {
                 const updatedProducts = prev.map((product) =>
                     product.id === productId
                         ? {
                             ...product,
-                            variants: product.variants?.map((variant: any) =>
-                                variant.id === variantId
-                                    ? { ...variant, ...updates }
-                                    : variant
-                            ),
+                            variants: product.variants?.map((variant: any) => {
+                                if (variant.id === variantId) {
+                                    return {
+                                        ...variant,
+                                        ...updates,
+                                        price: updates.price !== undefined ? parseFloat(updates.price) : variant.price,
+                                        priceExpress: updates.priceExpress !== undefined ? parseFloat(updates.priceExpress) : variant.priceExpress,
+                                        quantity: updates.quantity !== undefined ? parseFloat(updates.quantity) : variant.quantity,
+                                        value_profit_porcentage: updates.value_profit_porcentage !== undefined ? updates.value_profit_porcentage : variant.value_profit_porcentage,
+                                    };
+                                }
+                                return variant;
+                            }),
                         }
                         : product
                 );
@@ -673,6 +714,7 @@ export default function EditQuotationResponseView() {
                 const updatedProduct = updatedProducts.find((p) => p.id === productId);
                 if (updatedProduct) {
                     const aggregatedData = calculateProductAggregatedData(updatedProduct);
+                    console.log(`📊 Nuevos datos agregados para producto ${productId}:`, aggregatedData);
                     handleAggregatedDataChange(productId, aggregatedData);
                 }
 
@@ -772,6 +814,8 @@ export default function EditQuotationResponseView() {
                     false,
                 unitPrice: variant.price || 0,
                 expressPrice: variant.priceExpress || variant.express || 0,
+                id_profit_percentage: variant.id_profit_percentage || null,
+                value_profit_porcentage: variant.value_profit_porcentage || null,
             })),
         }));
 
@@ -1253,7 +1297,7 @@ export default function EditQuotationResponseView() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen min-w-full bg-gray-50 overflow-x-hidden grid grid-cols-1">
             <SectionHeader
                 icon={<FileText className="h-6 w-6 text-white" />}
                 title={
@@ -1290,7 +1334,7 @@ export default function EditQuotationResponseView() {
                 }
             />
 
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+            <div className=" min-w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
                 {isPendingView && (
 
@@ -1391,14 +1435,14 @@ export default function EditQuotationResponseView() {
                 )}
 
                 {isPendingView ? (
-                    <div className="space-y-6">
-                        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-                            <div className="bg-gradient-to-r from-blue-400/50 to-blue-400/50 p-4 sm:p-6">
-                                <h3 className="text-lg sm:text-xl font-bold">
+                    <div className="space-y-3">
+                        <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+                            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-200 px-4 py-3">
+                                <h3 className="text-base font-semibold text-slate-800">
                                     Productos de la Cotización - Vista Administrativa
                                 </h3>
                             </div>
-                            <div className="p-4 sm:p-6 space-y-4">
+                            <div className="p-3">
                                 {pendingProducts.map((product, index) => (
                                     <QuotationProductRow
                                         key={product.id}
@@ -1432,6 +1476,7 @@ export default function EditQuotationResponseView() {
                                         quotationDetail={quotationDetail}
                                         productQuotationState={quotationForm.productQuotationState}
                                         variantQuotationState={quotationForm.variantQuotationState}
+                                        profitPercentages={profitPercentages}
                                         onProductQuotationToggle={(productId, checked) => {
                                             quotationForm.updateProductQuotationState(
                                                 productId,
@@ -1455,8 +1500,8 @@ export default function EditQuotationResponseView() {
                                     />
                                 ))}
                                 {pendingProducts.length === 0 && (
-                                    <div className="text-center py-8 text-gray-500">
-                                        <p>No hay productos disponibles para cotizar</p>
+                                    <div className="text-center py-6 text-gray-500">
+                                        <p className="text-sm">No hay productos disponibles para cotizar</p>
                                     </div>
                                 )}
                             </div>
@@ -1641,19 +1686,17 @@ export default function EditQuotationResponseView() {
                                 }}
                                 comercialValue={quotationForm.dynamicValues.comercialValue}
                                 totalImportCosts={totalImportCosts}
-                                isExpressConsolidatedPersonal={
-                                    quotationForm.selectedServiceLogistic === "Consolidado Express" &&
-                                    quotationForm.dynamicValues.comercialValue < 200
-                                }
+                                isExpressConsolidatedPersonal={isExpressConsolidatedPersonal}
+                                isExpressConsolidatedGrupal={isExpressConsolidatedGrupal}
                             />
                         </div>
 
-                        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-                            <div className="bg-gradient-to-r from-green-500 to-green-600 p-4 sm:p-6">
-                                <h3 className="text-lg sm:text-xl font-bold text-white">
+                        <div className="bg-gradient-to-br from-white via-blue-50/20 to-indigo-50/30 rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+                            <div className="bg-gradient-to-br from-white via-blue-50/20 to-indigo-50/30 border border-slate-200/60 overflow-hidden p-4 sm:p-6">
+                                <h3 className="text-lg sm:text-xl font-bold">
                                     Gestión de Productos - Vista Completa
                                 </h3>
-                                <p className="text-green-100 text-sm mt-1">
+                                <p className="text-green-800 text-sm mt-1">
                                     Cálculos detallados para servicios Express/Marítimo
                                 </p>
                             </div>

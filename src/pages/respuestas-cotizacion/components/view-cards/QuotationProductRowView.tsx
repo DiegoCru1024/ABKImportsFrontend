@@ -64,6 +64,7 @@ interface PendingProduct {
     unitPrice: number;
     expressPrice: number;
   };
+  isQuoted?: boolean;
 }
 
 interface QuotationProductRowViewProps {
@@ -174,6 +175,11 @@ export default function QuotationProductRowView({
             {/* Columna 1: NRO. */}
             <td className="p-3 text-center align-top border-r border-blue-200/30">
               <div className="text-lg font-bold text-gray-800">{index + 1}</div>
+              {product.isQuoted === false && (
+                <Badge className="mt-1 text-[10px] bg-amber-100 text-amber-800 border border-amber-300">
+                  Sin cotizar
+                </Badge>
+              )}
             </td>
 
             {/* Columna 2: PRODUCTO & VARIANTES */}
@@ -334,7 +340,11 @@ export default function QuotationProductRowView({
             {/* Columna 6: PRECIO */}
             <td className="p-3 text-center align-top border-r border-blue-200/30">
               <div className="text-xs text-slate-600 mb-1">USD</div>
-              <div className="text-lg font-semibold text-emerald-700 border border-emerald-300/50 rounded-lg px-2 py-1 bg-emerald-100/50">
+              <div className={`text-lg font-semibold border rounded-lg px-2 py-1 ${
+                product.isQuoted === false
+                  ? "text-gray-400 border-gray-200 bg-gray-50"
+                  : "text-emerald-700 border-emerald-300/50 bg-emerald-100/50"
+              }`}>
                 $
                 {product.variants && product.variants.length > 0
                   ? aggregatedData.totalPrice.toFixed(2)
@@ -345,7 +355,11 @@ export default function QuotationProductRowView({
             {/* Columna 7: EXPRESS */}
             <td className="p-3 text-center align-top border-r border-blue-200/30">
               <div className="text-xs text-slate-600 mb-1">USD</div>
-              <div className="text-lg font-semibold text-blue-700 border border-blue-300/50 rounded-lg px-2 py-1 bg-blue-100/50">
+              <div className={`text-lg font-semibold border rounded-lg px-2 py-1 ${
+                product.isQuoted === false
+                  ? "text-gray-400 border-gray-200 bg-gray-50"
+                  : "text-blue-700 border-blue-300/50 bg-blue-100/50"
+              }`}>
                 $
                 {product.variants && product.variants.length > 0
                   ? aggregatedData.totalExpress.toFixed(2)
@@ -356,7 +370,11 @@ export default function QuotationProductRowView({
             {/* Columna 8: P. TOTAL */}
             <td className="p-3 text-center align-top">
               <div className="text-xs text-slate-600 mb-1">USD</div>
-              <div className="text-lg font-semibold text-indigo-700 border border-indigo-300/50 rounded-lg px-2 py-1 bg-indigo-100/50">
+              <div className={`text-lg font-semibold border rounded-lg px-2 py-1 ${
+                product.isQuoted === false
+                  ? "text-gray-400 border-gray-200 bg-gray-50"
+                  : "text-indigo-700 border-indigo-300/50 bg-indigo-100/50"
+              }`}>
                 $
                 {(product.variants && product.variants.length > 0
                   ? aggregatedData.totalPrice + aggregatedData.totalExpress

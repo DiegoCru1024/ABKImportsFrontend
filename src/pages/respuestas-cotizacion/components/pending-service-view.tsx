@@ -66,6 +66,7 @@ export function PendingServiceView({
         : undefined,
       cargoHandling: product.cargoHandling,
       ghostUrl: product.ghostUrl || "",
+      isQuoted: product.isQuoted,
     };
   });
 

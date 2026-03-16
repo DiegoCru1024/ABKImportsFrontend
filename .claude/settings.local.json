@@ -20,7 +20,8 @@
       "Bash(npx:*)",
       "Bash(git add:*)",
       "Bash(git commit -m \"$\\(cat <<''EOF''\nfeat: add backend spec, interfaces, API functions and hooks for inspection user view\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>\nEOF\n\\)\")",
-      "Bash(./node_modules/.bin/tsc:*)"
+      "Bash(./node_modules/.bin/tsc:*)",
+      "Bash(cd:*)"
     ],
     "deny": [],
     "ask": []

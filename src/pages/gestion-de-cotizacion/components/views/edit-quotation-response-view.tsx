@@ -252,14 +252,14 @@ export default function EditQuotationResponseView() {
                 responseDetails.products.forEach((respProduct: any) => {
                     quotationForm.updateProductQuotationState(
                         respProduct.productId,
-                        respProduct.isQuoted
+                        true
                     );
 
                     respProduct.variants?.forEach((respVar: any) => {
                         quotationForm.updateVariantQuotationState(
                             respProduct.productId,
                             respVar.variantId,
-                            respVar.isQuoted
+                            true
                         );
                     });
                 });
@@ -355,14 +355,14 @@ export default function EditQuotationResponseView() {
                 responseDetails.products.forEach((respProduct: any) => {
                     quotationForm.updateProductQuotationState(
                         respProduct.productId,
-                        respProduct.isQuoted
+                        true
                     );
 
                     respProduct.variants?.forEach((respVar: any) => {
                         quotationForm.updateVariantQuotationState(
                             respProduct.productId,
                             respVar.variantId,
-                            respVar.isQuoted
+                            true
                         );
                     });
                 });

@@ -251,7 +251,11 @@ export default function EditableUnitCostTableView({
 
                   return (
                     <React.Fragment key={product.id}>
-                      <tr className="border-b border-slate-200/40 hover:bg-blue-50/30 transition-colors">
+                      <tr className={`border-b border-slate-200/40 transition-colors ${
+                        product.seCotiza === false
+                          ? "bg-amber-50/40 hover:bg-amber-50/60"
+                          : "hover:bg-blue-50/30"
+                      }`}>
                         <td className="p-3 text-center border-r border-slate-200/30">
                           <div className="text-lg font-bold text-gray-800">
                             {index + 1}
@@ -264,6 +268,11 @@ export default function EditableUnitCostTableView({
                               <h3 className="font-semibold text-gray-800 truncate uppercase">
                                 {product.name}
                               </h3>
+                              {product.seCotiza === false && (
+                                <Badge className="mt-1 text-[10px] bg-amber-100 text-amber-800 border border-amber-300">
+                                  Pendiente de cotizar
+                                </Badge>
+                              )}
                             </div>
 
                             {hasVariants && (
